@@ -3362,16 +3362,31 @@ function matResolve(N){return N.filter(n=>n.q>0||n.m2>0||n.litros>0).map(n=>{con
     if(!m&&(n.m2>0||n.litros>0)&&!q)q=n.m2>0?Math.round(n.m2*100)/100:Math.round(n.litros*100)/100;
     let vu=m?+m[3]||0:0,data=m?m[5]||'':'',semPreco=false;if(m&&!(vu>0)){const pp=mpPreco[m[0]];if(pp&&pp.valor>0){vu=pp.valor;data=pp.data+' (manual)'}else semPreco=true}
     return{...n,q,uso:(n.uso||'')+extra,cod:m?m[0]:null,nome:m?m[1]:null,unMP:m?m[2]:n.un,vu,tot:vu*q,data,semPreco,manual:r&&r.manual}})}
-// tinta pela área pintada (+ catalisador e wash primer quando for PU)
 const mpData=d=>{const m=String(d||'').match(/(\d{2})\/(\d{2})\/(\d{4})/);return m?+(m[3]+m[2]+m[1]):0};
-// escolhe a tinta do cadastro: tipo (PU / Duco / Galvimax) + cliente, código e nome da cor; empate → preço mais recente
+// cor (hex) de cada tinta do cadastro, pela referência escrita no nome: Pantone, RAL, Oracal ou nome da cor
+const TINTA_COR=[['AZUL MARINHO','#1b2a5c'],['AZUL CLARO','#5aa9e6'],['VERDE LIMAO','#9bcb3b'],['VERDE ESCURO','#0b4a2e'],['CINZA CLARO','#c3c5c4'],['CINZA ESCURO','#4f5254'],['BRANCO','#f4f5f2'],['PRETO','#141414'],['GRAFITE','#3a3d40'],['CINZA','#8a8e8f'],['PRATA','#b0b4b8'],['ALUMINIO','#a9adb1'],['AMARELO','#f5c400'],['LARANJA','#f07800'],['VERMELHO','#c8102e'],['VINHO','#6b0f1f'],['BORDO','#6b0f1f'],['ROSA','#e88fb4'],['PINK','#e0407e'],['MAGENTA','#c2186b'],['ROXO','#5d2c68'],['LILAS','#b893bc'],['VIOLETA','#5d2c68'],['AZUL','#0050a0'],['TURQUESA','#00a19a'],['VERDE','#00843d'],['MARROM','#5c3a21'],['BEGE','#d8c7a0'],['CREME','#efe0b4'],['DOURADO','#c9a43b'],['OURO','#b8963e'],['COBRE','#9a5a2e'],['BRONZE','#8c6a3f']];
+const corPantone=c=>{const k=String(c||'').toUpperCase().replace(/\s*C\b|\s+/g,'').replace(/^PANTONE/,'');const r=typeof PANTONE_LIST!=='undefined'&&PANTONE_LIST.find(p=>p[0].toUpperCase().replace(/\s*C\b|\s+/g,'')===k);return r?r[1]:null};
+const corRAL=c=>{const k=String(c||'').replace(/\D/g,'');const r=typeof RAL_LIST!=='undefined'&&RAL_LIST.find(p=>p[0]===k);return r?r[2]:null};
+function tintaHex(nome){const n=mpNorm(nome);let m=n.match(/PANTONE\s*(\d{3,4})\s*C?/);if(m){const h=corPantone(m[1]);if(h)return h}
+  m=n.match(/RAL\s*(\d{4})/);if(m){const h=corRAL(m[1]);if(h)return h}
+  m=n.match(/(\d{3})\s*ORACAL|ORACAL\s*(\d{3})/);if(m&&typeof ADES_ORACAL!=='undefined'){const c=m[1]||m[2];const r=ADES_ORACAL.split(';').find(x=>x.split('|')[0]===c);if(r)return '#'+r.split('|')[2]}
+  const w=TINTA_COR.find(([k])=>n.includes(' '+k));return w?w[1]:null}
+const hex2lab=h=>{const v=parseInt(String(h).slice(1),16);let [r,g,b]=[(v>>16)&255,(v>>8)&255,v&255].map(x=>{x/=255;return x>0.04045?Math.pow((x+0.055)/1.055,2.4):x/12.92});
+  let X=(r*0.4124+g*0.3576+b*0.1805)/0.95047,Y=r*0.2126+g*0.7152+b*0.0722,Z=(r*0.0193+g*0.1192+b*0.9505)/1.08883;const f=t=>t>0.008856?Math.cbrt(t):7.787*t+16/116;X=f(X);Y=f(Y);Z=f(Z);return[116*Y-16,500*(X-Y),200*(Y-Z)]};
+const dE=(a,b)=>{const p=hex2lab(a),q=hex2lab(b);return Math.hypot(p[0]-q[0],p[1]-q[1],p[2]-q[2])};
+let TINTA_HEX=null;
+// cor pedida: código Pantone/RAL, CMYK/RGB, amostra escolhida ou nome da cor
+function corAlvo(CI){if(CI.esc==='PANTONE'&&CI.code){const h=corPantone(CI.code);if(h)return h}if(CI.esc==='RAL'&&CI.code){const h=corRAL(CI.code);if(h)return h}
+  if(CI.rgb)return CI.hex;if(CI.hex&&CI.hex.toLowerCase()!=='#1a1a1a')return CI.hex;if(CI.nome){const w=TINTA_COR.find(([k])=>mpNorm(' '+CI.nome).includes(' '+k));if(w)return w[1]}return CI.hex||null}
+// escolhe a tinta do cadastro: tipo (PU / Duco / Galvimax) + a cor mais próxima; mesmo código/cliente ganha prioridade; empate → preço mais recente
 function mpTinta(tipo,CI,cliente,acab){const pre=tipo==='GALVIMAX'?/^TINTA GALVIMAX/:tipo==='TINTA DUCO'?/^TINTA DUCO/:/^TINTA PU/;
+  if(!TINTA_HEX)TINTA_HEX=MP.map(r=>/^TINTA/i.test(r[1])?tintaHex(r[1]):null);
   const cand=MP.map((r,i)=>i).filter(i=>pre.test(mpNorm(MP[i][1])));if(!cand.length)return -1;
-  const W=[];const add=(txt,p)=>mpNorm(txt).split(/[^A-Z0-9]+/).filter(w=>w.length>2&&!/^(LTDA|COM|DE|DA|DO|DAS|DOS|REF|TINTA)$/.test(w)).forEach(w=>W.push([w,p]));
-  add(cliente||'',3);add(CI.nome||'',2);const code=mpNorm(CI.code||'').replace(/\s+/g,'');
-  let best=-1,bs=0,bd=0;cand.forEach(i=>{const n=MPN[i],nc=n.replace(/\s+/g,'');let s=0;
-    if(code&&code.length>=3&&nc.includes(code))s+=5;W.forEach(([w,p])=>{if(n.includes(' '+w)||n.includes('('+w))s+=p});if(acab&&n.includes(mpNorm(acab)))s+=0.3;
-    const d=mpData(MP[i][5]);if(s>bs||(s===bs&&s>0&&d>bd)){best=i;bs=s;bd=d}});return bs>=2?best:-1}
+  const alvo=corAlvo(CI);const code=mpNorm(CI.code||'').replace(/\s+/g,'');const cli=mpNorm(cliente||'').split(/[^A-Z0-9]+/).filter(w=>w.length>2);
+  let best=-1,bs=1e9,bd=0;cand.forEach(i=>{const n=MPN[i],nc=n.replace(/\s+/g,'');let s;
+    if(code&&code.length>=3&&nc.includes(code))s=-20;else if(alvo&&TINTA_HEX[i])s=dE(alvo,TINTA_HEX[i]);else if(alvo)s=999;else s=500;
+    if(cli.some(w=>n.includes(' '+w)||n.includes('('+w))&&s<35)s-=25;if(acab&&n.includes(mpNorm(acab)))s-=1;
+    const d=mpData(MP[i][5]);if(s<bs-0.5||(Math.abs(s-bs)<=0.5&&d>bd)){best=i;bs=s;bd=d}});return bs<400?best:-1}
 // tinta pela área pintada (+ catalisador e wash primer quando for PU)
 function needsTinta(area,quem){const out=[];if(!(area>0))return out;const CI=typeof corInfo==='function'?corInfo():{};const ref=[CI.code?`${CI.esc} ${CI.code}`:'',CI.nome||''].filter(Boolean).join(' — ')||'cor a definir';
   const tipo=($('#pTinta')&&$('#pTinta').value)||'TINTA PU';const pu=tipo==='TINTA PU';const nomeT={'TINTA PU':'PU','TINTA DUCO':'Duco','GALVIMAX':'Galvimax'}[tipo]||tipo;
