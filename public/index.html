@@ -230,6 +230,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
     <div class="card"><h2>3. Tipo de letra caixa</h2><div class="types" id="typePick"></div><div id="chapaBox" hidden><label class="f" style="margin-top:14px">Linha interna da chapa galvanizada</label><div class="leds" id="chapaPick"></div></div>
       <label class="f" style="margin-top:14px">Profundidade da caixa (espessura da letra)</label><div class="leds" id="caixaPick"></div></div>
     <div class="card"><h2>4. LED</h2><div class="leds" id="ledPick"></div><label class="f" style="margin-top:12px">Potência do módulo de LED</label><div class="leds" id="ledWPick"></div>
+      <div class="g2"><div><label class="f">Rabicho do fio por letra (mm)</label><input type="number" id="ledRab" value="500" step="50" min="0"></div><div><label class="f">Saída do fio na letra</label><select id="ledSaida"><option value="inf">Inferior centralizado</option><option value="sup">Superior centralizado</option></select></div></div>
       <div class="g2"><div><label class="f">Distância centro a centro (mm) <span class="badge">opcional</span></label><input type="number" step="1" id="ledGap" placeholder="Padrão do tipo: 80" inputmode="decimal"></div>
       <div><label class="f">Borda até a 1ª fileira (mm) <span class="badge">opcional</span></label><input type="number" step="1" id="ledMarg" placeholder="Padrão do tipo: 45" inputmode="decimal"></div></div>
       <p class="note" style="margin:6px 0 0">Use para diminuir o espaçamento só neste pedido. O mínimo é o comprimento do módulo + 2 mm (77 mm).</p></div>
@@ -270,7 +271,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
     </div>
     <div class="card">
       <div class="row"><button class="btn pink" id="gerar" disabled>Gerar FP</button><button class="btn ghost" id="baixar" hidden>Baixar FP (PDF)</button></div>
-      <div id="ledAdjHome"><div id="ledAdj" hidden style="margin:10px 0 16px;padding:12px;border:1.5px solid #e8a400;border-radius:12px;background:#fffbea"></div></div>
+      <div id="ledAdjHome"><div id="ledAdj" hidden style="margin:8px 0 14px;padding:8px 10px;border:1.5px solid #e8a400;border-radius:10px;background:#fffbea"></div></div>
       <div id="prodFiles" hidden style="margin-top:12px"></div>
       <div id="outMsg"></div>
       <h2 id="lFichasT" hidden style="margin:16px 0 0">Fichas de produção</h2>
@@ -1510,10 +1511,17 @@ function ordenaPecas(arr){
 const FURO_D=3;
 function nFuros(tam){return Math.max(4,Math.ceil(tam/100-1e-9)-1)}
 function circ(c,r,n=20){const o=[];for(let k=0;k<n;k++){const a=2*Math.PI*k/n;o.push([c[0]+r*Math.cos(a),c[1]+r*Math.sin(a)])}return o}
+function saidaFio(g,pos){const cp=toC(g.ps);const b=g.bb;const cx=(b.x0+b.x1)/2;
+  for(const dx of [0,5,-5,10,-10,15,-15,20,-20,30,-30,40,-40]){const x=cx+dx;let edge=null;
+    if(pos==='sup'){for(let y=b.y1;y>=b.y0;y-=1)if(inside([x,y],cp)){edge=y;break}if(edge!=null&&inside([x,edge-10],cp)&&inside([x,edge-13],cp))return[x,edge-10]}
+    else{for(let y=b.y0;y<=b.y1;y+=1)if(inside([x,y],cp)){edge=y;break}if(edge!=null&&inside([x,edge+10],cp)&&inside([x,edge+13],cp))return[x,edge+10]}}
+  return null}
 function furosPVC(polys,extra=0){const furos=[];
   regionsOf(toC(polys)).forEach(rg=>{const ps=fromC(rg);const b=bbox(ps);const tam=Math.max(b.w,b.h)+extra;const n=nFuros(tam);
-    let ins=[];for(const d of [15,10.5,7.5,4.5]){ins=offset(rg,-(d+FURO_D/2));if(ins.length)break}
-    let cand=[];ins.forEach(p=>{for(let i=0;i<p.length;i++){const a=p[i],c=p[(i+1)%p.length];const L=Math.hypot(c[0]-a[0],c[1]-a[1]);const k=Math.max(1,Math.ceil(L/3));for(let j=0;j<k;j++)cand.push([a[0]+(c[0]-a[0])*j/k,a[1]+(c[1]-a[1])*j/k])}});
+    // furos no centro do traço (mesma linha base da elétrica)
+    let cand=[];try{const SG=skeletonGraph(rg);SG.forEach(pt=>{const r=resample(pt.pts,3);r.forEach(q=>cand.push(q))})}catch(e){}
+    if(!cand.length){let ins=[];for(const d of [15,10.5,7.5,4.5]){ins=offset(rg,-(d+FURO_D/2));if(ins.length)break}
+      ins.forEach(p=>{for(let i=0;i<p.length;i++){const a=p[i],c=p[(i+1)%p.length];const L=Math.hypot(c[0]-a[0],c[1]-a[1]);const k=Math.max(1,Math.ceil(L/3));for(let j=0;j<k;j++)cand.push([a[0]+(c[0]-a[0])*j/k,a[1]+(c[1]-a[1])*j/k])}})}
     if(!cand.length)cand=[[(b.x0+b.x1)/2,(b.y0+b.y1)/2]];
     const cx=(b.x0+b.x1)/2,cy=(b.y0+b.y1)/2;const sel=[cand.reduce((m,q)=>Math.hypot(q[0]-cx,q[1]-cy)>Math.hypot(m[0]-cx,m[1]-cy)?q:m)];
     const dmin=q=>Math.min(...sel.map(s=>Math.hypot(q[0]-s[0],q[1]-s[1])));
@@ -1541,6 +1549,10 @@ function buildDoc(){
   let defs=pagesOf(t).concat(readPages($('#xPages')));
   if(!defs.length)defs=[{...PG_BLANK,setor:'ROUTER',titulo:'ORIGINAL - LINHA PRETA',material:'',linhas:[{offset:0,legenda:'Original',cor:'#000000'}]}];
   const pages=[],info=[];let furosDoc=null,pvcPolys=null,acabP=null;
+  // saída do fio de cada letra: centralizado, a 10 mm do topo ou da base (só se o tipo tem LED)
+  let saidasFio=null;const temLedT=defs.some(p=>p.tipo==='led');const rabMM=temLedT?Math.max(0,num($('#ledRab').value)):0;const saidaPos=$('#ledSaida').value||'inf';
+  if(temLedT){try{const Lg=ordenaPecas(regionsOf(toC(orig)).map(r=>{const ps=fromC(r);return{ps,bb:bbox(ps)}}));saidasFio=Lg.map(g=>saidaFio(g,saidaPos)).filter(Boolean)}catch(e){console.error('saída do fio',e)}}
+  ctx.rab=rabMM;ctx.saida=saidaPos;
   let ledInfo=null;
   const mo=Math.max(0,...defs.flatMap(p=>(p.linhas||[]).map(l=>l.offset)));
   const hasLed=defs.some(p=>p.tipo==='led');const K=1; // FP em A4; o tamanho real (1:1) vai nos arquivos de produção
@@ -1614,6 +1626,7 @@ function buildDoc(){
       R.boundary.forEach(p=>P.push({t:'poly',pts:map(p),color:'#e03131',w:0.18}));
       R.baseLines.forEach(b=>P.push({t:b.closed?'poly':'path',pts:map(b.pts),color:'#1c7ed6',w:0.2}));
       R.wires.forEach(w=>P.push({t:'path',pts:map(w),color:'#555555',w:0.25}));
+      (saidasFio||[]).forEach(c=>{const [x,y]=map([c])[0];P.push({t:'circle',x,y,r:1.1,fill:'#c92a2a',stroke:'#ffffff',lw:0.25})});
       R.mods.forEach(m=>P.push({t:'poly',pts:map(m.rect),color:'#000000',w:0.1}));
       // LEDs por peça: etiquetas numa faixa abaixo do desenho, com linha de chamada até a peça (não ficam em cima das letras)
       {const Ls=ordenaPecas(R.letters);
@@ -1632,7 +1645,7 @@ function buildDoc(){
       P.push({t:'text',x:284,y:25,s:escTxt,size:2.4,bold:true,color:'#2f6fa8',anchor:'end'});
       const Pp=R.P;const w=R.watts;
       if(R.circ&&R.circ.lista.length){const L=R.circ.lista;let yy=167-Math.min(L.length,6)*4.2-4;P.push({t:'text',x:98,y:yy,s:'LIGAÇÃO ELÉTRICA — LETRAS LIGADAS JUNTAS',size:2.5,bold:true,color:'#c2255c'});yy+=4.2;L.slice(0,6).forEach(c=>{P.push({t:'circle',x:99.6,y:yy-1,r:1.3,fill:c.cor,stroke:c.cor,lw:0.1},{t:'text',x:102.5,y:yy,s:fit(circTxt(c),95,2.4),size:2.4,bold:true,color:'#000000'});yy+=4.2});if(L.length>6)P.push({t:'text',x:102.5,y:yy,s:`+ ${L.length-6} fonte(s) — ver instalação`,size:2.2,color:'#555555'})}
-      matTable(P,pg,[['ILUMINAÇÃO:',`LED ${f0(Pp.larg)} x ${f0(Pp.alt)} MM`],['TEMPERATURA:',ctx.led],['QTD. MÓDULOS:',`${R.mods.length} un`],['CONSUMO:',`${w.toLocaleString('pt-BR',{maximumFractionDigits:1})} W  (+25% = ${(w*LED_FOLGA).toLocaleString('pt-BR',{maximumFractionDigits:1})} W)`],['FONTES:',R.circ?(()=>{const c={};R.circ.lista.forEach(x=>c[x.fonte]=(c[x.fonte]||0)+1);return Object.entries(c).map(([w2,n])=>`${n}x ${w2} W`).join(' + ')+(R.circ.grande?' (LETRA > 350 MM)':'')})():reatorTxt(w*LED_FOLGA)],['ESPAÇAMENTO:',`${fmt(Pp.gap/10)} CM CENTRO A CENTRO`],['QTD. REAL:',' ']]);
+      matTable(P,pg,[['ILUMINAÇÃO:',`LED ${f0(Pp.larg)} x ${f0(Pp.alt)} MM`],['TEMPERATURA:',ctx.led],['QTD. MÓDULOS:',`${R.mods.length} un`],['CONSUMO:',`${w.toLocaleString('pt-BR',{maximumFractionDigits:1})} W  (+25% = ${(w*LED_FOLGA).toLocaleString('pt-BR',{maximumFractionDigits:1})} W)`],['FONTES:',R.circ?(()=>{const c={};R.circ.lista.forEach(x=>c[x.fonte]=(c[x.fonte]||0)+1);return Object.entries(c).map(([w2,n])=>`${n}x ${w2} W`).join(' + ')+(R.circ.grande?' (LETRA > 350 MM)':'')})():reatorTxt(w*LED_FOLGA)],['ESPAÇAMENTO:',`${f0(Pp.gap)} MM CENTRO A CENTRO`],['SAÍDA DO FIO:',`${ctx.saida==='sup'?'SUPERIOR':'INFERIOR'} — 10 MM (PONTO VERM.)`],['RABICHO:',`${f0(ctx.rab||0)} MM (PRETO+VERM.)`],['QTD. REAL:',' ']]);
       legend(P,pg,[{cor:'#e03131',legenda:`Contorno base`,offset:Pp.base,polys:R.boundary},{cor:'#000000',legenda:`Módulo LED ${f0(Pp.larg)}x${f0(Pp.alt)} mm — ${Pp.watts}W`,offset:0,polys:[1],noOff:true},{cor:'#7a7a7a',legenda:'Fio entre módulos (zig-zag)',offset:0,polys:[1],noOff:true},{cor:'#1c7ed6',legenda:'Linha base (centro do traço)',offset:0,polys:[1],noOff:true}]);
       pages.push(P);info.push({pg,lines:[],vec:[{color:'#e03131',polys:R.boundary},{color:'#000000',polys:R.mods.map(m=>m.rect)}]});return;
     }
@@ -1649,7 +1662,8 @@ function buildDoc(){
       {const pin=(pt,poly)=>{let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const [xi,yi]=poly[i],[xj,yj]=poly[j];if((yi>pt[1])!==(yj>pt[1])&&pt[0]<(xj-xi)*(pt[1]-yi)/(yj-yi)+xi)c=!c}return c};
        const ext=lines.filter(l=>/EXTERNO/i.test(l.legenda||''));ext.forEach(l=>{const hol=[],out=[];l.polys.forEach(p=>{const n=l.polys.filter(q=>q!==p&&pin(p[0],q)).length;(n%2?hol:out).push(p)});
          if(hol.length){l.polys=out;lines.push({cor:RC['CORTE INTERNO'],legenda:'CORTE INTERNO (miolos das letras)',offset:l.offset,noOff:true,polys:hol})}})}
-      lines.push({cor:RC['CORTE INTERNO'],legenda:`FURO Ø${FURO_D} p/ parafuso — ${furosDoc.length} furos (CORTE INTERNO)`,offset:0,noOff:true,polys:furosDoc.map(f=>circ(f.c,FURO_D/2))})}
+      lines.push({cor:RC['REBAIXO'],legenda:`FURO Ø${FURO_D} — REBAIXO 3 MM (NÃO FURAR TOTAL) — ${furosDoc.length} furos no centro do traço`,offset:0,noOff:true,polys:furosDoc.map(f=>circ(f.c,FURO_D/2))});
+      if(saidasFio&&saidasFio.length)lines.push({cor:RC['CORTE INTERNO'],legenda:`FURO Ø6 — SAÍDA DO FIO (${saidasFio.length}) — CORTE INTERNO`,offset:0,noOff:true,polys:saidasFio.map(c=>circ(c,3,24))})}
     const BX=30,BY=42,BW=254,BH=94;
     const s=SC;const dx=BX+(BW-bb.w*s)/2,dy=BY+(BH-bb.h*s)/2;
     const map=p=>p.map(([x,y])=>[dx+(x-bb.x0)*s,dy+(bb.y1-y)*s]);
@@ -1864,27 +1878,23 @@ function toPDF(pages){
 let lastPdf=null,lastName='';
 function updateBtn(){$('#gerar').disabled=!(src&&src.polys.length&&selType&&selLed)}
 let ledAdj={},lastLed=null,ledFoco=false;
-function renderLedAdj(R){const box=$('#ledAdj');if(!R||!R.letters||!R.letters.length){box.hidden=true;return}box.hidden=false;
+let ledPend=false;
+function renderLedAdj(R){const box=$('#ledAdj');if(!R||!R.letters||!R.letters.length){box.hidden=true;return}box.hidden=false;ledPend=false;
   R.letters.forEach(g=>{if(g.alvo&&g.n<g.alvo)ledAdj[g.key]=g.n-(g.alvo-g.aj)});
   const Ls=ordenaPecas(R.letters);const tem=Object.values(ledAdj).some(v=>v)||Object.keys(ledFonte).length;const C=R.circ;const nF=C?C.lista.length:1;
-  box.innerHTML=`<div class="row" style="justify-content:space-between"><label class="f" style="margin:0">LEDs e fontes por letra</label>${tem?'<button class="btn ghost sm" id="ledAdjZero">Voltar ao automático</button>':''}</div>
-  <div class="row" style="gap:6px;margin-top:6px">${Ls.map((g,k)=>{const fn=C?C.porLetra[k]:1;const cc=C&&C.lista[fn-1];const cor=cc?cc.cor:'#e8a400';const parte=cc&&cc.parte;
-    return `<div style="border:1.5px solid ${g.aj?'#1971c2':cor};border-radius:10px;padding:6px 8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:${g.aj?'#e7f1ff':'#fff'}">
-    <span style="background:${cor};color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">${k+1}</span>
-    <button class="btn ghost sm" data-la="${g.key}" data-d="-1" style="padding:4px 10px" ${g.n<=1?'disabled':''}>−</button><input type="number" min="1" data-lq="${g.key}" value="${g.n}" style="width:58px;padding:6px;text-align:center;font-weight:700"><button class="btn ghost sm" data-la="${g.key}" data-d="1" style="padding:4px 10px" ${g.alvo&&g.n<g.alvo?'disabled':''}>+</button>
-    ${parte?`<span class="note" style="font-size:11px">dividida em ${C.lista.filter(c=>c.parte&&c.letras[0]===k+1).length} fontes</span>`:`<select data-lf="${k+1}" style="padding:6px;font-weight:700;color:${cor}">${Array.from({length:nF+1},(_,i)=>`<option value="${i+1}" ${i+1===fn?'selected':''}>Fonte ${i+1}${i===nF?' (nova)':''}</option>`).join('')}</select>`}</div>`}).join('')}</div>
-  ${C?`<div style="margin-top:8px;font-size:13px">${C.lista.map(c=>`<div style="display:flex;gap:6px;align-items:center;margin-top:3px;${c.excede?'color:#c92a2a;font-weight:700':''}"><span style="width:12px;height:12px;border-radius:50%;background:${c.cor};display:inline-block"></span>${esc(circTxt(c))}${c.manual?' • escolhida à mão':''}</div>`).join('')}</div>`:''}
-  <p class="note" style="margin:6px 0 0">Digite a quantidade de LEDs ou use + e −. Escolha em qual fonte cada letra vai ligada; a potência da fonte é calculada (LEDs x W + 25%) e a FP é refeita na hora.</p>`}
-$('#ledAdj').onclick=e=>{const z=e.target.closest('#ledAdjZero');if(z){ledAdj={};ledFonte={};ledFoco=true;$('#gerar').click();return}
-  const b=e.target.closest('[data-la]');if(!b)return;const k=b.dataset.la;const g=(lastLed&&lastLed.letters||[]).find(x=>x.key===k);
-  ledAdj[k]=(ledAdj[k]||0)+(+b.dataset.d);
-  // o ajuste é relativo ao automático: se pediu menos e já está no mínimo, não passa de 1
-  if(g&&g.n+(+b.dataset.d)<1)ledAdj[k]-=(+b.dataset.d);
-  document.querySelectorAll('#ledAdj button').forEach(x=>x.disabled=true);ledFoco=true;setTimeout(()=>$('#gerar').click(),20)};
+  box.innerHTML=`<div class="row" style="justify-content:space-between;align-items:center;gap:6px"><b style="font-size:12px;color:#8a6d00">LEDS E FONTES POR LETRA</b><span class="row" style="gap:6px">${tem?'<button class="btn ghost sm" id="ledAdjZero" style="padding:4px 8px;font-size:12px">Automático</button>':''}<button class="btn pink sm" id="ledAtu" style="padding:4px 10px;font-size:12px" disabled>Atualizar</button></span></div>
+  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">${Ls.map((g,k)=>{const fn=C?C.porLetra[k]:1;const cc=C&&C.lista[fn-1];const cor=cc?cc.cor:'#e8a400';const parte=cc&&cc.parte;
+    return `<span style="display:inline-flex;align-items:center;gap:3px;border:1.5px solid ${g.aj?'#1971c2':cor};border-radius:8px;padding:2px 4px;background:${g.aj?'#e7f1ff':'#fff'};font-size:12px">
+    <b style="background:${cor};color:#fff;border-radius:50%;width:17px;height:17px;display:inline-flex;align-items:center;justify-content:center;font-size:10px">${k+1}</b>
+    <input type="number" min="1" data-lq="${g.key}" value="${g.n}" title="LEDs" style="width:44px;padding:2px 3px;font-size:12px;text-align:center;font-weight:700;min-height:0">
+    ${parte?'<span style="font-size:10px;color:var(--mute)">div.</span>':`<select data-lf="${k+1}" title="Fonte" style="padding:2px;font-size:11px;font-weight:700;color:${cor};min-height:0;width:auto">${Array.from({length:nF+1},(_,i)=>`<option value="${i+1}" ${i+1===fn?'selected':''}>F${i+1}</option>`).join('')}</select>`}</span>`}).join('')}</div>
+  ${C?`<div style="margin-top:6px;font-size:11.5px;line-height:1.35">${C.lista.map(c=>`<div style="${c.excede?'color:#c92a2a;font-weight:700':''}"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c.cor};margin-right:4px"></span>${esc(circTxt(c))}</div>`).join('')}</div>`:''}`}
+$('#ledAdj').onclick=e=>{if(e.target.closest('#ledAdjZero')){ledAdj={};ledFonte={};ledFoco=true;$('#gerar').click();return}
+  if(e.target.closest('#ledAtu')){if(typeof pedSujo!=='undefined')pedSujo=true;ledFoco=true;$('#ledAtu').textContent='Atualizando…';setTimeout(()=>$('#gerar').click(),20)}};
 $('#ledAdj').addEventListener('change',e=>{const q=e.target.closest('[data-lq]'),f=e.target.closest('[data-lf]');
   if(q){const k=q.dataset.lq;const g=(lastLed&&lastLed.letters||[]).find(x=>x.key===k);const v=Math.max(1,Math.round(+q.value||1));if(g){const base=g.n-(ledAdj[k]||0);ledAdj[k]=v-base}}
   else if(f){ledFonte[+f.dataset.lf]=+f.value}else return;
-  if(typeof pedSujo!=='undefined')pedSujo=true;ledFoco=true;setTimeout(()=>$('#gerar').click(),20)});
+  ledPend=true;const b=$('#ledAtu');if(b){b.disabled=false;b.textContent='Atualizar FP'}});
 function resetOut(){lastPdf=null;lDoc=null;if($('#lPgPick')){$('#lPgPick').innerHTML='';$('#lFichasT').hidden=true}$('#gerar').textContent='Gerar FP';$('#ledAdj').hidden=true;$('#baixar').hidden=true;$('#prodFiles').hidden=true;prodFiles=[]}
 let srcBytes=null;
 $('#pdfIn').onchange=async e=>{const f=e.target.files[0];if(!f)return;await carregaLetra(f.name,new Uint8Array(await f.arrayBuffer()));e.target.value=''};
@@ -3255,14 +3265,15 @@ function prodLetras(t,ctx,orig,defs,ledInfo,furos,nests){const fixBit=(()=>{try{
       vols.push({desc:`LETRA ${k+1} — FUNDO PVC`,cont:`Fundo em PVC 10 mm${nf?` (${nf} furos Ø3)`:''}`,dims:`${f0(g.bb.w)} x ${f0(g.bb.h)} x 10`,q:1,kg:area*KG.pvc10,draw:{polys:g.ps,fill:'#e9ecef'}})}});
   L.forEach((g,k)=>panL[k]=panelaPorLetra(g.ps));const nb=brocL.reduce((a,v)=>a+(v||0),0),np=panL.reduce((a,v)=>a+v,0);
   const b=bbox(orig);
-  vols.push({desc:'PARAFUSOS',cont:`${temPVC?nb+' fixações na parede ('+fixBit+') + ':''}${np} cabeça panela Phillips 5,5x25 (lateral, pintados)`,dims:'—',q:1,kg:0,draw:null});
+  vols.push({desc:'PARAFUSOS CABEÇA PANELA PINTADOS',cont:`${np} parafusos cabeça panela Phillips PINTADOS na cor da letra (fixam a letra no PVC pela lateral)`,dims:'—',q:np,kg:0,draw:null});
+  if(temPVC)vols.push({desc:'FIXAÇÃO NA PAREDE',cont:`${nb} x ${fixBit}`,dims:'—',q:1,kg:0,draw:null});
   vols.push({desc:'MOLDE KRAFT',cont:`Molde em papel kraft (enrolado)${furos?' com a furação':''}`,dims:`${f0(b.w+100)} x ${f0(b.h+100)}`,q:1,kg:(b.w+100)*(b.h+100)/1e6*0.1,draw:{rects:[{x0:0,y0:0,x1:b.w+100,y1:b.h+100,cor:'#f4e3c3'}]}});
   if(temLed&&ledInfo)vols.push({desc:'ELÉTRICA',cont:'Fonte / reator e fiação da iluminação',dims:'—',q:1,kg:0,draw:null});
   const qualExtra=[];(nests||[]).forEach(N=>{const B=N.best;if(!B||N.semQual)return;B.sheets.forEach((sh,k)=>{const polys=[];sh.items.forEach(it=>{const pc=pieceAt(N.pieces[it.i],it);(pc.lines[0]?[pc.lines[0]]:[]).forEach(l=>l.polys.forEach(p=>polys.push(p)))});
     qualExtra.push({desc:`APROVEITAMENTO ${N.nome==='ACRILICO'?'ACRÍLICO':'CHAPA GALV.'} ${k+1}/${B.sheets.length}`,cont:`Chapa ${B.w} x ${B.h} mm — ${sh.items.length} peças`,q:1,draw:{rects:[{x0:0,y0:0,x1:B.w,y1:B.h,cor:'#f8f9fa'}],polys,fill:N.nome==='ACRILICO'?'#ffc9de':'#dee2e6'}})})});
   return{tipo:'letra',circ:ledInfo&&ledInfo.circ,mat:matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L),anc:{peca:temPVC?'FUNDO DE PVC':'FUNDO DA LETRA',auto:temPVC?nb:L.length*3,onde:temPVC?'nos furos do PVC (molde kraft)':'3 por letra (estimado)'},qualExtra,nome:ctx.descItem||t.nome,W:b.w,H:b.h,D:cx,un:1,letras:L.map((g,k)=>({h:g.bb.h,broc:temPVC?(brocL[k]||0):null,pan:panL[k]})),
     metodo:[...(temPVC?[`Fixar o molde kraft na parede, furar pelos furos e fixar o FUNDO DE PVC com ${fixBit} (${nb} no total).`]:[]),`Encaixar a frente da letra${temPVC?' sobre o PVC':''} e fixar pela LATERAL com ${PANELA} — um a cada 200 mm (${np} no total).`,'Os parafusos da lateral vão pintados na cor da letra.'],contorno:orig,volumes:vols,
-    checks:['MEDIDAS','ACABAMENTO / PINTURA',...(temLed?['LED ACENDE']:[]),...(temPVC?['FUROS PVC']:[])]}}
+    checks:['MEDIDAS','ACABAMENTO / PINTURA',`PARAFUSOS CABEÇA PANELA PINTADOS (${np})`,...(temLed?['LED ACENDE']:[]),...(temPVC?['FUROS PVC']:[])]}}
 function prodTesteira(M,o,ctx){const comp=M.comp;const vols=[];const b3=bbox3(M.acm?M.boxes.concat(M.acm.boxes):M.boxes.filter(b=>!b.fix));
   comp.forEach(c=>{const F=c.F;let kg=0;F.mem.forEach(m=>{const pp=PERFIS[m.perfil];if(!pp)return;kg+=(m.len+(m.ext||0))/1000*tuboKgM(pp.f,pp.p,numBR(m.parede||o.parede))});
     const front=F.mem.filter(m=>m.z0<F.p+1&&m.tipo!=='Ligação de profundidade').map(m=>({x0:m.x0,y0:m.y0,x1:m.x1,y1:m.y1,cor:PERFIS[m.perfil].cor}));
@@ -3419,7 +3430,7 @@ function matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L){const N=[];const temLed=
     N.push({k:`led|${tk}|${wt}`,desc:`Módulo LED ${tk}K ${ws} W 12 V`,q:ledInfo.mods.length,un:'un',uso:'iluminação (configuração do sistema)',busca:{must:['MODULO LED',`${tk}K`,[`${(+wt).toFixed(2)}W`,`${+wt}W`]],want:['3P','VINILSUL']}});
     const c={};(ledInfo.circ?ledInfo.circ.lista.map(x=>x.fonte):fontes(ledInfo.watts*LED_FOLGA)).forEach(w=>c[w]=(c[w]||0)+1);
     Object.entries(c).forEach(([w,q])=>N.push({k:`fonte|${w}`,desc:`Fonte blindada ${w} W 12 V IP67`,q,un:'un',uso:ledInfo.circ?`${ledInfo.circ.lista.length} circuito(s)${ledInfo.circ.grande?' — letra > 350 mm: só 100/150 W':''}`:`${f1(ledInfo.watts)} W + 25%`,busca:{must:['REATOR',`${w}W`,'IP67']}}));
-    const larg=(L||[]).reduce((a,g)=>a+g.bb.w,0)/1000*MPP.fioFator;const meio=Math.round(larg/2*100)/100;N.push({k:'fio|1.5|preto',desc:'Cabo flexível 1,5 mm preto',q:meio,un:'m',uso:`metade de largura das letras x ${MPP.fioFator}`,busca:{must:['CABO FLEXIVEL','PRETO','01.50MM']}},{k:'fio|1.5|verm',desc:'Cabo flexível 1,5 mm vermelho',q:meio,un:'m',uso:`metade de largura das letras x ${MPP.fioFator}`,busca:{must:['CABO FLEXIVEL','VERMELHO','01.50MM']}})}
+    const larg=(L||[]).reduce((a,g)=>a+g.bb.w,0)/1000*MPP.fioFator;const rabM=(+ctx.rab||0)/1000*(L||[]).length;const meio=Math.round((larg/2+rabM)*100)/100;N.push({k:'fio|1.5|preto',desc:'Cabo flexível 1,5 mm preto',q:meio,un:'m',uso:`metade de largura x ${MPP.fioFator}${rabM?` + rabicho ${f0(ctx.rab)} mm x ${(L||[]).length} letras`:''}`,busca:{must:['CABO FLEXIVEL','PRETO','01.50MM']}},{k:'fio|1.5|verm',desc:'Cabo flexível 1,5 mm vermelho',q:meio,un:'m',uso:`metade de largura x ${MPP.fioFator}${rabM?` + rabicho ${f0(ctx.rab)} mm x ${(L||[]).length} letras`:''}`,busca:{must:['CABO FLEXIVEL','VERMELHO','01.50MM']}})}
   if(np)N.push({k:'let|panela',desc:'Parafuso cabeça panela (lateral)',q:np,un:'un',uso:'lateral das letras',busca:{must:['CABECA PANELA','2.9X6.5']}});
   return N}
 function matEstrutura(L,un){const g={};(L||[]).forEach(r=>{if(!/tubo|metalon|barra/i.test((r.tipo||'')+' '+(r.nome||'')))return;const k=(r.perfil||'')+'|'+(r.parede||'');(g[k]=g[k]||[]);for(let i=0;i<(r.q||1)*un;i++)g[k].push(r.len||0)});
