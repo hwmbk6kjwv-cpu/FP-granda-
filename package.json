@@ -1,0 +1,1 @@
+{"name":"granda-ajustes","private":true,"type":"module","dependencies":{"@netlify/blobs":"^10.0.0","@netlify/functions":"^5.0.0","@anthropic-ai/sdk":"^0.70.0"}}
