@@ -552,7 +552,7 @@ async function deleteType(id){
 async function saveEmpresa(){if(local){lsSet('granda_empresa',empresa);renderLogo();return}await db.doc('config/empresa').set(empresa)}
 
 /* ---------- UI: tipos ---------- */
-let selType=null,selLed=null;
+let selType=null,selLed=6500;
 function typeCard(t,sel){
   const leds=(t.leds||[]).map(l=>`<span class="chip led">${l.toLocaleString('pt-BR')} K</span>`).join('');
   const pgs=pagesOf(t);
@@ -565,7 +565,7 @@ function renderTypes(){
   $('#typeList').innerHTML=types.length?types.map(t=>typeCard(t,false)).join(''):'<p class="note">Nenhum tipo cadastrado.</p>';
   renderLeds();updateBtn();
 }
-let selChapa=null,selCaixa=40,selEsc='PANTONE';
+let selChapa=null,selCaixa=80,selEsc='PANTONE';
 const cl=v=>Math.max(0,Math.min(255,Math.round(v)));
 const cmyk2rgb=(c,m,y,k)=>[cl(255*(1-c/100)*(1-k/100)),cl(255*(1-m/100)*(1-k/100)),cl(255*(1-y/100)*(1-k/100))];
 const rgb2cmyk=(r,g,b)=>{const R=r/255,G=g/255,B=b/255,K=1-Math.max(R,G,B);if(K>=1)return[0,0,0,100];return[(1-R-K)/(1-K),(1-G-K)/(1-K),(1-B-K)/(1-K),K].map(v=>Math.round(v*100))};
@@ -609,7 +609,7 @@ function renderLeds(){renderChapa();renderCaixa();
   $('#ledGap').placeholder='Padrão do tipo: '+fmt(L.gap/10).replace(',0','');$('#ledMarg').placeholder='Padrão do tipo: '+fmt(L.margem/10).replace(',0','');
   if(!t){$('#ledPick').innerHTML='<p class="note">Escolha o tipo primeiro.</p>';return}
   const leds=t.leds&&t.leds.length?t.leds:LED_ALL;
-  if(!leds.includes(selLed))selLed=null;
+  if(!leds.includes(selLed))selLed=leds.includes(6500)?6500:null;
   $('#ledPick').innerHTML=leds.map(l=>`<button data-led="${l}" class="${l===selLed?'sel':''}"><span class="sw" style="background:${LED_COLOR[l]||'#eee'}"></span><b>${l.toLocaleString('pt-BR')} K</b></button>`).join('');
 }
 function renderLogo(){const lg=empresa.logo||GRANDA_LOGO;const p=$('#logoPrev');p.style.backgroundImage=`url('${lg}')`;p.textContent='';const h=$('#hdrLogo');if(h)h.src=lg}
@@ -3366,7 +3366,7 @@ function proximoN(){return Math.max(0,...(pedAtual.itens||[]).map(i=>+i.n||0))+1
 document.querySelectorAll('[data-novo]').forEach(b=>b.onclick=()=>{const tipo=b.dataset.novo;itemAtual={id:'i'+Date.now().toString(36),tipo,n:proximoN(),novo:true};
   limpaTipo(tipo);$('#item').value=itemAtual.n;irAba(TIPO_ABA[tipo]);if(tipo==='testeira')setModo('padrao');if(tipo==='estrutura')setModo('desenho');pedSujo=true;pedBarRender();window.scrollTo(0,0)});
 function limpaTipo(tipo){refImg=null;refRender();instReset();
-  if(tipo==='letra'){src=null;srcBytes=null;ledAdj={};resetOut();prevSet('');$('#outMsg').innerHTML='';$('#fileInfo').innerHTML='';$('#drop').classList.remove('has');$('#dropTxt').textContent='Toque para escolher o PDF';$('#xPages').innerHTML='';$('#obs').value='';updateBtn()}
+  if(tipo==='letra'){src=null;srcBytes=null;ledAdj={};resetOut();prevSet('');$('#outMsg').innerHTML='';$('#fileInfo').innerHTML='';$('#drop').classList.remove('has');$('#dropTxt').textContent='Toque para escolher o PDF';$('#xPages').innerHTML='';$('#obs').value='';selLed=6500;selCaixa=80;renderLeds();renderCaixa();updateBtn()}
   if(tipo==='testeira'){tFaces=[{W:1000,H:1000,prof:0,junta:'linha'}];tAcm={on:false,esp:3,inst:'rente',fita:'vhb',chapa:'auto',marca:'',cor:null,jt:false,jmm:5,je:false,envT:'ext'};acmUI();renderFaces();v3Fit=true}
   if(tipo==='estrutura'){dSrc=null;dModel=null;dHist=[];dPrevModels=[];$('#dTxt').value='';$('#dAlt').value='';$('#dInfo').innerHTML='';$('#dDraw').innerHTML='';$('#dPecas').innerHTML='';$('#dDropTxt').textContent='Toque para escolher o PDF';$('#dAltBox').hidden=true;$('#dResCard').hidden=true;dBotao()}
   if(tipo==='modelo3d'){mSrc=null;mBytes=null;mPecas=[];$('#mInfo').innerHTML='';$('#mDropTxt').textContent='Toque para escolher o arquivo 3D (.stl ou .obj)';$('#mResCard').hidden=true}}
@@ -3407,9 +3407,9 @@ async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHT
 async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)throw new Error('estado do item não encontrado');const F=it.fonteId?await lerJSON(it.fonteId):null;
   itemAtual={id:it.id,tipo:it.tipo,n:it.n};$('#item').value=it.n;refImg=E.refImg||null;refRender();instReset();if(E.inst)putInputs(E.inst);instImg=E.instImg||null;instRender();
   if(E.cor){selEsc=E.cor.selEsc||selEsc;renderEsc();putInputs(E.cor.inputs)}
-  if(it.tipo==='letra'){limpaTipo('letra');putInputs(E.inputs);selType=E.selType;selLed=E.selLed;selChapa=E.selChapa;selCaixa=E.selCaixa||40;
+  if(it.tipo==='letra'){limpaTipo('letra');putInputs(E.inputs);selType=E.selType;selLed=E.selLed;selChapa=E.selChapa;selCaixa=E.selCaixa||80;
     $('#xPages').innerHTML='';(E.xPages||[]).forEach((p,i)=>$('#xPages').insertAdjacentHTML('beforeend',pageBlock(p,i)));renumberIn($('#xPages'));
-    renderTypes();renderLeds();selChapa=E.selChapa;selCaixa=E.selCaixa||40;renderChapa();renderCaixa();if(E.cor)putInputs(E.cor.inputs);
+    renderTypes();renderLeds();selChapa=E.selChapa;selCaixa=E.selCaixa||80;renderChapa();renderCaixa();if(E.cor)putInputs(E.cor.inputs);
     if(F)await carregaLetra(F.nome,unb64(F.b64));ledAdj=E.ledAdj||{};if(E.desc!=null)$('#descItem').value=E.desc;updateBtn();
     if(mostrar){irAba('novo');setTimeout(()=>$('#gerar').click(),50)}}
   if(it.tipo==='testeira'){putInputs(E.inputs);tFaces=E.tFaces;tPint=E.tPint||'nao';tAcm=E.tAcm||{on:false,esp:3,inst:'rente',fita:'vhb',chapa:'auto',marca:'',cor:null,jt:false,jmm:5,je:false,envT:'ext'};acmUI();fixSel.clear();(E.fixSel||[]).forEach(x=>fixSel.add(x));
