@@ -1382,7 +1382,7 @@ function ordenaPecas(arr){
 }
 /* ---------- furação do fundo de PVC (Ø3) e cantos a 45° para encaixe ---------- */
 const FURO_D=3;
-function nFuros(tam){return tam<=400?3:Math.ceil(tam/100-1e-9)-1}
+function nFuros(tam){return Math.max(4,Math.ceil(tam/100-1e-9)-1)}
 function circ(c,r,n=20){const o=[];for(let k=0;k<n;k++){const a=2*Math.PI*k/n;o.push([c[0]+r*Math.cos(a),c[1]+r*Math.sin(a)])}return o}
 function furosPVC(polys,extra=0){const furos=[];
   regionsOf(toC(polys)).forEach(rg=>{const ps=fromC(rg);const b=bbox(ps);const tam=Math.max(b.w,b.h)+extra;const n=nFuros(tam);
@@ -1395,6 +1395,7 @@ function furosPVC(polys,extra=0){const furos=[];
     sel.forEach(c=>furos.push({c,tam}))});
   return furos}
 // cantos vivos convexos do PVC (onde a lateral faz a dobra): cortar a 45° para encaixar
+const f2=v=>v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
 function cantosVivos(polys,ang=25){const out=[];
   regionsOf(toC(polys)).forEach(rg=>{const ps=fromC(rg);const ar=p=>{let a=0;for(let i=0,j=p.length-1;i<p.length;j=i++)a+=(p[j][0]+p[i][0])*(p[j][1]-p[i][1]);return a/2};
     const sg=Math.sign(ar(ps[0]))||1;
@@ -1585,27 +1586,30 @@ function buildDoc(){
      P.push({t:'rect',x:12,y:105.5,w:273,h:6.5,r:1.5,fill:'#fff0f6',stroke:'#c2255c',lw:0.4});
      P.push({t:'text',x:148.5,y:110,s:`GALVANIZADA — FRENTE: ${cpg.espessura&&cpg.espessura!=='----'?cpg.espessura:'CHAPA 20'}   •   LATERAIS: ${C2.lateral} (altura ${ctx.caixa} mm)`,size:3.4,bold:true,color:'#000000',anchor:'middle'})}}
    pages.unshift(P);}
-  // ---- ACABAMENTO: cantos do PVC a 45° para encaixe ----
-  if(pvcPolys){const P=[];frame(P,ctx,{setor:'ACABAMENTO'});const cv=cantosVivos(pvcPolys);
+  // ---- ACABAMENTO: face (borda) do PVC chanfrada a 45° em todos os cortes, externos e internos ----
+  if(pvcPolys){const P=[];frame(P,ctx,{setor:'ACABAMENTO'});
+   const rgs=regionsOf(toC(pvcPolys)).map(r=>fromC(r));const ext=rgs.map(r=>r[0]),int=rgs.flatMap(r=>r.slice(1));
+   const comp=ps=>ps.reduce((s,p)=>s+chainLen(p.concat([p[0]])),0)/1000;const mE=comp(ext),mI=comp(int);
    P.push({t:'text',x:PW/2,y:30,s:'ACABAMENTO — FUNDO EM PVC',size:4.4,bold:true,color:'#000000',anchor:'middle'});
    P.push({t:'rect',x:30,y:34,w:237,h:10,r:2,fill:'#f3f0ff',stroke:'#7048e8',lw:0.4});
-   P.push({t:'text',x:PW/2,y:40.6,s:'CORTAR OS CANTOS DO PVC A 45° PARA ENCAIXAR NA LATERAL DA LETRA',size:4.2,bold:true,color:'#5f3dc4',anchor:'middle'});
+   P.push({t:'text',x:PW/2,y:40.6,s:'CHANFRAR A 45° A FACE DO PVC EM TODOS OS CORTES (EXTERNOS E INTERNOS) PARA ENCAIXE',size:3.8,bold:true,color:'#5f3dc4',anchor:'middle'});
    const bb=bbox(pvcPolys);const BX=20,BY=52,BW=190,BH=80;const s=Math.min(BW/bb.w,BH/bb.h);const dx=BX+(BW-bb.w*s)/2,dy=BY+(BH-bb.h*s)/2;
    const map=p=>p.map(([x,y])=>[dx+(x-bb.x0)*s,dy+(bb.y1-y)*s]);
-   pvcPolys.forEach(p=>P.push({t:'polyf',pts:map(p),fill:'#f1f3f5',stroke:'#495057',lw:0.18}));
-   cv.forEach(q=>{const [x,y]=map([q])[0];P.push({t:'circle',x,y,r:1.1,fill:'#7048e8',stroke:'#ffffff',lw:0.1})});
+   rgs.forEach(r=>P.push({t:'pathfill',polys:r.map(map),fill:'#f1f3f5'}));
+   ext.forEach(p=>P.push({t:'poly',pts:map(p),color:'#7048e8',w:0.5}));int.forEach(p=>P.push({t:'poly',pts:map(p),color:'#ae3ec9',w:0.5}));
    (furosDoc||[]).forEach(f=>{const [x,y]=map([f.c])[0];P.push({t:'circle',x,y,r:0.5,fill:'#ff5500',stroke:'#ff5500',lw:0.05})});
-   // detalhe do canto
-   const DX=222,DY=56;P.push({t:'text',x:DX+30,y:DY-2,s:'DETALHE DO CANTO',size:2.8,bold:true,color:'#5f3dc4',anchor:'middle'});
-   P.push({t:'polyf',pts:[[DX,DY+46],[DX,DY+12],[DX+12,DY],[DX+56,DY],[DX+56,DY+46]],fill:'#e9ecef',stroke:'#212529',lw:0.3});
-   P.push({t:'path',pts:[[DX,DY+12],[DX,DY],[DX+12,DY]],color:'#adb5bd',w:0.25});
-   P.push({t:'line',x1:DX-1,y1:DY+13,x2:DX+13,y2:DY-1,color:'#7048e8',w:0.6});
-   P.push({t:'text',x:DX+14,y:DY+9,s:'CORTE A 45°',size:2.6,bold:true,color:'#7048e8'});
-   P.push({t:'text',x:DX+28,y:DY+30,s:'PVC 10 MM',size:3,bold:true,color:'#495057',anchor:'middle'});
-   P.push({t:'text',x:DX+28,y:DY+54,s:'Vista de cima do canto da peça',size:2.2,color:'#555555',anchor:'middle'});
-   P.push({t:'circle',x:BX+2,y:BY+BH+6,r:1.1,fill:'#7048e8',stroke:'#ffffff',lw:0.1},{t:'text',x:BX+5,y:BY+BH+7,s:`Cantos a cortar a 45°: ${cv.length}`,size:2.6,bold:true,color:'#000000'});
-   if(furosDoc)P.push({t:'circle',x:BX+62,y:BY+BH+6,r:0.6,fill:'#ff5500',stroke:'#ff5500',lw:0.05},{t:'text',x:BX+65,y:BY+BH+7,s:`Furos Ø${FURO_D} já feitos na router: ${furosDoc.length} (não cortar em cima)`,size:2.6,color:'#000000'});
-   matTable(P,{},[['MATERIAL:','PVC 10 MM (FUNDO)'],['SERVIÇO:','CORTE DOS CANTOS A 45°'],['CANTOS:',`${cv.length}`],['ESCALA:',`1:${Math.round(1/s)}`]]);
+   // detalhe em corte da borda
+   const DX=222,DY=60,T=22;P.push({t:'text',x:DX+30,y:DY-6,s:'DETALHE — CORTE DA BORDA',size:2.8,bold:true,color:'#5f3dc4',anchor:'middle'});
+   P.push({t:'polyf',pts:[[DX,DY],[DX+40,DY],[DX+40+T,DY+T],[DX,DY+T]],fill:'#e9ecef',stroke:'#212529',lw:0.3});
+   P.push({t:'path',pts:[[DX+40,DY],[DX+40+T,DY],[DX+40+T,DY+T]],color:'#adb5bd',w:0.25});
+   P.push({t:'line',x1:DX+40,y1:DY,x2:DX+40+T,y2:DY+T,color:'#7048e8',w:0.7});
+   P.push({t:'text',x:DX+56,y:DY+8,s:'45°',size:3.2,bold:true,color:'#7048e8'});
+   P.push({t:'text',x:DX+18,y:DY+13,s:'PVC 10 MM',size:2.8,bold:true,color:'#495057',anchor:'middle'});
+   P.push({t:'text',x:DX+30,y:DY+T+7,s:'Vista em corte da borda da peça',size:2.2,color:'#555555',anchor:'middle'});
+   P.push({t:'text',x:DX+30,y:DY+T+11,s:'(vale para o contorno e os miolos)',size:2.2,color:'#555555',anchor:'middle'});
+   const ly=BY+BH+6;P.push({t:'line',x1:BX,y1:ly-1,x2:BX+8,y2:ly-1,color:'#7048e8',w:0.6},{t:'text',x:BX+10,y:ly,s:`Cortes externos: ${f2(mE)} m`,size:2.6,bold:true,color:'#000000'});
+   P.push({t:'line',x1:BX+62,y1:ly-1,x2:BX+70,y2:ly-1,color:'#ae3ec9',w:0.6},{t:'text',x:BX+72,y:ly,s:`Cortes internos (miolos): ${f2(mI)} m`,size:2.6,bold:true,color:'#000000'});
+   matTable(P,{},[['MATERIAL:','PVC 10 MM (FUNDO)'],['SERVIÇO:','CHANFRO 45° NA FACE'],['ONDE:','CORTES EXTERNOS E INTERNOS'],['TOTAL:',`${f2(mE+mI)} M DE BORDA`],['ESCALA:',`1:${Math.round(1/s)}`]]);
    acabP=P;pages.push(P)}
   // ---- MOLDE em papel kraft (setor P1): original + retângulo com 50 mm de margem ----
   {const P=[];frame(P,ctx,{setor:'P1'});const bb=bbox(orig);const MG=50;const RW=bb.w+2*MG,RH=bb.h+2*MG;
