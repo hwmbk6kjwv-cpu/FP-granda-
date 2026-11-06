@@ -1652,6 +1652,10 @@ function buildDoc(){
   const jobs=[];
   if($('#nestOn').checked){const inf=info.find(x=>x.lines&&x.lines.length&&/ACR/i.test((x.pg.material||'')+' '+(x.pg.titulo||'')));if(inf)jobs.push({after:info.indexOf(inf),nome:'ACRILICO',titulo:inf.pg.titulo||'ACRÍLICO',pieces:piecesFromLines(inf.lines),sizes:parseSizes($('#nestSheets').value)})}
   if($('#nestGalvOn').checked){const inf=info.find(x=>x.pg.tipo==='chapa');if(inf)jobs.push({after:info.indexOf(inf),nome:'CHAPA GALVANIZADA',titulo:inf.pg.titulo||'CHAPA GALVANIZADA',pieces:piecesFromVec(inf.vec),sizes:parseSizes($('#nestGalvSheets').value)})}
+  // só tamanhos de chapa que existem no cadastro de matérias-primas (FP e RM usam a mesma chapa)
+  try{const temLed=defs.some(p=>p.tipo==='led');jobs.forEach(job=>{let must=null;
+    let kk=null;if(job.nome==='ACRILICO'){const pg=(info[job.after]||{}).pg||{};const B=buscaAcrilico(pg,temLed);must=B.must;kk=`acr|${B.es}|${temLed?'transl':B.cor}`}else if(job.nome==='CHAPA GALVANIZADA'){must=['CHAPA GALVANIZADA','(20)'];kk='galv20'}
+    if(!must)return;const esc=kk&&chapaEscolhida(kk);if(esc){job.sizes=[esc];return}const disp=mpChapasDisp(must);if(!disp.length)return;const ok=job.sizes.filter(([w,h])=>disp.some(d=>d[0]===w&&d[1]===h));job.sizes=ok.length?ok:disp;job.disp=disp})}catch(e){console.error('chapas do cadastro',e)}
   const ins=[];
   for(const job of jobs){if(!job.pieces.length||!job.sizes.length)continue;
     const opts=job.sizes.map(([w,h])=>({w,h,...nestSheets(job.pieces,w,h,gap,mg)}));
@@ -3329,6 +3333,12 @@ function mpAchar(must,want){let best=-1,bs=-1;
   return best}
 function mpItem(k,busca){const v=mpMapa[k];if(v&&typeof v==='object')return{cust:v,manual:true};if(v!=null){const i=MP.findIndex(r=>r[0]===v);if(i>=0)return{i,manual:true}}const i=busca?mpAchar(busca.must,busca.want):-1;return i>=0?{i,manual:false}:null}
 const mpDim=p=>{const m=String(p||'').match(/(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)/i);if(!m)return null;const a=m[1].replace('.',','),b=m[2].replace('.',',');return[`${a}X${b}`,`${b}X${a}`]};
+// tamanhos de chapa que existem no cadastro para um material (ex.: acrílico leitoso 4 mm) → [[maior,menor],...]
+function mpChapasDisp(must){const out=[];MPN.forEach((n,i)=>{if(!must.every(t=>(Array.isArray(t)?t:[t]).some(a=>n.includes(mpNorm(a)))))return;const m=n.match(/(\d{3,4})\s*X\s*(\d{3,4})/);let w,h;if(m){w=+m[1];h=+m[2]}else{const k=n.match(/(\d\.\d{1,2})X(\d\.\d{1,2})/);if(!k)return;w=Math.round(+k[1]*1000);h=Math.round(+k[2]*1000)}
+  const a=[Math.max(w,h),Math.min(w,h)];if(!out.some(o=>o[0]===a[0]&&o[1]===a[1]))out.push(a)});return out}
+function chapaEscolhida(k){const v=mpMapa[k];if(v==null||typeof v==='object')return null;const r=MP.find(x=>x[0]===v);if(!r)return null;const n=mpNorm(r[1]);const m=n.match(/(\d{3,4})\s*X\s*(\d{3,4})/);return m?[Math.max(+m[1],+m[2]),Math.min(+m[1],+m[2])]:null}
+function buscaAcrilico(pg,temLed){const e=String(pg.espessura||'').match(/(\d+)/);const es=temLed?'4':(e?e[1]:'4');const cor=String(pg.cor||'').replace(/-+/g,'').trim();
+  return{es,cor,must:temLed?['ACRILICO',['LEITOSO','TRANSLUCIDO'],[`0${es}MM`,` ${es}MM`]]:['ACRILICO',[`0${es}MM`,` ${es}MM`]]}}
 // barras de 6 m (maior peça primeiro)
 function mpBarras(lens,barra=6000,serra=3){const pcs=lens.slice().sort((a,b)=>b-a);const bars=[];let n=0;
   pcs.forEach(L=>{if(L>barra){n+=Math.ceil(L/barra);return}let b=bars.find(u=>u+serra+L<=barra);if(b==null){bars.push(L)}else bars[bars.indexOf(b)]=b+serra+L});return n+bars.length}
@@ -3369,11 +3379,11 @@ function matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L){const N=[];const temLed=
   (nests||[]).forEach(Nn=>{const B=Nn.best;if(!B)return;const m2=consumo(B);const sz=[`${B.w}X${B.h}`,`${B.h}X${B.w}`,`${B.w} X ${B.h}`,`${B.h} X ${B.w}`];
     if(Nn.nome==='ACRILICO'){const pg=defs.find(p=>/ACR/i.test((p.material||'')+' '+(p.titulo||'')))||{};const e=String(pg.espessura||'').match(/(\d+)/);
       const es=temLed?'4':(e?e[1]:'4');const cor=String(pg.cor||'').replace(/-+/g,'').trim();
-      N.push({k:`acr|${es}|${temLed?'transl':cor}`,desc:`Acrílico ${es} mm ${temLed?'translúcido (letra com LED)':cor}`,m2,un:'un',uso:`frente das letras — aproveitamento ${fr(m2)} m²`,
-        busca:temLed?{must:['ACRILICO',['LEITOSO','TRANSLUCIDO'],[`0${es}MM`,` ${es}MM`]],want:sz}:{must:['ACRILICO',[`0${es}MM`,` ${es}MM`]],want:[...sz,...cor.split(/\s+/),cor?'':'CRISTAL']}})}
+      N.push({k:`acr|${es}|${temLed?'transl':cor}`,desc:`Acrílico ${es} mm ${temLed?'translúcido (letra com LED)':cor} ${B.h/1000}x${B.w/1000} m (igual ao aproveitamento)`,m2,un:'un',uso:`frente das letras — aproveitamento ${fr(m2)} m²`,
+        busca:temLed?{must:['ACRILICO',['LEITOSO','TRANSLUCIDO'],[`0${es}MM`,` ${es}MM`],sz]}:{must:['ACRILICO',[`0${es}MM`,` ${es}MM`],sz],want:[...cor.split(/\s+/),cor?'':'CRISTAL']}})}
     else if(Nn.nome==='PVC'){const pg=defs.find(p=>/PVC/i.test(p.material||''))||{};const e=String(pg.espessura||'').match(/(\d+)/);const es=e?e[1]:'10';
-      N.push({k:`pvc|${es}`,desc:`PVC expandido ${es} mm`,m2,un:'un',uso:`fundo — aproveitamento ${fr(m2)} m²`,busca:{must:['PVC EXPANDIDO',[`${es.padStart(2,'0')}MM`,` ${es}MM`]]}})}
-    else{areaGalv=(B.areaPecas||0)/1e6;N.push({k:`galv20|${B.w}x${B.h}`,desc:'Chapa galvanizada 20 (0,95 mm) — face',m2,un:'un',uso:`face/filete — aproveitamento ${fr(m2)} m²`,busca:{must:['CHAPA GALVANIZADA','(20)'],want:sz}})}});
+      N.push({k:`pvc|${es}`,desc:`PVC expandido ${es} mm 1,22x2,44 m`,m2,un:'un',uso:`fundo — aproveitamento ${fr(m2)} m²`,busca:{must:['PVC EXPANDIDO',[`${es.padStart(2,'0')}MM`,` ${es}MM`]]}})}
+    else{areaGalv=(B.areaPecas||0)/1e6;N.push({k:'galv20',desc:`Chapa galvanizada 20 (0,95 mm) ${B.h/1000}x${B.w/1000} m — face`,m2,un:'un',uso:`face/filete — aproveitamento ${fr(m2)} m²`,busca:{must:['CHAPA GALVANIZADA','(20)',sz]}})}});
   // lateral em chapa 26: tiras com a altura da caixa pelo perímetro das letras originais, na chapa 3000 x 1200
   let areaLat=0;const pint=defs.find(p=>p.tipo==='pintura');const temChapa=defs.some(p=>p.tipo==='chapa')||!!pint;
   if(temChapa&&L&&L.length){const h=(+ctx.caixa||80)+MPP.latExtra;const per=[];L.forEach(g=>g.ps.forEach(p=>{let s2=0;p.forEach((q,i)=>{const r=p[(i+1)%p.length];s2+=Math.hypot(r[0]-q[0],r[1]-q[1])});per.push(s2)}));
