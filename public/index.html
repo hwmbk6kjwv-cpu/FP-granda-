@@ -139,6 +139,7 @@ textarea{min-height:60px;resize:vertical}
 @media(min-width:720px){.modal{align-items:center}.modal .sheet{border-radius:16px}}
 .note{font-size:12.5px;color:var(--mute)}
 .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:0 10px}@media(max-width:620px){.g4{grid-template-columns:1fr 1fr}}
+.stp{display:flex;align-items:center;gap:6px}.stp input{text-align:center;min-width:0}.stp button{flex:none;width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:20px;font-weight:700;cursor:pointer}
 .fcard{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px;background:#fafbfc}
 button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:12.5px;padding:6px 11px}button.chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .v3wrap{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#f3f4f7}
@@ -178,7 +179,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
   </section>
   <section id="osSec" hidden>
     <div class="card" id="osCard">
-      <h2>Dados da OS <span class="badge">valem para letras e testeiras</span></h2>
+      <h2>Dados da OS <span class="badge">valem para todas as folhas</span></h2>
       <div class="g3">
         <div><label class="f">Número da OS</label><input type="text" id="os" inputmode="numeric"></div>
         <div id="itemBox"><label class="f">Item nº</label><input type="number" id="item" value="1" inputmode="numeric"></div>
@@ -191,6 +192,12 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
         <div><label class="f">Projetista</label><input type="text" id="projetista"></div>
         <div><label class="f">Endereço</label><input type="text" id="endereco"></div>
       </div>
+      <label class="f">Imagem de referência <span class="note" style="text-transform:none;font-weight:400">— sai no canto superior de todas as folhas (7 x 5 cm)</span></label>
+      <div class="row" style="gap:8px;align-items:stretch">
+        <label class="btn ghost sm" style="display:inline-flex;align-items:center">Enviar imagem<input type="file" id="refIn" accept="image/*" hidden></label>
+        <div id="refZone" contenteditable="true" style="flex:1;min-width:150px;border:1.5px dashed var(--line);border-radius:10px;padding:8px 10px;font-size:13px;color:#868e96;outline:none">Colar print aqui (toque e segure → Colar, ou Ctrl+V)</div>
+      </div>
+      <div id="refPrev" style="margin-top:8px"></div>
     </div>
   </section>
   <section id="tab-novo" hidden>
@@ -292,7 +299,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <label class="f" style="margin-top:14px">2. Explique o que é cada cor / peça</label>
       <textarea id="dTxt" rows="5" placeholder="Ex.: a barra verde é um metalon 80x40 chapa 1,5 mm com as duas pontas fechadas com chapa 1,5 mm. As rosas são tubos 40x40 soldados no centro do tubo verde. O azul é metalon 30x30 que encaixa dentro do rosa na instalação."></textarea>
       <label class="f" style="margin-top:14px">Pintura da estrutura</label>
-      <div class="leds" id="dPintModo"><button data-m="nao" class="sel"><b>Sem pintura</b></button><button data-m="toda"><b>Pintar toda a estrutura</b></button><button data-m="soldas"><b>Pintar só as soldas</b></button></div>
+      <div class="leds" id="dPintModo"><button data-m="nao" class="sel"><b>Sem pintura</b></button><button data-m="toda"><b>Pintar toda a estrutura</b></button><button data-m="soldas"><b>Só proteção nas soldas</b><span class="note" style="display:block">sem pintura, sem cor</span></button></div>
       <div id="dPintSlot" hidden></div>
       <div class="row" style="margin-top:12px;gap:8px"><button class="btn pink" id="dMontar" disabled>Montar 3D</button><span class="note" id="dStatus"></span></div>
       <div id="dAltBox" hidden>
@@ -316,9 +323,16 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
         <div><label class="f">Quantidade (un.)</label><input type="number" id="tUn" value="1" inputmode="numeric"></div>
         <div><label class="f">Descrição</label><input type="text" id="tDesc" value="QUADROS ADESIVADOS EM ACM"></div>
       </div>
+      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">1. Faces e medidas</h2>
+      <p class="note" style="margin:0">Monte face por face. Profundidade 0 = quadro simples; com profundidade a estrutura vira caixa (quadro da frente + quadro de trás ligados). Use as junções para fazer estrutura em L ou U.</p>
+      <div class="row" style="margin-top:10px;gap:6px"><span class="note">Modelos rápidos:</span><button class="chip" data-modelo="simples">Quadro simples</button><button class="chip" data-modelo="caixa">Caixa (com profundidade)</button><button class="chip" data-modelo="L">Em L</button><button class="chip" data-modelo="U">Em U</button></div>
+      <div id="tDivMsg"></div>
+      <div id="tFaces"></div>
+      <div class="row" style="margin-top:10px;gap:6px"><button class="btn ghost sm" data-addf="linha">+ Face em linha</button><button class="btn ghost sm" data-addf="tras">+ Face em L (para trás)</button><button class="btn ghost sm" data-addf="frente">+ Face em L (para frente)</button></div>
+      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">2. Perfis e travas</h2>
       <div class="g3">
         <div><label class="f">Perfil do quadro (contorno)</label><select id="tPerfil"><option>15x15</option><option>20x20</option><option>25x25</option><option>20x30</option><option selected>30x30</option><option value="20x40">40x20</option><option>40x40</option><option>80x80</option></select></div>
-        <div><label class="f">Perfil interno (travessas)</label><select id="tPerfilInt"><option>15x15</option><option>20x20</option><option>25x25</option><option>20x30</option><option>30x30</option><option value="20x40" selected>40x20</option><option>40x40</option><option>80x80</option></select></div>
+        <div><label class="f">Perfil interno (travessas)</label><select id="tPerfilInt"><option>15x15</option><option>20x20</option><option>25x25</option><option>20x30</option><option value="30x20">30x20 (30 de face)</option><option>30x30</option><option value="20x40" selected>40x20</option><option>40x40</option><option>80x80</option></select></div>
         <div><label class="f">Parede (mm)</label><input type="text" id="tParede" value="1,25"></div>
       </div>
       <div class="g3">
@@ -328,17 +342,48 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       </div>
       <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;margin-top:12px;font-size:13px"><input type="checkbox" id="t40"> Travessa 20x40 de reforço</label>
       <div id="tH40box" hidden><label class="f">Altura do centro da travessa 20x40 a partir da base (mm)</label><input type="number" id="tH40" value="150" inputmode="numeric"></div>
-      <label class="f">Observações (saem na folha)</label><textarea id="tObs"></textarea>
-      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">Pintura da estrutura</h2>
-      <div class="leds" id="tPintModo"><button data-m="nao" class="sel"><b>Sem pintura</b></button><button data-m="toda"><b>Pintar toda a estrutura</b></button><button data-m="soldas"><b>Pintar só as soldas</b></button></div>
-      <div id="tPintSlot" hidden></div>
-      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">Montagem da estrutura</h2>
-      <p class="note" style="margin:0">Monte face por face. Profundidade 0 = quadro simples; com profundidade a estrutura vira caixa (quadro da frente + quadro de trás ligados). Use as junções para fazer estrutura em L ou U.</p>
-      <div class="row" style="margin-top:10px;gap:6px"><span class="note">Modelos rápidos:</span><button class="chip" data-modelo="simples">Quadro simples</button><button class="chip" data-modelo="caixa">Caixa (com profundidade)</button><button class="chip" data-modelo="L">Em L</button><button class="chip" data-modelo="U">Em U</button></div>
-      <div id="tFaces"></div>
-      <div class="row" style="margin-top:10px;gap:6px"><button class="btn ghost sm" data-addf="linha">+ Face em linha</button><button class="btn ghost sm" data-addf="tras">+ Face em L (para trás)</button><button class="btn ghost sm" data-addf="frente">+ Face em L (para frente)</button></div>
-      <label class="f" style="margin-top:14px">Fixação</label>
+      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">3. Fixação</h2>
+      
       <div class="row" id="tFixBox" style="gap:6px"></div>
+      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">4. ACM</h2>
+      <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;font-size:13px"><input type="checkbox" id="aOn"> Revestir a testeira com ACM</label>
+      <div id="aBox" hidden>
+        <label class="f">Espessura</label>
+        <div class="leds" id="aEsp"><button data-m="3"><b>3 mm</b><span class="note" style="display:block">chapas 1,22 ou 1,50 x 5,00</span></button><button data-m="4"><b>4 mm</b><span class="note" style="display:block">chapas 1,25 ou 1,50 x 5,00 • sempre CV 150</span></button></div>
+        <label class="f">Instalação</label>
+        <div class="leds" id="aInst"><button data-m="rente"><b>Corte rente</b><span class="note" style="display:block">exato no tamanho da face</span></button><button data-m="env1"><b>Envelope 1 dobra</b><span class="note" style="display:block">dobra na lateral até o fim do perfil</span></button><button data-m="env2"><b>Envelope 2 dobras</b><span class="note" style="display:block">lateral + 20 mm atrás • parafusado</span></button></div>
+        <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;font-size:13px;margin-top:10px"><input type="checkbox" id="aJT"> Junta de dilatação em cada trava vertical do meio</label>
+        <p class="note" style="margin:4px 0 0">Com junta, as travas verticais do meio passam a ser metalon 30x20 (30 de face) e o ACM é cortado em cada trava.</p>
+        <div id="aEmBox" hidden>
+          <label class="f">Peças divididas (emendas)</label>
+          <div id="aEnvTbox"><div class="leds" id="aEnvT"><button data-m="todas"><b>Envelope em todas as peças</b></button><button data-m="ext"><b>Envelope só nas extremidades</b><span class="note" style="display:block">peças do meio: só em cima e embaixo</span></button></div></div>
+          <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;font-size:13px;margin-top:8px"><input type="checkbox" id="aJE"> Junta de dilatação nas emendas</label>
+        </div>
+        <div id="aJmmBox" hidden><label class="f">Largura da junta</label><div class="leds" id="aJmm"><button data-m="5"><b>5 mm</b></button><button data-m="8"><b>8 mm</b></button></div></div>
+        <label class="f">Fita dupla face</label>
+        <div class="leds" id="aFita"><button data-m="vhb"><b>VHB comum</b></button><button data-m="cv150"><b>CV 150</b><span class="note" style="display:block">melhor fixação</span></button></div>
+        <p class="note" id="aRed" style="margin:8px 0 0"></p>
+        <label class="f">Chapa</label><select id="aChapa"></select>
+        <label class="f">Marca do ACM</label>
+        <div class="row" id="aMarca" style="gap:6px"></div>
+        <div id="aCorBox" hidden>
+          <label class="f">Cor</label>
+          <input type="text" id="aBusca" placeholder="Buscar cor (ex.: preto, prata, 7037)">
+          <div class="row" id="aCores" style="gap:5px;margin-top:8px;max-height:260px;overflow:auto"></div>
+        </div>
+        <div id="aManBox" hidden>
+          <label class="f">Nova cor (nome e acabamento)</label>
+          <div class="row" style="gap:6px;flex-wrap:nowrap"><input type="text" id="aManNome" placeholder="Nome da cor"><select id="aManAcab" style="max-width:120px"><option value="fosco">Fosco</option><option value="brilho">Brilho</option><option value="metálico">Metálico</option></select><input type="color" id="aManHex" value="#b0b4b8" style="max-width:52px;padding:2px"><button class="btn ghost sm" id="aManUsar">Usar</button></div>
+        </div>
+        <label class="f">Escolhida</label>
+        <div id="aCorSel"></div>
+        <p class="note" style="margin:6px 0 0">Cores dos catálogos Bold, Day Brasil (Tecbond), Geoplast, ProjetoAlumínio e Alucomaxx; a cor na tela é aproximada — confirme na cartela física. A cor manual fica salva em "Minhas cores".</p>
+      </div>
+      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">5. Pintura da estrutura</h2>
+      <div class="leds" id="tPintModo"><button data-m="nao" class="sel"><b>Sem pintura</b></button><button data-m="toda"><b>Pintar toda a estrutura</b></button><button data-m="soldas"><b>Só proteção nas soldas</b><span class="note" style="display:block">sem pintura, sem cor</span></button></div>
+      <div id="tPintSlot" hidden></div>
+      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">6. Observações</h2>
+      <p class="note" style="margin:0">Saem na folha.</p><textarea id="tObs"></textarea>
     </div>
     <div class="card tm-pad">
       <h2>Medidas da face <span class="note" style="font-weight:400">— toque numa medida para mudar ou arraste a trava</span></h2>
@@ -354,7 +399,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div id="t3dInfo"></div>
     </div>
     <div class="card tm-pad">
-      <div class="row" style="justify-content:space-between"><h2 style="margin:0">Folhas do projeto</h2><button class="btn pink" id="tBaixar" disabled>Baixar PDF</button></div>
+      <div class="row" style="justify-content:space-between"><h2 style="margin:0">Folhas do projeto</h2><div class="row" style="gap:6px"><button class="btn ghost" id="tAcmFiles" hidden>Arquivos ACM (router 1:1)</button><button class="btn pink" id="tBaixar" disabled>Baixar PDF</button></div></div>
       <div class="row" id="tPgPick" style="gap:6px;margin-top:10px"></div>
       <div id="tMsg"></div>
       <div class="prev" id="tPrev"></div>
@@ -456,7 +501,7 @@ let types=[];let db=null;let local=false;let empresa={logo:GRANDA_LOGO,lw:375,lh
 function lsGet(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 function setTypes(list){types=list.slice().sort((a,b)=>(a.ordem||99)-(b.ordem||99)||a.nome.localeCompare(b.nome));renderTypes()}
-function startLocal(){local=true;fixLocal();perfisLocal();pedLocal();setTypes(lsGet('granda_tipos2')||DEFAULT_TYPES);empresa=lsGet('granda_empresa')||empresa;renderLogo();$('#storeNote').textContent='Modo local: os cadastros ficam salvos só neste aparelho.'}
+function startLocal(){local=true;fixLocal();perfisLocal();acmLocal();pedLocal();setTypes(lsGet('granda_tipos2')||DEFAULT_TYPES);empresa=lsGet('granda_empresa')||empresa;renderLogo();$('#storeNote').textContent='Modo local: os cadastros ficam salvos só neste aparelho.'}
 async function initStore(){
   const timer=setTimeout(()=>{if(!types.length)startLocal()},10000);
   try{if(window.claude&&claude.use)db=await claude.use('db')}catch(e){db=null}
@@ -466,7 +511,7 @@ async function initStore(){
     if(!snap.docs.length&&!window.__seedTipos){window.__seedTipos=1;DEFAULT_TYPES.forEach(t=>{const {id,...body}=t;db.collection('tipos').doc(id).set(JSON.parse(JSON.stringify(body))).catch(()=>{})});setTypes(DEFAULT_TYPES);return}
     setTypes(snap.docs.map(d=>({id:d.id,...d.data()})));
   },()=>{clearTimeout(timer);if(!types.length)startLocal()});
-  fixListen(db);perfisListen(db);pedListen(db);
+  fixListen(db);perfisListen(db);acmListen(db);pedListen(db);
   db.doc('config/empresa').onSnapshot(s=>{if(s.exists){empresa={logo:GRANDA_LOGO,lw:375,lh:134,...s.data()};if(!empresa.logo){empresa.logo=GRANDA_LOGO;empresa.lw=375;empresa.lh=134}renderLogo()}},()=>{});
 }
 async function saveType(t){
@@ -1236,7 +1281,7 @@ function obsBox(P,ctx){
   P.push({t:'text',x:x+2,y:yy+4,s:'OBSERVAÇÕES:',size:2.8,bold:true,color:'#000000'});
   shown.forEach((s,i)=>P.push({t:'text',x:x+2,y:yy+7.6+i*3.4,s,size:2.6,color:'#000000'}));
 }
-function footer(P,ctx,n,total){obsBox(P,ctx);
+function footer(P,ctx,n,total){if(P._ref&&!P._refOk)refAplica(P);obsBox(P,ctx);
   const y0=171;P.push({t:'line',x1:8,y1:y0,x2:PW-8,y2:y0,color:'#000000',w:0.3});
   const LG=empresa.logo&&empresa.lw?empresa:{logo:GRANDA_LOGO,lw:375,lh:134};
   if(LG.logo){const mw=56,mh=24,s=Math.min(mw/LG.lw,mh/LG.lh);const w=LG.lw*s,h=LG.lh*s;P.push({t:'img',x:11+(mw-w)/2,y:174+(mh-h)/2,w,h,src:LG.logo})}
@@ -1257,7 +1302,36 @@ function frame(P,ctx,pg){pg={...pg,setor:setorNome(pg.setor)};
   P.push({t:'text',x:257.5,y:15.3,s:pg.setor,size:4.2,bold:true,color:'#ffffff',anchor:'middle'});
   P.push({t:'text',x:18,y:15.5,s:`${pg.setor} ITEM ${ctx.item} - ${ctx.descItem}`.toUpperCase(),size:3.4,bold:true,color:'#000000'});
   if(ctx.tipo)P.push({t:'text',x:18,y:21,s:`Tipo: ${ctx.tipo}   •   LED: ${ctx.led}   •   CAIXA: ${ctx.caixa/10} cm`,size:2.6,color:'#555555'});
+  P._f0=P.length;P._ref=refImg;
 }
+/* ---------- imagem de referência do projetista: 7 x 5 cm no canto superior direito ---------- */
+let refImg=null;const REF={x:PW-10-70,y:23,w:70,h:50};
+function refAplica(P){P._refOk=true;const R=P._ref;const x0=10,y0=24,s=(REF.x-4-x0)/(PW-10-x0);
+  const X=v=>x0+(v-x0)*s,Y=v=>y0+(v-y0)*s;
+  for(let i=P._f0;i<P.length;i++){const p=P[i];
+    if(typeof p.x==='number')p.x=X(p.x);if(typeof p.y==='number')p.y=Y(p.y);if(typeof p.x1==='number'){p.x1=X(p.x1);p.y1=Y(p.y1);p.x2=X(p.x2);p.y2=Y(p.y2)}
+    ['w','h','size','r','lw'].forEach(k=>{if(typeof p[k]==='number')p[k]*=s});
+    if(p.pts)p.pts=p.pts.map(q=>[X(q[0]),Y(q[1])]);if(p.polys)p.polys=p.polys.map(pp=>pp.map(q=>[X(q[0]),Y(q[1])]))}
+  const k=Math.min(REF.w/R.w,(REF.h-4)/R.h),w=R.w*k,hh=R.h*k;
+  P.push({t:'rect',x:REF.x,y:REF.y,w:REF.w,h:REF.h,fill:'#ffffff',stroke:'#868e96',lw:0.2},{t:'img',x:REF.x+(REF.w-w)/2,y:REF.y+4+(REF.h-4-hh)/2,w,h:hh,src:R.src,fmt:'JPEG'},
+    {t:'text',x:REF.x+1.5,y:REF.y+3,s:'IMAGEM DE REFERÊNCIA',size:2.2,bold:true,color:'#868e96'})}
+function refCarrega(blob){if(!blob||!/^image\//.test(blob.type))return;const url=URL.createObjectURL(blob);const im=new Image();
+  im.onload=()=>{const M=1100,k=Math.min(1,M/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+    const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);
+    refImg={src:c.toDataURL('image/jpeg',0.85),w:c.width,h:c.height};if(typeof pedSujo!=='undefined')pedSujo=true;refRender();refRefaz()};
+  im.onerror=()=>{URL.revokeObjectURL(url);$('#refPrev').innerHTML='<div class="msg err">Não consegui ler essa imagem.</div>'};im.src=url}
+function refRender(){$('#refPrev').innerHTML=refImg?`<div class="row" style="gap:10px;align-items:center"><img src="${refImg.src}" style="width:140px;height:100px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff"><button class="btn ghost sm" id="refDel">Remover imagem</button></div>`:''}
+function refRefaz(){try{
+  if(!$('#tab-testeiras').hidden){if(tModo==='desenho'){if(dModel&&typeof dAtualizar==='function')dAtualizar()}else tAtualizar()}
+  else if(!$('#tab-novo').hidden&&lastPdf)$('#gerar').click();
+  else if(!$('#tab-modelo').hidden&&typeof mFolhasRender==='function')mFolhasRender()}catch(e){console.error(e)}}
+$('#refIn').onchange=e=>{refCarrega(e.target.files[0]);e.target.value=''};
+$('#refPrev').onclick=e=>{if(e.target.id==='refDel'){refImg=null;if(typeof pedSujo!=='undefined')pedSujo=true;refRender();refRefaz()}};
+$('#refZone').addEventListener('paste',e=>{e.preventDefault();const it=[...(e.clipboardData||{}).items||[]].find(i=>i.type.startsWith('image/'));
+  if(it)refCarrega(it.getAsFile());else $('#refPrev').innerHTML='<div class="msg warn">A área de transferência não tem imagem. Copie o print e cole de novo.</div>';$('#refZone').textContent='Colar print aqui (toque e segure → Colar, ou Ctrl+V)'});
+$('#refZone').addEventListener('input',()=>{$('#refZone').textContent='Colar print aqui (toque e segure → Colar, ou Ctrl+V)'});
+document.addEventListener('paste',e=>{if(e.target.closest&&e.target.closest('input,textarea,[contenteditable]'))return;if($('#osSec').hidden)return;
+  const it=[...(e.clipboardData||{}).items||[]].find(i=>i.type.startsWith('image/'));if(it){e.preventDefault();refCarrega(it.getAsFile())}});
 function matTable(P,pg,custom){
   const rows=custom||[['MATERIAL:',pg.material],['LOTE:','----'],['ESPESSURA:',pg.espessura],['COR E MARCA:',pg.cor],['TEXTURA:',pg.textura]];
   const x=12,y=167-rows.length*5,lw=30,vw=50,h=5;
@@ -1546,7 +1620,7 @@ function toPDF(pages){
         if(p.fill)doc.setFillColor(...hex(p.fill));if(p.stroke){doc.setDrawColor(...hex(p.stroke));doc.setLineWidth(p.lw)}
         if(p.r)doc.roundedRect(p.x,p.y,p.w,p.h,p.r,p.r,st);else doc.rect(p.x,p.y,p.w,p.h,st);
       }
-      else if(p.t==='img'){try{doc.addImage(p.src,'PNG',p.x,p.y,p.w,p.h)}catch(e){}}
+      else if(p.t==='img'){try{doc.addImage(p.src,p.fmt||'PNG',p.x,p.y,p.w,p.h)}catch(e){}}
       else if(p.t==='text'){
         doc.setFont('helvetica',p.bold&&p.italic?'bolditalic':p.bold?'bold':p.italic?'italic':'normal');doc.setFontSize(p.size*72/25.4);doc.setTextColor(...hex(p.color));
         let x=p.x,y=p.y;const w=p.anchor?doc.getTextWidth(p.s):0;
@@ -1722,7 +1796,7 @@ function piecesFromVec(vec){if(!vec||!vec.length||!vec[0].polys.length)return[];
 /* ================= TESTEIRAS (estrutura em metalon) ================= */
 const PERFIS={ // f = face frontal, p = profundidade (mm) e cor da legenda padrão de serralheria
   '15x15':{f:15,p:15,cor:'#ffff33'},'20x20':{f:20,p:20,cor:'#ff2a1a'},'25x25':{f:25,p:25,cor:'#33ffff'},'20x30':{f:20,p:30,cor:'#adff2f'},
-  '30x30':{f:30,p:30,cor:'#9933ff'},'20x40':{f:40,p:20,cor:'#008000'},'40x40':{f:40,p:40,cor:'#ff1aff'},'80x80':{f:80,p:80,cor:'#ff9966'}};
+  '30x30':{f:30,p:30,cor:'#9933ff'},'30x20':{f:30,p:20,cor:'#adff2f'},'20x40':{f:40,p:20,cor:'#008000'},'40x40':{f:40,p:40,cor:'#ff1aff'},'80x80':{f:80,p:80,cor:'#ff9966'}};
 const LEG_SERR=[['15X15','#ffff33'],['30X30','#9933ff'],['20X20','#ff2a1a'],['40X20','#008000'],['25X25','#33ffff'],['40X40','#ff1aff'],['20X30','#adff2f'],['80X80','#ff9966']];
 const PERF_ORD=Object.keys(PERFIS);
 function shade(hex,k){const[r,g,b]=[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)];const f=v=>Math.max(0,Math.min(255,Math.round(v*k))).toString(16).padStart(2,'0');return'#'+f(r)+f(g)+f(b)}
@@ -1731,19 +1805,19 @@ const f1=v=>v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDig
 const f0=v=>Math.round(v).toLocaleString('pt-BR');
 const fmm=v=>v.toFixed(2).replace('.',',')+' mm';
 const ALINHA={centro:'Centralizadas',fundo:'Faceadas pelo fundo',frente:'Faceadas pela frente'};
-const JUNTAS={linha:'Em linha (continua reto)',tras:'Dobra 90° para trás (L)',frente:'Dobra 90° para frente (L)'};
+const JUNTAS={linha:'Em linha (continua reto)',cima:'Em cima (empilhada)',tras:'Dobra 90° para trás (L)',frente:'Dobra 90° para frente (L)'};
 const tubDesc=(k,parede)=>`Tubo ${k==='20x40'?'Retangular 20 x 40':(PERFIS[k].f===PERFIS[k].p?'Quadrado ':'Retangular ')+k.replace('x',' x ')} - ${parede}mm`;
 
 /* ---------- cálculo de uma face (coordenadas locais: x largura, y altura, z profundidade) ---------- */
 function calcFace(f,o){
-  const pf=PERFIS[o.perfil],pi=PERFIS[o.perfilInt]||pf;const a=pf.f,p=pf.p,ai=pi.f;
+  const pf=PERFIS[o.perfil],pi=PERFIS[o.perfilInt]||pf;const a=pf.f,p=pf.p,ai=pi.f;const pv=PERFIS[o.perfilV]||pi,aiV=pv.f,PV=o.perfilV||o.perfilInt;
   const W=f.W,H=f.H;const box=f.prof>p+20;const D=box?f.prof:p;
   const pers=f.modo==='pers';
   const nb=pers?(f.vaosV||[]).length+1:f.nV!=null?Math.max(0,Math.round(f.nV))+1:Math.max(1,Math.ceil(W/o.vaoV-1e-9));
   const vcs=[];if(pers){let acc=0;vcs.push(a/2);(f.vaosV||[]).forEach(v=>{acc+=v;vcs.push(acc)});vcs.push(W-a/2);
     if(acc>=W-a)throw new Error(`Face: a soma dos vãos verticais (${f1(acc)} mm) passa da largura.`)}
   else for(let i=0;i<=nb;i++)vcs.push(i===0?a/2:i===nb?W-a/2:i*W/nb);
-  const vw=i=>(i===0||i===nb)?a:ai;
+  const vw=i=>(i===0||i===nb)?a:aiV;
   const r40=o.trav40?PERFIS['20x40']:null;const y40=o.trav40?Math.min(Math.max(o.h40,a+25),H-a-25):null;
   const base=o.trav40?y40:0;const nr=f.nH!=null?Math.max(0,Math.round(f.nH))+1:Math.max(1,Math.ceil((H-base)/o.vaoH-1e-9));
   const rows=[];if(pers){let acc=0;(f.vaosH||[]).forEach(v=>{acc+=v;rows.push(acc)});if(acc>=H-a)throw new Error(`Face: a soma dos vãos horizontais (${f1(acc)} mm) passa da altura.`)}
@@ -1757,32 +1831,36 @@ function calcFace(f,o){
       M({x0:0,x1:a,y0:a,y1:H-a,z0,z1,perfil:P,len:H-2*a,tipo:'Vertical '+tag});M({x0:W-a,x1:W,y0:a,y1:H-a,z0,z1,perfil:P,len:H-2*a,tipo:'Vertical '+tag})}
     else{M({x0:0,x1:a,y0:0,y1:H,z0,z1,perfil:P,len:H,tipo:'Vertical '+tag});M({x0:W-a,x1:W,y0:0,y1:H,z0,z1,perfil:P,len:H,tipo:'Vertical '+tag});
       M({x0:a,x1:W-a,y0:H-a,y1:H,z0,z1,perfil:P,len:W-2*a,tipo:'Horizontal '+tag});M({x0:a,x1:W-a,y0:0,y1:a,z0,z1,perfil:P,len:W-2*a,tipo:'Horizontal '+tag})}
-    const [q0,q1]=zt(pi).map(z=>z+zoff);
-    for(let i=1;i<nb;i++){const c=vcs[i];M({x0:c-ai/2,x1:c+ai/2,y0:a,y1:H-a,z0:q0,z1:q1,perfil:o.perfilInt,len:H-2*a,tipo:'Vertical interna '+tag})}};
+    const [q0,q1]=zt(pv).map(z=>z+zoff);
+    for(let i=1;i<nb;i++){const c=vcs[i];M({x0:c-aiV/2,x1:c+aiV/2,y0:a,y1:H-a,z0:q0,z1:q1,perfil:PV,len:H-2*a,tipo:'Vertical interna '+tag})}};
   quadro(0,'quadro frontal');
   const bays=[];for(let i=0;i<nb;i++)bays.push([vcs[i]+vw(i)/2,vcs[i+1]-vw(i+1)/2]);
   const [zi0,zi1]=zt(pi);
   rows.forEach(yc=>bays.forEach(([x0,x1])=>M({x0,x1,y0:yc-ai/2,y1:yc+ai/2,z0:zi0,z1:zi1,perfil:o.perfilInt,len:x1-x0,tipo:'Travessa horizontal'})));
   if(o.trav40){const [q0,q1]=zt(r40);bays.forEach(([x0,x1])=>M({x0,x1,y0:y40-r40.f/2,y1:y40+r40.f/2,z0:q0,z1:q1,perfil:'20x40',len:x1-x0,tipo:'Travessa de reforço 20x40'}))}
   if(box){quadro(D-p,'quadro traseiro');
-    vcs.forEach((c,i)=>{const w=vw(i);const P=(i===0||i===nb)?o.perfil:o.perfilInt;
+    vcs.forEach((c,i)=>{const w=vw(i);const P=(i===0||i===nb)?o.perfil:PV;
       [[H-a,H],[0,a]].forEach(([y0,y1])=>M({x0:c-w/2,x1:c+w/2,y0,y1,z0:p,z1:D-p,perfil:P,len:D-2*p,tipo:'Ligação de profundidade'}))})}
-  return {W,H,D,box,a,p,ai,nb,vcs,rows,y40,mem,al,pers};
+  return {W,H,D,box,a,p,ai,aiV,nb,vcs,rows,y40,mem,al,pers};
 }
 /* ---------- composição das faces (planta: x para a direita, z para trás) ---------- */
-function compor(faces,o){
-  let O=[0,0],d=[1,0],n=[0,1];const out=[];
-  faces.forEach((f,i)=>{const F=calcFace(f,o);
-    if(i>0){const pv=out[i-1].F;const j=f.junta||'linha';
-      if(j==='tras'){O=[O[0]+pv.W*d[0]+pv.D*n[0],O[1]+pv.W*d[1]+pv.D*n[1]];const nd=n.slice(),nn=[-d[0],-d[1]];d=nd;n=nn}
-      else if(j==='frente'){O=[O[0]+pv.W*d[0],O[1]+pv.W*d[1]];const nd=[-n[0],-n[1]],nn=[-d[0],-d[1]];d=nd;n=nn}
-      else O=[O[0]+pv.W*d[0],O[1]+pv.W*d[1]]}
-    out.push({f,F,O:O.slice(),d:d.slice(),n:n.slice(),i})});
-  return out;
-}
-function paraMundo(c,b){const X=(x,z)=>c.O[0]+x*c.d[0]+z*c.n[0],Z=(x,z)=>c.O[1]+x*c.d[1]+z*c.n[1];
+// a face se liga a quem? (empilhada: a de baixo; em linha/L: a anterior no mesmo nível)
+function faceRef(faces,i){const f=faces[i];if(f.ref!=null&&f.ref<i&&f.ref>=0)return f.ref;if(f.junta==='cima')return i-1;let k=i-1;while(k>0&&faces[k].junta==='cima')k=faceRef(faces,k);return k}
+// posição de cada face na medida final
+function layoutFaces(faces,o){const p=PERFIS[o.perfil].p;const out=[];
+  faces.forEach((f,i)=>{const W=f._fW!=null?f._fW:f.W,H=f._fH!=null?f._fH:f.H;let O=[0,0],d=[1,0],n=[0,1],oy=0;
+    if(i>0){const rf=out[faceRef(faces,i)];const j=f.junta||'linha';O=rf.O.slice();d=rf.d.slice();n=rf.n.slice();oy=rf.oy;
+      if(j==='cima')oy=rf.oy+rf.H;
+      else if(j==='tras'){O=[O[0]+rf.W*d[0]+rf.D*n[0],O[1]+rf.W*d[1]+rf.D*n[1]];const nd=n.slice(),nn=[-d[0],-d[1]];d=nd;n=nn}
+      else if(j==='frente'){O=[O[0]+rf.W*d[0],O[1]+rf.W*d[1]];const nd=[-n[0],-n[1]],nn=[-d[0],-d[1]];d=nd;n=nn}
+      else O=[O[0]+rf.W*d[0],O[1]+rf.W*d[1]]}
+    out.push({O,d,n,oy,W,H,D:f.prof>p+20?f.prof:p})});
+  return out}
+function compor(faces,o){const Lf=layoutFaces(faces,o);
+  return faces.map((f,i)=>{const F=calcFace(f,o);const ins=f._in||{l:0,b:0};const L=Lf[i];return{f,F,O:L.O,d:L.d,n:L.n,i,ox:ins.l,oy:L.oy+ins.b}})}
+function paraMundo(c,b){const ox=c.ox||0,oy=c.oy||0;const X=(x,z)=>c.O[0]+(x+ox)*c.d[0]+z*c.n[0],Z=(x,z)=>c.O[1]+(x+ox)*c.d[1]+z*c.n[1];
   const xs=[X(b.x0,b.z0),X(b.x1,b.z1)],zs=[Z(b.x0,b.z0),Z(b.x1,b.z1)];
-  return {...b,x0:Math.min(...xs),x1:Math.max(...xs),z0:Math.min(...zs),z1:Math.max(...zs)}}
+  return {...b,x0:Math.min(...xs),x1:Math.max(...xs),y0:b.y0+oy,y1:b.y1+oy,z0:Math.min(...zs),z1:Math.max(...zs)}}
 /* ---------- fixações cadastradas ---------- */
 const FIX_POS={topo:'Topo de cada vertical',base:'Base de cada vertical',lateral:'Laterais (pontas da estrutura)',avulsa:'Quantidade fixa (só na lista)'};
 let fixacoes=[];const fixSel=new Set();
@@ -1827,11 +1905,11 @@ function planoCorte(lista,un,barra,serra){
 }
 /* ---------- primitivas de desenho ---------- */
 // cota no estilo do projeto: linha azul com o texto interrompendo a linha
-function cotaH(P,x1,x2,y,yObj,txt,fs){const c=COR_DIM,xm=(x1+x2)/2,tw=txt.length*fs*0.5;
+function cotaH(P,x1,x2,y,yObj,txt,fs,cor){const c=cor||COR_DIM,xm=(x1+x2)/2,tw=txt.length*fs*0.5;
   if(yObj!=null)[x1,x2].forEach(x=>P.push({t:'line',x1:x,y1:yObj,x2:x,y2:y+(y<yObj?-1.2:1.2),color:c,w:0.12}));
   if(x2-x1>tw+4){P.push({t:'line',x1,y1:y,x2:xm-tw/2-1,y2:y,color:c,w:0.15},{t:'line',x1:xm+tw/2+1,y1:y,x2,y2:y,color:c,w:0.15});P.push({t:'text',x:xm,y:y+fs*0.36,s:txt,size:fs,color:c,anchor:'middle'})}
   else{P.push({t:'line',x1,y1:y,x2,y2:y,color:c,w:0.15});P.push({t:'text',x:xm,y:y-0.8,s:txt,size:fs*0.8,color:c,anchor:'middle'})}}
-function cotaV(P,x,y1,y2,xObj,txt,fs){const c=COR_DIM,ym=(y1+y2)/2,tw=txt.length*fs*0.5;
+function cotaV(P,x,y1,y2,xObj,txt,fs,cor){const c=cor||COR_DIM,ym=(y1+y2)/2,tw=txt.length*fs*0.5;
   if(xObj!=null)[y1,y2].forEach(y=>P.push({t:'line',x1:xObj,y1:y,x2:x+(x<xObj?-1.2:1.2),y2:y,color:c,w:0.12}));
   if(y2-y1>tw+4){P.push({t:'line',x1:x,y1,x2:x,y2:ym-tw/2-1,color:c,w:0.15},{t:'line',x1:x,y1:ym+tw/2+1,x2:x,y2,color:c,w:0.15});P.push({t:'text',x:x+fs*0.36,y:ym,s:txt,size:fs,color:c,anchor:'middle',angle:90})}
   else{P.push({t:'line',x1:x,y1,x2:x,y2,color:c,w:0.15});P.push({t:'text',x:x-0.8,y:ym,s:txt,size:fs*0.8,color:c,anchor:'middle',angle:90})}}
@@ -1865,12 +1943,23 @@ function isoPrims(P,boxes,R){
   const I=(x,y,z)=>{const q=pr(x,y,z);return[ix+(q[0]-bx0)*si,iy+(by1-q[1])*si]};
   const bs=boxes.slice().sort((a,b)=>((b.x0+b.x1)-(b.y0+b.y1)+(b.z0+b.z1))-((a.x0+a.x1)-(a.y0+a.y1)+(a.z0+a.z1)));
   for(const b of bs){const {x0,x1,y0,y1,z0,z1}=b;const lw=0.06;
-    const face=(pts,c)=>P.push({t:'polyf',pts:pts.map(q=>I(...q)),fill:c,stroke:'#1a1a1a',lw});
+    const face=(pts,c)=>P.push(b.wire?{t:'poly',pts:pts.map(q=>I(...q)),color:b.cor==='#ffffff'||b.cor==='#f7f7f5'?'#868e96':b.cor,w:0.22}:{t:'polyf',pts:pts.map(q=>I(...q)),fill:c,stroke:'#1a1a1a',lw});
     face([[x0,y0,z0],[x0,y1,z0],[x0,y1,z1],[x0,y0,z1]],shade(b.cor,0.7));
     face([[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],shade(b.cor,1.0));
     face([[x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0]],shade(b.cor,0.88))}
   return {I,si};
 }
+// cotas do conjunto na isométrica: largura, altura e profundidade
+function isoCotas(P,ISO,bb){const c=COR_DIM,fs=2.6;
+  const cc=ISO.I((bb.x0+bb.x1)/2,(bb.y0+bb.y1)/2,(bb.z0+bb.z1)/2);
+  const seg=(a,b,off,txt)=>{const p=ISO.I(...a),q=ISO.I(...b);const dx=q[0]-p[0],dy=q[1]-p[1];const L=Math.hypot(dx,dy)||1;let nx=-dy/L*off,ny=dx/L*off;
+    if(((p[0]+q[0])/2-cc[0])*nx+((p[1]+q[1])/2-cc[1])*ny<0){nx=-nx;ny=-ny}
+    const A=[p[0]+nx,p[1]+ny],B=[q[0]+nx,q[1]+ny];P.push({t:'line',x1:p[0],y1:p[1],x2:A[0]+nx*0.15,y2:A[1]+ny*0.15,color:c,w:0.1},{t:'line',x1:q[0],y1:q[1],x2:B[0]+nx*0.15,y2:B[1]+ny*0.15,color:c,w:0.1},{t:'line',x1:A[0],y1:A[1],x2:B[0],y2:B[1],color:c,w:0.18});
+    let ang=Math.atan2(-dy,dx)*180/Math.PI;if(ang>90)ang-=180;if(ang<-90)ang+=180;const m=[(A[0]+B[0])/2+nx*0.35,(A[1]+B[1])/2+ny*0.35];
+    P.push({t:'text',x:m[0],y:m[1],s:txt,size:fs,bold:true,color:c,anchor:'middle',angle:ang})};
+  seg([bb.x0,bb.y0,bb.z0],[bb.x1,bb.y0,bb.z0],5,fmm(bb.x1-bb.x0));
+  seg([bb.x0,bb.y1,bb.z0],[bb.x0,bb.y0,bb.z0],5,fmm(bb.y1-bb.y0));
+  if(bb.z1-bb.z0>1)seg([bb.x0,bb.y1,bb.z0],[bb.x0,bb.y1,bb.z1],5,fmm(bb.z1-bb.z0))}
 function boxesMundo(comp,fixs){const out=[];
   comp.forEach((c,k)=>{c.F.mem.forEach(m=>out.push(paraMundo(c,{...m,cor:PERFIS[m.perfil].cor})));
     fixs.forEach(fx=>fixBoxes(c,fx,k===0,k===comp.length-1).forEach(b=>out.push(paraMundo(c,b))))});
@@ -1882,7 +1971,7 @@ function folhaFace(P,c,o,nFaces){
   const F=c.F;const fs=3.1;
   P.push({t:'text',x:18,y:31,s:`${o.un}X`,size:7,bold:true,italic:true,color:'#000000'});
   P.push({t:'text',x:PW/2,y:30,s:nFaces>1?`FACE ${c.i+1} DE ${nFaces}`:'FACE DA TESTEIRA',size:4.2,bold:true,color:'#000000',anchor:'middle'});
-  const sub=[`${f1(F.W)} x ${f1(F.H)} mm`,F.box?`PROFUNDIDADE ${f0(F.D)} mm (estrutura em caixa)`:'QUADRO SIMPLES',c.i>0?JUNTAS[c.f.junta||'linha'].toUpperCase()+` DA FACE ${c.i}`:''].filter(Boolean).join('  •  ');
+  const sub=[`${f1(F.W)} x ${f1(F.H)} mm`,F.box?`PROFUNDIDADE ${f0(F.D)} mm (estrutura em caixa)`:'QUADRO SIMPLES',c.i>0?JUNTAS[c.f.junta||'linha'].toUpperCase()+` DA FACE ${c.i}`:'',c.f._fW&&(Math.abs(c.f._fW-F.W)>0.01||Math.abs(c.f._fH-F.H)>0.01)?`ESTRUTURA P/ ACM (FINAL ${f0(c.f._fW)} x ${f0(c.f._fH)})`:''].filter(Boolean).join('  •  ');
   P.push({t:'text',x:PW/2,y:35,s:sub,size:2.6,color:'#555555',anchor:'middle'});
   // frente
   const FX=44,FY=48,FW=136,FH=104;const s=Math.min(FW/F.W,FH/F.H);const ox=FX+(FW-F.W*s)/2,oy=FY+(FH-F.H*s)/2;
@@ -1890,6 +1979,20 @@ function folhaFace(P,c,o,nFaces){
   const front=F.mem.filter(m=>m.z0<F.p+1&&m.tipo!=='Ligação de profundidade');
   front.sort((a,b)=>(PERFIS[a.perfil].f===F.a?1:0)-(PERFIS[b.perfil].f===F.a?1:0));
   front.forEach(m=>P.push({t:'rect',x:X(m.x0),y:Y(m.y1),w:Math.max(0.3,(m.x1-m.x0)*s),h:Math.max(0.3,(m.y1-m.y0)*s),fill:PERFIS[m.perfil].cor,stroke:'#1a1a1a',lw:0.12}));
+  // medidas internas (vão livre entre os tubos) em laranja
+  {const CI='#d9480f',fi=2.1;const vx=[];F.vcs.forEach((c,i)=>{const w=(i===0||i===F.nb)?F.a:F.aiV;vx.push([c-w/2,c+w/2])});
+   const hy=[[0,F.a],[F.H-F.a,F.H],...F.rows.map(r=>[r-F.ai/2,r+F.ai/2]),...(F.y40!=null?[[F.y40-20,F.y40+20]]:[])].sort((p,q)=>p[0]-q[0]);
+   const cells=[];for(let k=0;k+1<hy.length;k++)cells.push([hy[k][1],hy[k+1][0]]);
+   const cy=cells.length?cells[0]:[F.a,F.H-F.a];const yMid=cy[0]+(cy[1]-cy[0])*0.3;
+   for(let i=0;i+1<vx.length;i++){const x0=vx[i][1],x1=vx[i+1][0];if((x1-x0)*s>9)cotaH(P,X(x0),X(x1),Y(yMid),null,f1(x1-x0),fi,CI)}
+   const xc=vx.length>1?vx[0][1]+(vx[1][0]-vx[0][1])*0.22:F.W/2;
+   cells.forEach(([y0,y1])=>{if((y1-y0)*s>9)cotaV(P,X(xc),Y(y1),Y(y0),null,f1(y1-y0),fi,CI)})}
+  // comprimento de corte de cada tubo (preto, sobre o tubo)
+  front.forEach(m=>{const w=(m.x1-m.x0)*s,h=(m.y1-m.y0)*s;const vert=h>w;const t=f0(m.len);const tl=t.length*1.05+1.2;if((vert?h:w)<tl+2)return;
+    const cx=X((m.x0+m.x1)/2),cy=Y((m.y0+m.y1)/2);const qx=vert?cx:cx+(m.tipo.startsWith('Horizontal')?(w/2-tl/2-3)*0:0),qy=cy;
+    P.push({t:'rect',x:vert?qx-1.3:qx-tl/2,y:vert?qy-tl/2:qy-1.3,w:vert?2.6:tl,h:vert?tl:2.6,r:0.6,fill:'#ffffff',stroke:'#1a1a1a',lw:0.08});
+    P.push({t:'text',x:vert?qx+0.75:qx,y:vert?qy:qy+0.75,s:t,size:2,bold:true,color:'#000000',anchor:'middle',angle:vert?90:0})});
+
   // cotas: largura total em cima, altura total à esquerda, vãos à direita e embaixo
   cotaH(P,X(0),X(F.W),Y(F.H)-7,Y(F.H),fmm(F.W),fs);
   cotaV(P,X(0)-8,Y(F.H),Y(0),X(0),fmm(F.H),fs);
@@ -1908,6 +2011,7 @@ function folhaFace(P,c,o,nFaces){
   // resumo da face
   const vx=224;const info0=0;const info=[['TRAVAS VERTICAIS',String(F.nb-1)],['TRAVAS HORIZONTAIS',String(F.rows.length)+(F.y40!=null?' + 20x40':'')],['POSIÇÃO DAS TRAVAS',ALINHA[F.al].toUpperCase()],['DISTRIBUIÇÃO',F.pers?'PERSONALIZADA':'PROPORCIONAL'],['PERFIL QUADRO',o.perfil.toUpperCase()],['PERFIL INTERNO',o.perfilInt.toUpperCase()]];
   info.forEach(([k,v],i)=>{const y=ly+4+i*7.4;if(vx+30>PW-8)return;P.push({t:'text',x:vx,y,s:k,size:2.2,color:'#868e96'},{t:'text',x:vx,y:y+3.6,s:v,size:3,bold:true,color:'#000000'})});
+  [['#2a6f97','Azul: medidas externas e eixos'],['#d9480f','Laranja: vão livre interno'],['#000000','Caixa branca: corte do tubo (mm)']].forEach(([c,t],k)=>P.push({t:'text',x:224,y:ly+4+info.length*7.4+4+k*3.6,s:t,size:2.2,bold:true,color:c}));
   legendaSerr(P,220,136,66);
 }
 /* ---------- tabela de corte ---------- */
@@ -1921,13 +2025,13 @@ function tabelaCorte(P,rows,tx,ty){const rh=4.6;let cx=tx;
   return ty+rh*(rows.length+1)}
 
 /* ---------- leitura do formulário ---------- */
-let tFaces=[{W:1840,H:2780,prof:0,junta:'linha'}];let tVer=0;
+let tFaces=[{W:1000,H:1000,prof:0,junta:'linha'}];let tVer=0;
 function lerOpcoes(){const n=k=>num($('#'+k).value);
-  return {un:Math.max(1,Math.round(n('tUn'))||1),perfil:$('#tPerfil').value,perfilInt:$('#tPerfilInt').value,parede:$('#tParede').value||'1,25',vaoV:n('tVaoV')||1400,vaoH:n('tVaoH')||1000,trav40:$('#t40').checked,h40:n('tH40')||150,barra:n('tBarra')||6000,serra:n('tSerra')||3}}
+  return {un:Math.max(1,Math.round(n('tUn'))||1),perfil:$('#tPerfil').value,perfilInt:$('#tPerfilInt').value,parede:$('#tParede').value||'1,25',vaoV:n('tVaoV')||1400,vaoH:n('tVaoH')||1000,trav40:$('#t40').checked,perfilV:(tAcm.on&&tAcm.jt)?'30x20':null,h40:n('tH40')||150,barra:n('tBarra')||6000,serra:n('tSerra')||3}}
 function montar(){const o=lerOpcoes();
   tFaces.forEach((f,i)=>{if(!(f.W>100&&f.H>100))throw new Error(`Face ${i+1}: informe largura e altura (mm).`)});
-  const fixs=fixacoes.filter(f=>fixSel.has(f.id));const comp=compor(tFaces,o);
-  return {o,comp,fixs,lista:listaCorte(comp,o,fixs),boxes:boxesMundo(comp,fixs)}}
+  const fixs=fixacoes.filter(f=>fixSel.has(f.id));const comp=compor(acmFaces(tFaces,o),o);
+  const M={o,comp,fixs,lista:listaCorte(comp,o,fixs),boxes:boxesMundo(comp,fixs)};M.acm=acmCalc(comp,o);return M}
 
 function buildTesteira(){
   const M=montar();const {o,comp,fixs,lista}=M;
@@ -1939,14 +2043,16 @@ function buildTesteira(){
    P.push({t:'text',x:18,y:31,s:`${o.un}X`,size:7,bold:true,italic:true,color:'#000000'});
    P.push({t:'text',x:100,y:30,s:`MONTAGEM — ${comp.length} FACE${comp.length>1?'S':''}`,size:4.2,bold:true,color:'#000000',anchor:'middle'});
    const bb=bbox3(M.boxes.filter(b=>!b.fix));const cabe=113+4.6*(lista.length+1)+10<=168;
-   const IR=cabe?{x:24,y:36,w:150,h:64}:{x:20,y:36,w:180,h:118};
-   isoPrims(P,M.boxes,IR);
-   P.push({t:'text',x:100,y:IR.y+IR.h+6,s:`CONJUNTO: ${f0(bb.x1-bb.x0)} (L) x ${f0(bb.y1-bb.y0)} (A) x ${f0(bb.z1-bb.z0)} (P) mm`,size:2.8,bold:true,color:COR_DIM,anchor:'middle'});
+   const IR=cabe?{x:32,y:38,w:140,h:58}:{x:28,y:38,w:168,h:110};
+   const ISO=isoPrims(P,M.boxes,IR);isoCotas(P,ISO,bbox3(M.boxes.filter(b=>!b.fix)));
+   if(tPint==='soldas')protecaoSoldas(P,ISO,pontosSolda(M),o.un,184,105,102);
+   if(M.acm)P.push({t:'text',x:100,y:IR.y+IR.h+10,s:fit(`ACM ${M.acm.t} MM ${acmDesc().toUpperCase()} • ${ACM_INST[tAcm.inst].toUpperCase()}${M.acm.r?` • ESTRUTURA ${M.acm.r} MM MENOR POR LADO (FINAL COM ACM: ${(q=>f0(q.x1-q.x0)+' x '+f0(q.y1-q.y0))(bbox3(M.acm.boxes))} mm)`:''}`,175,2.3),size:2.3,bold:true,color:'#c2255c',anchor:'middle'});
+   P.push({t:'text',x:100,y:IR.y+IR.h+6,s:`${M.acm&&M.acm.r?'ESTRUTURA':'CONJUNTO'}: ${f0(bb.x1-bb.x0)} (L) x ${f0(bb.y1-bb.y0)} (A) x ${f0(bb.z1-bb.z0)} (P) mm`,size:2.8,bold:true,color:COR_DIM,anchor:'middle'});
    // tabela das faces
    const tx=184,cw=[13,22,22,18,27];const hd=['FACE','LARG.','ALT.','PROF.','JUNÇÃO'];let x=tx;
    hd.forEach((h,k)=>{P.push({t:'rect',x,y:32,w:cw[k],h:4.6,fill:'#e6e6e6',stroke:'#000000',lw:0.2},{t:'text',x:x+cw[k]/2,y:35.3,s:h,size:2.3,bold:true,color:'#000000',anchor:'middle'});x+=cw[k]});
    const maxF=Math.min(comp.length,9);
-   comp.slice(0,maxF).forEach((c,i)=>{const y=32+4.6*(i+1);let x=tx;const v=[`F${i+1}`,f0(c.F.W),f0(c.F.H),c.F.box?f0(c.F.D):'—',i?{linha:'EM LINHA',tras:'L P/ TRÁS',frente:'L P/ FRENTE'}[c.f.junta||'linha']:'INÍCIO'];
+   comp.slice(0,maxF).forEach((c,i)=>{const y=32+4.6*(i+1);let x=tx;const v=[`F${i+1}`,f0(c.F.W),f0(c.F.H),c.F.box?f0(c.F.D):'—',i?{linha:'EM LINHA',cima:'EM CIMA',tras:'L P/ TRÁS',frente:'L P/ FRENTE'}[c.f.junta||'linha']:'INÍCIO'];
      v.forEach((s,k)=>{P.push({t:'rect',x,y,w:cw[k],h:4.6,fill:'#ffffff',stroke:'#000000',lw:0.2},{t:'text',x:x+cw[k]/2,y:y+3.3,s,size:2.4,color:'#000000',anchor:'middle'});x+=cw[k]})});
    if(comp.length>maxF)P.push({t:'text',x:tx,y:32+4.6*(maxF+1)+3.5,s:`+ ${comp.length-maxF} face(s) — ver folhas de cada face`,size:2.2,color:'#555555'});
    legendaSerr(P,220,80,66);
@@ -1979,7 +2085,8 @@ function buildTesteira(){
        y+=9}
      y+=4}
   }
-  if(tPint!=='nao'){const P=[];frame(P,ctx,{setor:'PINTURA'});folhaPintura(P,M,o);pages.push(P);tags.push('PINTURA')}
+  if(tPint==='toda'){const P=[];frame(P,ctx,{setor:'PINTURA'});folhaPintura(P,M,o);pages.push(P);tags.push('PINTURA')}
+  if(M.acm){acmPaginas(M.acm,o,ctx,pages,tags);acmMontagem(M.acm,M,o,ctx,pages,tags)}
   if(!FOOT_SKIP)pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length));
   return {pages,tags,M,o,plano,ctx};
 }
@@ -2012,7 +2119,7 @@ function v3Set(boxes){if(!v3Init())return false;
   if(V3.grp){V3.scene.remove(V3.grp);V3.grp.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
   const g=new THREE.Group();const mats={};const lm=new THREE.LineBasicMaterial({color:0x222222,transparent:true,opacity:0.55});
   boxes.forEach(b=>{const dx=Math.max(1,b.x1-b.x0),dy=Math.max(1,b.y1-b.y0),dz=Math.max(1,b.z1-b.z0);const geo=new THREE.BoxGeometry(dx,dy,dz);
-    const m=mats[b.cor]||(mats[b.cor]=new THREE.MeshLambertMaterial({color:b.cor}));const mesh=new THREE.Mesh(geo,m);
+    const mk=b.cor+(b.op||'');const m=mats[mk]||(mats[mk]=new THREE.MeshLambertMaterial(b.op?{color:b.cor,transparent:true,opacity:b.op,depthWrite:false}:{color:b.cor}));const mesh=new THREE.Mesh(geo,m);
     mesh.position.set((b.x0+b.x1)/2,(b.y0+b.y1)/2,-(b.z0+b.z1)/2);g.add(mesh);
     const ed=new THREE.LineSegments(new THREE.EdgesGeometry(geo),lm);ed.position.copy(mesh.position);g.add(ed)});
   const bb=bbox3(boxes);const span=Math.max(bb.x1-bb.x0,bb.y1-bb.y0,bb.z1-bb.z0);
@@ -2032,7 +2139,7 @@ function paraPers(f){let F;try{F=calcFace({...f,modo:'prop'},lerOpcoes())}catch(
 function ajustaVaos(f,k,n){const L=f[k]=f[k]||[];const tot=k==='vaosV'?f.W:f.H;while(L.length>n)L.pop();while(L.length<n){const rest=tot-L.reduce((s,v)=>s+v,0);L.push(Math.round(rest/2*100)/100)}}
 function renderFaces(){
   $('#tFaces').innerHTML=tFaces.map((f,i)=>`<div class="fcard" data-i="${i}">
-    <div class="row" style="justify-content:space-between"><b>FACE ${i+1}${i?'':' (início)'}</b>${tFaces.length>1?`<button class="btn danger sm" data-del="${i}">Remover</button>`:''}</div>
+    <div class="row" style="justify-content:space-between"><b>FACE ${i+1}${i?(f.junta==='cima'?` <span class="note">(em cima da face ${faceRef(tFaces,i)+1})</span>`:(f.ref!=null?` <span class="note">(ao lado da face ${faceRef(tFaces,i)+1})</span>`:'')):' (início)'}</b>${tFaces.length>1?`<button class="btn danger sm" data-del="${i}">Remover</button>`:''}</div>
     <div class="g4">
       <div><label class="f">Largura (mm)</label><input type="number" inputmode="decimal" data-k="W" value="${f.W}"></div>
       <div><label class="f">Altura (mm)</label><input type="number" inputmode="decimal" data-k="H" value="${f.H}"></div>
@@ -2040,13 +2147,12 @@ function renderFaces(){
       ${i?`<div><label class="f">Junção com a face ${i}</label><select data-k="junta">${Object.entries(JUNTAS).map(([k,v])=>`<option value="${k}"${(f.junta||'linha')===k?' selected':''}>${v}</option>`).join('')}</select></div>`:'<div><label class="f">Junção</label><input type="text" value="Início da estrutura" disabled></div>'}
     </div>
     <div class="g4">
-      <div><label class="f">Travas verticais${f.modo==='pers'?'':f.nV!=null?' <a href="#" data-auto="nV" style="color:var(--pink)">auto</a>':' (auto)'}</label><input type="number" inputmode="numeric" min="0" data-k="nV" value="${f.modo==='pers'?(f.vaosV||[]).length:f.nV!=null?f.nV:''}"></div>
-      <div><label class="f">Travas horizontais${f.modo==='pers'?'':f.nH!=null?' <a href="#" data-auto="nH" style="color:var(--pink)">auto</a>':' (auto)'}</label><input type="number" inputmode="numeric" min="0" data-k="nH" value="${f.modo==='pers'?(f.vaosH||[]).length:f.nH!=null?f.nH:''}"></div>
+      <div><label class="f">Travas verticais${f.modo==='pers'?'':f.nV!=null?' <a href="#" data-auto="nV" style="color:var(--pink)">auto</a>':' (auto)'}</label><div class="stp"><button data-subt="nV">−</button><input type="number" inputmode="numeric" min="0" data-k="nV" value="${f.modo==='pers'?(f.vaosV||[]).length:f.nV!=null?f.nV:''}"><button data-addt="nV">+</button></div></div>
+      <div><label class="f">Travas horizontais${f.modo==='pers'?'':f.nH!=null?' <a href="#" data-auto="nH" style="color:var(--pink)">auto</a>':' (auto)'}</label><div class="stp"><button data-subt="nH">−</button><input type="number" inputmode="numeric" min="0" data-k="nH" value="${f.modo==='pers'?(f.vaosH||[]).length:f.nH!=null?f.nH:''}"><button data-addt="nH">+</button></div></div>
       <div><label class="f">Distribuição</label><select data-k="modo"><option value="prop"${f.modo!=='pers'?' selected':''}>Proporcionais</option><option value="pers"${f.modo==='pers'?' selected':''}>Personalizadas</option></select></div>
       <div><label class="f">Posição das travas</label><select data-k="alinha">${Object.entries(ALINHA).map(([k,v])=>`<option value="${k}"${(f.alinha||'centro')===k?' selected':''}>${v}</option>`).join('')}</select></div>
     </div>
     ${f.modo==='pers'?vaosHTML(f):''}
-    <div class="row" style="gap:6px;margin-top:8px"><button class="btn ghost sm" data-addt="nV">+ Trava vertical</button><button class="btn ghost sm" data-addt="nH">+ Trava horizontal</button><button class="btn ghost sm" data-subt="nV">− Trava vertical</button><button class="btn ghost sm" data-subt="nH">− Trava horizontal</button></div>
     </div>`).join('');
 }
 function renderFixPick(){const b=$('#tFixBox');if(!b)return;
@@ -2060,26 +2166,48 @@ function tAtualizar(){clearTimeout(tTimer);tTimer=setTimeout(tRender,90)}
 function tRender(){if(tModo==='desenho'){dRender3D();return}
   syncAuto();if(!$('#tEd').contains(document.activeElement)&&!edDrag)renderEditor();
   try{const r=buildTesteira();lastBuild=r;
-    const ok3=v3Set(r.M.boxes);$('#t3dNote').hidden=ok3;
+    const ok3=v3Set(r.M.acm?r.M.boxes.concat(r.M.acm.boxes):r.M.boxes);$('#t3dNote').hidden=ok3;
     if(!ok3){const P=[];isoPrims(P,r.M.boxes,{x:10,y:10,w:PW-20,h:PH-20});$('#t3dAlt').innerHTML=toSVG(P)}
     const bb=bbox3(r.M.boxes.filter(b=>!b.fix));
+    {const gr=tFaces.map((f,i)=>f.W>MAX_W||f.H>MAX_H?i+1:0).filter(Boolean);if(gr.length&&!$('#tDivMsg').innerHTML)$('#tDivMsg').innerHTML=`<div class="msg warn">Face ${gr.join(', ')} passa de 6 m de comprimento ou 2 m de altura — precisa ser dividida. <button class="btn ghost sm" id="tDivBtn">Dividir agora</button></div>`;if(!gr.length&&/Dividir agora/.test($('#tDivMsg').innerHTML))$('#tDivMsg').innerHTML=''}
     $('#t3dInfo').textContent=`${r.M.comp.length} face(s) • conjunto ${f0(bb.x1-bb.x0)} × ${f0(bb.y1-bb.y0)} × ${f0(bb.z1-bb.z0)} mm (L × A × P)`;
     const uniq=[...new Set(r.tags)];if(!uniq.includes(tSelPage))tSelPage=uniq.includes('FACE 1')?'FACE 1':uniq[0];
-    $('#tPgPick').innerHTML=uniq.map(t=>`<button class="chip${t===tSelPage?' on':''}" data-pg="${t}">${t==='MONTAGEM'?'Montagem e lista':t==='LISTA'?'Lista de corte':t==='PLANO DE CORTE'?'Plano de corte':t==='PINTURA'?'Pintura':t.replace('FACE','Face')}</button>`).join('');
+    $('#tPgPick').innerHTML=uniq.map(t=>`<button class="chip${t===tSelPage?' on':''}" data-pg="${t}">${t==='MONTAGEM'?'Montagem e lista':t==='LISTA'?'Lista de corte':t==='PLANO DE CORTE'?'Plano de corte':t==='PINTURA'?'Pintura':t==='ACM'?'ACM planificação':t==='ACM CHAPAS'?'ACM chapas':t==='ACM MONTAGEM'?'ACM montagem':t.replace('FACE','Face')}</button>`).join('');
     $('#tPrev').innerHTML=r.pages.filter((P,i)=>r.tags[i]===tSelPage).map(P=>`<div class="pg">${toSVG(P)}</div>`).join('');
-    const t=r.M;$('#tMsg').innerHTML=`<div class="msg ok">${t.comp.map(c=>`F${c.i+1}: ${c.F.nb+1} verticais, ${c.F.rows.length} travessa(s)`).join(' • ')}${r.o.trav40?' • travessa 20x40':''} • ${r.plano.map(g=>`${g.nBarras} barra(s) de ${g.perfil}`).join(', ')} para ${r.o.un} un.</div>`;
+    const t=r.M;$('#tMsg').innerHTML=`<div class="msg ok">${t.comp.map(c=>`F${c.i+1}: ${c.F.nb+1} verticais, ${c.F.rows.length} travessa(s)`).join(' • ')}${r.o.trav40?' • travessa 20x40':''} • ${r.plano.map(g=>`${g.nBarras} barra(s) de ${g.perfil}`).join(', ')} para ${r.o.un} un.${r.M.acm?` • ACM: ${r.M.acm.esc.n} chapa(s) ${f1(r.M.acm.esc.SW/1000)}x5 (${Math.round(r.M.acm.esc.aprov*100)}%), fita ${ACM_FITA[r.M.acm.fitaTipo]} ${f1(r.M.acm.fitaTot)} m`:''}</div>`;
+    $('#tAcmFiles').hidden=!r.M.acm;
     $('#tBaixar').disabled=false}
-  catch(e){lastBuild=null;$('#tMsg').innerHTML=`<div class="msg err">${esc(e.message)}</div>`;$('#tBaixar').disabled=true;console.error(e)}
+  catch(e){lastBuild=null;$('#tAcmFiles').hidden=true;$('#tMsg').innerHTML=`<div class="msg err">${esc(e.message)}</div>`;$('#tBaixar').disabled=true;console.error(e)}
 }
 $('#tFaces').addEventListener('input',e=>{const c=e.target.closest('.fcard');const k=e.target.dataset.k;if(!c||(!k&&!e.target.dataset.vao))return;const f=tFaces[+c.dataset.i];const vk=e.target.dataset.vao;if(vk){f[vk][+e.target.dataset.ix]=num(e.target.value)||0;const rest=c.querySelector(`[data-rest=${vk}]`);if(rest)rest.value=f1((vk==='vaosV'?f.W:f.H)-f[vk].reduce((s,v)=>s+v,0));tAtualizar();return}
   if(f.modo==='pers'&&(k==='nV'||k==='nH')){const v=e.target.value.trim();if(v==='')return;ajustaVaos(f,k==='nV'?'vaosV':'vaosH',Math.max(0,Math.round(num(v))||0));renderFaces();tAtualizar();return}
   if(k==='modo'){f.modo=e.target.value;if(f.modo==='pers')paraPers(f);renderFaces();tAtualizar();return}
   if(k==='nV'||k==='nH'){const v=e.target.value.trim();f[k]=v===''?null:Math.max(0,Math.round(num(v))||0)}else f[k]=(k==='junta'||k==='alinha')?e.target.value:num(e.target.value);if(k==='prof'||k==='junta'||k==='W'||k==='H')v3Fit=false;tAtualizar()});
-$('#tFaces').addEventListener('change',e=>{if(e.target.dataset.k==='junta'){v3Fit=true;tAtualizar()}});
+$('#tFaces').addEventListener('change',e=>{const k=e.target.dataset.k;if(k==='junta'){v3Fit=true;acmUI();tAtualizar()}
+  if(k==='W'||k==='H'){const c=e.target.closest('.fcard');if(!c)return;let i=+c.dataset.i;const f=tFaces[i];
+    // parte de um grupo já dividido: refaz o grupo inteiro com a nova medida total
+    if(f.grp&&((k==='H'&&f.H>MAX_H)||(k==='W'&&f.W>MAX_W))){const ix=tFaces.map((g,j)=>g.grp===f.grp?j:-1).filter(j=>j>=0);const a0=ix[0],a1=ix[ix.length-1];
+      if(a1-a0+1===ix.length){const base=tFaces.filter(g=>g.grp===f.grp&&g.junta!=='cima'),col=tFaces.filter((g,j)=>g.grp===f.grp&&(j===a0||g.junta==='cima'));
+        const Wt=k==='W'?base.reduce((s,g)=>s+(g===f?f.W:g.W),0):base.reduce((s,g)=>s+g.W,0),Hn=k==='H'?f.H:col.reduce((s,g)=>s+g.H,0);const m={...tFaces[a0],W:Wt,H:Hn};delete m.grp;const n=ix.length;
+        tFaces.splice(a0,n,m);tFaces.forEach((g,j)=>{if(j<=a0||g.ref==null)return;if(g.ref>=a0&&g.ref<=a1)g.ref=a0;else if(g.ref>a1)g.ref-=n-1});i=a0}}
+    if(dividirFace(i)){renderFaces();acmUI();v3Fit=true;tAtualizar()}}});
+// ---------- divisão automática: mais de 6 m de comprimento ou 2 m de altura ----------
+const MAX_W=6000,MAX_H=2000;
+function removeFace(idx){tFaces.splice(idx,1);tFaces.forEach((f,i)=>{if(f.ref==null)return;if(f.ref===idx)delete f.ref;else if(f.ref>idx)f.ref--;if(f.ref!=null&&f.ref>=i)delete f.ref})}
+function dividirFace(i){const f=tFaces[i];const nW=Math.ceil(f.W/MAX_W-1e-9),nH=Math.ceil(f.H/MAX_H-1e-9);if(nW<=1&&nH<=1)return false;
+  const r=v=>Math.round(v*100)/100;const pw=r(f.W/nW),ph=r(f.H/nH);const base={...f,W:pw,H:ph,nV:null,nH:null,modo:'prop',vaosV:null,vaosH:null,grp:'g'+Date.now().toString(36)+i};delete base.ref;
+  const novas=[];for(let c=0;c<nW;c++){const fundo=i+novas.length;for(let k=0;k<nH;k++){const g={...base};
+      if(c===0&&k===0){g.junta=f.junta||'linha';if(f.ref!=null)g.ref=f.ref}else if(k===0){g.junta='linha';g.ref=i+(c-1)*nH}else g.junta='cima';novas.push(g)}}
+  const add=novas.length-1;const ultimaBase=i+(nW-1)*nH;
+  tFaces.forEach((g,k)=>{if(k<=i||g.ref==null)return;if(g.ref===i)g.ref=ultimaBase;else if(g.ref>i)g.ref+=add});
+  tFaces.splice(i,1,...novas);
+  const msg=[f.W>MAX_W?`passa de 6 m de comprimento (${f0(f.W)} mm)`:'',f.H>MAX_H?`passa de 2 m de altura (${f0(f.H)} mm)`:''].filter(Boolean).join(' e ');
+  $('#tDivMsg').innerHTML=`<div class="msg warn"><b>Atenção:</b> a face ${i+1} ${msg} — precisa ser dividida. Dividi em ${nW>1?nW+' parte(s) na largura':''}${nW>1&&nH>1?' x ':''}${nH>1?nH+' na altura':''} iguais de ${f0(pw)} x ${f0(ph)} mm. Cada parte pode ser ajustada abaixo; nas emendas cada peça tem a sua trava (travas dobradas) para emendar uma na outra.</div>`;
+  return true}
 $('#tFaces').addEventListener('click',e=>{const c=e.target.closest('.fcard');
   const au=e.target.closest('[data-auto]');if(au&&c){e.preventDefault();tFaces[+c.dataset.i][au.dataset.auto]=null;renderFaces();tAtualizar();return}
   const ad=e.target.closest('[data-addt],[data-subt]');if(ad&&c){const fc=tFaces[+c.dataset.i];const k=ad.dataset.addt||ad.dataset.subt;const cur=autoCont(fc)[k];const nn=Math.max(0,cur+(ad.dataset.addt?1:-1));if(fc.modo==='pers')ajustaVaos(fc,k==='nV'?'vaosV':'vaosH',nn);else fc[k]=nn;renderFaces();tAtualizar();return}
-  const b=e.target.closest('[data-del]');if(!b)return;tFaces.splice(+b.dataset.del,1);renderFaces();v3Fit=true;tAtualizar()});
+  const b=e.target.closest('[data-del]');if(!b)return;removeFace(+b.dataset.del);renderFaces();v3Fit=true;tAtualizar()});
 document.querySelectorAll('[data-addf]').forEach(b=>b.onclick=()=>{const pv=tFaces[tFaces.length-1];const j=b.dataset.addf;
   tFaces.push({W:j==='linha'?pv.W:Math.max(300,pv.prof||600),H:pv.H,prof:pv.prof||0,junta:j});renderFaces();v3Fit=true;tAtualizar()});
 document.querySelectorAll('[data-modelo]').forEach(b=>b.onclick=()=>{const a=tFaces[0];const W=a.W,H=a.H,P=a.prof||0,S=Math.max(400,P||600);
@@ -2154,7 +2282,7 @@ function edAplicar(f,F,V,H,msg){const a=F.a,ai=F.ai,gap=ai+10;
   $('#tEdMsg').innerHTML='';gravaPos(f,V,H.slice().sort((x,y)=>x-y));renderFaces();renderEditor();tAtualizar();return true}
 $('#tEd').addEventListener('change',e=>{const t=e.target;if(!t.dataset.ed)return;const c=$('#tEd')._ctx;if(!c)return;const {f,F}=c;const raw=t.value.trim();const v=num(raw.includes(',')?raw.replace(/\./g,''):raw);
   if(!(v>0)){renderEditor();return}
-  if(t.dataset.ed==='W'||t.dataset.ed==='H'){f[t.dataset.ed]=v;renderFaces();v3Fit=true;renderEditor();tAtualizar();return}
+  if(t.dataset.ed==='W'||t.dataset.ed==='H'){f[t.dataset.ed]=v;dividirFace(tFaces.indexOf(f));renderFaces();acmUI();v3Fit=true;renderEditor();tAtualizar();return}
   const pos=posDe(f,F);const V=pos.V.slice(),H=pos.H.slice();const i=+t.dataset.i;
   if(t.dataset.ed==='sv'){const n=V.length;if(i<n)V[i]=(i?V[i-1]:0)+v;else V[n-1]=F.W-v}
   else{const D=H.slice().reverse();const n=D.length;const B=[F.H,...D,0];if(i<n)D[i]=B[i]-v;else D[n-1]=v;H.splice(0,H.length,...D.reverse())}
@@ -2166,13 +2294,17 @@ $('#tEd').addEventListener('pointerdown',e=>{const r=e.target.closest('[data-dra
   e.preventDefault();r.setPointerCapture(e.pointerId);edDrag={r,svg,c,k:r.dataset.drag,orig:+(r.dataset.x||r.dataset.y),cur:+(r.dataset.x||r.dataset.y)}});
 $('#tEd').addEventListener('pointermove',e=>{if(!edDrag)return;const {r,svg,c,k}=edDrag;const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const q=pt.matrixTransform(svg.getScreenCTM().inverse());
   let v=k==='V'?(q.x-c.ox)/c.s:c.F.H-(q.y-c.oy)/c.s;v=Math.round(v/5)*5;edDrag.cur=v;
-  if(k==='V')r.setAttribute('x',c.X(v-c.F.ai/2));else r.setAttribute('y',c.Y(v+c.F.ai/2));
+  if(k==='V')r.setAttribute('x',c.X(v-c.F.aiV/2));else r.setAttribute('y',c.Y(v+c.F.ai/2));
   $('#tEdMsg').innerHTML=`<div class="msg ok">${k==='V'?'Da esquerda até o centro':'Da base até o centro'}: <b>${f1(v)} mm</b> — solte para aplicar</div>`});
 const edSolta=e=>{if(!edDrag)return;const {c,k,orig,cur}=edDrag;edDrag=null;if(Math.abs(cur-orig)<0.01){renderEditor();$('#tEdMsg').innerHTML='';return}
   const pos=posDe(c.f,c.F);const V=pos.V.slice(),H=pos.H.slice();const L=k==='V'?V:H;const ix=L.findIndex(x=>Math.abs(x-orig)<0.01);if(ix>=0)L[ix]=cur;edAplicar(c.f,c.F,V,H)};
 $('#tEd').addEventListener('pointerup',edSolta);$('#tEd').addEventListener('pointercancel',edSolta);
 $('#tEdPick').onclick=e=>{const b=e.target.closest('[data-edf]');if(!b)return;tEdFace=+b.dataset.edf;renderEditor()};
 
+/* proteção nas soldas (sem pintura): vai na própria folha de montagem da serralheria */
+function protecaoSoldas(P,ISO,pts,un,bx=196,by=33,bw=90){pts.forEach(q=>{const [x,y]=ISO.I(...q);P.push({t:'circle',x,y,r:1.1,fill:'#ffd43b',stroke:'#c92a2a',lw:0.3})});
+  P.push({t:'rect',x:bx,y:by,w:bw,h:7.5,r:1.5,fill:'#fff4e6',stroke:'#e8590c',lw:0.35});
+  P.push({t:'circle',x:bx+4,y:by+3.75,r:1.1,fill:'#ffd43b',stroke:'#c92a2a',lw:0.3},{t:'text',x:bx+7,y:by+2.9,s:'APLICAR PROTEÇÃO EM TODAS AS SOLDAS',size:2.4,bold:true,color:'#c2410c'},{t:'text',x:bx+7,y:by+6.1,s:fit(`${pts.length*un} pontos (aprox.) — não vai para a pintura`,bw-9,2.1),size:2.1,color:'#555555'})}
 /* ================= PINTURA DA TESTEIRA ================= */
 let tPint='nao';
 function pontosSolda(M){const pts=[];const seen=new Set();
@@ -2202,11 +2334,291 @@ function folhaPinturaG(P,G){const o={un:G.un};const CI=corInfo();const sw=CI.hex
   if(!toda)P.push({t:'circle',x:102,y:165,r:1.1,fill:sw,stroke:'#c92a2a',lw:0.25},{t:'text',x:105,y:166,s:'Ponto de solda a pintar (retoque)',size:2.4,color:'#000000'});
 }
 $('#tPintModo').onclick=e=>{const b=e.target.closest('button');if(!b)return;tPint=b.dataset.m;document.querySelectorAll('#tPintModo button').forEach(x=>x.classList.toggle('sel',x===b));
-  $('#tPintSlot').hidden=tPint==='nao';pickerCasa();tAtualizar()};
+  $('#tPintSlot').hidden=tPint!=='toda';pickerCasa();tAtualizar()};
 ['input','click','change'].forEach(ev=>$('#pPicker').addEventListener(ev,()=>{if($('#tab-testeiras').hidden)return;if(tModo==='padrao'&&tPint!=='nao')tAtualizar();if(tModo==='desenho'&&dPint!=='nao'&&dModel)dAtualizar()}));
 // o seletor de cor é um só: vai para onde está sendo usado
 function pickerCasa(){const pk=$('#pPicker');if($('#tab-testeiras').hidden){$('#pintCard').appendChild(pk);return}
-  if(tModo==='desenho'){if(dPint!=='nao')$('#dPintSlot').appendChild(pk)}else if(tPint!=='nao')$('#tPintSlot').appendChild(pk)}
+  if(tModo==='desenho'){if(dPint==='toda')$('#dPintSlot').appendChild(pk)}else if(tPint==='toda')$('#tPintSlot').appendChild(pk)}
+
+$('#tAcmFiles').onclick=async()=>{if(!lastBuild||!lastBuild.M.acm)return;const r=lastBuild;const fs=acmArquivos(r.M.acm,`OS ${r.ctx.os||'sem número'} - item ${r.ctx.item}`);
+  let blob,name;if(fs.length===1){blob=new Blob([fs[0].buf],{type:'application/pdf'});name=fs[0].name}else{const z=new JSZip();fs.forEach(f=>z.file(f.name,f.buf));blob=await z.generateAsync({type:'blob'});name=nomeArq(`OS ${r.ctx.os||'sem número'} - item ${r.ctx.item} - ACM router.zip`)}
+  try{const dl=window.claude&&claude.use?await claude.use('downloads'):null;if(!dl){$('#tMsg').insertAdjacentHTML('beforeend','<div class="msg err">Download indisponível nesta visualização.</div>');return}await dl.save({filename:name,data:blob})}catch(e){if(e&&e.code==='declined')return;$('#tMsg').insertAdjacentHTML('beforeend',`<div class="msg err">Não foi possível baixar (${esc(e.code||e.message)}).</div>`)}};
+
+$('#tDivMsg').addEventListener('click',e=>{if(e.target.id!=='tDivBtn')return;for(let i=tFaces.length-1;i>=0;i--)dividirFace(i);renderFaces();acmUI();v3Fit=true;tAtualizar()});
+
+/* ================= ACM nas testeiras ================= */
+const ACM_LEN=5000;const ACM_LARG={3:[1220,1500],4:[1250,1500]};
+const ACM_INST={rente:'Corte rente',env1:'Envelope 1 dobra',env2:'Envelope 2 dobras'};
+const ACM_FITA={vhb:'VHB comum',cv150:'CV 150'};
+const ACM_CORTE='#ff00c0',ACM_VINCO='#00e1ff';
+let tAcm={on:false,esp:3,inst:'rente',fita:'vhb',chapa:'auto',marca:'',cor:null,jt:false,jmm:5,je:false,envT:'ext'};
+// catálogos (nomes como aparecem nos sites e cartelas dos fabricantes; a cor na tela é aproximada)
+const ACM_CAT=[
+ {marca:'Bold',linha:'Easybold',esp:[3],cores:'Branco Brilho|Branco Fosco|Preto Brilho|Preto Fosco|Prata Metálico|Prata RAL9006|Prata Aço Escovado|Espelhado Prata|Espelhado Dourado|Grafite Brilho|Grafite Metálico|Dark Grey Metálico|Champagne Dourado Metálico|Amarelo Brilho|Amarelo Fosco|Laranja Brilho|Laranja Fosco|Vermelho Brilho|Vermelho Fosco|Vermelho Escuro Brilho|Bordô Fosco|Rosa Brilho|Roxo Brilho|Azul Brilho|Azul Fosco|Azul GM Fosco|Verde Brilho|Verde Fosco|Verde Escuro Fosco|Verde Sicredi Fosco|Verde Sicob Brilho|Bege Fosco|Marrom Café Fosco'},
+ {marca:'Bold',linha:'Engebold / Superbold',esp:[4],cores:'Branco Brilho|Branco Fosco|Preto Brilho|Preto Fosco|Prata Metálico|Prata RAL9006|Dark Grey Metálico|Cinza Anthracite|Cinza RAL 7037|Champagne Dourado Metálico|Laranja Fosco|Azul Marinho Fosco|Verde Fosco|Aço Corten Enferrujado|Madeira Mogno (clara)|Madeira Imbuia (escura)|Madeira Sucupira|Madeira Castanha|Madeira Nogueira'},
+ {marca:'Day Brasil',linha:'Tecbond',esp:[3,4],cores:'Branco Neve Fosco|Branco Neve Brilho|Preto Carbono Fosco|Preto Carbono Brilho|Vermelho Intenso Fosco|Vermelho Intenso Brilho|Amarelo Real Fosco|Amarelo Real Brilho|Azul Marinho Fosco|Azul Marinho Brilho|Azul Royal|Verde BR|Laranja Silvestre|Cinza RAL 7037|Cinza Metálico|Grafite Metálico|Grafite Chumbo|Champanhe Metálico|Cinza Acetinado|Bronze Indiano|Madeira Mogno|Madeira Sucupira|Vermelho Vulcano (matte)|Cinza Leomare (matte)|Cinza Torres (matte)|Branco Bariloche (matte)|Bege Puma (matte)'},
+ {marca:'Geoplast',linha:'Geo',esp:[3],cores:'Branco Brilho|Branco Fosco|Preto Brilho|Preto Fosco|Prata Metálico|Aço Escovado|Champagne Metálico|Grafite Metálico|Cinza Chumbo Fosco|Amarelo Brilho|Amarelo Fosco|Laranja Brilho|Laranja Fosco|Vermelho Brilho|Vermelho Fosco|Azul Céu|Azul Marinho Brilho|Azul Marinho Fosco|Marrom Fosco'},
+ {marca:'ProjetoAlumínio',linha:'AlusignPro (comunicação visual)',esp:[3],cores:'Branco Perolado PRO 001|Branco Porcelana PRO 102|Bone White PRO 571|Bege PRO 268|Silver White Metallic PRO 107|Bright Silver Metallic PRO 131|Smoke Silver Metallic PRO 134|Dark Grey Metallic PRO 137|Champagne Metallic PRO 111|Jade Silver Metallic PRO 114|Brushed (escovado) PRO 132|Espelhado Prata PRO 150|Espelhado Dourado PRO 151|Cinza RAL 7037 PRO 7037|Vinho Alto Brilho PRO 3777|Azul Alto Brilho PRO 061|Verde Alto Brilho PRO 3794|Verde Limão PRO 6840|Wood Sucupira PRO 37524|Concreto Titan PRO 201'},
+ {marca:'ProjetoAlumínio',linha:'ProjetoAlumínio (fachada)',esp:[4],cores:'Branco Alto Brilho PRO 315|Bright Silver Metallic PRO 131|Smoke Silver Metallic PRO 134|Silver Metallic PRO 9006|Jade Silver Metallic PRO 114|Champagne Metallic PRO 111|Sand Golden PRO 136|Golden PRO 121|Silver Gold PRO 135|Cinza Pewter Metallic PRO 7263|Dark Grey JLR Metallic PRO 1874|Bronze 1001 PRO 5818|Bronze 1002 PRO 3316|Bronze 1003 PRO 5062|Brown Metallic PRO 364|Bright Bronze Metallic PRO 318|Brushed (escovado) PRO 132|Vinho Alto Brilho PRO 3777|Azul Alto Brilho PRO 061|Laranja Semi Brilho PRO 266|Olive Green PRO 225|Brown Corten PRO 1237|Aço Corten Oxidado PRO 1236|Concreto Berlim PRO 2425|Branco Texturizado PRO 9003T'},
+ {marca:'Alucomaxx',linha:'Visualmaxx',esp:[3],cores:'Branco Brilho VX103|Branco Fosco VX104|Preto Brilho VX151|Preto Fosco VX152|Amarelo Brilho VX701|Laranja Brilho VX751|Vermelho Brilho VX502|Vermelho Fosco VX504|Prata Metálico|Prata Fosco|Prata Espelhado|Escovado|Champagne Metálico|Grafite Metálico|Dark Grey Metálico|Cinza RAL 7037|Café Fosco|Dourado|Madeira Imbuia'},
+ {marca:'Alucomaxx',linha:'Fachada (colorChart)',esp:[4],cores:'Pure White sólido KR1000|White sólido KR1010|Branco Polar sólido KR1040|Bone White sólido KR1060|Light Grey sólido KR1070|Oyster sólido KR1080|Black sólido KR1500|Cinza RAL 7021 sólido KR1570|Branco Alaska Brilhante KR1030|Branco Alto Brilho KR1330|Preto Brilhante KR1510|Azul Brilhante KR4060|Azul Turquesa Brilhante KR4380|Silver Metallic KR2010|Prata Metálica KR2020|Smoke Silver Metallic KR2030'}];
+function acmAcab(n){n=n.toLowerCase();if(/espelhad/.test(n))return'espelhado';if(/escovad|brushed/.test(n))return'escovado';if(/madeira|wood/.test(n))return'madeira';if(/corten|concreto|textur/.test(n))return'texturizado';
+  if(/metál|metal/.test(n))return'metálico';if(/fosco|matte|sólido|acetinad/.test(n))return'fosco';if(/brilh/.test(n))return'brilho';return''}
+function acmHex(n){n=n.toLowerCase();const R=[[/espelhado dourado|dourado|golden|gold/,'#c9a43b'],[/espelhad/,'#d9dde0'],[/escovad|brushed/,'#b8bcc0'],[/corten/,'#8b4a26'],[/concreto/,'#9a9a95'],[/imbuia/,'#4a2f1f'],[/madeira|wood|sucupira|mogno|castanha|nogueira/,'#7a4a2a'],
+  [/perolad|porcelana|bone|oyster|bariloche/,'#ece6d8'],[/branco|white/,'#f7f7f5'],[/preto|black/,'#161616'],[/7021|anthracite|dark grey|grafite|chumbo|jlr/,'#3d4247'],[/light grey/,'#c9ccce'],[/pewter|7037|cinza|grey|gray/,'#7d8186'],
+  [/champag|champanhe/,'#cbb994'],[/bronze/,'#8c6a45'],[/brown|café|marrom/,'#5a3b2a'],[/prata|silver/,'#c0c4c8'],[/vinho|bordô|burgundy/,'#6d1a2a'],[/vermelho escuro/,'#9b1b24'],[/vermelho|vulcano/,'#c8102e'],[/amarelo/,'#ffd100'],[/laranja|orange/,'#ff7a00'],
+  [/turquesa/,'#11a3b4'],[/azul céu/,'#6fb7e9'],[/marinho/,'#1b2a5c'],[/royal|gm/,'#1f4fbf'],[/azul/,'#1f5fbf'],[/limão/,'#9ccc3c'],[/olive/,'#6b7a3a'],[/verde escuro|sicredi/,'#1e5b2e'],[/verde br|bandeira/,'#009b3a'],[/verde/,'#2e8b3e'],[/rosa|pink/,'#e83e8c'],[/roxo/,'#6a2c91'],[/bege|puma|sand/,'#d8c7a3']];
+  for(const [re,c] of R)if(re.test(n))return c;return'#b0b4b8'}
+let acmCustom=[];
+function acmLocal(){acmCustom=lsGet('granda_acm')||[]}
+function acmListen(db){db.doc('config/acm').onSnapshot(s=>{if(s.exists){acmCustom=(s.data()||{}).cores||[];acmUI()}},()=>{})}
+async function acmSalvarCustom(){if(local||!db){lsSet('granda_acm',acmCustom);return}try{await db.doc('config/acm').set({cores:acmCustom})}catch(e){}}
+function acmCatalogo(esp){const out=[];ACM_CAT.filter(c=>c.esp.includes(+esp)).forEach(c=>c.cores.split('|').forEach(n=>out.push({marca:c.marca,linha:c.linha,nome:n,acab:acmAcab(n),hex:acmHex(n)})));
+  acmCustom.filter(c=>!c.esp||c.esp==esp).forEach(c=>out.push({marca:'Minhas cores',linha:'cadastro manual',nome:c.nome,acab:c.acab,hex:c.hex||'#b0b4b8',custom:true}));return out}
+
+/* ---------- regras ---------- */
+function acmFita(){return +tAcm.esp===4?'cv150':tAcm.fita}
+function acmRed(){if(!tAcm.on||tAcm.inst==='rente')return 0;return +tAcm.esp===4?12:acmFita()==='cv150'?10:9}
+// lados de cada face: livre (null), emenda (divisão em linha/empilhada) ou canto (L)
+function ladosFaces(faces,o){const Lf=layoutFaces(faces,o);const S=faces.map(()=>({l:null,r:null,t:null,b:null}));
+  const dot=(u,v)=>u[0]*v[0]+u[1]*v[1];
+  for(let i=0;i<faces.length;i++)for(let k=0;k<faces.length;k++){if(i===k)continue;const A=Lf[i],B=Lf[k];
+    if(Math.abs(A.d[0]-B.d[0])>1e-6||Math.abs(A.d[1]-B.d[1])>1e-6||Math.abs(dot(A.O,A.n)-dot(B.O,B.n))>1)continue;
+    const a0=dot(A.O,A.d),a1=a0+A.W,b0=dot(B.O,B.d),b1=b0+B.W;const ov=(p0,p1,q0,q1)=>Math.min(p1,q1)-Math.max(p0,q0)>1;
+    if(Math.abs(a1-b0)<1&&ov(A.oy,A.oy+A.H,B.oy,B.oy+B.H))S[i].r='emenda';
+    if(Math.abs(A.oy+A.H-B.oy)<1&&ov(a0,a1,b0,b1))S[i].t='emenda'}
+  for(let i=0;i<faces.length;i++)for(let k=0;k<faces.length;k++){if(S[k].r==='emenda'){const A=Lf[k],B=Lf[i];const dot2=(u,v)=>u[0]*v[0]+u[1]*v[1];
+      if(i!==k&&Math.abs(dot2(A.O,A.d)+A.W-dot2(B.O,B.d))<1&&Math.abs(A.d[0]-B.d[0])<1e-6&&Math.abs(A.d[1]-B.d[1])<1e-6&&Math.abs(dot2(A.O,A.n)-dot2(B.O,B.n))<1&&Math.min(A.oy+A.H,B.oy+B.H)-Math.max(A.oy,B.oy)>1)S[i].l='emenda'}
+    if(S[k].t==='emenda'){const A=Lf[k],B=Lf[i];if(i!==k&&Math.abs(A.oy+A.H-B.oy)<1&&Math.abs(A.d[0]-B.d[0])<1e-6&&Math.abs(A.d[1]-B.d[1])<1e-6&&Math.abs(dot(A.O,A.n)-dot(B.O,B.n))<1&&Math.min(dot(A.O,A.d)+A.W,dot(B.O,B.d)+B.W)-Math.max(dot(A.O,A.d),dot(B.O,B.d))>1)S[i].b='emenda'}}
+  faces.forEach((f,i)=>{if(i&&(f.junta==='tras'||f.junta==='frente')){S[i].l='canto';S[faceRef(faces,i)].r='canto'}});
+  return S}
+const temEmenda=faces=>faces.some((f,i)=>i>0&&((f.junta||'linha')==='linha'||f.junta==='cima'));
+// estrutura de metalon menor para o ACM fechar na medida final; nas emendas pode ter junta de dilatação
+function acmFaces(faces,o){const on=tAcm.on,env=on&&tAcm.inst!=='rente',r=acmRed(),jm=on&&tAcm.je?(+tAcm.jmm||5):0,todas=(tAcm.envT||'ext')==='todas';
+  const S=ladosFaces(faces,o);
+  return faces.map((f,i)=>{const fl={},ai={},ins={};
+    ['l','r','t','b'].forEach(k=>{const s=S[i][k];
+      if(!s){fl[k]=env;ai[k]=0;ins[k]=env?r:0}
+      else if(s==='emenda'){fl[k]=env&&todas;ai[k]=jm/2;ins[k]=(fl[k]?r:0)+ai[k]}
+      else{fl[k]=false;ai[k]=0;ins[k]=0}});
+    const g={...f,W:f.W-ins.l-ins.r,H:f.H-ins.t-ins.b,_in:ins,_ai:ai,_fl:fl,_lado:S[i],_fW:f.W,_fH:f.H};
+    if(f.modo==='pers'){if(g.vaosV&&g.vaosV.length)g.vaosV=[g.vaosV[0]-ins.l,...g.vaosV.slice(1)];if(g.vaosH&&g.vaosH.length)g.vaosH=[g.vaosH[0]-ins.b,...g.vaosH.slice(1)]}
+    return g})}
+function acmLargs(){const op=ACM_LARG[tAcm.esp]||ACM_LARG[3];return tAcm.chapa!=='auto'&&op.includes(+tAcm.chapa)?[+tAcm.chapa]:op}
+const ACM_MARG=10,ACM_GAP=8; // margem da chapa e espaço entre peças (fresa)
+function acmCabe(w,h,SW){const L=ACM_LEN-2*ACM_MARG,S=SW-2*ACM_MARG;return(w<=L&&h<=S)||(h<=L&&w<=S)}
+// geometria de uma peça planificada
+function acmPeca(w,h,e,fl,lados){const el=lados.l?e:0,er=lados.r?e:0,eb=lados.b?e:0,et=lados.t?e:0;
+  const x0=0,x1=el,x2=el+w,x3=x2+er,y0=0,y1=eb,y2=eb+h,y3=y2+et;
+  let pts=[[x1,y0],[x2,y0],[x2,y1],[x3,y1],[x3,y2],[x2,y2],[x2,y3],[x1,y3],[x1,y2],[x0,y2],[x0,y1],[x1,y1]];
+  // envelope 2 dobras: cantos do retorno (última dobra) cortados a 45°
+  const rt=e-fl;if(rt>0){const viz=[lados.l&&lados.b,lados.r&&lados.b,null,lados.r&&lados.b,lados.r&&lados.t,null,lados.r&&lados.t,lados.l&&lados.t,null,lados.l&&lados.t,lados.l&&lados.b,null];
+    const out=[];pts.forEach((P,i)=>{if(!viz[i]){out.push(P);return}const A=pts[(i+11)%12],B=pts[(i+1)%12];const u=(Q)=>{const dx=Q[0]-P[0],dy=Q[1]-P[1],L=Math.hypot(dx,dy)||1;return[P[0]+dx/L*rt,P[1]+dy/L*rt]};out.push(u(A),u(B))});pts=out}
+  pts=pts.filter((q,i)=>{const p=pts[(i+pts.length-1)%pts.length];return Math.abs(q[0]-p[0])>1e-6||Math.abs(q[1]-p[1])>1e-6});
+  // remove pontos colineares
+  pts=pts.filter((q,i)=>{const a=pts[(i+pts.length-1)%pts.length],b=pts[(i+1)%pts.length];return Math.abs((q[0]-a[0])*(b[1]-a[1])-(q[1]-a[1])*(b[0]-a[0]))>1e-6});
+  const vin=[];const ret=e-fl; // e = aba total; fl = aba lateral; ret = retorno (2ª dobra)
+  if(e>0){if(lados.t){vin.push([[x1,y2],[x2,y2]]);if(ret>0)vin.push([[x1,y2+fl],[x2,y2+fl]])}
+    if(lados.b){vin.push([[x1,y1],[x2,y1]]);if(ret>0)vin.push([[x1,y1-fl],[x2,y1-fl]])}
+    if(lados.l){vin.push([[x1,y1],[x1,y2]]);if(ret>0)vin.push([[x1-fl,y1],[x1-fl,y2]])}
+    if(lados.r){vin.push([[x2,y1],[x2,y2]]);if(ret>0)vin.push([[x2+fl,y1],[x2+fl,y2]])}}
+  let area=0;pts.forEach((q,i)=>{const p=pts[(i+1)%pts.length];area+=q[0]*p[1]-p[0]*q[1]});
+  return {w,h,e,fl,ret,lados,bw:x3,bh:y3,pts,vin,area:Math.abs(area)/2,fx:[x1,x2],fy:[y1,y2]}}
+// divide a face em partes que caibam na chapa; emendas sobre as travas verticais quando der
+function acmDivide(W,H,e,fl,lados,trav,SW){
+  const mk=cuts=>{const xs=[0,...cuts,W];return xs.slice(1).map((x,k)=>acmPeca(x-xs[k],H,e,fl,{t:lados.t,b:lados.b,l:k===0&&lados.l,r:k===xs.length-2&&lados.r}))};
+  const ok=ps=>ps.every(p=>acmCabe(p.bw,p.bh,SW));
+  let gre=null;
+  {const cuts=[];let pos=0,ok2=true;const fitsP=(a,b,first,last)=>{const p=acmPeca(b-a,H,e,fl,{t:lados.t,b:lados.b,l:first&&lados.l,r:last&&lados.r});return acmCabe(p.bw,p.bh,SW)};
+   while(!fitsP(pos,W,!cuts.length,true)){const c=trav.filter(t=>t>pos+50&&fitsP(pos,t,!cuts.length,false));if(!c.length){ok2=false;break}pos=Math.max(...c);cuts.push(pos)}
+   if(ok2)gre=cuts}
+  for(let n=1;n<=40;n++){if(gre&&gre.length+1<=n){const g=mk(gre);return{pecas:g,emendas:gre,naTrava:gre.map(()=>true)}}
+    const ideal=[];for(let k=1;k<n;k++)ideal.push(W*k/n);
+    const snap=ideal.map(x=>{let b=x,bd=W/n*0.35;trav.forEach(t=>{if(Math.abs(t-x)<bd){bd=Math.abs(t-x);b=t}});return b});
+    const s=mk(snap);if(ok(s))return{pecas:s,emendas:snap,naTrava:snap.map(x=>trav.some(t=>Math.abs(t-x)<0.5))};
+    const p=mk(ideal);if(ok(p))return{pecas:p,emendas:ideal,naTrava:ideal.map(()=>false)}}
+  throw new Error(`ACM: a face de ${f0(W)} x ${f0(H)} mm não cabe em chapa de ${f0(SW)} x 5000 mm nem dividida — divida a face.`)}
+
+/* ---------- aproveitamento (MaxRects, prioriza da esquerda para a direita) ---------- */
+function acmNest(itens,SW){const BW=ACM_LEN-2*ACM_MARG+ACM_GAP,BH=SW-2*ACM_MARG+ACM_GAP;const bins=[];
+  const novo=()=>{const b={free:[{x:0,y:0,w:BW,h:BH}],pcs:[]};bins.push(b);return b};
+  const ord=itens.slice().sort((a,b)=>Math.max(b.bw,b.bh)-Math.max(a.bw,a.bh)||b.bw*b.bh-a.bw*a.bh);
+  for(const it of ord){let best=null;
+    for(const b of bins)for(const fr of b.free)for(const rot of [false,true]){const w=(rot?it.bh:it.bw)+ACM_GAP,h=(rot?it.bw:it.bh)+ACM_GAP;
+      if(w<=fr.w+1e-6&&h<=fr.h+1e-6){const sc=[fr.x+w,fr.y];if(!best||sc[0]<best.sc[0]-1e-6||(Math.abs(sc[0]-best.sc[0])<1e-6&&sc[1]<best.sc[1]))best={b,x:fr.x,y:fr.y,w,h,rot,sc}}}
+    if(!best){const b=novo();const rot=!(it.bw+ACM_GAP<=BW&&it.bh+ACM_GAP<=BH);const w=(rot?it.bh:it.bw)+ACM_GAP,h=(rot?it.bw:it.bh)+ACM_GAP;if(w>BW+1e-6||h>BH+1e-6)return null;best={b,x:0,y:0,w,h,rot}}
+    const {b}=best;const R={x:best.x,y:best.y,w:best.w,h:best.h};b.pcs.push({it,x:best.x+ACM_MARG,y:best.y+ACM_MARG,rot:best.rot});
+    const nf=[];for(const f of b.free){if(R.x>=f.x+f.w||R.x+R.w<=f.x||R.y>=f.y+f.h||R.y+R.h<=f.y){nf.push(f);continue}
+      if(R.x>f.x)nf.push({x:f.x,y:f.y,w:R.x-f.x,h:f.h});if(R.x+R.w<f.x+f.w)nf.push({x:R.x+R.w,y:f.y,w:f.x+f.w-R.x-R.w,h:f.h});
+      if(R.y>f.y)nf.push({x:f.x,y:f.y,w:f.w,h:R.y-f.y});if(R.y+R.h<f.y+f.h)nf.push({x:f.x,y:R.y+R.h,w:f.w,h:f.y+f.h-R.y-R.h})}
+    b.free=nf.filter((f,i)=>f.w>1&&f.h>1&&!nf.some((g,j)=>j!==i&&g.x<=f.x&&g.y<=f.y&&g.x+g.w>=f.x+f.w&&g.y+g.h>=f.y+f.h&&(j<i||g.w*g.h>f.w*f.h)))}
+  bins.forEach(b=>{b.usedL=Math.max(...b.pcs.map(p=>p.x+(p.rot?p.it.bh:p.it.bw)))+ACM_MARG});
+  return bins}
+
+/* ---------- cálculo completo ---------- */
+function acmCalc(comp,o){if(!tAcm.on)return null;const r=acmRed(),t=+tAcm.esp,n=comp.length,env=tAcm.inst!=='rente';
+  const largs=acmLargs();const SWmax=Math.max(...largs);const boxes=[];const expl=[],guias=[],fitas=[],pontos=[];const tipos=[];let fita=0,paraf=0;const hex=(tAcm.cor&&tAcm.cor.hex)||'#c8ccd2';
+  const jt=!!tAcm.jt,jm=+tAcm.jmm||5;
+  comp.forEach((c,i)=>{const F=c.F,f=c.f;const ins=f._in||{l:0,r:0,t:0,b:0},ai=f._ai||{l:0,r:0,t:0,b:0},lados=f._fl||{l:env,r:env,t:env,b:env};
+    const X0=-ins.l+ai.l,X1=F.W+ins.r-ai.r,Y0=-ins.b+ai.b,Y1=F.H+ins.t-ai.t,H=Y1-Y0;
+    const fl=env?F.D:0,ret=tAcm.inst==='env2'?20:0,e=fl+ret;
+    // segmentos: com junta nas travas verticais do meio o ACM é cortado em cada trava
+    const vi=F.vcs.slice(1,-1);const cuts=jt?vi:[];const xs=[X0,...cuts.flatMap(x=>[x-jm/2,x+jm/2]),X1];const segs=[];for(let k=0;k<xs.length;k+=2)segs.push([xs[k],xs[k+1]]);
+    const loc=[];const B=(x0,x1,y0,y1,z0,z1)=>loc.push({x0,x1,y0,y1,z0,z1});
+    segs.forEach(([sa,sb],si)=>{const sl={t:lados.t,b:lados.b,l:si===0&&lados.l,r:si===segs.length-1&&lados.r};
+      const trav=jt?[]:vi.map(x=>x-sa).filter(x=>x>0&&x<sb-sa);
+      const dv=acmDivide(sb-sa,H,e,fl,sl,trav,SWmax);
+      dv.pecas.forEach((p,k)=>tipos.push({...p,face:i+1,seg:segs.length>1?si+1:0,parte:k+1,nPartes:dv.pecas.length,emenda:k<dv.emendas.length?dv.naTrava[k]:null}));
+      B(sa,sb,Y0,Y1,-t,0);
+      if(env){if(sl.t)B(sa,sb,Y1-t,Y1,-t,fl);if(sl.b)B(sa,sb,Y0,Y0+t,-t,fl);if(sl.l)B(sa,sa+t,Y0,Y1,-t,fl);if(sl.r)B(sb-t,sb,Y0,Y1,-t,fl);
+        if(ret){if(sl.t)B(sa,sb,Y1-ret,Y1,fl,fl+t);if(sl.b)B(sa,sb,Y0,Y0+ret,fl,fl+t);if(sl.l)B(sa,sa+ret,Y0,Y1,fl,fl+t);if(sl.r)B(sb-ret,sb,Y0,Y1,fl,fl+t)}}});
+    loc.forEach(b=>boxes.push(paraMundo(c,{...b,cor:hex,op:0.6,acm:true})));
+    const d=Math.max(250,Math.min(900,0.55*Math.max(F.H,F.D)));
+    loc.forEach(b=>expl.push(paraMundo(c,{...b,z0:b.z0-d,z1:b.z1-d,cor:hex,wire:true})));
+    [[X0,Y0],[X1,Y0],[X0,Y1],[X1,Y1]].forEach(([x,y])=>{const p=paraMundo(c,{x0:x,x1:x,y0:y,y1:y,z0:0,z1:0}),q=paraMundo(c,{x0:x,x1:x,y0:y,y1:y,z0:-d,z1:-d});guias.push([[p.x0,p.y0,p.z0],[q.x0,q.y0,q.z0]])});
+    // fita dupla face (15 mm) — rente: toda a frente; 1 dobra: laterais dos tubos + travas verticais; 2 dobras: só travas verticais
+    const FT=15,ft=1.2;const T=(x0,x1,y0,y1,z0,z1)=>{fitas.push(paraMundo(c,{x0,x1,y0,y1,z0,z1,cor:'#ff7b00',fita:true}));fita+=Math.max(x1-x0,y1-y0,z1-z0)};
+    const frente=F.mem.filter(m=>m.z0<F.p+1&&m.tipo!=='Ligação de profundidade'&&!/traseiro/.test(m.tipo));
+    const faixa=m=>{const v=(m.y1-m.y0)>(m.x1-m.x0);const cx=(m.x0+m.x1)/2;
+      if(v&&jt&&/^Vertical interna/.test(m.tipo)){const w=Math.min(FT,(m.x1-m.x0-jm)/2);T(m.x0,m.x0+w,m.y0,m.y1,m.z0-ft,m.z0);T(m.x1-w,m.x1,m.y0,m.y1,m.z0-ft,m.z0);return}
+      const w=Math.min(FT,v?m.x1-m.x0:m.y1-m.y0);if(v)T(cx-w/2,cx+w/2,m.y0,m.y1,m.z0-ft,m.z0);else{const cy=(m.y0+m.y1)/2;T(m.x0,m.x1,cy-w/2,cy+w/2,m.z0-ft,m.z0)}};
+    const vInt=frente.filter(m=>/^Vertical interna/.test(m.tipo));
+    if(tAcm.inst==='rente')frente.forEach(faixa);
+    else{vInt.forEach(faixa);
+      if(tAcm.inst==='env1'){const zc=F.p/2,z0=zc-FT/2,z1=zc+FT/2;if(lados.t)T(0,F.W,F.H,F.H+ft,z0,z1);if(lados.b)T(0,F.W,-ft,0,z0,z1);if(lados.l)T(-ft,0,0,F.H,z0,z1);if(lados.r)T(F.W,F.W+ft,0,F.H,z0,z1);
+        if(!lados.l||!lados.r)frente.filter(m=>/^Vertical (quadro|externa)/.test(m.tipo)||m.tipo==='Vertical quadro frontal').filter(m=>(!lados.l&&m.x0<1)||(!lados.r&&m.x1>F.W-1)).forEach(faixa)}
+      else if(!vInt.length)frente.filter(m=>/^Vertical/.test(m.tipo)).forEach(faixa)}
+    // parafusos brocantes Phillips cabeça chata no retorno (por trás), a cada 600 mm
+    if(tAcm.inst==='env2'){const zz=fl+t-d;const linha=(xa,ya,xb,yb)=>{const len=Math.hypot(xb-xa,yb-ya);const k=Math.max(2,Math.ceil(len/600)+1);
+        for(let j=0;j<k;j++){const u=j/(k-1);const x=xa+(xb-xa)*u,y=ya+(yb-ya)*u;const p=paraMundo(c,{x0:x,x1:x,y0:y,y1:y,z0:zz,z1:zz});paraf++;pontos.push([p.x0,p.y0,p.z0]);boxes.push(paraMundo(c,{x0:x-10,x1:x+10,y0:y-10,y1:y+10,z0:fl+t,z1:fl+t+5,cor:'#e03131',acm:true}));boxes.push(paraMundo(c,{x0:x-2,x1:x+2,y0:y-2,y1:y+2,z0:fl-25,z1:fl+t,cor:'#495057',acm:true}))}};
+      const m=ret/2,g=ret+30;segs.forEach(([sa,sb],si)=>{if(lados.t)linha(sa+g,Y1-m,sb-g,Y1-m);if(lados.b)linha(sa+g,Y0+m,sb-g,Y0+m)});if(lados.l)linha(X0+m,Y0+g,X0+m,Y1-g);if(lados.r)linha(X1-m,Y0+g,X1-m,Y1-g)}
+  });
+  // agrupa peças iguais
+  const grp=[];tipos.forEach(p=>{const k=[p.bw,p.bh,p.w,p.h,p.e,p.lados.t,p.lados.b,p.lados.l,p.lados.r].map(v=>typeof v==='number'?v.toFixed(1):v).join('|');
+    let g=grp.find(x=>x.k===k);if(!g){g={k,p,q:0,refs:[]};grp.push(g)}g.q++;g.refs.push(`F${p.face}`+(p.seg?`-${p.seg}`:'')+(p.nPartes>1?`.${p.parte}`:''))});
+  grp.forEach((g,i)=>{g.id='A'+(i+1);g.p.id=g.id});
+  const itens=[];grp.forEach(g=>{for(let k=0;k<g.q*o.un;k++)itens.push(g.p)});
+  const opc=largs.map(SW=>{const bins=itens.every(it=>acmCabe(it.bw,it.bh,SW))?acmNest(itens,SW):null;if(!bins)return{SW,ok:false};
+    const area=itens.reduce((s,it)=>s+it.area,0);return{SW,ok:true,bins,n:bins.length,aprov:area/(bins.length*SW*ACM_LEN)}}).filter(x=>x.ok);
+  if(!opc.length)throw new Error('ACM: nenhuma peça cabe nas chapas escolhidas.');
+  opc.sort((a,b)=>a.n*a.SW-b.n*b.SW||a.n-b.n);const esc=opc[0];
+  const fitaM=fita/1000;
+  return {r,t,env,boxes,expl,guias,fitas,pontos,grp,itens,opc,esc,fitaM,fitaTot:fitaM*o.un*1.1,paraf:paraf*o.un,fitaTipo:acmFita(),hex}}
+
+/* ---------- folhas ---------- */
+function acmDesc(){const c=tAcm.cor;return c?`${c.nome}${c.marca&&c.marca!=='Minhas cores'?' — '+c.marca+(c.linha?' '+c.linha.replace(/\s*\(.*\)/,''):''):''}${c.acab?' ('+c.acab+')':''}`:'COR A DEFINIR'}
+function acmJuntaTxt(){if(!tAcm.on)return'';const w=[];if(tAcm.jt)w.push('TRAVAS VERTICAIS (30X20)');if(tAcm.je&&temEmenda(tFaces))w.push('EMENDAS');return w.length?`${+tAcm.jmm||5} MM — ${w.join(' + ')}`:''}
+function acmModelo(){const c=tAcm.cor;return `${ACM_INST[tAcm.inst]}${c&&c.marca&&c.marca!=='Minhas cores'?' — '+c.marca+' '+(c.linha||''):''} ${tAcm.esp} mm`}
+function acmInfoRows(A,o){return[['MODELO:',acmModelo().toUpperCase()],['ACM:',`${A.t} MM`],['COR:',acmDesc().toUpperCase()],['INSTALAÇÃO:',ACM_INST[tAcm.inst].toUpperCase()],['FITA:',`${ACM_FITA[A.fitaTipo].toUpperCase()} — ${f1(A.fitaTot)} M (${o.un} UN. +10%)`],
+  ...(A.r?[['ESTRUTURA:',`${A.r} MM MENOR POR LADO`]]:[]),...(acmJuntaTxt()?[['JUNTA DILATAÇÃO:',acmJuntaTxt()]]:[]),['CHAPAS:',`${A.esc.n} X ${f1(A.esc.SW/1000)} X 5,00 M`]]}
+function mixB(c){const q=hex(c).map(v=>Math.round(v*0.45+255*0.55));return'#'+q.map(v=>v.toString(16).padStart(2,'0')).join('')}
+function acmLegenda(P,x,y){[[ACM_CORTE,'CORTE EXTERNO'],[ACM_VINCO,'VINCO (fresa V pelo verso, não atravessar)']].forEach(([c,t],k)=>{P.push({t:'line',x1:x,y1:y+k*4.2-0.8,x2:x+8,y2:y+k*4.2-0.8,color:c,w:k?0.15:0.6},{t:'text',x:x+10,y:y+k*4.2,s:t,size:2.3,bold:true,color:'#000000'})})}
+function acmDesenhaPeca(P,p,X,Y,s,cotas){const T=q=>[X+q[0]*s,Y+(p.bh-q[1])*s];
+  P.push({t:'polyf',pts:p.pts.map(T),fill:'#f8f9fa',stroke:ACM_CORTE,lw:0.35});
+  p.vin.forEach(([a,b])=>{const A=T(a),B=T(b);P.push({t:'line',x1:A[0],y1:A[1],x2:B[0],y2:B[1],color:ACM_VINCO,w:0.1})});
+  if(!cotas)return;const fs=2.4;
+  cotaH(P,X,X+p.bw*s,Y-5,Y,fmm(p.bw),fs);cotaV(P,X-5,Y,Y+p.bh*s,X,fmm(p.bh),fs);
+  if(p.e>0){const [fx0,fx1]=p.fx,[fy0,fy1]=p.fy;const C='#d9480f';
+    cotaH(P,T([fx0,0])[0],T([fx1,0])[0],Y+p.bh*s+5,Y+p.bh*s,'FACE '+fmm(p.w),fs,C);
+    cotaV(P,X+p.bw*s+5,T([0,fy1])[1],T([0,fy0])[1],X+p.bw*s,'FACE '+fmm(p.h),fs,C);
+    if(p.lados.t){const yA=T([0,fy1])[1],yB=T([0,p.bh])[1];const xx=T([fx1,0])[0]-3;cotaV(P,xx,yB,yA,null,p.ret?`${f0(p.fl)}+${f0(p.ret)}`:f0(p.fl),2,C)}}}
+function acmPaginas(A,o,ctx,pages,tags){const pg={setor:'ROUTER'};
+  const cab=(P,tit)=>{P.push({t:'text',x:18,y:31,s:`${o.un}X`,size:7,bold:true,italic:true,color:'#000000'},{t:'text',x:PW/2,y:30,s:tit,size:4.2,bold:true,color:'#000000',anchor:'middle'},
+    {t:'text',x:PW/2,y:35,s:`ACM ${A.t} MM • ${acmDesc().toUpperCase()} • ${ACM_INST[tAcm.inst].toUpperCase()} • FITA ${ACM_FITA[A.fitaTipo].toUpperCase()}${A.r?` • ESTRUTURA -${A.r} MM POR LADO`:''}`,size:2.5,color:'#555555',anchor:'middle'})};
+  // planificação: até 4 peças por folha
+  for(let i=0;i<A.grp.length;i+=4){const P=[];frame(P,ctx,pg);cab(P,'ACM — PLANIFICAÇÃO');const part=A.grp.slice(i,i+4);
+    const cols=part.length>1?2:1,rows=part.length>2?2:1;const CW=196/cols,CH=(rows>1?122:124)/rows;
+    part.forEach((g,k)=>{const cx=12+(k%cols)*CW,cy=40+Math.floor(k/cols)*CH;const p=g.p;const s=Math.min((CW-24)/p.bw,(CH-22)/p.bh);
+      const X=cx+12+((CW-24)-p.bw*s)/2,Y=cy+9;
+      P.push({t:'text',x:cx+2,y:cy+3,s:`${g.id} — ${g.q*o.un} PEÇA${g.q*o.un>1?'S':''} (${g.refs.join(', ')})${p.nPartes>1?` • PARTE ${p.parte}/${p.nPartes}`:''}`,size:2.7,bold:true,color:'#000000'});
+      acmDesenhaPeca(P,p,X,Y,s,true);
+      if(p.nPartes>1)P.push({t:'text',x:cx+2,y:cy+CH-2,s:'EMENDA '+(g.p.emenda===false?'FORA DA TRAVA — PREVER REFORÇO':'SOBRE TRAVA VERTICAL'),size:2.2,bold:true,color:'#c92a2a'})});
+    const ix=222;acmInfoRows(A,o).forEach(([k,v],j)=>{const y=44+j*8;P.push({t:'text',x:ix,y,s:k,size:2.2,color:'#868e96'},{t:'text',x:ix,y:y+3.6,s:fit(v,66,2.6),size:2.6,bold:true,color:'#000000'})});
+    let y=44+acmInfoRows(A,o).length*8+2;acmLegenda(P,ix,y);y+=12;
+    const nota=A.env?[`Abas = profundidade da estrutura${tAcm.inst==='env2'?' + 20 mm de retorno atrás':''}.`,'Recortes nos cantos para dobrar sem sobrepor.',tAcm.inst==='env2'?`Retorno parafusado POR TRÁS da testeira: ${A.paraf} brocantes Phillips cab. chata (a cada 600 mm).`:'Fita nas laterais dos tubos e nas travas verticais.']:['Corte rente: peça no tamanho exato da face.','Fita em toda a frente da estrutura.'];
+    nota.forEach((t,j)=>P.push({t:'text',x:ix,y:y+j*3.6,s:fit(t,66,2.2),size:2.2,color:'#000000'}));
+    pages.push(P);tags.push('ACM')}
+  // aproveitamento das chapas
+  const E=A.esc;const lay=[];E.bins.forEach(b=>{const key=b.pcs.map(p=>`${p.it.id}@${Math.round(p.x)},${Math.round(p.y)},${p.rot}`).sort().join(';');const g=lay.find(x=>x.key===key);if(g)g.n++;else lay.push({key,n:1,b})});
+  const s=262/ACM_LEN;let P=null,y=0;const novo=()=>{P=[];frame(P,ctx,pg);cab(P,`ACM — APROVEITAMENTO: ${E.n} CHAPA${E.n>1?'S':''} ${f1(E.SW/1000)} X 5,00 M`);pages.push(P);tags.push('ACM CHAPAS');y=42;
+    P.push({t:'text',x:PW/2,y:39,s:A.opc.map(x=>`${f1(x.SW/1000)} x 5,00: ${x.n} chapa(s), aproveitamento ${Math.round(x.aprov*100)}%`).join('   •   ')+'   (escolhida a de menor área total)',size:2.3,bold:true,color:COR_DIM,anchor:'middle'});acmLegenda(P,206,163)};novo();
+  lay.forEach((g,gi)=>{const h=E.SW*s;if(y+h+9>160)novo();const X=24;
+    P.push({t:'text',x:14,y:y+4,s:`${g.n}x`,size:3.4,bold:true,color:'#000000'});
+    P.push({t:'rect',x:X,y,w:ACM_LEN*s,h,fill:'#f1f3f5',stroke:'#000000',lw:0.2});
+    g.b.pcs.forEach(pc=>{const it=pc.it;const w=pc.rot?it.bh:it.bw,hh=pc.rot?it.bw:it.bh;
+      const pts=it.pts.map(q=>pc.rot?[q[1],it.bw-q[0]]:q).map(q=>[X+(pc.x+q[0])*s,y+h-(pc.y+q[1])*s]);
+      P.push({t:'polyf',pts,fill:shade(A.hex,1)===A.hex?mixB(A.hex):A.hex,stroke:ACM_CORTE,lw:0.25});
+      it.vin.forEach(([a,b])=>{const m=q=>{const r=pc.rot?[q[1],it.bw-q[0]]:q;return[X+(pc.x+r[0])*s,y+h-(pc.y+r[1])*s]};const p1=m(a),p2=m(b);P.push({t:'line',x1:p1[0],y1:p1[1],x2:p2[0],y2:p2[1],color:ACM_VINCO,w:0.08})});
+      const cx=X+(pc.x+w/2)*s,cy=y+h-(pc.y+hh/2)*s;P.push({t:'rect',x:cx-4,y:cy-2.2,w:8,h:3.4,r:0.6,fill:'#ffffff',stroke:'#1a1a1a',lw:0.08},{t:'text',x:cx,y:cy+0.4,s:it.id,size:2.3,bold:true,color:'#000000',anchor:'middle'})});
+    const sob=ACM_LEN-g.b.usedL;if(sob>150){P.push({t:'text',x:X+(g.b.usedL+sob/2)*s,y:y+h/2+1,s:`SOBRA ${f0(sob)} x ${f0(E.SW)}`,size:2.3,bold:true,color:'#868e96',anchor:'middle'})}
+    y+=h+9});
+}
+// arquivos 1:1 para a router: um por chapa (tamanho da chapa)
+function acmArquivos(A,base){const {jsPDF}=window.jspdf;const out=[];const E=A.esc;
+  E.bins.forEach((b,i)=>{const W=ACM_LEN,H=E.SW;const doc=new jsPDF({unit:'mm',format:[W,H],orientation:'l',compress:true});
+    const tr=(it,pc,q)=>{const r=pc.rot?[q[1],it.bw-q[0]]:q;return[pc.x+r[0],H-(pc.y+r[1])]};
+    b.pcs.forEach(pc=>{const it=pc.it;doc.setLineWidth(0.1);doc.setDrawColor(...hex(ACM_CORTE));it.pts.forEach((q,k)=>{const p=tr(it,pc,q);k?doc.lineTo(p[0],p[1]):doc.moveTo(p[0],p[1])});doc.close();doc.stroke();
+      doc.setLineWidth(0.05);doc.setDrawColor(...hex(ACM_VINCO));it.vin.forEach(([a,c])=>{const p=tr(it,pc,a),q=tr(it,pc,c);doc.line(p[0],p[1],q[0],q[1])})});
+    out.push({name:nomeArq(`${base} - ACM ${A.t}mm chapa ${i+1} de ${E.bins.length} (${E.SW}x5000).pdf`),buf:doc.output('arraybuffer')})});
+  return out}
+
+/* ---------- interface ---------- */
+function acmUI(){const box=$('#aBox');if(!box)return;$('#aOn').checked=tAcm.on;box.hidden=!tAcm.on;
+  const sel=(id,v)=>document.querySelectorAll(`#${id} button`).forEach(b=>b.classList.toggle('sel',b.dataset.m===String(v)));
+  sel('aEsp',tAcm.esp);sel('aInst',tAcm.inst);sel('aFita',acmFita());sel('aJmm',+tAcm.jmm||5);sel('aEnvT',tAcm.envT||'ext');
+  $('#aJT').checked=!!tAcm.jt;$('#aJE').checked=!!tAcm.je;const em=temEmenda(tFaces);$('#aEmBox').hidden=!em;$('#aEnvTbox').hidden=tAcm.inst==='rente';
+  $('#aJmmBox').hidden=!(tAcm.jt||(tAcm.je&&em));
+  document.querySelector('#aFita [data-m=vhb]').disabled=+tAcm.esp===4;
+  const op=ACM_LARG[tAcm.esp];if(tAcm.chapa!=='auto'&&!op.includes(+tAcm.chapa))tAcm.chapa='auto';
+  $('#aChapa').innerHTML=`<option value="auto">Automático (melhor aproveitamento)</option>`+op.map(w=>`<option value="${w}"${String(tAcm.chapa)===String(w)?' selected':''}>${f1(w/1000)} x 5,00 m</option>`).join('');
+  const r=acmRed();$('#aRed').innerHTML=tAcm.inst==='rente'?'Corte rente: ACM no tamanho exato da face; a estrutura fica na medida.':`A estrutura de metalon fica <b>${r} mm menor em cada lado</b> (${tAcm.esp} mm${+tAcm.esp===4?' sempre com CV 150':' + '+ACM_FITA[acmFita()]}) para o ACM fechar na medida final.`;
+  const cat=acmCatalogo(tAcm.esp);const marcas=[...new Set(cat.filter(c=>!c.custom).map(c=>c.marca))];if(tAcm.marca&&tAcm.marca!=='Minhas cores'&&!marcas.includes(tAcm.marca))tAcm.marca='';
+  $('#aMarca').innerHTML=marcas.map(m=>`<button class="chip${m===tAcm.marca?' on':''}" data-am="${esc(m)}" style="padding:9px 13px;font-size:13px">${esc(m)}</button>`).join('')+`<button class="chip${tAcm.marca==='Minhas cores'?' on':''}" data-am="Minhas cores" style="padding:9px 13px;font-size:13px">Outra / manual</button>`;
+  $('#aCorBox').hidden=!tAcm.marca;$('#aManBox').hidden=tAcm.marca!=='Minhas cores';
+  const q=($('#aBusca').value||'').toLowerCase();const lst=cat.filter(c=>c.marca===tAcm.marca&&(!q||(c.nome+' '+c.linha).toLowerCase().includes(q)));
+  const linhas=[...new Set(lst.map(c=>c.linha))];
+  $('#aCores').innerHTML=lst.length?linhas.map(l=>`<div style="width:100%"><span class="note" style="font-size:11px">${esc(l)}</span></div>`+lst.filter(c=>c.linha===l).map(c=>{const on=tAcm.cor&&tAcm.cor.nome===c.nome&&tAcm.cor.marca===c.marca;return `<button class="chip${on?' on':''}" data-ac="${cat.indexOf(c)}" style="display:inline-flex;gap:6px;align-items:center;padding:7px 10px;font-size:12px"><span style="width:14px;height:14px;border-radius:3px;background:${c.hex};border:1px solid #0002;display:inline-block"></span>${esc(c.nome)}${c.acab?`<span class="note" style="font-size:10px">${esc(c.acab)}</span>`:''}${c.custom?`<span data-acdel="${esc(c.nome)}" style="color:#c92a2a;font-weight:700;margin-left:2px">×</span>`:''}</button>`}).join('')).join(''):`<p class="note" style="margin:0">${tAcm.marca==='Minhas cores'?'Nenhuma cor manual salva ainda — cadastre abaixo.':'Nenhuma cor encontrada.'}</p>`;
+  $('#aCorSel').innerHTML=tAcm.cor?`<span style="width:16px;height:16px;border-radius:4px;background:${tAcm.cor.hex};display:inline-block;border:1px solid #0003;vertical-align:middle"></span> <b>${esc(tAcm.cor.nome)}</b> <span class="note">${esc(tAcm.cor.marca||'')} ${tAcm.cor.acab?'• '+esc(tAcm.cor.acab):''}</span>`:'<span class="note">Nenhuma cor escolhida</span>'}
+function acmBind(){if(!$('#aOn'))return;
+  $('#aOn').onchange=()=>{tAcm.on=$('#aOn').checked;acmUI();v3Fit=true;tAtualizar()};
+  const leds=(id,k,num)=>$('#'+id).onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;tAcm[k]=num?+b.dataset.m:b.dataset.m;acmUI();tAtualizar()};
+  leds('aEsp','esp',true);leds('aInst','inst');leds('aFita','fita');leds('aJmm','jmm',true);leds('aEnvT','envT');
+  $('#aJT').onchange=()=>{tAcm.jt=$('#aJT').checked;acmUI();tAtualizar()};$('#aJE').onchange=()=>{tAcm.je=$('#aJE').checked;acmUI();tAtualizar()};
+  $('#aChapa').onchange=()=>{tAcm.chapa=$('#aChapa').value;tAtualizar()};
+  $('#aMarca').onclick=e=>{const b=e.target.closest('[data-am]');if(!b)return;tAcm.marca=b.dataset.am;$('#aBusca').value='';acmUI()};$('#aBusca').oninput=acmUI;
+  $('#aCores').onclick=e=>{const d=e.target.closest('[data-acdel]');if(d){acmCustom=acmCustom.filter(c=>c.nome!==d.dataset.acdel);acmSalvarCustom();acmUI();return}
+    const b=e.target.closest('[data-ac]');if(!b)return;const c=acmCatalogo(tAcm.esp)[+b.dataset.ac];tAcm.cor={nome:c.nome,marca:c.marca,linha:c.linha,acab:c.acab,hex:c.hex};acmUI();tAtualizar()};
+  $('#aManUsar').onclick=()=>{const nome=$('#aManNome').value.trim();if(!nome){$('#aManNome').focus();return}const acab=$('#aManAcab').value,hx=$('#aManHex').value||'#b0b4b8';
+    tAcm.cor={nome,marca:'Minhas cores',acab,hex:hx};if(!acmCustom.some(c=>c.nome===nome)){acmCustom.push({nome,acab,hex:hx,esp:tAcm.esp});acmSalvarCustom()}$('#aManNome').value='';acmUI();tAtualizar()};
+  acmUI()}
+acmBind();
+/* ---------- via da MONTAGEM: vista isométrica explodida ---------- */
+function acmMontagem(A,M,o,ctx,pages,tags){const P=[];frame(P,ctx,{setor:'MONTAGEM'});
+  P.push({t:'text',x:18,y:31,s:`${o.un}X`,size:7,bold:true,italic:true,color:'#000000'},{t:'text',x:110,y:30,s:'ACM — MONTAGEM NA ESTRUTURA (VISTA EXPLODIDA)',size:4.2,bold:true,color:'#000000',anchor:'middle'},
+    {t:'text',x:110,y:35,s:`ACM ${A.t} MM • ${acmDesc().toUpperCase()} • ${ACM_INST[tAcm.inst].toUpperCase()} • FITA ${ACM_FITA[A.fitaTipo].toUpperCase()} 15 MM`,size:2.5,color:'#555555',anchor:'middle'});
+  const est=M.boxes.filter(b=>!b.fix).map(b=>({...b,cor:'#d5d9de'}));
+  const ISO=isoPrims(P,est.concat(A.fitas,A.expl),{x:14,y:40,w:190,h:120});
+  A.guias.forEach(([p,q])=>{const a=ISO.I(...p),b=ISO.I(...q);P.push({t:'line',x1:a[0],y1:a[1],x2:b[0],y2:b[1],color:'#868e96',w:0.12})});
+  A.guias.forEach(([p,q])=>{const b=ISO.I(...q),a=ISO.I(...p);const dx=a[0]-b[0],dy=a[1]-b[1],L=Math.hypot(dx,dy)||1;const ux=dx/L,uy=dy/L;const tip=[b[0]+ux*Math.min(L*0.6,8),b[1]+uy*Math.min(L*0.6,8)];
+    P.push({t:'tri',pts:[tip,[tip[0]-ux*1.8-uy*0.8,tip[1]-uy*1.8+ux*0.8],[tip[0]-ux*1.8+uy*0.8,tip[1]-uy*1.8-ux*0.8]],color:'#868e96'})});
+  A.pontos.forEach(q=>{const p=ISO.I(...q);P.push({t:'circle',x:p[0],y:p[1],r:0.9,fill:'#212529',stroke:'#ffffff',lw:0.15})});
+  if(A.pontos.length){const q=A.pontos.reduce((b,p)=>{const s=ISO.I(...p),t=ISO.I(...b);return s[1]>t[1]?p:b});const p=ISO.I(...q);const tx=Math.min(p[0]+14,175),ty=Math.min(p[1]+9,160);
+    P.push({t:'line',x1:p[0],y1:p[1],x2:tx,y2:ty-1,color:'#c92a2a',w:0.2},{t:'text',x:tx+1,y:ty,s:'PARAFUSO POR TRÁS DA TESTEIRA (no retorno)',size:2.4,bold:true,color:'#c92a2a'})}
+  const ix=214;let y=44;const linha=(k,v)=>{P.push({t:'text',x:ix,y,s:k,size:2.2,color:'#868e96'},{t:'text',x:ix,y:y+3.6,s:fit(v,72,2.6),size:2.6,bold:true,color:'#000000'});y+=8};
+  linha('MODELO:',acmModelo().toUpperCase());linha('ACM:',`${A.t} MM — ${acmDesc().toUpperCase()}`);linha('INSTALAÇÃO:',ACM_INST[tAcm.inst].toUpperCase());
+  linha('FITA DUPLA FACE:',`${ACM_FITA[A.fitaTipo].toUpperCase()} 15 MM — ${f1(A.fitaTot)} M`);
+  if(tAcm.inst==='env2')linha('PARAFUSOS (POR TRÁS):',`${A.paraf} BROCANTES PHILLIPS CAB. CHATA`);
+  if(A.r)linha('ESTRUTURA:',`${A.r} MM MENOR POR LADO`);if(acmJuntaTxt())linha('JUNTA DE DILATAÇÃO:',acmJuntaTxt());
+  y+=1;const leg=[['rect','#ff7b00','Fita dupla face 15 mm'],['line',A.hex,'ACM (afastado da estrutura)'],['rect','#d5d9de','Estrutura de metalon']];if(tAcm.inst==='env2')leg.push(['dot','#212529','Brocante por trás, a cada 600 mm']);
+  leg.forEach(([k,c,t])=>{if(k==='rect')P.push({t:'rect',x:ix,y:y-2.4,w:7,h:2.8,fill:c,stroke:'#1a1a1a',lw:0.1});else if(k==='line')P.push({t:'rect',x:ix,y:y-2.4,w:7,h:2.8,stroke:(c==='#f7f7f5'||c==='#ffffff')?'#868e96':c,lw:0.5});else P.push({t:'circle',x:ix+3.5,y:y-1,r:1,fill:c,stroke:'#fff',lw:0.15});
+    P.push({t:'text',x:ix+9,y,s:t,size:2.3,color:'#000000'});y+=4.4});
+  y+=2;P.push({t:'text',x:ix,y,s:'SEQUÊNCIA DE MONTAGEM',size:2.6,bold:true,color:'#1971c2'});y+=4.4;
+  const passos={rente:['Limpar a frente da estrutura com álcool isopropílico.','Aplicar a fita em TODA a frente da estrutura (contorno, travas verticais e horizontais).','Retirar o liner e alinhar o ACM rente às bordas da estrutura.','Pressionar o ACM em toda a área da fita.'],
+    env1:['Dobrar o ACM nos vincos (abas laterais).','Limpar a estrutura com álcool isopropílico.','Aplicar a fita nas LATERAIS dos tubos do contorno e na frente das travas verticais.','Encaixar o ACM pela frente e pressionar a frente e as abas.'],
+    env2:['Dobrar abas e retornos nos vincos (cantos do retorno a 45°).','Limpar as travas verticais com álcool isopropílico.','Aplicar a fita SÓ nas travas verticais.','Encaixar o ACM e parafusar POR TRÁS da testeira: o retorno no tubo de trás, brocante Phillips cabeça chata a cada 600 mm.']}[tAcm.inst];
+  passos.forEach((s,k)=>{const ws=s.split(' ');let ln='',ls=[];ws.forEach(w=>{if((ln+' '+w).length>44){ls.push(ln);ln=w}else ln=ln?ln+' '+w:w});ls.push(ln);
+    ls.forEach((l,j)=>P.push({t:'text',x:ix+(j?4:0),y:y+j*3.3,s:(j?'':`${k+1}. `)+l,size:2.3,color:'#000000'}));y+=ls.length*3.3+1.2});
+  pages.push(P);tags.push('ACM MONTAGEM')}
 
 /* ================= ESTRUTURA POR DESENHO (PDF + descrição → 3D montado pelo Claude) ================= */
 let tModo='padrao';let dSrc=null,dModel=null,dHist=[],dPrevModels=[],dBuild=null,dSel='MONTAGEM';
@@ -2318,7 +2730,7 @@ function dFolhas(){const un=Math.max(1,Math.round(num($('#dUn').value))||1);cons
   // MONTAGEM
   {const P=[];frame(P,ctx,pg);P.push({t:'text',x:18,y:31,s:`${un}X`,size:7,bold:true,italic:true,color:'#000000'});
    P.push({t:'text',x:PW/2,y:30,s:fit(dModel.titulo.toUpperCase(),200,4.2),size:4.2,bold:true,color:'#000000',anchor:'middle'});
-   isoPrims(P,bs,{x:20,y:36,w:257,h:78});
+   const ISO=isoPrims(P,bs,{x:28,y:44,w:240,h:66});isoCotas(P,ISO,bb);if(dPint==='soldas')protecaoSoldas(P,ISO,dSoldas(),un);
    P.push({t:'text',x:PW/2,y:120,s:`CONJUNTO: ${f0(bb.x1-bb.x0)} (L) x ${f0(bb.y1-bb.y0)} (A) x ${f0(bb.z1-bb.z0)} (P) mm`,size:2.8,bold:true,color:COR_DIM,anchor:'middle'});
    const wrap=(t,w,sz)=>{const out=[];let l='';t.split(/\s+/).forEach(wd=>{if(((l+' '+wd).trim().length)*sz*0.5>w){out.push(l);l=wd}else l=(l+' '+wd).trim()});if(l)out.push(l);return out};
    pages.push(P);tags.push('MONTAGEM');
@@ -2370,7 +2782,7 @@ function dFolhas(){const un=Math.max(1,Math.round(num($('#dUn').value))||1);cons
         b.pcs.forEach(pc=>{const w=Math.min(pc.len,barra)*sc;P.push({t:'rect',x:xx,y,w,h:6,fill:g.cor,stroke:'#000000',lw:0.2},{t:'text',x:xx+w/2,y:y+4.1,s:`${f1(pc.len)} (${pc.item})`,size:w>22?2.4:1.8,color:escuro(g.cor)?'#ffffff':'#000000',anchor:'middle'});xx+=w+serra*sc});
         if(b.emenda)P.push({t:'text',x:283,y:y+4.1,s:'EMENDAR',size:2.2,bold:true,color:'#c92a2a',anchor:'end'});y+=9}
       y+=4}}}
-  if(dPint!=='nao'){const P=[];frame(P,ctx,{setor:'PINTURA'});const A=dArea();
+  if(dPint==='toda'){const P=[];frame(P,ctx,{setor:'PINTURA'});const A=dArea();
     folhaPinturaG(P,{boxes:bs,pts:dSoldas(),lin:A.lin*un/1000,area:A.area*un/1e6,un,toda:dPint==='toda',titulo:'PINTURA DA ESTRUTURA'});pages.push(P);tags.push('PINTURA')}
   if(!FOOT_SKIP)pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length));
   return {pages,tags,ctx}}
@@ -2381,7 +2793,7 @@ let dPint='nao';let dTimer=null;function dAtualizar(){clearTimeout(dTimer);dTime
 ['#dUn','#dDesc','#item'].forEach(s=>$(s).addEventListener('input',dAtualizar));
 $('#item').addEventListener('input',()=>{if(!$('#tab-testeiras').hidden&&tModo==='padrao')tAtualizar()});
 $('#dPintModo').onclick=e=>{const b=e.target.closest('button');if(!b)return;dPint=b.dataset.m;document.querySelectorAll('#dPintModo button').forEach(x=>x.classList.toggle('sel',x===b));
-  $('#dPintSlot').hidden=dPint==='nao';pickerCasa();dAtualizar()};
+  $('#dPintSlot').hidden=dPint!=='toda';pickerCasa();dAtualizar()};
 // pontos de solda = encontros entre peças que se tocam
 function dSoldas(){const P=dModel.pecas;const pts=[];const seen=new Set();const t=1.5;
   for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const a=P[i],b=P[j];
@@ -2638,9 +3050,9 @@ function irAba(tab){const b=document.querySelector(`nav button[data-tab="${tab}"
 function proximoN(){return Math.max(0,...(pedAtual.itens||[]).map(i=>+i.n||0))+1}
 document.querySelectorAll('[data-novo]').forEach(b=>b.onclick=()=>{const tipo=b.dataset.novo;itemAtual={id:'i'+Date.now().toString(36),tipo,n:proximoN(),novo:true};
   limpaTipo(tipo);$('#item').value=itemAtual.n;irAba(TIPO_ABA[tipo]);if(tipo==='testeira')setModo('padrao');if(tipo==='estrutura')setModo('desenho');pedSujo=true;pedBarRender();window.scrollTo(0,0)});
-function limpaTipo(tipo){
+function limpaTipo(tipo){refImg=null;refRender();
   if(tipo==='letra'){src=null;srcBytes=null;ledAdj={};resetOut();$('#prev').innerHTML='';$('#outMsg').innerHTML='';$('#fileInfo').innerHTML='';$('#drop').classList.remove('has');$('#dropTxt').textContent='Toque para escolher o PDF';$('#xPages').innerHTML='';$('#obs').value='';updateBtn()}
-  if(tipo==='testeira'){tFaces=[{W:1840,H:2780,prof:0,junta:'linha'}];renderFaces();v3Fit=true}
+  if(tipo==='testeira'){tFaces=[{W:1000,H:1000,prof:0,junta:'linha'}];tAcm={on:false,esp:3,inst:'rente',fita:'vhb',chapa:'auto',marca:'',cor:null,jt:false,jmm:5,je:false,envT:'ext'};acmUI();renderFaces();v3Fit=true}
   if(tipo==='estrutura'){dSrc=null;dModel=null;dHist=[];dPrevModels=[];$('#dTxt').value='';$('#dAlt').value='';$('#dInfo').innerHTML='';$('#dDraw').innerHTML='';$('#dPecas').innerHTML='';$('#dDropTxt').textContent='Toque para escolher o PDF';$('#dAltBox').hidden=true;$('#dResCard').hidden=true;dBotao()}
   if(tipo==='modelo3d'){mSrc=null;mBytes=null;mPecas=[];$('#mInfo').innerHTML='';$('#mDropTxt').textContent='Toque para escolher o arquivo 3D (.stl ou .obj)';$('#mResCard').hidden=true}}
 // ---------- barra do pedido (aparece nas abas de trabalho) ----------
@@ -2662,13 +3074,13 @@ function capturaEstado(tipo){
   if(tipo==='letra'){if(!src||!srcBytes)throw new Error('carregue o PDF da letra antes de salvar');
     return{estado:{inputs:capInputs(['#tab-novo']),cor,selType,selLed,selChapa,selCaixa,ledAdj,xPages:readPages($('#xPages')),desc:$('#descItem').value},fonte:{nome:src.name,b64:b64(srcBytes)},desc:$('#descItem').value.trim()||'LETRA CAIXA',
       resumo:[(types.find(t=>t.id===selType)||{}).nome,selLed?selLed+' K':''].filter(Boolean).join(' • ')}}
-  if(tipo==='testeira')return{estado:{inputs:capInputs(['#tOpts']),cor,tFaces,tPint,fixSel:[...fixSel]},desc:$('#tDesc').value.trim()||'TESTEIRA',resumo:tFaces.map(f=>f0(f.W)+'x'+f0(f.H)).join(' + ')};
+  if(tipo==='testeira')return{estado:{inputs:capInputs(['#tOpts']),cor,tFaces,tPint,fixSel:[...fixSel],tAcm:JSON.parse(JSON.stringify(tAcm))},desc:$('#tDesc').value.trim()||'TESTEIRA',resumo:tFaces.map(f=>f0(f.W)+'x'+f0(f.H)).join(' + ')};
   if(tipo==='estrutura'){if(!dModel)throw new Error('monte o 3D antes de salvar');return{estado:{inputs:capInputs(['#dCard']),cor,dSrc,dModel,dHist,dPint},desc:$('#dDesc').value.trim()||'ESTRUTURA',resumo:dModel.titulo}}
   if(tipo==='modelo3d'){if(!mSrc||!mBytes)throw new Error('carregue o arquivo 3D antes de salvar');return{estado:{inputs:capInputs(['#tab-modelo'])},fonte:{nome:mSrc.name,b64:b64(mBytes)},desc:$('#mDesc').value.trim()||'ESTRUTURA',resumo:`${mPecas.length} peça(s)`}}}
 async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHTML=t};
   try{const n=Math.max(1,Math.round(num($('#item').value))||1);
     const outro=(pedAtual.itens||[]).find(i=>+i.n===n&&(!itemAtual||i.id!==itemAtual.id));if(outro)throw new Error(`já existe o item ${n} neste pedido (${TIPO_NOME[outro.tipo]}). Mude o número do item.`);
-    msg('Salvando…');const C=capturaEstado(tipo);
+    msg('Salvando…');const C=capturaEstado(tipo);C.estado.refImg=refImg;
     let it=itemAtual&&itemAtual.tipo===tipo?pedAtual.itens.find(i=>i.id===itemAtual.id):null;const velho=it?{e:it.estadoId,f:it.fonteId}:null;
     const estadoId=await guardaJSON(C.estado);const fonteId=C.fonte?(it&&it.fonteNome===C.fonte.nome&&it.fonteTam===C.fonte.b64.length?it.fonteId:await guardaJSON(C.fonte)):null;
     const reg={id:it?it.id:(itemAtual&&itemAtual.id)||'i'+Date.now().toString(36),n,tipo,desc:C.desc,resumo:C.resumo,estadoId,fonteId,fonteNome:C.fonte?C.fonte.nome:'',fonteTam:C.fonte?C.fonte.b64.length:0,atualizado:Date.now()};
@@ -2678,18 +3090,18 @@ async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHT
   catch(e){console.error(e);msg(`<span style="color:#ffc9c9">Não salvou: ${esc(e.message)}</span>`)}}
 // abre um item: restaura tudo; se "mostrar", vai para a aba dele e gera
 async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)throw new Error('estado do item não encontrado');const F=it.fonteId?await lerJSON(it.fonteId):null;
-  itemAtual={id:it.id,tipo:it.tipo,n:it.n};$('#item').value=it.n;
+  itemAtual={id:it.id,tipo:it.tipo,n:it.n};$('#item').value=it.n;refImg=E.refImg||null;refRender();
   if(E.cor){selEsc=E.cor.selEsc||selEsc;renderEsc();putInputs(E.cor.inputs)}
   if(it.tipo==='letra'){limpaTipo('letra');putInputs(E.inputs);selType=E.selType;selLed=E.selLed;selChapa=E.selChapa;selCaixa=E.selCaixa||40;
     $('#xPages').innerHTML='';(E.xPages||[]).forEach((p,i)=>$('#xPages').insertAdjacentHTML('beforeend',pageBlock(p,i)));renumberIn($('#xPages'));
     renderTypes();renderLeds();selChapa=E.selChapa;selCaixa=E.selCaixa||40;renderChapa();renderCaixa();if(E.cor)putInputs(E.cor.inputs);
     if(F)await carregaLetra(F.nome,unb64(F.b64));ledAdj=E.ledAdj||{};if(E.desc!=null)$('#descItem').value=E.desc;updateBtn();
     if(mostrar){irAba('novo');setTimeout(()=>$('#gerar').click(),50)}}
-  if(it.tipo==='testeira'){putInputs(E.inputs);tFaces=E.tFaces;tPint=E.tPint||'nao';fixSel.clear();(E.fixSel||[]).forEach(x=>fixSel.add(x));
-    document.querySelectorAll('#tPintModo button').forEach(x=>x.classList.toggle('sel',x.dataset.m===tPint));$('#tPintSlot').hidden=tPint==='nao';$('#tH40box').hidden=!$('#t40').checked;
+  if(it.tipo==='testeira'){putInputs(E.inputs);tFaces=E.tFaces;tPint=E.tPint||'nao';tAcm=E.tAcm||{on:false,esp:3,inst:'rente',fita:'vhb',chapa:'auto',marca:'',cor:null,jt:false,jmm:5,je:false,envT:'ext'};acmUI();fixSel.clear();(E.fixSel||[]).forEach(x=>fixSel.add(x));
+    document.querySelectorAll('#tPintModo button').forEach(x=>x.classList.toggle('sel',x.dataset.m===tPint));$('#tPintSlot').hidden=tPint!=='toda';$('#tH40box').hidden=!$('#t40').checked;
     renderFaces();renderFixPick();if(mostrar){irAba('testeiras');setModo('padrao');v3Fit=true;tRender()}}
   if(it.tipo==='estrutura'){putInputs(E.inputs);dSrc=E.dSrc;dModel=E.dModel;dHist=E.dHist||[];dPrevModels=[];dPint=E.dPint||'nao';
-    document.querySelectorAll('#dPintModo button').forEach(x=>x.classList.toggle('sel',x.dataset.m===dPint));$('#dPintSlot').hidden=dPint==='nao';
+    document.querySelectorAll('#dPintModo button').forEach(x=>x.classList.toggle('sel',x.dataset.m===dPint));$('#dPintSlot').hidden=dPint!=='toda';
     if(dSrc){dDesenho();$('#dInfo').innerHTML=`<div class="msg ok">${dSrc.pecas.length} peça(s) no desenho — conjunto ${fmt(dSrc.W)} × ${fmt(dSrc.H)} mm</div>`;$('#dDropTxt').textContent=dSrc.name}
     $('#dAltBox').hidden=!dModel;dBotao();if(mostrar){irAba('testeiras');setModo('desenho')}}
   if(it.tipo==='modelo3d'){putInputs(E.inputs);if(F)await mCarrega(F.nome,unb64(F.b64).buffer,true);if(mostrar)irAba('modelo')}

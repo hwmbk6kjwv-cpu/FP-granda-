@@ -4,11 +4,11 @@ import { createHmac, scryptSync, randomBytes, timingSafeEqual } from "node:crypt
 import { getStore } from "@netlify/blobs";
 
 const COOKIE = "granda_auth";
-const HASH_INICIAL = "4dea15ce1f159700634609f25c9fc0b6:c75fafeb1d0e7a1e7de37e9a0dda0d30e7f49823734fcddf26d2ada943cf5098";
+const HASH_INICIAL = "ddb5d6b7d9c4ad654b4611d67bddc210:445abf02ff3bcaa6a61c1de77ee9cf414a02d45a46078f2e3d508fb0a2544724";
 const cfg = () => getStore({ name: "granda-config", consistency: "strong" });
 
 async function hashAtual(): Promise<string> {
-  const v = await cfg().get("senha");
+  const v = await cfg().get("senha2");
   return v || HASH_INICIAL;
 }
 const igual = (a: string, b: string) => {
@@ -22,7 +22,7 @@ export async function senhaConfere(senha: string): Promise<boolean> {
 }
 export async function trocaSenha(nova: string) {
   const salt = randomBytes(16).toString("hex");
-  await cfg().set("senha", salt + ":" + scryptSync(nova, salt, 32).toString("hex"));
+  await cfg().set("senha2", salt + ":" + scryptSync(nova, salt, 32).toString("hex"));
 }
 export async function token(): Promise<string> {
   return createHmac("sha256", await hashAtual()).update("granda-ajustes-v1").digest("hex");
