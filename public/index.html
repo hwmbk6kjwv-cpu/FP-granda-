@@ -2513,7 +2513,7 @@ function acmCalc(comp,o){if(!tAcm.on)return null;const r=acmRed(),t=+tAcm.esp,n=
     const vInt=frente.filter(m=>/^Vertical interna/.test(m.tipo));
     if(tAcm.inst==='rente')frente.forEach(faixa);
     else{vInt.forEach(faixa);
-      if(tAcm.inst==='env1'){const zc=F.p/2,z0=zc-FT/2,z1=zc+FT/2;if(lados.t)T(0,F.W,F.H,F.H+ft,z0,z1);if(lados.b)T(0,F.W,-ft,0,z0,z1);if(lados.l)T(-ft,0,0,F.H,z0,z1);if(lados.r)T(F.W,F.W+ft,0,F.H,z0,z1);
+      if(tAcm.inst==='env1'){const zc=F.box?F.D-F.p/2:F.p/2,z0=zc-FT/2,z1=zc+FT/2;if(lados.t)T(0,F.W,F.H,F.H+ft,z0,z1);if(lados.b)T(0,F.W,-ft,0,z0,z1);if(lados.l)T(-ft,0,0,F.H,z0,z1);if(lados.r)T(F.W,F.W+ft,0,F.H,z0,z1);
         if(!lados.l||!lados.r)frente.filter(m=>/^Vertical (quadro|externa)/.test(m.tipo)||m.tipo==='Vertical quadro frontal').filter(m=>(!lados.l&&m.x0<1)||(!lados.r&&m.x1>F.W-1)).forEach(faixa)}
       else if(!vInt.length)frente.filter(m=>/^Vertical/.test(m.tipo)).forEach(faixa)}
     // parafusos brocantes Phillips cabeça chata no retorno (por trás), a cada 600 mm
@@ -2632,7 +2632,7 @@ function acmMontagem(A,M,o,ctx,pages,tags){const P=[];frame(P,ctx,{setor:'MONTAG
   A.pontos.forEach(q=>{const p=ISO.I(...q);P.push({t:'circle',x:p[0],y:p[1],r:0.9,fill:'#212529',stroke:'#ffffff',lw:0.15})});
   if(A.pontos.length){const q=A.pontos.reduce((b,p)=>{const s=ISO.I(...p),t=ISO.I(...b);return s[1]>t[1]?p:b});const p=ISO.I(...q);const tx=Math.min(p[0]+14,175),ty=Math.min(p[1]+9,160);
     P.push({t:'line',x1:p[0],y1:p[1],x2:tx,y2:ty-1,color:'#c92a2a',w:0.2},{t:'text',x:tx+1,y:ty,s:'PARAFUSO POR TRÁS DA TESTEIRA (no retorno)',size:2.4,bold:true,color:'#c92a2a'})}
-  const ix=214;let y=44;const linha=(k,v)=>{P.push({t:'text',x:ix,y,s:k,size:2.2,color:'#868e96'},{t:'text',x:ix,y:y+3.6,s:fit(v,72,2.6),size:2.6,bold:true,color:'#000000'});y+=8};
+  const ix=214;let y=44;const linha=(k,v)=>{P.push({t:'text',x:ix,y,s:k,size:2.2,color:'#868e96'},{t:'text',x:ix,y:y+3.6,s:fit(v,68,2.4),size:2.4,bold:true,color:'#000000'});y+=8};
   linha('MODELO:',acmModelo().toUpperCase());linha('ACM:',`${A.t} MM — ${acmDesc().toUpperCase()}`);linha('INSTALAÇÃO:',ACM_INST[tAcm.inst].toUpperCase());
   linha('FITA DUPLA FACE:',`${ACM_FITA[A.fitaTipo].toUpperCase()} 15 MM — ${f1(A.fitaTot)} M`);
   if(tAcm.inst==='env2')linha('PARAFUSOS (POR TRÁS):',`${A.paraf} BROCANTES PHILLIPS CAB. CHATA`);
@@ -2642,7 +2642,7 @@ function acmMontagem(A,M,o,ctx,pages,tags){const P=[];frame(P,ctx,{setor:'MONTAG
     P.push({t:'text',x:ix+9,y,s:t,size:2.3,color:'#000000'});y+=4.4});
   y+=2;P.push({t:'text',x:ix,y,s:'SEQUÊNCIA DE MONTAGEM',size:2.6,bold:true,color:'#1971c2'});y+=4.4;
   const passos={rente:['Limpar a frente da estrutura com álcool isopropílico.','Aplicar a fita em TODA a frente da estrutura (contorno, travas verticais e horizontais).','Retirar o liner e alinhar o ACM rente às bordas da estrutura.','Pressionar o ACM em toda a área da fita.'],
-    env1:['Dobrar o ACM nos vincos (abas laterais).','Limpar a estrutura com álcool isopropílico.','Aplicar a fita nas LATERAIS dos tubos do contorno e na frente das travas verticais.','Encaixar o ACM pela frente e pressionar a frente e as abas.'],
+    env1:['Dobrar o ACM nos vincos (abas laterais).','Limpar a estrutura com álcool isopropílico.',(M.comp.some(c=>c.F.box)?'Aplicar a fita nas LATERAIS dos tubos do contorno DE TRÁS (fundo) e na frente das travas verticais.':'Aplicar a fita nas LATERAIS dos tubos do contorno e na frente das travas verticais.'),'Encaixar o ACM pela frente e pressionar a frente e as abas.'],
     env2:['Dobrar abas e retornos nos vincos (cantos do retorno a 45°).','Limpar as travas verticais com álcool isopropílico.','Aplicar a fita SÓ nas travas verticais.','Encaixar o ACM e parafusar POR TRÁS da testeira: o retorno no tubo de trás, brocante Phillips cabeça chata a cada 600 mm.']}[tAcm.inst];
   passos.forEach((s,k)=>{const ws=s.split(' ');let ln='',ls=[];ws.forEach(w=>{if((ln+' '+w).length>44){ls.push(ln);ln=w}else ln=ln?ln+' '+w:w});ls.push(ln);
     ls.forEach((l,j)=>P.push({t:'text',x:ix+(j?4:0),y:y+j*3.3,s:(j?'':`${k+1}. `)+l,size:2.3,color:'#000000'}));y+=ls.length*3.3+1.2});
