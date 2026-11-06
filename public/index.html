@@ -675,9 +675,9 @@ function renderLeds(){setTimeout(renderLedW,0);renderChapa();renderCaixa();
 function renderLogo(){const lg=empresa.logo||GRANDA_LOGO;const p=$('#logoPrev');p.style.backgroundImage=`url('${lg}')`;p.textContent='';const h=$('#hdrLogo');if(h)h.src=lg}
 $('#typePick').onclick=e=>{const b=e.target.closest('.type');if(!b)return;selType=b.dataset.id;renderTypes();resetOut()};
 function renderLedW(){const t=types.find(x=>x.id===selType);const pg=t&&t.paginas.find(p=>p.tipo==='led');const box=$('#ledWPick');if(!box)return;if(!pg){box.innerHTML='<span class="note">Este tipo não tem LED.</span>';return}const def=(pg.led&&pg.led.watts)||1.2;const v=selLedW||def;
-  box.innerHTML=[0.72,1.2].map(w=>`<button data-lw="${w}" type="button" class="${Math.abs(w-v)<1e-6?'sel':''}"><span class="sw" style="background:${w<1?'#ffe8a3':'#ffd43b'}"></span><b>${String(w).replace('.',',')} W</b>${Math.abs(w-def)<1e-6?'<small style="display:block;font-size:11px;color:var(--mute)">padrão</small>':''}</button>`).join('')}
+  box.innerHTML=[0.72,1.2].map(w=>`<button data-lw="${w}" type="button" class="${Math.abs(w-v)<1e-6?'sel':''}"><span class="sw" style="background:${LED_COLOR[selLed]||'#eee'};opacity:${w<1?0.6:1}"></span><b>${String(w).replace('.',',')} W</b>${Math.abs(w-def)<1e-6?'<small style="display:block;font-size:11px;color:var(--mute)">padrão</small>':''}</button>`).join('')}
 $('#ledWPick').onclick=e=>{const b=e.target.closest('[data-lw]');if(!b)return;selLedW=+b.dataset.lw;renderLedW();resetOut()};
-$('#ledPick').onclick=e=>{const b=e.target.closest('button');if(!b)return;selLed=+b.dataset.led;renderLeds();updateBtn();resetOut()};
+$('#ledPick').onclick=e=>{const b=e.target.closest('button');if(!b)return;selLed=+b.dataset.led;renderLeds();renderLedW();updateBtn();resetOut()};
 $('#typeList').onclick=e=>{const b=e.target.closest('.type');if(b)openModal(types.find(t=>t.id===b.dataset.id))};
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
