@@ -1321,11 +1321,14 @@ function footer(P,ctx,n,total){if(P._ref&&!P._refOk)refAplica(P);obsBox(P,ctx);
   P.push({t:'rect',x:271,y:174,w:16,h:25,r:1.6,stroke:'#333333',lw:0.25});
 }
 const setorNome=s=>s==='LED'?'ELÉTRICA':s;
+// página do setor no selo colorido: "SERRALHERIA 1/3"
+function numeraSetores(pages){const tot={},k={};pages.forEach(P=>{if(P._setor)tot[P._setor]=(tot[P._setor]||0)+1});
+  pages.forEach(P=>{if(!P._setorT)return;const s=P._setor;k[s]=(k[s]||0)+1;const lab=`${s}  ${k[s]}/${tot[s]}`;P._setorT.s=lab;P._setorT.size=lab.length>16?3.4:4.2})}
 function frame(P,ctx,pg){pg={...pg,setor:setorNome(pg.setor)};
   P.push({t:'rect',x:8,y:8,w:PW-16,h:PH-16,stroke:'#000000',lw:0.3});
   const col=SETORES[pg.setor]||'#666666';
   P.push({t:'rect',x:226,y:8,w:63,h:11,r:2,fill:col});
-  P.push({t:'text',x:257.5,y:15.3,s:pg.setor,size:4.2,bold:true,color:'#ffffff',anchor:'middle'});
+  P._setor=pg.setor;P._setorT={t:'text',x:257.5,y:15.3,s:pg.setor,size:4.2,bold:true,color:'#ffffff',anchor:'middle'};P.push(P._setorT);
   P.push({t:'text',x:18,y:15.5,s:`${pg.setor} ITEM ${ctx.item} - ${ctx.descItem}`.toUpperCase(),size:3.4,bold:true,color:'#000000'});
   if(ctx.tipo)P.push({t:'text',x:18,y:21,s:`Tipo: ${ctx.tipo}   •   LED: ${ctx.led}   •   CAIXA: ${ctx.caixa/10} cm`,size:2.6,color:'#555555'});
   P._f0=P.length;P._ref=refImg;
@@ -1660,7 +1663,7 @@ function buildDoc(){
    P.push({t:'text',x:284,y:25,s:`ESCALA DA FOLHA 1:${Math.round(1/s)} — ARQUIVO DO MOLDE EM 1:1`,size:2.4,bold:true,color:'#2f6fa8',anchor:'end'});
    pages.splice(1,0,P);}
   paginasFinais(pages,null,ctx,prodLetras(t,ctx,orig,defs,ledInfo,furosDoc,nests));
-  if(!FOOT_SKIP)pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length));
+  if(!FOOT_SKIP){numeraSetores(pages);pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length))}
   pages.forEach((P,i)=>{pages[i]=scaleP(P,K)});
   return {pages,info,ctx,W:b.w,H:b.h,escala,ledInfo,K,nests,orig,furos:furosDoc};
 }
@@ -1670,7 +1673,7 @@ function buildDoc(){
 function scaleP(P,K){const m=v=>v*K;const out=P.map(p=>{const q={...p};
   if(q.pts)q.pts=q.pts.map(([x,y])=>[x*K,y*K]);if(q.polys&&p.t==='pathfill')q.polys=q.polys.map(pp=>pp.map(([x,y])=>[x*K,y*K]));
   ['x','y','w','h','x1','y1','x2','y2','size','r'].forEach(k=>{if(typeof q[k]==='number'&&!((p.t==='poly'||p.t==='path')&&k==='w'))q[k]=m(q[k])});
-  if(p.t!=='poly'&&typeof q.lw==='number')q.lw*=K;if(p.t==='line')q.w=p.w*K;return q});out.K=K;return out}
+  if(p.t!=='poly'&&typeof q.lw==='number')q.lw*=K;if(p.t==='line')q.w=p.w*K;return q});out.K=K;['_f0','_ref','_refOk','_setor'].forEach(k=>{if(P[k]!==undefined)out[k]=P[k]});if(P._setorT){const i=P.indexOf(P._setorT);if(i>=0)out._setorT=out[i]}return out}
 function toSVG(P){const K=P.K||1;
   const r=n=>+(+n).toFixed(3);const o=[];
   for(const p of P){
@@ -1738,7 +1741,7 @@ $('#ledAdj').onclick=e=>{const z=e.target.closest('#ledAdjZero');if(z){ledAdj={}
   // o ajuste é relativo ao automático: se pediu menos e já está no mínimo, não passa de 1
   if(g&&g.n+(+b.dataset.d)<1)ledAdj[k]-=(+b.dataset.d);
   document.querySelectorAll('#ledAdj button').forEach(x=>x.disabled=true);ledFoco=true;setTimeout(()=>$('#gerar').click(),20)};
-function resetOut(){lastPdf=null;$('#ledAdj').hidden=true;$('#baixar').hidden=true;$('#prodFiles').hidden=true;prodFiles=[]}
+function resetOut(){lastPdf=null;$('#gerar').textContent='Gerar FP';$('#ledAdj').hidden=true;$('#baixar').hidden=true;$('#prodFiles').hidden=true;prodFiles=[]}
 let srcBytes=null;
 $('#pdfIn').onchange=async e=>{const f=e.target.files[0];if(!f)return;await carregaLetra(f.name,new Uint8Array(await f.arrayBuffer()));e.target.value=''};
 async function carregaLetra(nome,bytes){resetOut();const f={name:nome};
@@ -1779,7 +1782,7 @@ $('#gerar').onclick=()=>{
     lastName=`OS ${d.ctx.os||'sem número'} - ${d.ctx.cliente||src.name.replace(/\.pdf$/i,'')} - item ${d.ctx.item}.pdf`.replace(/[\\/:*?"<>|]/g,'-');
     const thin=d.info.flatMap(i=>i.lines.filter(l=>!l.polys.length).map(l=>l.legenda));
     $('#outMsg').innerHTML=`<div class="msg ok">${d.pages.length} página(s) gerada(s). Original: ${fmt(d.W)} × ${fmt(d.H)} mm. FP em A4; arquivos de produção em tamanho real.${d.ledInfo?` LED: ${d.ledInfo.mods.length} módulos, ${d.ledInfo.watts.toLocaleString('pt-BR',{maximumFractionDigits:1})} W → reator ${reatorTxt(d.ledInfo.watts*1.2)}.`:''}</div>`+(d.W+20>5080||d.H+20>5080?'<div class="msg warn">A peça passa de 5,08 m: alguns leitores de PDF cortam páginas desse tamanho. Abra os arquivos de produção no Corel ou Illustrator.</div>':'')+(thin.length?`<div class="msg warn">Linhas que sumiram (letra fina demais para a medida): ${esc(thin.join(', '))}</div>`:'')+(pagesOf(types.find(x=>x.id===selType)).length?'':'<div class="msg warn">Esse tipo ainda não tem páginas configuradas — gerei só o original. Configure em "Cadastros".</div>');
-    $('#baixar').hidden=false;
+    $('#baixar').hidden=false;$('#gerar').textContent='Atualizar FP';
     // arquivos de produção separados
     const base=`OS ${d.ctx.os||'sem número'} - item ${d.ctx.item}`;prodFiles=[];const cnt={};
     {const v=vecPDF([{color:'#000000',polys:d.orig}]);if(v)prodFiles.push({name:nomeArq(`${base} - ORIGINAL.pdf`),label:'ORIGINAL (arquivo do cliente em linha preta)',buf:v.buf,dim:`${fmt(v.w)} × ${fmt(v.h)} mm`})}
@@ -2213,7 +2216,7 @@ function buildTesteira(){
   if(tPint==='toda'){const P=[];frame(P,ctx,{setor:'PINTURA'});folhaPintura(P,M,o);pages.push(P);tags.push('PINTURA')}
   if(M.acm){acmPaginas(M.acm,o,ctx,pages,tags);acmMontagem(M.acm,M,o,ctx,pages,tags)}
   paginasFinais(pages,tags,ctx,prodTesteira(M,o,ctx));
-  if(!FOOT_SKIP)pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length));
+  if(!FOOT_SKIP){numeraSetores(pages);pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length))}
   return {pages,tags,M,o,plano,ctx};
 }
 
@@ -3095,7 +3098,7 @@ function dFolhas(){const un=Math.max(1,Math.round(num($('#dUn').value))||1);cons
   if(dPint==='toda'){const P=[];frame(P,ctx,{setor:'PINTURA'});const A=dArea();
     folhaPinturaG(P,{boxes:bs,pts:dSoldas(),lin:A.lin*un/1000,area:A.area*un/1e6,un,toda:dPint==='toda',titulo:'PINTURA DA ESTRUTURA'});pages.push(P);tags.push('PINTURA')}
   paginasFinais(pages,tags,ctx,prodEstrutura(bs,L,un,ctx,dModel.titulo));
-  if(!FOOT_SKIP)pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length));
+  if(!FOOT_SKIP){numeraSetores(pages);pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length))}
   return {pages,tags,ctx}}
 $('#dBaixar').onclick=async()=>{if(!dBuild)return;const pdf=toPDF(dBuild.pages);const name=`OS ${dBuild.ctx.os||'sem número'} - estrutura - item ${dBuild.ctx.item}.pdf`.replace(/[\\/:*?"<>|]/g,'-');
   try{const dl=window.claude&&claude.use?await claude.use('downloads'):null;if(!dl){$('#dMsg').innerHTML='<div class="msg err">Download indisponível nesta visualização. Abra o sistema pelo link no claude.ai.</div>';return}
@@ -3298,7 +3301,7 @@ function mFolhas(){const un=Math.max(1,Math.round(num($('#mQt').value))||1);cons
         if(b.emenda)P.push({t:'text',x:283,y:y+4.1,s:'EMENDAR',size:2.2,bold:true,color:'#c92a2a',anchor:'end'});y+=9}
       y+=4}}}
   paginasFinais(pages,tags,ctx,prodEstrutura([{...bb,cor:'#adb5bd'}],L,Math.max(1,Math.round(num($('#mQt').value))||1),ctx,ctx.descItem));
-  if(!FOOT_SKIP)pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length));return{pages,tags,ctx,L}}
+  if(!FOOT_SKIP){numeraSetores(pages);pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length))}return{pages,tags,ctx,L}}
 function mFolhasRender(){if(!mSrc||!mPecas.length){$('#mResCard').hidden=true;return}$('#mResCard').hidden=false;
   try{mBuild=mFolhas();const L=mBuild.L;
     $('#mTabela').innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="text-align:left;color:var(--mute)"><th>Nº</th><th>Peça</th><th>Perfil</th><th>Parede (est.)</th><th>Compr.</th><th>Qtd</th></tr>${L.map(r=>`<tr style="border-top:1px solid var(--line)"><td><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${r.cor};vertical-align:-1px"></span> ${r.item}</td><td>${esc(r.nome)}</td><td>${esc(r.tipo==='chapa'?r.secao+' mm':r.perfil.toUpperCase())}</td><td>${esc(r.parede||'—')}</td><td>${r.tipo==='chapa'?'—':f1(r.len)+' mm'}</td><td>${r.q}</td></tr>`).join('')}</table>`;
@@ -3341,7 +3344,7 @@ $('#pedNovo').onclick=async()=>{const p={id:'p'+Date.now().toString(36),os:'',no
   OS_IDS.forEach(k=>$('#'+k).value='');pedidos.push(p);pedAbrir(p);await pedSalvar(p);$('#os').focus()};
 // ---------- pedido aberto ----------
 function pedAbrir(p){pedAtual=JSON.parse(JSON.stringify(p));itemAtual=null;pedPdf=null;OS_IDS.forEach(k=>$('#'+k).value=pedAtual[k]||'');$('#pedNome').value=pedAtual.nome||'';
-  $('#pedListaCard').hidden=true;$('#pedCard').hidden=false;$('#osSec').hidden=false;$('#pedPrev').innerHTML='';$('#pedMsg').innerHTML='';$('#pedBaixar').hidden=true;pedAbertoRender();pedBarRender()}
+  $('#pedListaCard').hidden=true;$('#pedCard').hidden=false;$('#osSec').hidden=false;$('#pedPrev').innerHTML='';$('#pedMsg').innerHTML='';$('#pedBaixar').hidden=true;$('#pedGerar').textContent='Gerar FP completa do pedido';pedAbertoRender();pedBarRender()}
 function pedAbertoRender(){if(!pedAtual)return;$('#pedTitulo').innerHTML=`Pedido ${esc(pedAtual.os||'(sem número)')}${pedAtual.nome?' — '+esc(pedAtual.nome):''}<div style="font-size:13px;font-weight:400;margin-top:4px"><b>Cliente:</b> ${esc(pedAtual.cliente||'—')} &nbsp;•&nbsp; <b>Projetista:</b> ${esc(pedAtual.projetista||'—')}</div>`;
   const its=(pedAtual.itens||[]).slice().sort((a,b)=>a.n-b.n);
   $('#pedItens').innerHTML=its.length?its.map(it=>`<div class="row" style="justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-top:6px;gap:8px">
@@ -3424,9 +3427,9 @@ $('#pedGerar').onclick=async()=>{const its=(pedAtual.itens||[]).slice().sort((a,
   const btn=$('#pedGerar');btn.disabled=true;const todas=[];const salvo={item:$('#item').value,ia:itemAtual};
   try{for(const [k,it] of its.entries()){$('#pedMsg').innerHTML=`<div class="msg ok">Gerando item ${it.n} (${k+1} de ${its.length}) — ${TIPO_NOME[it.tipo]}…</div>`;await new Promise(r=>setTimeout(r,30));
       await itemAbrir(it,false);FOOT_SKIP=true;let r;try{r=buildItem(it.tipo)}finally{FOOT_SKIP=false}r.pages.forEach(P=>todas.push({P,ctx:r.ctx}))}
-    todas.forEach((x,i)=>footer(x.P,x.ctx,i+1,todas.length));
+    numeraSetores(todas.map(x=>x.P));todas.forEach((x,i)=>footer(x.P,x.ctx,i+1,todas.length));
     pedPdf=toPDF(todas.map(x=>x.P));$('#pedPrev').innerHTML=todas.map(x=>`<div class="pg">${toSVG(x.P)}</div>`).join('');
-    $('#pedMsg').innerHTML=`<div class="msg ok">FP completa: ${its.length} item(ns), ${todas.length} página(s) numeradas em sequência.</div>`;$('#pedBaixar').hidden=false}
+    $('#pedMsg').innerHTML=`<div class="msg ok">FP completa: ${its.length} item(ns), ${todas.length} página(s) numeradas em sequência.</div>`;$('#pedBaixar').hidden=false;$('#pedGerar').textContent='Atualizar FP completa do pedido'}
   catch(e){console.error(e);$('#pedMsg').innerHTML=`<div class="msg err">Erro ao gerar: ${esc(e.message)}</div>`}
   finally{btn.disabled=false;$('#item').value=salvo.item;itemAtual=salvo.ia;pedBarRender()}};
 $('#pedBaixar').onclick=async()=>{if(!pedPdf)return;await salvar(nomeArq(`OS ${pedAtual.os||'sem número'}${pedAtual.nome?' - '+pedAtual.nome:''} - FP completa.pdf`),new Blob([pedPdf],{type:'application/pdf'}))};
