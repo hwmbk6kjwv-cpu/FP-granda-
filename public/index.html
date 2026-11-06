@@ -254,6 +254,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div id="ledAdjHome"><div id="ledAdj" hidden style="margin:10px 0 16px;padding:12px;border:1.5px solid #e8a400;border-radius:12px;background:#fffbea"></div></div>
       <div id="prodFiles" hidden style="margin-top:12px"></div>
       <div id="outMsg"></div>
+      <div class="row" id="lPgPick" style="gap:6px;margin-top:10px;flex-wrap:wrap"></div>
       <div class="prev" id="prev"></div>
     </div>
   </section>
@@ -449,6 +450,13 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
           <div><label class="f">Saída na altura (cm)</label><input type="text" id="iVv" inputmode="decimal" placeholder="ex.: 10"></div>
           <div><label class="f">Largura da parede (cm, opcional)</label><input type="text" id="iPw" inputmode="decimal"></div>
           <div><label class="f">Altura da parede (cm, opcional)</label><input type="text" id="iPh" inputmode="decimal"></div>
+        </div>
+        <label class="f">Ancoragem na parede</label>
+        <select id="iAncT"><option value="bucha">Bucha de nylon + parafuso (alvenaria)</option><option value="parabolt">Parabolt / chumbador mecânico (concreto)</option><option value="quimico">Chumbador químico (bloco vazado)</option><option value="brocante">Parafuso brocante (estrutura metálica)</option><option value="madeira">Parafuso para madeira</option><option value="nenhuma">Sem ancoragem</option></select>
+        <div id="ancBox" class="g2" style="margin-top:6px">
+          <div><label class="f">Bitola / material</label><input type="text" id="iAncB"></div>
+          <div><label class="f">Quantidade (vazio = automático)</label><input type="text" id="iAncQ" inputmode="numeric"></div>
+          <div style="grid-column:1/-1"><label class="btn ghost sm" style="display:inline-flex;align-items:center">Foto da ancoragem (opcional)<input type="file" id="ancIn" accept="image/*" hidden></label><div id="ancPrev" style="margin-top:6px"></div></div>
         </div>
         <label class="f">Foto de instalação</label>
         <div class="row" style="gap:8px;align-items:stretch">
@@ -1387,6 +1395,13 @@ function refRender(){$('#refPrev').innerHTML=refImg?`<div class="row" style="gap
 // o cadastro da instalação fica por último, logo antes das folhas (FP) de cada aba
 function instColoca(tb){const s=$('#instSec');const alvo=tb==='novo'?$('#gerar').closest('.card'):tb==='testeiras'?$('#t3d').closest('.card'):tb==='modelo'?$('#mResCard'):null;
   if(alvo&&alvo.parentNode&&alvo.previousElementSibling!==s)alvo.parentNode.insertBefore(s,alvo)}
+let lSel='',lDoc=null;
+const lSetNome=s=>({ROUTER:'Router',P1:'P1',PINTURA:'Pintura','ELÉTRICA':'Elétrica',ACABAMENTO:'Acabamento','INSTALAÇÃO':'Instalação','EXPEDIÇÃO':'Expedição',QUALIDADE:'Qualidade',SERRALHERIA:'Serralheria',OUTRAS:'Outras'}[s]||s);
+function lPrevRender(){const d=lDoc;if(!d){$('#lPgPick').innerHTML='';return}const sk=P=>P._setor||'OUTRAS';const sets=[...new Set(d.pages.map(sk))];if(!sets.includes(lSel))lSel=sets[0];
+  $('#lPgPick').innerHTML=sets.map(s=>{const n=d.pages.filter(P=>sk(P)===s).length;return `<button class="chip${s===lSel?' on':''}" data-lpg="${esc(s)}">${esc(lSetNome(s))}${n>1?` (${n})`:''}</button>`}).join('');
+  const shown=d.pages.filter(P=>sk(P)===lSel);prevSet(shown.map(P=>`<div class="pg">${toSVG(P)}</div>`).join(''));
+  const li=shown.findIndex(P=>P.some(p=>p.t==='text'&&/DISTRIBUIÇÃO DE LED/.test(p.s||'')));const pgs=$('#prev').querySelectorAll('.pg');
+  if(li>=0&&pgs[li]&&!$('#ledAdj').hidden){pgs[li].after($('#ledAdj'));if(ledFoco){ledFoco=false;pgs[li].scrollIntoView({block:'start'})}}}
 function prevSet(html){$('#ledAdjHome').appendChild($('#ledAdj'));$('#prev').innerHTML=html}
 function refRefaz(){try{
   if(!$('#tab-testeiras').hidden){if(tModo==='desenho'){if(dModel&&typeof dAtualizar==='function')dAtualizar()}else tAtualizar()}
@@ -1783,7 +1798,7 @@ $('#ledAdj').onclick=e=>{const z=e.target.closest('#ledAdjZero');if(z){ledAdj={}
   // o ajuste é relativo ao automático: se pediu menos e já está no mínimo, não passa de 1
   if(g&&g.n+(+b.dataset.d)<1)ledAdj[k]-=(+b.dataset.d);
   document.querySelectorAll('#ledAdj button').forEach(x=>x.disabled=true);ledFoco=true;setTimeout(()=>$('#gerar').click(),20)};
-function resetOut(){lastPdf=null;$('#gerar').textContent='Gerar FP';$('#ledAdj').hidden=true;$('#baixar').hidden=true;$('#prodFiles').hidden=true;prodFiles=[]}
+function resetOut(){lastPdf=null;lDoc=null;if($('#lPgPick'))$('#lPgPick').innerHTML='';$('#gerar').textContent='Gerar FP';$('#ledAdj').hidden=true;$('#baixar').hidden=true;$('#prodFiles').hidden=true;prodFiles=[]}
 let srcBytes=null;
 $('#pdfIn').onchange=async e=>{const f=e.target.files[0];if(!f)return;await carregaLetra(f.name,new Uint8Array(await f.arrayBuffer()));e.target.value=''};
 async function carregaLetra(nome,bytes){resetOut();const f={name:nome};
@@ -1817,10 +1832,9 @@ async function salvar(name,data){const dl=window.claude&&claude.use?await claude
 $('#gerar').onclick=()=>{
   try{
     const d=buildDoc();
-    prevSet(d.pages.map(P=>`<div class="pg">${toSVG(P)}</div>`).join(''));
-    lastPdf=toPDF(d.pages);lastLed=d.ledInfo;renderLedAdj(d.ledInfo);
-    {const li=d.pages.findIndex(P=>P.some(p=>p.t==='text'&&/DISTRIBUIÇÃO DE LED/.test(p.s||'')));const pgs=$('#prev').querySelectorAll('.pg');
-     if(li>=0&&pgs[li]&&!$('#ledAdj').hidden){pgs[li].after($('#ledAdj'));if(ledFoco){ledFoco=false;pgs[li].scrollIntoView({block:'start'})}}}
+    lastPdf=toPDF(d.pages);lastLed=d.ledInfo;renderLedAdj(d.ledInfo);lDoc=d;
+    {const li=d.pages.findIndex(P=>P.some(p=>p.t==='text'&&/DISTRIBUIÇÃO DE LED/.test(p.s||'')));if(ledFoco&&li>=0)lSel=d.pages[li]._setor||'OUTRAS'}
+    lPrevRender();
     lastName=`OS ${d.ctx.os||'sem número'} - ${d.ctx.cliente||src.name.replace(/\.pdf$/i,'')} - item ${d.ctx.item}.pdf`.replace(/[\\/:*?"<>|]/g,'-');
     const thin=d.info.flatMap(i=>i.lines.filter(l=>!l.polys.length).map(l=>l.legenda));
     $('#outMsg').innerHTML=`<div class="msg ok">${d.pages.length} página(s) gerada(s). Original: ${fmt(d.W)} × ${fmt(d.H)} mm. FP em A4; arquivos de produção em tamanho real.${d.ledInfo?` LED: ${d.ledInfo.mods.length} módulos, ${d.ledInfo.watts.toLocaleString('pt-BR',{maximumFractionDigits:1})} W → reator ${reatorTxt(d.ledInfo.watts*1.2)}.`:''}</div>`+(d.W+20>5080||d.H+20>5080?'<div class="msg warn">A peça passa de 5,08 m: alguns leitores de PDF cortam páginas desse tamanho. Abra os arquivos de produção no Corel ou Illustrator.</div>':'')+(thin.length?`<div class="msg warn">Linhas que sumiram (letra fina demais para a medida): ${esc(thin.join(', '))}</div>`:'')+(pagesOf(types.find(x=>x.id===selType)).length?'':'<div class="msg warn">Esse tipo ainda não tem páginas configuradas — gerei só o original. Configure em "Cadastros".</div>');
@@ -2256,7 +2270,7 @@ function buildTesteira(){
      y+=4}
   }
   if(tPint==='toda'){const P=[];frame(P,ctx,{setor:'PINTURA'});folhaPintura(P,M,o);pages.push(P);tags.push('PINTURA')}
-  if(M.acm){acmPaginas(M.acm,o,ctx,pages,tags);acmMontagem(M.acm,M,o,ctx,pages,tags);aplPagina(M,o,ctx,pages,tags)}
+  if(M.acm){acmPaginas(M.acm,o,ctx,pages,tags);acmMontagem(M.acm,M,o,ctx,pages,tags);aplPagina(M,o,ctx,pages,tags);aplPlanif(M,o,ctx,pages,tags)}
   paginasFinais(pages,tags,ctx,prodTesteira(M,o,ctx));
   if(!FOOT_SKIP){numeraSetores(pages);pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length))}
   return {pages,tags,M,o,plano,ctx};
@@ -2639,7 +2653,7 @@ function acmCalc(comp,o){if(!tAcm.on)return null;const r=acmRed(),t=+tAcm.esp,n=
     segs.forEach(([sa,sb],si)=>{const sl={t:lados.t,b:lados.b,l:si===0&&lados.l,r:si===segs.length-1&&lados.r};
       const trav=jt?[]:vi.map(x=>x-sa).filter(x=>x>0&&x<sb-sa);
       const dv=acmDivide(sb-sa,H,e,fl,sl,trav,SWmax);
-      dv.pecas.forEach((p,k)=>tipos.push({...p,face:i+1,seg:segs.length>1?si+1:0,parte:k+1,nPartes:dv.pecas.length,emenda:k<dv.emendas.length?dv.naTrava[k]:null}));
+      dv.pecas.forEach((p,k)=>tipos.push({...p,face:i+1,seg:segs.length>1?si+1:0,parte:k+1,nPartes:dv.pecas.length,emenda:k<dv.emendas.length?dv.naTrava[k]:null,x0f:sa+(k?dv.emendas[k-1]:0)+ins.l,y0f:Y0+ins.b}));
       B(sa,sb,Y0,Y1,-t,0);
       if(env){if(sl.t)B(sa,sb,Y1-t,Y1,-t,fl);if(sl.b)B(sa,sb,Y0,Y0+t,-t,fl);if(sl.l)B(sa,sa+t,Y0,Y1,-t,fl);if(sl.r)B(sb-t,sb,Y0,Y1,-t,fl);
         if(ret){if(sl.t)B(sa,sb,Y1-ret,Y1,fl,fl+t);if(sl.b)B(sa,sb,Y0,Y0+ret,fl,fl+t);if(sl.l)B(sa,sa+ret,Y0,Y1,fl,fl+t);if(sl.r)B(sb-ret,sb,Y0,Y1,fl,fl+t)}}});
@@ -2667,14 +2681,14 @@ function acmCalc(comp,o){if(!tAcm.on)return null;const r=acmRed(),t=+tAcm.esp,n=
   // agrupa peças iguais
   const grp=[];tipos.forEach(p=>{const k=[p.bw,p.bh,p.w,p.h,p.e,p.lados.t,p.lados.b,p.lados.l,p.lados.r].map(v=>typeof v==='number'?v.toFixed(1):v).join('|');
     let g=grp.find(x=>x.k===k);if(!g){g={k,p,q:0,refs:[]};grp.push(g)}g.q++;g.refs.push(`F${p.face}`+(p.seg?`-${p.seg}`:'')+(p.nPartes>1?`.${p.parte}`:''))});
-  grp.forEach((g,i)=>{g.id='A'+(i+1);g.p.id=g.id});
+  grp.forEach((g,i)=>{g.id='A'+(i+1);g.p.id=g.id});tipos.forEach(p=>{if(!p.id){const k=[p.bw,p.bh,p.w,p.h,p.e,p.lados.t,p.lados.b,p.lados.l,p.lados.r].map(v=>typeof v==='number'?v.toFixed(1):v).join('|');const g=grp.find(x=>x.k===k);if(g)p.id=g.id}});
   const itens=[];grp.forEach(g=>{for(let k=0;k<g.q*o.un;k++)itens.push(g.p)});
   const opc=largs.map(SW=>{const bins=itens.every(it=>acmCabe(it.bw,it.bh,SW))?acmNest(itens,SW):null;if(!bins)return{SW,ok:false};
     const area=itens.reduce((s,it)=>s+it.area,0);return{SW,ok:true,bins,n:bins.length,aprov:area/(bins.length*SW*ACM_LEN)}}).filter(x=>x.ok);
   if(!opc.length)throw new Error('ACM: nenhuma peça cabe nas chapas escolhidas.');
   opc.sort((a,b)=>a.n*a.SW-b.n*b.SW||a.n-b.n);const esc=opc[0];
   const fitaM=fita/1000;
-  return {r,t,env,boxes,expl,guias,fitas,pontos,grp,itens,opc,esc,fitaM,fitaTot:fitaM*o.un*1.1,paraf:paraf*o.un,fitaTipo:acmFita(),hex}}
+  return {r,t,env,boxes,expl,guias,fitas,pontos,grp,tipos,itens,opc,esc,fitaM,fitaTot:fitaM*o.un*1.1,paraf:paraf*o.un,fitaTipo:acmFita(),hex}}
 
 /* ---------- folhas ---------- */
 function acmDesc(){const c=tAcm.cor;return c?`${c.nome}${c.marca&&c.marca!=='Minhas cores'?' — '+c.marca+(c.linha?' '+c.linha.replace(/\s*\(.*\)/,''):''):''}${c.acab?' ('+c.acab+')':''}`:'COR A DEFINIR'}
@@ -2893,6 +2907,43 @@ function aplPagina(M,o,ctx,pages,tags){const ap=tAcm.apl;if(!tAcm.on||!ap||!ap.t
     P.push({t:'text',x:ix,y,s:fit(`${FX.segue?'Altura = faixa + dobra do envelope':'Altura = faixa'}; rolo ${FX.rolo} mm; aplicar antes de dobrar.`,108,2.2),size:2.2,color:'#555555'});y+=4}
   P.push({t:'text',x:ix,y:y+1,s:fit(ades?'Aplicar o adesivo no ACM antes de montar, seguindo as medidas de saída.':'Fixar a letra caixa no ACM aqui na empresa, seguindo as medidas de saída.',108,2.4),size:2.4,bold:true,color:CORT});
   pages.push(P);tags.push(ades?'ADESIVO':'LETRA NO ACM')}
+// detalhe do adesivo nas peças planificadas (com dobras do envelope) — P1
+function clipInter(subj,clip){const S=100,toC=ps=>ps.map(p=>p.map(([x,y])=>({X:Math.round(x*S),Y:Math.round(y*S)})));const c=new ClipperLib.Clipper();
+  c.AddPaths(toC(subj),ClipperLib.PolyType.ptSubject,true);c.AddPaths(toC([clip]),ClipperLib.PolyType.ptClip,true);const sol=[];
+  c.Execute(ClipperLib.ClipType.ctIntersection,sol,ClipperLib.PolyFillType.pftEvenOdd,ClipperLib.PolyFillType.pftNonZero);return sol.map(p=>p.map(q=>[q.X/S,q.Y/S]))}
+function aplPlanif(M,o,ctx,pages,tags){const ap=tAcm.apl;if(!tAcm.on||!ap||ap.tipo!=='adesivo'||!M.acm||!M.acm.tipos)return;
+  const temArte=!!(ap.polys&&ap.polys.length);const FX=faixaTiras(M,o);if(!temArte&&!FX)return;
+  const F=frenteTesteira(M);const fIdx={};F.faces.forEach(f=>fIdx[f.i+1]=f);const env=tAcm.inst!=='rente';
+  const inst=M.acm.tipos.filter(t=>fIdx[t.face]);if(!env&&inst.length<2)return;
+  let art=[];if(temArte){const Q=aplPos(F,ap);const k=Q.w/ap.w0;art=ap.polys.map(p=>p.map(([x,y])=>[Q.x+x*k,Q.y+y*k]))}
+  const COR=ap.cor&&ap.cor.hex||'#1c7ed6',fx=ap.faixa||{};const pecas=[];
+  inst.forEach(t=>{const f=fIdx[t.face];const el=t.lados.l?t.e:0,eb=t.lados.b?t.e:0;const px=f.x+t.x0f,py=f.y+t.y0f;const T=([x,y])=>[x-px+el,y-py+eb];
+    let aA=[],aF=[];if(art.length)aA=clipInter(art.map(p=>p.map(T)),t.pts).filter(p=>p.length>2);
+    if(FX){const dB=FX.segue&&fx.al==='base'&&t.lados.b&&f.y<1,dT=FX.segue&&fx.al==='topo'&&t.lados.t&&f.y+f.H>F.H-1;
+      const y0=FX.B.y-(dB?t.e:0),y1=FX.B.y+FX.B.h+(dT?t.e:0);aF=clipInter([[[-1e5,y0],[1e5,y0],[1e5,y1],[-1e5,y1]].map(T)],t.pts).filter(p=>p.length>2)}
+    if(aA.length||aF.length)pecas.push({t,aA,aF,ad:aA.concat(aF)})});
+  if(!pecas.length)return;const POR=3;
+  for(let pi=0;pi<pecas.length;pi+=POR){const lote=pecas.slice(pi,pi+POR);const P=[];frame(P,ctx,{setor:'P1'});
+    P.push({t:'text',x:18,y:31,s:`${o.un}X`,size:7,bold:true,italic:true,color:'#000000'});
+    P.push({t:'text',x:PW/2,y:30,s:'ADESIVO NAS PEÇAS DE ACM PLANIFICADAS',size:4.2,bold:true,color:'#000000',anchor:'middle'});
+    P.push({t:'text',x:PW/2,y:35,s:fit(`Aplicar o adesivo com a peça ainda plana, ANTES DE DOBRAR — ${{env1:'envelope 1 dobra',env2:'envelope 2 dobras',rente:'corte rente'}[tAcm.inst]} • cotas a partir do corte externo`,260,2.5),size:2.5,color:'#555555',anchor:'middle'});
+    const top=42,bot=160,hh=(bot-top)/lote.length;
+    lote.forEach(({t,ad,aA,aF},k)=>{const R={x:40,y:top+k*hh+5,w:200,h:hh-14};const s=Math.min(R.w/t.bw,R.h/t.bh);const ox=R.x+(R.w-t.bw*s)/2,oy=R.y;
+      const X=x=>ox+x*s,Y=y=>oy+(t.bh-y)*s;
+      P.push({t:'polyf',pts:t.pts.map(([x,y])=>[X(x),Y(y)]),fill:mixB(tAcm.cor&&tAcm.cor.hex||'#c8ccd2'),stroke:ACM_CORTE,lw:0.3});
+      P.push({t:'pathfill',polys:ad.map(p=>p.map(([x,y])=>[X(x),Y(y)])),fill:COR});
+      t.vin.forEach(([a,b])=>P.push({t:'line',x1:X(a[0]),y1:Y(a[1]),x2:X(b[0]),y2:Y(b[1]),color:ACM_VINCO,w:0.25}));
+      cotaH(P,X(0),X(t.bw),Y(t.bh)-3,Y(t.bh),fmm(t.bw),2.4);cotaV(P,X(0)-4,Y(t.bh),Y(0),X(0),fmm(t.bh),2.4);
+      const C2='#d6336c',CB='#1c7ed6';
+      if(aF.length){const b=bbox(aF);const xr=X(t.bw)+4;cotaV(P,xr,Y(b.y1),Y(b.y0),null,f0(b.h),2.3,CB);if(b.y0>0.5)cotaV(P,xr,Y(b.y0),Y(0),null,f0(b.y0),2.2,C2);if(t.bh-b.y1>0.5)cotaV(P,xr,Y(t.bh),Y(b.y1),null,f0(t.bh-b.y1),2.2,C2)}
+      if(aA.length){const b=bbox(aA);cotaH(P,X(b.x0),X(b.x1),Y(0)+3.5,null,f0(b.w),2.3,CB);cotaV(P,X(b.x1)+2.5,Y(b.y1),Y(b.y0),null,f0(b.h),2.2,CB);
+        if(b.x0>0.5)cotaH(P,X(0),X(b.x0),Y(b.y0+b.h/2),null,f0(b.x0),2.2,C2);if(t.bw-b.x1>0.5)cotaH(P,X(b.x1),X(t.bw),Y(b.y0+b.h/2),null,f0(t.bw-b.x1),2.2,C2);
+        if(b.y0>0.5)cotaV(P,X(b.x0)-3,Y(b.y0),Y(0),null,f0(b.y0),2.2,C2);if(t.bh-b.y1>0.5)cotaV(P,X(b.x0)-3,Y(t.bh),Y(b.y1),null,f0(t.bh-b.y1),2.2,C2)}
+      const ref=`F${t.face}`+(t.seg?`-${t.seg}`:'')+(t.nPartes>1?`.${t.parte}`:'');
+      P.push({t:'text',x:R.x+R.w+10,y:R.y+4,s:`ACM ${t.id||''}`,size:3.4,bold:true,color:'#000000'},{t:'text',x:R.x+R.w+10,y:R.y+8.5,s:ref,size:2.6,color:'#555555'},
+        {t:'text',x:R.x+R.w+10,y:R.y+13,s:`${f0(t.bw)} x ${f0(t.bh)}`,size:2.4,color:'#555555'})});
+    acmLegenda(P,20,163);P.push({t:'rect',x:100,y:160.4,w:6,h:3,fill:COR,stroke:'#212529',lw:0.15},{t:'text',x:108,y:163,s:'ADESIVO — '+adesDesc(ap.cor).toUpperCase(),size:2.3,bold:true,color:'#000000'});
+    pages.push(P);tags.push('ADESIVO')}}
 async function aplCarrega(file){try{const buf=await file.arrayBuffer();const r=await readPdf(buf);
     let ps=r.paths&&r.paths.length?flattenPaths(r.paths,1,0.15):r.polys;if(!ps||!ps.length){$('#aAplInfo').innerHTML='<div class="msg err">Não encontrei desenho vetorial nesse PDF.</div>';return}
     const b=bbox(ps);ps=ps.map(p=>p.map(([x,y])=>[+(x-b.x0).toFixed(2),+(y-b.y0).toFixed(2)]));
@@ -2917,7 +2968,69 @@ const tuboKgM=(f,p,t)=>Math.max(0,(2*(f+p)-4*t)*t*0.00785);   // kg por metro de
 const numBR=v=>parseFloat(String(v||'').replace(',','.'))||0;
 const kgTxt=v=>v>0&&v<0.1?'< 0,1 kg':v>0?`${v<10?v.toLocaleString('pt-BR',{maximumFractionDigits:1}):Math.round(v).toLocaleString('pt-BR')} kg`:'—';
 function instLer(){const g=id=>$('#'+id);if(!g('iHm'))return{hm:'centro',vm:'centro'};
-  return{hm:g('iHm').value,hv:numBR(g('iHv').value)*10,vm:g('iVm').value,vv:numBR(g('iVv').value)*10,pw:numBR(g('iPw').value)*10,ph:numBR(g('iPh').value)*10}}
+  return{hm:g('iHm').value,hv:numBR(g('iHv').value)*10,vm:g('iVm').value,vv:numBR(g('iVv').value)*10,pw:numBR(g('iPw').value)*10,ph:numBR(g('iPh').value)*10,ancT:g('iAncT')?g('iAncT').value:'bucha',ancB:g('iAncB')?g('iAncB').value.trim():'',ancQ:g('iAncQ')?numBR(g('iAncQ').value):0}}
+const ANC={bucha:{nome:'BUCHA DE NYLON + PARAFUSO',base:'ALVENARIA / CONCRETO',bit:'Bucha S8 + parafuso 4,8 x 50 mm',broca:'Broca 8 mm (vídea)'},
+  parabolt:{nome:'PARABOLT (CHUMBADOR MECÂNICO)',base:'CONCRETO',bit:'Parabolt 3/8" x 3"',broca:'Broca 3/8" (10 mm)'},
+  quimico:{nome:'CHUMBADOR QUÍMICO',base:'TIJOLO / BLOCO VAZADO',bit:'Barra roscada 3/8" + bucha telada + resina',broca:'Broca 12 mm'},
+  brocante:{nome:'PARAFUSO BROCANTE',base:'ESTRUTURA METÁLICA',bit:'Brocante 4,2 x 32 mm',broca:'sem pré-furo (ponta broca)'},
+  madeira:{nome:'PARAFUSO PARA MADEIRA',base:'MADEIRA / MDF',bit:'Parafuso 4,5 x 50 mm',broca:'Broca 3 mm (guia)'}};
+function ancInfo(I,prod){if(!I.ancT||I.ancT==='nenhuma'||!ANC[I.ancT])return null;const A=ANC[I.ancT];const a=prod.anc||{};const auto=(a.auto||0)*(prod.tipo==='letra'?1:1);
+  return{...A,tipo:I.ancT,bit:I.ancB||A.bit,q:I.ancQ>0?Math.round(I.ancQ):auto,manual:I.ancQ>0,peca:a.peca||'PEÇA',onde:I.ancQ>0?'quantidade informada':a.onde||''}}
+// vista explodida da ancoragem (corte lateral): parede → bucha/chumbador → peça → parafuso/porca
+function ancExplodida(P,R,A){const cy=R.y+R.h*0.46,s=Math.min(R.h/42,R.w/150);const L=(x1,y1,x2,y2,c,w,d)=>P.push({t:'line',x1,y1,x2,y2,color:c||'#212529',w:w||0.3,...(d?{dash:d}:{})});
+  const lab=(x,t1,t2)=>{P.push({t:'text',x,y:R.y+R.h-7,s:t1,size:2.5,bold:true,color:'#000000',anchor:'middle'});if(t2)P.push({t:'text',x,y:R.y+R.h-3.6,s:t2,size:2.2,color:'#555555',anchor:'middle'})};
+  const metal=A.tipo==='brocante',mad=A.tipo==='madeira';
+  // base (parede) com hachura
+  const wx=R.x+4,ww=24*s,wy=R.y+4,wh=R.h-18;P.push({t:'rect',x:wx,y:wy,w:ww,h:wh,fill:metal?'#ced4da':mad?'#e9c89b':'#e9ecef',stroke:'#495057',lw:0.35});
+  for(let k=-wh;k<ww;k+=3.2)L(Math.max(wx,wx+k),k<0?wy-k:wy,Math.min(wx+ww,wx+k+wh),k<0?Math.min(wy+wh,wy-k+ww):Math.min(wy+wh,wy+ww-k),'#adb5bd',0.12);
+  const fd=metal?0:18*s;if(!metal)P.push({t:'rect',x:wx+ww-fd,y:cy-2.2*s,w:fd,h:4.4*s,fill:'#ffffff',stroke:'#495057',lw:0.2});
+  lab(wx+ww/2,A.base,metal?'tubo / chapa':'furo '+A.broca.replace(/^Broca /,''));
+  const G=26;let x=wx+ww+G;const eixo0=x-G+4;
+  // bucha / chumbador
+  if(A.tipo==='bucha'||A.tipo==='quimico'){const bw=17*s,bh=A.tipo==='bucha'?4*s:4.6*s;P.push({t:'rect',x,y:cy-bh/2,w:bw,h:bh,fill:A.tipo==='bucha'?'#f8f9fa':'#dee2e6',stroke:'#495057',lw:0.25});
+    for(let k=1;k<7;k++)L(x+k*bw/7,cy-bh/2,x+k*bw/7,cy+bh/2,'#868e96',0.15);if(A.tipo==='quimico'){P.push({t:'rect',x:x+bw*0.15,y:cy-bh/2-4*s,w:bw*0.5,h:2.6*s,fill:'#ffd8a8',stroke:'#e8590c',lw:0.2});P.push({t:'text',x:x+bw*0.4,y:cy-bh/2-4.6*s,s:'resina',size:2,color:'#e8590c',anchor:'middle'})}
+    lab(x+bw/2,A.tipo==='bucha'?'BUCHA':'BUCHA TELADA + RESINA');x+=bw+G}
+  if(A.tipo==='parabolt'||A.tipo==='quimico'){const bw=34*s;P.push({t:'rect',x,y:cy-1.2*s,w:bw,h:2.4*s,fill:'#adb5bd',stroke:'#495057',lw:0.25});for(let k=0;k<20;k++)L(x+k*bw/20,cy-1.2*s,x+k*bw/20+0.8,cy+1.2*s,'#495057',0.1);
+    if(A.tipo==='parabolt')P.push({t:'rect',x:x+2,y:cy-1.7*s,w:10*s,h:3.4*s,fill:'#dee2e6',stroke:'#495057',lw:0.2});lab(x+bw/2,A.tipo==='parabolt'?'PARABOLT':'BARRA ROSCADA');x+=bw+G}
+  // peça
+  const pw=4*s;P.push({t:'rect',x,y:R.y+10,w:pw,h:R.h-30,fill:'#ffc9de',stroke:'#d6336c',lw:0.3});P.push({t:'rect',x:x-0.2,y:cy-1.6*s,w:pw+0.4,h:3.2*s,fill:'#ffffff',stroke:'#d6336c',lw:0.15});
+  lab(x+pw/2,A.peca,'furo de passagem');x+=pw+G;
+  // parafuso ou porca+arruela
+  if(A.tipo==='parabolt'||A.tipo==='quimico'){P.push({t:'rect',x,y:cy-3.4*s,w:0.9*s,h:6.8*s,fill:'#ced4da',stroke:'#495057',lw:0.2});P.push({t:'rect',x:x+2*s,y:cy-2.6*s,w:2.6*s,h:5.2*s,fill:'#adb5bd',stroke:'#495057',lw:0.25});lab(x+2*s,'ARRUELA + PORCA','aperto final');x+=6*s}
+  else{const sl=(metal?14:20)*s;P.push({t:'rect',x:x+2*s,y:cy-0.9*s,w:sl,h:1.8*s,fill:'#ced4da',stroke:'#495057',lw:0.2});for(let k=0;k<sl/(1.2*s);k++)L(x+2*s+k*1.2*s,cy-0.9*s,x+2*s+k*1.2*s+0.6*s,cy+0.9*s,'#495057',0.12);
+    P.push({t:'poly',pts:[[x+2*s+sl,cy-0.9*s],[x+2*s+sl+2*s,cy],[x+2*s+sl,cy+0.9*s]],color:'#495057',w:0.2});
+    P.push({t:'rect',x,y:cy-2.8*s,w:2*s,h:5.6*s,fill:'#adb5bd',stroke:'#495057',lw:0.25});L(x+0.4*s,cy,x+1.6*s,cy,'#212529',0.3);L(x+s,cy-0.6*s,x+s,cy+0.6*s,'#212529',0.3);
+    lab(x+sl/2,'PARAFUSO',A.bit.length>34?'':A.bit);x+=sl+4*s}
+  // eixo e setas
+  L(eixo0,cy,x+4,cy,'#d6336c',0.18,[1.6,1]);P.push({t:'text',x:(eixo0+x)/2,y:R.y+3,s:'VISTA EXPLODIDA — AS PEÇAS ENCAIXAM DA DIREITA PARA A ESQUERDA (EM DIREÇÃO À PAREDE)',size:2.4,bold:true,color:'#d6336c',anchor:'middle'})}
+function folhaAncoragem(ctx,prod){const I=instLer();const A=ancInfo(I,prod);if(!A)return null;const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'});P._ref=null;
+  P.push({t:'text',x:PW/2,y:30,s:'ANCORAGEM — COMO FIXAR NA PAREDE',size:4.4,bold:true,color:'#000000',anchor:'middle'});
+  P.push({t:'text',x:PW/2,y:35,s:`ITEM ${ctx.item} — ${fit(prod.nome,120,2.6)}`,size:2.6,color:'#555555',anchor:'middle'});
+  // foto da ancoragem (enviada) ou ilustração
+  const FX=20,FY=42,FW=96,FH=72;P.push({t:'rect',x:FX,y:FY,w:FW,h:FH,fill:'#ffffff',stroke:'#868e96',lw:0.25},{t:'text',x:FX+1.5,y:FY+3,s:'FOTO DA ANCORAGEM',size:2.2,bold:true,color:'#868e96'});
+  if(ancImg){const k=Math.min((FW-4)/ancImg.w,(FH-6)/ancImg.h),w=ancImg.w*k,h=ancImg.h*k;P.push({t:'img',x:FX+(FW-w)/2,y:FY+4+(FH-4-h)/2,w,h,src:ancImg.src,fmt:'JPEG'})}
+  else{ancIcone(P,FX+FW/2,FY+FH/2+2,FW*0.8,A.tipo);P.push({t:'text',x:FX+FW/2,y:FY+FH-3,s:'ilustração — envie a foto real no cadastro',size:2,color:'#adb5bd',anchor:'middle'})}
+  // dados
+  let y=46;const IX=126;const lin=(k,v,c)=>{P.push({t:'text',x:IX,y,s:k,size:2.4,color:'#868e96'},{t:'text',x:IX+40,y,s:fit(v,286-IX-40,3.2),size:3.2,bold:true,color:c||'#000000'});y+=7};
+  lin('MÉTODO SELECIONADO:',A.nome,'#d6336c');lin('BASE / PAREDE:',A.base);lin('MATERIAL:',A.bit);lin('BROCA:',A.broca);
+  lin('QUANTIDADE:',`${A.q} UN.${prod.un>1?` (total para ${prod.un} un.)`:''}`,'#d6336c');lin('ONDE:',A.onde+(A.manual?'':' — automático'));lin('FIXA NA PEÇA:',A.peca);
+  const passos={bucha:['Marcar os furos com o molde/gabarito e conferir o nível.','Furar com '+A.broca.toLowerCase()+' na profundidade da bucha + 10 mm e limpar o pó.','Colocar a bucha rente à parede.','Posicionar a peça e apertar o parafuso.'],
+    parabolt:['Marcar e furar com '+A.broca.toLowerCase()+' (concreto).','Limpar o furo e bater o parabolt até a arruela encostar.','Colocar a peça, arruela e porca.','Apertar a porca para expandir a jaqueta.'],
+    quimico:['Furar com '+A.broca.toLowerCase()+' e limpar bem o pó (escova + sopro).','Colocar a bucha telada e injetar a resina.','Inserir a barra roscada girando e respeitar o tempo de cura.','Colocar a peça, arruela e porca e apertar.'],
+    brocante:['Posicionar a peça sobre a estrutura metálica.','Parafusar direto (a ponta broca fura o metal), sem pré-furo.','Não exagerar no torque para não espanar.'],
+    madeira:['Marcar os pontos e fazer furo guia de 3 mm.','Posicionar a peça e parafusar.']}[A.tipo];
+  y+=1;P.push({t:'text',x:IX,y,s:'PASSO A PASSO',size:2.6,bold:true,color:'#c2255c'});y+=4.4;passos.forEach((t,k)=>{P.push({t:'text',x:IX,y,s:fit(`${k+1}. ${t}`,160,2.5),size:2.5,color:'#000000'});y+=4.2});
+  ancExplodida(P,{x:20,y:119,w:266,h:50},A);P.push({t:'text',x:286,y:P.length?132:0,s:`x ${A.q} UN.`,size:6,bold:true,color:'#d6336c',anchor:'end'});
+  return P}
+// ilustração simples da peça de ancoragem (quando não há foto)
+function ancIcone(P,cx,cy,w,t){const s=w/90;const L=(x1,y1,x2,y2,c,ww)=>P.push({t:'line',x1,y1,x2,y2,color:c||'#495057',w:ww||0.25});
+  if(t==='bucha'){const x0=cx-40*s,bw=34*s,bh=10*s;P.push({t:'rect',x:x0,y:cy-bh/2,w:bw,h:bh,fill:'#f8f9fa',stroke:'#495057',lw:0.3});for(let k=1;k<8;k++)L(x0+k*bw/8,cy-bh/2,x0+k*bw/8,cy+bh/2,'#868e96',0.18);
+    const sx=cx+2*s;P.push({t:'rect',x:sx,y:cy-6*s,w:4*s,h:12*s,fill:'#adb5bd',stroke:'#495057',lw:0.3});P.push({t:'rect',x:sx+4*s,y:cy-2*s,w:32*s,h:4*s,fill:'#ced4da',stroke:'#495057',lw:0.25});for(let k=0;k<14;k++)L(sx+4*s+k*2.2*s,cy-2*s,sx+5*s+k*2.2*s,cy+2*s,'#495057',0.15)}
+  else if(t==='parabolt'||t==='quimico'){const x0=cx-40*s;P.push({t:'rect',x:x0,y:cy-3*s,w:76*s,h:6*s,fill:'#ced4da',stroke:'#495057',lw:0.3});for(let k=0;k<34;k++)L(x0+k*2.2*s,cy-3*s,x0+k*2.2*s+s,cy+3*s,'#495057',0.15);
+    if(t==='parabolt')P.push({t:'rect',x:x0+4*s,y:cy-4.2*s,w:22*s,h:8.4*s,fill:'#e9ecef',stroke:'#495057',lw:0.3});else P.push({t:'rect',x:x0,y:cy+8*s,w:30*s,h:7*s,fill:'#ffd8a8',stroke:'#e8590c',lw:0.3});
+    P.push({t:'rect',x:x0+62*s,y:cy-8*s,w:2*s,h:16*s,fill:'#adb5bd',stroke:'#495057',lw:0.3},{t:'rect',x:x0+66*s,y:cy-6*s,w:6*s,h:12*s,fill:'#868e96',stroke:'#495057',lw:0.3})}
+  else{const x0=cx-30*s;P.push({t:'rect',x:x0,y:cy-6*s,w:5*s,h:12*s,fill:'#adb5bd',stroke:'#495057',lw:0.3});P.push({t:'rect',x:x0+5*s,y:cy-2*s,w:45*s,h:4*s,fill:'#ced4da',stroke:'#495057',lw:0.25});
+    for(let k=0;k<20;k++)L(x0+5*s+k*2.2*s,cy-2*s,x0+6*s+k*2.2*s,cy+2*s,'#495057',0.15);P.push({t:'poly',pts:[[x0+50*s,cy-2*s],[x0+56*s,cy],[x0+50*s,cy+2*s]],color:'#495057',w:0.25})}}
 function instPosTxt(I){const h={centro:'CENTRALIZADO NA LARGURA',esquerda:`A ${f0(I.hv/10)} CM DA ESQUERDA`,direita:`A ${f0(I.hv/10)} CM DA DIREITA`}[I.hm];
   const v={centro:'CENTRALIZADO NA ALTURA',baixo:`A ${f0(I.vv/10)} CM DO PISO / BASE`,cima:`A ${f0(I.vv/10)} CM DO TETO / TOPO`}[I.vm];return h+' • '+v}
 function caixaCheck(P,x,y,s=5){P.push({t:'rect',x,y,w:s,h:s,r:0.6,fill:'#ffffff',stroke:'#212529',lw:0.35})}
@@ -2944,6 +3057,7 @@ function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'}
   lin('MEDIDAS EXTERNAS:',`${f0(prod.W)} (L) x ${f0(prod.H)} (A)${prod.D?` x ${f0(prod.D)} (P)`:''} mm`);
   if(prod.un>1)lin('QUANTIDADE:',`${prod.un} UN.`);
   lin('POSIÇÃO:',instPosTxt(I),'#d6336c');
+  {const A=ancInfo(I,prod);if(A)lin('ANCORAGEM:',`${A.nome} — ${A.q} UN. (ver folha de ancoragem)`,'#d6336c')}
   if(I.pw&&I.ph)lin('PAREDE:',`${f0(I.pw/10)} cm (L) x ${f0(I.ph/10)} cm (A)`);else if(I.pw)lin('PAREDE:',`${f0(I.pw/10)} cm (L)`);else if(I.ph)lin('PAREDE:',`${f0(I.ph/10)} cm (A)`);
   if(prod.metodo&&prod.metodo.length){P.push({t:'text',x:IX,y:y+1,s:'MÉTODO DE INSTALAÇÃO',size:2.6,bold:true,color:'#c2255c'});y+=4.5;
     prod.metodo.forEach(t=>{P.push({t:'text',x:IX,y,s:fit('• '+t,286-IX,2.4),size:2.4,color:'#000000'});y+=3.8});y+=1}
@@ -3032,6 +3146,7 @@ function folhasQualidade(ctx,prod){const pages=[];const V=(prod.volumes||[]).con
 
 function paginasFinais(pages,tags,ctx,prod){try{
   const a=folhaInstalacao(ctx,prod);pages.push(a);if(tags)tags.push('INSTALAÇÃO');
+  const an=folhaAncoragem(ctx,prod);if(an){pages.push(an);if(tags)tags.push('INSTALAÇÃO')}
   folhasExpedicao(ctx,prod).forEach(P=>{pages.push(P);if(tags)tags.push('EXPEDIÇÃO')});
   folhasQualidade(ctx,prod).forEach(P=>{pages.push(P);if(tags)tags.push('QUALIDADE')})}catch(e){console.error('paginasFinais',e)}}
 
@@ -3053,7 +3168,7 @@ function prodLetras(t,ctx,orig,defs,ledInfo,furos,nests){const regs=regionsOf(to
   if(temLed&&ledInfo)vols.push({desc:'ELÉTRICA',cont:'Fonte / reator e fiação da iluminação',dims:'—',q:1,kg:0,draw:null});
   const qualExtra=[];(nests||[]).forEach(N=>{const B=N.best;if(!B)return;B.sheets.forEach((sh,k)=>{const polys=[];sh.items.forEach(it=>{const pc=pieceAt(N.pieces[it.i],it);(pc.lines[0]?[pc.lines[0]]:[]).forEach(l=>l.polys.forEach(p=>polys.push(p)))});
     qualExtra.push({desc:`APROVEITAMENTO ${N.nome==='ACRILICO'?'ACRÍLICO':'CHAPA GALV.'} ${k+1}/${B.sheets.length}`,cont:`Chapa ${B.w} x ${B.h} mm — ${sh.items.length} peças`,q:1,draw:{rects:[{x0:0,y0:0,x1:B.w,y1:B.h,cor:'#f8f9fa'}],polys,fill:N.nome==='ACRILICO'?'#ffc9de':'#dee2e6'}})})});
-  return{tipo:'letra',qualExtra,nome:ctx.descItem||t.nome,W:b.w,H:b.h,D:cx,un:1,letras:L.map((g,k)=>({h:g.bb.h,broc:temPVC?(brocL[k]||0):null,pan:panL[k]})),
+  return{tipo:'letra',anc:{peca:temPVC?'FUNDO DE PVC':'FUNDO DA LETRA',auto:temPVC?nb:L.length*3,onde:temPVC?'nos furos do PVC (molde kraft)':'3 por letra (estimado)'},qualExtra,nome:ctx.descItem||t.nome,W:b.w,H:b.h,D:cx,un:1,letras:L.map((g,k)=>({h:g.bb.h,broc:temPVC?(brocL[k]||0):null,pan:panL[k]})),
     metodo:[...(temPVC?[`Fixar o molde kraft na parede, furar pelos furos e parafusar o FUNDO DE PVC com parafuso BROCANTE PHILLIPS (${nb} no total).`]:[]),`Encaixar a frente da letra${temPVC?' sobre o PVC':''} e fixar pela LATERAL com ${PANELA} — um a cada 20 cm (${np} no total).`,'Os parafusos da lateral vão pintados na cor da letra.'],contorno:orig,volumes:vols,
     checks:['MEDIDAS','ACABAMENTO / PINTURA',...(temLed?['LED ACENDE']:[]),...(temPVC?['FUROS PVC']:[])]}}
 function prodTesteira(M,o,ctx){const comp=M.comp;const vols=[];const b3=bbox3(M.acm?M.boxes.concat(M.acm.boxes):M.boxes.filter(b=>!b.fix));
@@ -3067,12 +3182,13 @@ function prodTesteira(M,o,ctx){const comp=M.comp;const vols=[];const b3=bbox3(M.
   if(fx.length)vols.push({desc:'FIXAÇÕES / ACESSÓRIOS',cont:fx.join(', '),dims:'—',q:1,kg:0,draw:null});
   const qualExtra=[];if(M.acm){const E=M.acm.esc;E.bins.forEach((b,k)=>{const polys=b.pcs.map(pc=>{const it=pc.it;return it.pts.map(q=>{const r=pc.rot?[q[1],it.bw-q[0]]:q;return[pc.x+r[0],pc.y+r[1]]})});
     qualExtra.push({desc:`APROVEITAMENTO ACM ${k+1}/${E.bins.length}`,cont:`Chapa ${f1(E.SW/1000)} x 5,00 m — ${b.pcs.length} peça(s)`,q:1,draw:{rects:[{x0:0,y0:0,x1:ACM_LEN,y1:E.SW,cor:'#f8f9fa'}],polys,fill:M.acm.hex}})})}
-  return{tipo:'testeira',qualExtra,nome:ctx.descItem,W:b3.x1-b3.x0,H:b3.y1-b3.y0,D:b3.z1-b3.z0,un:o.un,volumes:vols,
+  const nCad=comp.reduce((s,c)=>s+(c.F.nJan||0)+(c.F.nTravCad||0),0);const ancAuto=nCad*2+nc||Math.max(4,2*Math.ceil((b3.x1-b3.x0)/600));
+  return{tipo:'testeira',anc:{peca:nCad?'CADEIRINHA':nc?'CANTONEIRA AJR 003':'TUBO DA ESTRUTURA',auto:ancAuto,onde:nCad?`2 por cadeirinha (${nCad})${nc?` + 1 por cantoneira (${nc})`:''}`:nc?`1 por cantoneira (${nc})`:'a cada 60 cm no tubo (estimado)'},qualExtra,nome:ctx.descItem,W:b3.x1-b3.x0,H:b3.y1-b3.y0,D:b3.z1-b3.z0,un:o.un,volumes:vols,
     contornoRects:M.boxes.filter(b=>!b.fix).map(b=>({x0:b.x0,y0:b.y0,x1:b.x1,y1:b.y1,cor:b.cor})).concat(M.acm?[]:[]),contorno:[[[b3.x0,b3.y0],[b3.x1,b3.y0],[b3.x1,b3.y1],[b3.x0,b3.y1]]],
     checks:['MEDIDAS','SOLDAS',...(tPint!=='nao'?['PINTURA']:[]),...(M.acm?['ACM']:[])]}}
 function prodEstrutura(bs,L,un,ctx,titulo){const b3=bbox3(bs);let kg=0;
   (L||[]).forEach(r=>{const m=String(r.perfil||'').match(/(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)/i);const t=numBR(r.parede);if(m&&t&&/tubo|metalon|barra/i.test((r.tipo||'')+' '+(r.nome||'')))kg+=(r.len||0)*(r.q||1)/1000*tuboKgM(numBR(m[1]),numBR(m[2]),t)});
-  return{tipo:'estrutura',nome:ctx.descItem||titulo,W:b3.x1-b3.x0,H:b3.y1-b3.y0,D:b3.z1-b3.z0,un,
+  return{tipo:'estrutura',anc:{peca:'ESTRUTURA',auto:4*un,onde:'pontos de fixação da estrutura (estimado)'},nome:ctx.descItem||titulo,W:b3.x1-b3.x0,H:b3.y1-b3.y0,D:b3.z1-b3.z0,un,
     volumes:[{desc:'ESTRUTURA',cont:titulo||'Estrutura metálica',dims:`${f0(b3.x1-b3.x0)} x ${f0(b3.y1-b3.y0)} x ${f0(b3.z1-b3.z0)}`,q:un,kg,draw:{rects:bs.map(b=>({x0:b.x0,y0:b.y0,x1:b.x1,y1:b.y1,cor:b.cor}))}}],
     contornoRects:bs.map(b=>({x0:b.x0,y0:b.y0,x1:b.x1,y1:b.y1,cor:b.cor})),contorno:[[[b3.x0,b3.y0],[b3.x1,b3.y0],[b3.x1,b3.y1],[b3.x0,b3.y1]]],checks:['MEDIDAS','SOLDAS','ACABAMENTO']}}
 
@@ -3083,10 +3199,18 @@ function instCarrega(blob){if(!blob||!/^image\//.test(blob.type))return;const ur
     instImg={src:c.toDataURL('image/jpeg',0.85),w:c.width,h:c.height};if(typeof pedSujo!=='undefined')pedSujo=true;instRender();refRefaz()};
   im.onerror=()=>URL.revokeObjectURL(url);im.src=url}
 function instRender(){const b=$('#instPrev');if(!b)return;b.innerHTML=instImg?`<div class="row" style="gap:10px;align-items:center"><img src="${instImg.src}" style="width:140px;height:100px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff"><button class="btn ghost sm" id="instDel">Remover foto</button></div>`:'';
-  $('#iHv').disabled=$('#iHm').value==='centro';$('#iVv').disabled=$('#iVm').value==='centro'}
-function instReset(){instImg=null;['iPw','iPh','iHv','iVv'].forEach(i=>{if($('#'+i))$('#'+i).value=''});if($('#iHm')){$('#iHm').value='centro';$('#iVm').value='centro'}instRender()}
+  $('#iHv').disabled=$('#iHm').value==='centro';$('#iVv').disabled=$('#iVm').value==='centro';
+  if($('#ancPrev')){$('#ancPrev').innerHTML=ancImg?`<div class="row" style="gap:10px;align-items:center"><img src="${ancImg.src}" style="width:90px;height:70px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff"><button class="btn ghost sm" id="ancDel">Remover foto</button></div>`:'';const t=$('#iAncT').value;const A=ANC[t];$('#ancBox').hidden=!A;if(A)$('#iAncB').placeholder=A.bit}}
+let ancImg=null;
+function ancCarrega(blob){if(!blob||!/^image\//.test(blob.type))return;const url=URL.createObjectURL(blob);const im=new Image();
+  im.onload=()=>{const Mx=1000,k=Math.min(1,Mx/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+    const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);
+    ancImg={src:c.toDataURL('image/jpeg',0.85),w:c.width,h:c.height};if(typeof pedSujo!=='undefined')pedSujo=true;instRender();refRefaz()};im.onerror=()=>URL.revokeObjectURL(url);im.src=url}
+function instReset(){instImg=null;ancImg=null;if($('#iAncT')){$('#iAncT').value='bucha';$('#iAncB').value='';$('#iAncQ').value=''}['iPw','iPh','iHv','iVv'].forEach(i=>{if($('#'+i))$('#'+i).value=''});if($('#iHm')){$('#iHm').value='centro';$('#iVm').value='centro'}instRender()}
 if($('#instIn')){
   $('#instIn').onchange=e=>{instCarrega(e.target.files[0]);e.target.value=''};
+  $('#ancIn').onchange=e=>{ancCarrega(e.target.files[0]);e.target.value=''};
+  $('#ancPrev').onclick=e=>{if(e.target.id==='ancDel'){ancImg=null;if(typeof pedSujo!=='undefined')pedSujo=true;instRender();refRefaz()}};
   $('#instPrev').onclick=e=>{if(e.target.id==='instDel'){instImg=null;if(typeof pedSujo!=='undefined')pedSujo=true;instRender();refRefaz()}};
   const Z='Colar foto aqui (toque e segure → Colar)';
   $('#instZone').addEventListener('paste',e=>{e.preventDefault();const it=[...((e.clipboardData||{}).items||[])].find(i=>i.type.startsWith('image/'));if(it)instCarrega(it.getAsFile());$('#instZone').textContent=Z});
@@ -3111,6 +3235,7 @@ function fpObsPopup(n,prevId){let M=$('#fpObsModal');if(M)M.remove();M=document.
 const FPOBS_RUN={prev:()=>{if(!$('#gerar').disabled)$('#gerar').click()},mPrev:()=>mFolhasRender(),dPrev:()=>dRender3D(),tPrev:()=>tRender()};
 ['prev','mPrev','dPrev','tPrev'].forEach(id=>{const el=$('#'+id);if(!el)return;
   new MutationObserver(()=>{el.querySelectorAll('.pg').forEach(pg=>{const nx=pg.nextElementSibling;if((!nx||!nx.classList.contains('fpObsRow'))&&pg.querySelector('svg[data-pg]'))fpObsLinha(pg)})}).observe(el,{childList:true})});
+$('#lPgPick').onclick=e=>{const b=e.target.closest('[data-lpg]');if(!b)return;lSel=b.dataset.lpg;lPrevRender()};
 
 /* ================= ESTRUTURA POR DESENHO (PDF + descrição → 3D montado pelo Claude) ================= */
 let tModo='padrao';let dSrc=null,dModel=null,dHist=[],dPrevModels=[],dBuild=null,dSel='MONTAGEM';
@@ -3545,7 +3670,7 @@ function proximoN(){return Math.max(0,...(pedAtual.itens||[]).map(i=>+i.n||0))+1
 document.querySelectorAll('[data-novo]').forEach(b=>b.onclick=()=>{const tipo=b.dataset.novo;itemAtual={id:'i'+Date.now().toString(36),tipo,n:proximoN(),novo:true};
   limpaTipo(tipo);$('#item').value=itemAtual.n;irAba(TIPO_ABA[tipo]);if(tipo==='testeira')setModo('padrao');if(tipo==='estrutura')setModo('desenho');pedSujo=true;pedBarRender();window.scrollTo(0,0)});
 function limpaTipo(tipo){refImg=null;fpObsPg={};refRender();instReset();
-  if(tipo==='letra'){src=null;srcBytes=null;ledAdj={};resetOut();prevSet('');$('#outMsg').innerHTML='';$('#fileInfo').innerHTML='';$('#drop').classList.remove('has');$('#dropTxt').textContent='Toque para escolher o PDF';$('#xPages').innerHTML='';$('#obs').value='';selLed=6500;selCaixa=80;renderLeds();renderCaixa();updateBtn()}
+  if(tipo==='letra'){src=null;srcBytes=null;ledAdj={};resetOut();lDoc=null;lPrevRender();prevSet('');$('#outMsg').innerHTML='';$('#fileInfo').innerHTML='';$('#drop').classList.remove('has');$('#dropTxt').textContent='Toque para escolher o PDF';$('#xPages').innerHTML='';$('#obs').value='';selLed=6500;selCaixa=80;renderLeds();renderCaixa();updateBtn()}
   if(tipo==='testeira'){tFaces=[{W:1000,H:1000,prof:0,junta:'linha'}];tAcm={on:false,esp:3,inst:'rente',fita:'vhb',chapa:'auto',marca:'',cor:null,jt:false,jmm:5,je:false,envT:'ext',apl:aplDef()};acmUI();adesMarca="";acmAplUI();renderFaces();v3Fit=true}
   if(tipo==='estrutura'){dSrc=null;dModel=null;dHist=[];dPrevModels=[];$('#dTxt').value='';$('#dAlt').value='';$('#dInfo').innerHTML='';$('#dDraw').innerHTML='';$('#dPecas').innerHTML='';$('#dDropTxt').textContent='Toque para escolher o PDF';$('#dAltBox').hidden=true;$('#dResCard').hidden=true;dBotao()}
   if(tipo==='modelo3d'){mSrc=null;mBytes=null;mPecas=[];$('#mInfo').innerHTML='';$('#mDropTxt').textContent='Toque para escolher o arquivo 3D (.stl ou .obj)';$('#mResCard').hidden=true}}
@@ -3574,7 +3699,7 @@ function capturaEstado(tipo){
 async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHTML=t};
   try{const n=Math.max(1,Math.round(num($('#item').value))||1);
     const outro=(pedAtual.itens||[]).find(i=>+i.n===n&&(!itemAtual||i.id!==itemAtual.id));if(outro)throw new Error(`já existe o item ${n} neste pedido (${TIPO_NOME[outro.tipo]}). Mude o número do item.`);
-    msg('Salvando…');const C=capturaEstado(tipo);C.estado.refImg=refImg;C.estado.fpObsPg=fpObsPg;C.estado.inst=capInputs(['#instBox']);C.estado.instImg=instImg;
+    msg('Salvando…');const C=capturaEstado(tipo);C.estado.refImg=refImg;C.estado.fpObsPg=fpObsPg;C.estado.inst=capInputs(['#instBox']);C.estado.instImg=instImg;C.estado.ancImg=ancImg;
     let it=itemAtual&&itemAtual.tipo===tipo?pedAtual.itens.find(i=>i.id===itemAtual.id):null;const velho=it?{e:it.estadoId,f:it.fonteId}:null;
     const estadoId=await guardaJSON(C.estado);const fonteId=C.fonte?(it&&it.fonteNome===C.fonte.nome&&it.fonteTam===C.fonte.b64.length?it.fonteId:await guardaJSON(C.fonte)):null;
     const reg={id:it?it.id:(itemAtual&&itemAtual.id)||'i'+Date.now().toString(36),n,tipo,desc:C.desc,resumo:C.resumo,estadoId,fonteId,fonteNome:C.fonte?C.fonte.nome:'',fonteTam:C.fonte?C.fonte.b64.length:0,atualizado:Date.now()};
@@ -3584,7 +3709,7 @@ async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHT
   catch(e){console.error(e);msg(`<span style="color:#ffc9c9">Não salvou: ${esc(e.message)}</span>`)}}
 // abre um item: restaura tudo; se "mostrar", vai para a aba dele e gera
 async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)throw new Error('estado do item não encontrado');const F=it.fonteId?await lerJSON(it.fonteId):null;
-  itemAtual={id:it.id,tipo:it.tipo,n:it.n};$('#item').value=it.n;refImg=E.refImg||null;fpObsPg={...(E.fpObsPg||{})};refRender();instReset();if(E.inst)putInputs(E.inst);instImg=E.instImg||null;instRender();
+  itemAtual={id:it.id,tipo:it.tipo,n:it.n};$('#item').value=it.n;refImg=E.refImg||null;fpObsPg={...(E.fpObsPg||{})};refRender();instReset();if(E.inst)putInputs(E.inst);instImg=E.instImg||null;ancImg=E.ancImg||null;instRender();
   if(E.cor){selEsc=E.cor.selEsc||selEsc;renderEsc();putInputs(E.cor.inputs)}
   if(it.tipo==='letra'){limpaTipo('letra');putInputs(E.inputs);selType=E.selType;selLed=E.selLed;selChapa=E.selChapa;selCaixa=E.selCaixa||80;
     $('#xPages').innerHTML='';(E.xPages||[]).forEach((p,i)=>$('#xPages').insertAdjacentHTML('beforeend',pageBlock(p,i)));renumberIn($('#xPages'));
