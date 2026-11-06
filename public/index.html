@@ -2001,12 +2001,17 @@ function folhaFace(P,c,o,nFaces){
   const front=F.mem.filter(m=>m.z0<F.p+1&&m.tipo!=='Ligação de profundidade');
   front.sort((a,b)=>(PERFIS[a.perfil].f===F.a?1:0)-(PERFIS[b.perfil].f===F.a?1:0));
   front.forEach(m=>P.push({t:'rect',x:X(m.x0),y:Y(m.y1),w:Math.max(0.3,(m.x1-m.x0)*s),h:Math.max(0.3,(m.y1-m.y0)*s),fill:PERFIS[m.perfil].cor,stroke:'#1a1a1a',lw:0.12}));
+  // cotas das janelas da cadeirinha (15 x 15)
+  if(F.nJan){const S=150,CJ='#c92a2a',fj=1.9;const xs=[0,F.W-S];if(F.W>1500)xs.push(F.W/2-S/2);
+    xs.forEach(x0=>{[[0,1],[F.H,-1]].forEach(([yb,sg])=>{const yi=yb+sg*S;cotaH(P,X(x0),X(x0+S),Y(yi)-sg*2.6,null,'150',fj,CJ)});});
+    [[0,1],[F.H,-1]].forEach(([yb,sg])=>cotaV(P,X(S)+2.6,Y(Math.max(yb,yb+sg*S)),Y(Math.min(yb,yb+sg*S)),null,'150',fj,CJ));
+    if(F.W>1500)cotaH(P,X(S),X(F.W/2-S/2),Y(F.H-S)+2.6,null,f1(F.W/2-S/2-S),fj,CJ)}
   if(F.meia)[[0,0,1,1],[F.W,0,-1,1],[0,F.H,1,-1],[F.W,F.H,-1,-1]].forEach(([x,y,dx,dy],k)=>{if(F.sI&&x===0)return;P.push({t:'line',x1:X(x),y1:Y(y),x2:X(x+dx*F.a),y2:Y(y+dy*F.a),color:'#1a1a1a',w:0.25})});
   // medidas internas (vão livre entre os tubos) em laranja
   {const CI='#d9480f',fi=2.1;const vx=[];F.vcs.forEach((c,i)=>{const w=i===0&&F.sI?0:(i===0||i===F.nb)?F.a:F.aiV;vx.push([c-w/2,c+w/2])});
    const hy=[[0,F.a],[F.H-F.a,F.H],...F.rows.map(r=>[r-F.ai/2,r+F.ai/2]),...(F.y40!=null?[[F.y40-20,F.y40+20]]:[])].sort((p,q)=>p[0]-q[0]);
    const cells=[];for(let k=0;k+1<hy.length;k++)cells.push([hy[k][1],hy[k+1][0]]);
-   const cy=cells.length?cells[0]:[F.a,F.H-F.a];const yMid=cy[0]+(cy[1]-cy[0])*0.3;
+   const cy=cells.length?cells[0]:[F.a,F.H-F.a];const yMid=cy[0]+(cy[1]-cy[0])*(F.nJan?0.5:0.3);
    for(let i=0;i+1<vx.length;i++){const x0=vx[i][1],x1=vx[i+1][0];if((x1-x0)*s>9)cotaH(P,X(x0),X(x1),Y(yMid),null,f1(x1-x0),fi,CI)}
    const xc=vx.length>1?vx[0][1]+(vx[1][0]-vx[0][1])*0.22:F.W/2;
    cells.forEach(([y0,y1])=>{if((y1-y0)*s>9)cotaV(P,X(xc),Y(y1),Y(y0),null,f1(y1-y0),fi,CI)})}
