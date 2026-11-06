@@ -3458,13 +3458,14 @@ function analisaPeca(tris){const pts=[];const seen=new Set();tris.forEach(t=>t.f
   let e=V3a.nrm([1,0.3,0.2]);for(let it=0;it<60;it++)e=V3a.nrm([C[0][0]*e[0]+C[0][1]*e[1]+C[0][2]*e[2],C[1][0]*e[0]+C[1][1]*e[1]+C[1][2]*e[2],C[2][0]*e[0]+C[2][1]*e[1]+C[2][2]*e[2]]);
   const W=[[1,0,0],[0,1,0],[0,0,1]];const snap=v=>{for(const w of W)if(Math.abs(V3a.dot(v,w))>Math.cos(1.5*Math.PI/180))return V3a.sc(w,Math.sign(V3a.dot(v,w))||1);return v};
   // testa os 3 eixos do mundo e o eixo do PCA: fica com a caixa de menor volume
-  const caixa=(e1,e2)=>{const e3=V3a.cross(e1,e2);const r=[[1e18,-1e18],[1e18,-1e18],[1e18,-1e18]];pts.forEach(p=>{[e1,e2,e3].forEach((ax,i)=>{const d=V3a.dot(p,ax);if(d<r[i][0])r[i][0]=d;if(d>r[i][1])r[i][1]=d})});
+  const amo=pts.length>6000?pts.filter((p,i)=>i%Math.ceil(pts.length/6000)===0):pts;
+  const caixa=(e1,e2,todos)=>{const e3=V3a.cross(e1,e2);const r=[[1e18,-1e18],[1e18,-1e18],[1e18,-1e18]];(todos?pts:amo).forEach(p=>{[e1,e2,e3].forEach((ax,i)=>{const d=V3a.dot(p,ax);if(d<r[i][0])r[i][0]=d;if(d>r[i][1])r[i][1]=d})});
     return{ax:[e1,e2,e3],r,vol:(r[0][1]-r[0][0])*(r[1][1]-r[1][0])*(r[2][1]-r[2][0])}};
   const cands=[];
   const perp=a=>{const t=Math.abs(a[0])<0.9?[1,0,0]:[0,1,0];return V3a.nrm(V3a.cross(a,t))};
   for(const e1 of [snap(e),...W]){const p0=perp(e1),p1=V3a.cross(e1,p0);
     for(let g=0;g<90;g+=1){const a=g*Math.PI/180;const e2=V3a.add(V3a.sc(p0,Math.cos(a)),V3a.sc(p1,Math.sin(a)));cands.push(caixa(e1,snap(V3a.nrm(e2))))}}
-  let B=cands[0];cands.forEach(k=>{if(k.vol<B.vol*0.999)B=k});
+  let B=cands[0];cands.forEach(k=>{if(k.vol<B.vol*0.999)B=k});if(amo!==pts)B=caixa(B.ax[0],B.ax[1],true);
   const dims=B.r.map(r=>r[1]-r[0]);const ord=[0,1,2].sort((i,j)=>dims[j]-dims[i]);
   const ax=ord.map(i=>B.ax[i]),d=ord.map(i=>dims[i]);const mid=ord.map(i=>(B.r[i][0]+B.r[i][1])/2);
   const centro=V3a.add(V3a.add(V3a.sc(ax[0],mid[0]),V3a.sc(ax[1],mid[1])),V3a.sc(ax[2],mid[2]));
@@ -3498,7 +3499,7 @@ async function mCarrega(nome,buf,manterUn){const f={name:nome};$('#mDropTxt').te
     const pecas=separaPecas(objs);if(!pecas.length)throw new Error('não encontrei peças no arquivo');
     pecas.forEach(p=>p.g=analisaPeca(p.tris));
     // unidade provável
-    const all=pecas.flatMap(p=>p.tris.flat());const span=Math.max(...[0,1,2].map(i=>Math.max(...all.map(v=>v[i]))-Math.min(...all.map(v=>v[i]))));
+    const lo=[1e18,1e18,1e18],hi=[-1e18,-1e18,-1e18];pecas.forEach(p=>p.tris.forEach(t=>t.forEach(v=>{for(let i=0;i<3;i++){if(v[i]<lo[i])lo[i]=v[i];if(v[i]>hi[i])hi[i]=v[i]}})));const span=Math.max(hi[0]-lo[0],hi[1]-lo[1],hi[2]-lo[2]);
     if(!manterUn)$('#mUn').value=span<30?'1000':span<300&&ext==='obj'?'10':'1';
     mSrc={name:f.name,pecas};mProcessa()}
   catch(err){mSrc=null;$('#mInfo').innerHTML=`<div class="msg err">Não consegui ler: ${esc(err.message)}</div>`}}
@@ -3515,7 +3516,8 @@ function mProcessa(){const k=num($('#mUn').value)||1;
   $('#mInfo').innerHTML=`<div class="msg ok">${mPecas.length} peça(s) identificada(s) — conjunto ${f0(bb.x1-bb.x0)} × ${f0(bb.y1-bb.y0)} × ${f0(bb.z1-bb.z0)} mm (L × A × P)</div>`+(mPecas.length===1?'<div class="msg warn">Veio tudo como uma peça só. No SketchUp, faça cada tubo virar grupo/componente; no SolidWorks, exporte a montagem com cada peça separada.</div>':'');
   mView3D();mFolhasRender()}
 function cantos(o){const out=[];for(const s0 of[-1,1])for(const s1 of[-1,1])for(const s2 of[-1,1])out.push(V3a.add(V3a.add(V3a.add(o.c,V3a.sc(o.ax[0],s0*o.h[0])),V3a.sc(o.ax[1],s1*o.h[1])),V3a.sc(o.ax[2],s2*o.h[2])));return out}
-function mBB(){const P=mPecas.flatMap(p=>cantos(p.obb));const r=i=>[Math.min(...P.map(q=>q[i])),Math.max(...P.map(q=>q[i]))];const [x,y,z]=[r(0),r(1),r(2)];return{x0:x[0],x1:x[1],y0:y[0],y1:y[1],z0:z[0],z1:z[1]}}
+const aMin=a=>{let m=Infinity;for(const v of a)if(v<m)m=v;return m},aMax=a=>{let m=-Infinity;for(const v of a)if(v>m)m=v;return m};
+function mBB(){const P=mPecas.flatMap(p=>cantos(p.obb));const r=i=>[aMin(P.map(q=>q[i])),aMax(P.map(q=>q[i]))];const [x,y,z]=[r(0),r(1),r(2)];return{x0:x[0],x1:x[1],y0:y[0],y1:y[1],z0:z[0],z1:z[1]}}
 // ---------- visualizador 3D (malha real, cores da legenda) ----------
 const M3={r:null,th:-0.65,ph:1.12,R:6000,tg:[0,0,0],ptr:new Map(),pinch:0,fit:true};
 function m3Init(){if(M3.r||M3.fail)return!!M3.r;const cv=$('#m3d');if(!window.THREE){M3.fail=true;return false}
@@ -3549,7 +3551,7 @@ document.querySelectorAll('[data-m3]').forEach(b=>b.onclick=()=>{const v={iso:[-
 const VISTAS={iso:{fwd:V3a.nrm([1,-1,1]),right:V3a.nrm([1,0,-1])},frente:{fwd:[0,0,1],right:[1,0,0]},lateral:{fwd:[-1,0,0],right:[0,0,1]},topo:{fwd:[0,-1,0],right:[1,0,0],up:[0,0,1]}};
 function desenhaPecas(P,pecas,vista,R,opts={}){const V=VISTAS[vista];const up=V.up||V3a.cross(V.fwd,V.right);
   const pr=q=>[V3a.dot(q,V.right),V3a.dot(q,up)];const all=pecas.flatMap(p=>cantos(p.obb).map(pr));
-  const bx0=Math.min(...all.map(q=>q[0])),bx1=Math.max(...all.map(q=>q[0])),by0=Math.min(...all.map(q=>q[1])),by1=Math.max(...all.map(q=>q[1]));
+  const bx0=aMin(all.map(q=>q[0])),bx1=aMax(all.map(q=>q[0])),by0=aMin(all.map(q=>q[1])),by1=aMax(all.map(q=>q[1]));
   const s=opts.s||Math.min(R.w/((bx1-bx0)||1),R.h/((by1-by0)||1));const ox=R.x+(R.w-(bx1-bx0)*s)/2,oy=R.y+(R.h-(by1-by0)*s)/2;
   const M=q=>{const a=pr(q);return[ox+(a[0]-bx0)*s,oy+(by1-a[1])*s]};
   const faces=[];pecas.forEach(p=>{const o=p.obb;for(let i=0;i<3;i++)for(const sg of[-1,1]){const n=V3a.sc(o.ax[i],sg);if(V3a.dot(n,V.fwd)>=-1e-6)continue;
