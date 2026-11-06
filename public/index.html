@@ -87,9 +87,28 @@ header .logo{font-weight:800;font-style:italic;font-size:20px;letter-spacing:-.5
 header .logo i{display:block;font-size:9px;font-style:normal;color:#ff8fb6;letter-spacing:.08em;font-weight:600}
 header h1{font-size:15px;margin:0 0 0 auto;font-weight:600;text-align:right}
 header small{display:block;color:#c5cbe8;font-weight:400;font-size:11px}
-nav{display:flex;gap:4px;padding:10px 14px 0;max-width:1000px;margin:0 auto}
-nav button{flex:1;border:0;background:transparent;padding:11px;font:inherit;font-weight:600;color:var(--mute);border-bottom:3px solid transparent;cursor:pointer}
-nav button.on{color:var(--ink);border-color:var(--pink)}
+nav{position:sticky;top:0;z-index:50;display:flex;justify-content:flex-start;gap:6px;padding:10px 14px;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 2px 10px #0000000d;overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button:first-child{margin-left:auto}nav button:last-child{margin-right:auto}
+nav button{flex:none;display:inline-flex;align-items:center;gap:7px;border:0;background:transparent;padding:9px 14px;border-radius:999px;font:inherit;font-size:14px;font-weight:600;color:var(--mute);cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}
+nav button svg{width:17px;height:17px;flex:none}
+nav button:hover{background:#f1f3f5;color:var(--ink)}
+nav button.on{background:var(--acc);color:#fff}
+.pedHead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.pedHead h2{font-size:20px!important;margin:0!important}
+.pedHead .sub{font-size:13px;color:var(--mute);margin-top:2px}
+.pedSearch{position:relative;margin-top:14px}.pedSearch svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:#adb5bd}
+.pedSearch input{padding-left:38px!important}
+.pedRow{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:8px;font:inherit;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.pedRow:hover{border-color:#c5cbe8;box-shadow:0 3px 12px #2b3a7a14}
+.pedOS{flex:none;min-width:64px;text-align:center;border-radius:10px;background:#f3f4fb;color:var(--acc);padding:8px 6px;line-height:1.1}
+.pedOS small{display:block;font-size:10px;font-weight:600;color:var(--mute);letter-spacing:.06em}.pedOS b{font-size:17px}
+.pedMain{flex:1;min-width:0}.pedMain .t{font-weight:700;font-size:15px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pedMain .m{font-size:12.5px;color:var(--mute);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pedChips{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.pedChips span{font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;background:#f1f3f5;color:#495057}
+.pedSide{flex:none;text-align:right;font-size:12px;color:var(--mute)}.pedSide .e{display:block;font-weight:600;color:#c2255c;margin-top:3px}
+.pedSide svg{width:18px;height:18px;color:#adb5bd;margin-top:6px}
+.pedVazio{text-align:center;padding:34px 12px;color:var(--mute)}
 main{max-width:1000px;margin:0 auto;padding:14px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
 .card h2{font-size:15px;margin:0 0 12px}
@@ -155,13 +174,13 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
 </head>
 <body>
 <header><img id="hdrLogo" alt="Granda Comunicação Visual" style="height:44px;background:#fff;border-radius:8px;padding:4px 8px;display:block"><h1>Ajustes de Arquivo<small>Preparação de arquivos para produção</small></h1></header>
-<nav><button data-tab="pedidos" class="on">Pedidos</button><button data-tab="novo">Letras</button><button data-tab="testeiras">Testeiras e estruturas</button><button data-tab="modelo">Modelo 3D</button><button data-tab="tipos">Cadastros</button></nav>
+<nav><button data-tab="pedidos" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5h10M9 12h10M9 19h10M4.5 5h.01M4.5 12h.01M4.5 19h.01"/></svg>Pedidos</button><button data-tab="novo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 10 5h4l5 14M7.5 13h9"/></svg>Letra caixa</button><button data-tab="testeiras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="1"/><path d="M9 7v10M15 7v10"/></svg>Testeiras e estruturas</button><button data-tab="modelo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 20 7.5v9L12 21l-8-4.5v-9z"/><path d="M12 12 20 7.5M12 12v9M12 12 4 7.5"/></svg>Modelo 3D</button><button data-tab="tipos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18" cy="18" r="2"/></svg>Cadastros</button></nav>
 <main>
   <div id="pedBar" hidden></div>
   <section id="tab-pedidos">
     <div class="card" id="pedListaCard">
-      <div class="row" style="justify-content:space-between"><h2 style="margin:0">Pedidos</h2><button class="btn pink" id="pedNovo">+ Novo pedido</button></div>
-      <input type="text" id="pedBusca" placeholder="Buscar por OS, nome ou cliente" style="margin-top:12px">
+      <div class="pedHead"><div><h2>Pedidos</h2><div class="sub" id="pedSub"></div></div><button class="btn pink" id="pedNovo">+ Novo pedido</button></div>
+      <div class="pedSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="text" id="pedBusca" placeholder="Buscar por OS, nome, cliente ou projetista"></div>
       <div id="pedLista" style="margin-top:10px"></div>
       <p class="note" id="pedNota"></p>
     </div>
@@ -192,7 +211,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
         <div><label class="f">Projetista</label><input type="text" id="projetista"></div>
         <div><label class="f">Endereço</label><input type="text" id="endereco"></div>
       </div>
-      <label class="f">Imagem de referência <span class="note" style="text-transform:none;font-weight:400">— sai no canto superior de todas as folhas (7 x 5 cm)</span></label>
+      <label class="f">Imagem de referência <span class="note" style="text-transform:none;font-weight:400">— sai no canto superior de todas as folhas (70 x 50 mm)</span></label>
       <div class="row" style="gap:8px;align-items:stretch">
         <label class="btn ghost sm" style="display:inline-flex;align-items:center">Enviar imagem<input type="file" id="refIn" accept="image/*" hidden></label>
         <div id="refZone" contenteditable="true" style="flex:1;min-width:150px;border:1.5px dashed var(--line);border-radius:10px;padding:8px 10px;font-size:13px;color:#868e96;outline:none">Colar print aqui (toque e segure → Colar, ou Ctrl+V)</div>
@@ -211,9 +230,9 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
     <div class="card"><h2>3. Tipo de letra caixa</h2><div class="types" id="typePick"></div><div id="chapaBox" hidden><label class="f" style="margin-top:14px">Linha interna da chapa galvanizada</label><div class="leds" id="chapaPick"></div></div>
       <label class="f" style="margin-top:14px">Profundidade da caixa (espessura da letra)</label><div class="leds" id="caixaPick"></div></div>
     <div class="card"><h2>4. LED</h2><div class="leds" id="ledPick"></div>
-      <div class="g2"><div><label class="f">Distância centro a centro (cm) <span class="badge">opcional</span></label><input type="number" step="0.5" id="ledGap" placeholder="Padrão do tipo: 8" inputmode="decimal"></div>
-      <div><label class="f">Borda até a 1ª fileira (cm) <span class="badge">opcional</span></label><input type="number" step="0.5" id="ledMarg" placeholder="Padrão do tipo: 4,5" inputmode="decimal"></div></div>
-      <p class="note" style="margin:6px 0 0">Use para diminuir o espaçamento só neste pedido. O mínimo é o comprimento do módulo + 2 mm (7,7 cm).</p></div>
+      <div class="g2"><div><label class="f">Distância centro a centro (mm) <span class="badge">opcional</span></label><input type="number" step="1" id="ledGap" placeholder="Padrão do tipo: 80" inputmode="decimal"></div>
+      <div><label class="f">Borda até a 1ª fileira (mm) <span class="badge">opcional</span></label><input type="number" step="1" id="ledMarg" placeholder="Padrão do tipo: 45" inputmode="decimal"></div></div>
+      <p class="note" style="margin:6px 0 0">Use para diminuir o espaçamento só neste pedido. O mínimo é o comprimento do módulo + 2 mm (77 mm).</p></div>
     <div class="card" id="pintCard"><h2>Pintura</h2>
       <div id="pPicker">
       <label class="f">Escala de cor</label>
@@ -247,7 +266,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <label class="f">Observações (saem em todas as folhas)</label><textarea id="obs" placeholder="Ex.: conferir medida na obra antes de cortar"></textarea>
       <label class="f" style="margin-top:14px">Páginas extras</label>
       <div id="xPages"></div>
-      <div class="row"><button class="btn ghost sm" id="xAdd">+ Página extra</button><button class="btn ghost sm" id="xAcm">+ ACM (borda +10 cm)</button></div>
+      <div class="row"><button class="btn ghost sm" id="xAdd">+ Página extra</button><button class="btn ghost sm" id="xAcm">+ ACM (borda +100 mm)</button></div>
     </div>
     <div class="card">
       <div class="row"><button class="btn pink" id="gerar" disabled>Gerar FP</button><button class="btn ghost" id="baixar" hidden>Baixar FP (PDF)</button></div>
@@ -335,10 +354,9 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div id="tFaces"></div>
       <div class="row" style="margin-top:10px;gap:6px"><button class="btn ghost sm" data-addf="linha">+ Face em linha</button><button class="btn ghost sm" data-addf="tras">+ Face em L (para trás)</button><button class="btn ghost sm" data-addf="frente">+ Face em L (para frente)</button></div>
       <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">2. Perfis e travas</h2>
-      <div class="g3">
-        <div><label class="f">Perfil do quadro (contorno)</label><select id="tPerfil"><option>15x15</option><option>20x20</option><option>25x25</option><option>20x30</option><option selected>30x30</option><option value="20x40">40x20</option><option>40x40</option><option>80x80</option></select></div>
-        <div><label class="f">Perfil interno (travessas)</label><select id="tPerfilInt"><option>15x15</option><option>20x20</option><option>25x25</option><option>20x30</option><option value="30x20">30x20 (30 de face)</option><option>30x30</option><option value="20x40" selected>40x20</option><option>40x40</option><option>80x80</option></select></div>
-        <div><label class="f">Parede do quadro (mm)</label><input type="text" id="tParede" value="1,25" inputmode="decimal"></div><div><label class="f">Parede interna (mm)</label><input type="text" id="tParedeInt" value="1,25" inputmode="decimal"></div>
+      <div class="g2">
+        <div style="display:flex;flex-direction:column;gap:2px"><label class="f">Perfil do quadro (contorno)</label><select id="tPerfil"><option>15x15</option><option>20x20</option><option>25x25</option><option>20x30</option><option selected>30x30</option><option value="20x40">40x20</option><option>40x40</option><option>80x80</option></select><label class="f" style="margin-top:8px">Parede do quadro (mm)</label><input type="text" id="tParede" value="1,25" inputmode="decimal"></div>
+        <div style="display:flex;flex-direction:column;gap:2px"><label class="f">Perfil interno (travessas)</label><select id="tPerfilInt"><option>15x15</option><option>20x20</option><option>25x25</option><option>20x30</option><option value="30x20">30x20 (30 de face)</option><option>30x30</option><option value="20x40" selected>40x20</option><option>40x40</option><option>80x80</option></select><label class="f" style="margin-top:8px">Parede interna (mm)</label><input type="text" id="tParedeInt" value="1,25" inputmode="decimal"></div>
       </div>
       <div class="g3">
         <div><label class="f">Vão máx. entre verticais (mm)</label><input type="number" id="tVaoV" value="1400" inputmode="numeric"></div>
@@ -351,8 +369,8 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">3. Fixação</h2>
       
       <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;font-size:13px"><input type="checkbox" id="tCad"> Cadeirinha</label>
-      <select id="tCadModo" style="margin-top:8px"><option value="janela">Janelas 15 x 15 nos cantos (e no centro se passar de 1,5 m)</option><option value="trava">Travas horizontais a 15 cm do topo e da base</option></select>
-      <p class="note" style="margin:4px 0 8px">Tubo 1 cm mais fino que o contorno, faceado pelo fundo; 15 cm de vão livre entre as faces internas. Leva 2 cantoneiras internas AJR 003 embaixo para travar.</p>
+      <select id="tCadModo" style="margin-top:8px"><option value="janela">Janelas 150 x 150 mm nos cantos (e no centro se passar de 1.500 mm)</option><option value="trava">Travas horizontais a 150 mm do topo e da base</option></select>
+      <p class="note" style="margin:4px 0 8px">Tubo 10 mm mais fino que o contorno, faceado pelo fundo; 150 mm de vão livre entre as faces internas. Leva 2 cantoneiras internas AJR 003 embaixo para travar.</p>
       <div class="row" id="tFixBox" style="gap:6px"></div>
       <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">4. ACM</h2>
       <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;font-size:13px"><input type="checkbox" id="aOn"> Revestir a testeira com ACM</label>
@@ -386,24 +404,25 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
         </div>
         <label class="f">Escolhida</label>
         <div id="aCorSel"></div>
+        <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;font-size:13px;margin-top:12px"><input type="checkbox" id="aSoltas"> Chapas de ACM vão soltas para instalar no local <span class="note">(senão vão coladas na estrutura)</span></label>
         <label class="f" style="margin-top:14px">Aplicação no ACM</label>
         <div class="leds" id="aApl"><button data-m=""><b>Nenhuma</b></button><button data-m="adesivo"><b>Adesivo</b><span class="note" style="display:block">vai para a P1</span></button><button data-m="letra"><b>Letra caixa</b><span class="note" style="display:block">fixada na empresa (acabamento)</span></button></div>
         <div id="aAplBox" hidden>
           <label class="btn ghost sm" style="display:inline-flex;align-items:center;margin-top:8px">Enviar PDF da arte<input type="file" id="aAplPdf" accept="application/pdf" hidden></label>
           <div id="aAplInfo" style="margin-top:6px"></div>
           <div class="g2">
-            <div><label class="f">Largura da arte (cm)</label><input type="text" id="aAplW" inputmode="decimal"><div class="note" id="aAplH"></div></div><div></div>
+            <div><label class="f">Largura da arte (mm)</label><input type="text" id="aAplW" inputmode="decimal"><div class="note" id="aAplH"></div></div><div></div>
             <div><label class="f">Na largura</label><select id="aAplHm"><option value="centro">Centralizado</option><option value="esquerda">A partir da esquerda</option><option value="direita">A partir da direita</option></select></div>
-            <div><label class="f">Saída (cm)</label><input type="text" id="aAplHv" inputmode="decimal"></div>
+            <div><label class="f">Saída (mm)</label><input type="text" id="aAplHv" inputmode="decimal"></div>
             <div><label class="f">Na altura</label><select id="aAplVm"><option value="centro">Centralizado</option><option value="cima">A partir do topo</option><option value="baixo">A partir da base</option></select></div>
-            <div><label class="f">Saída (cm)</label><input type="text" id="aAplVv" inputmode="decimal"></div>
+            <div><label class="f">Saída (mm)</label><input type="text" id="aAplVv" inputmode="decimal"></div>
           </div>
           <div id="aAdesBox" hidden style="margin-top:10px">
             <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;font-size:13px"><input type="checkbox" id="aFxOn"> Faixa horizontal de adesivo</label>
             <div id="aFxBox" hidden class="g2" style="margin-top:4px">
-              <div><label class="f">Altura da faixa (cm)</label><input type="text" id="aFxH" inputmode="decimal"></div>
-              <div><label class="f">Posição</label><select id="aFxAl"><option value="base">Alinhada à base</option><option value="topo">Alinhada ao topo</option><option value="dist">A X cm da base</option></select></div>
-              <div id="aFxDW"><label class="f">Distância da base (cm)</label><input type="text" id="aFxD" inputmode="decimal"></div>
+              <div><label class="f">Altura da faixa (mm)</label><input type="text" id="aFxH" inputmode="decimal"></div>
+              <div><label class="f">Posição</label><select id="aFxAl"><option value="base">Alinhada à base</option><option value="topo">Alinhada ao topo</option><option value="dist">A X mm da base</option></select></div>
+              <div id="aFxDW"><label class="f">Distância da base (mm)</label><input type="text" id="aFxD" inputmode="decimal"></div>
               <div class="note" style="align-self:end">Com envelope 1 ou 2 dobras e faixa na base/topo, o adesivo cobre a dobra. A P1 recebe as tiras com +2 cm de cada lado.</div>
             </div>
             <label class="f">Cor do adesivo — marca</label>
@@ -445,15 +464,15 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
   </section>
   <section id="instSec" hidden>
     <div class="card">
-      <div id="instBox">
+      <div id="instBox"><input type="hidden" id="iUnid" value="mm">
         <h2>Projeto de instalação <span class="badge">vale para este item</span></h2>
         <div class="g2">
           <div><label class="f">Na largura</label><select id="iHm"><option value="centro">Centralizado</option><option value="esquerda">A partir da esquerda</option><option value="direita">A partir da direita</option></select></div>
-          <div><label class="f">Saída na largura (cm)</label><input type="text" id="iHv" inputmode="decimal" placeholder="ex.: 30"></div>
+          <div><label class="f">Saída na largura (mm)</label><input type="text" id="iHv" inputmode="decimal" placeholder="ex.: 300"></div>
           <div><label class="f">Na altura</label><select id="iVm"><option value="centro">Centralizado</option><option value="cima">A partir de cima (teto/topo)</option><option value="baixo">A partir de baixo (piso/base)</option></select></div>
-          <div><label class="f">Saída na altura (cm)</label><input type="text" id="iVv" inputmode="decimal" placeholder="ex.: 10"></div>
-          <div><label class="f">Largura da parede (cm, opcional)</label><input type="text" id="iPw" inputmode="decimal"></div>
-          <div><label class="f">Altura da parede (cm, opcional)</label><input type="text" id="iPh" inputmode="decimal"></div>
+          <div><label class="f">Saída na altura (mm)</label><input type="text" id="iVv" inputmode="decimal" placeholder="ex.: 100"></div>
+          <div><label class="f">Largura da parede (mm, opcional)</label><input type="text" id="iPw" inputmode="decimal"></div>
+          <div><label class="f">Altura da parede (mm, opcional)</label><input type="text" id="iPh" inputmode="decimal"></div>
         </div>
         <label class="f">Ancoragem na parede</label>
         <select id="iAncT"><option value="bucha">Bucha de nylon + parafuso (alvenaria)</option><option value="parabolt">Parabolt / chumbador mecânico (concreto)</option><option value="quimico">Chumbador químico (bloco vazado)</option><option value="brocante">Parafuso brocante (estrutura metálica)</option><option value="madeira">Parafuso para madeira</option><option value="nenhuma">Sem ancoragem</option></select>
@@ -634,7 +653,7 @@ const PANTONE_LIST=[["100","#f4ed7c"],["101","#f4ed47"],["102","#f9e814"],["103"
 $('#pEscPick').onclick=e=>{const b=e.target.closest('button');if(!b)return;selEsc=b.dataset.e;renderEsc();resetOut()};
 ['pC','pM','pY','pK','pR','pG','pB'].forEach(i=>$('#'+i).addEventListener('input',renderEsc));
 renderGrid();
-function renderCaixa(){$('#caixaPick').innerHTML=[40,60,80,100].map(v=>`<button data-cx="${v}" class="${v===selCaixa?'sel':''}"><b>${v/10} cm</b></button>`).join('')}
+function renderCaixa(){$('#caixaPick').innerHTML=[40,60,80,100].map(v=>`<button data-cx="${v}" class="${v===selCaixa?'sel':''}"><b>${v} mm</b></button>`).join('')}
 $('#caixaPick').onclick=e=>{const b=e.target.closest('button');if(!b)return;selCaixa=+b.dataset.cx;renderCaixa();resetOut()};
 function renderChapa(){
   const t=types.find(x=>x.id===selType);const cp=t&&pagesOf(t).find(p=>p.tipo==='chapa');
@@ -646,7 +665,7 @@ $('#chapaPick').onclick=e=>{const b=e.target.closest('button');if(!b)return;selC
 function renderLeds(){renderChapa();renderCaixa();
   const t=types.find(x=>x.id===selType);
   const lp=t&&pagesOf(t).find(p=>p.tipo==='led');const L={...LED_DEF,...(lp&&lp.led||{})};
-  $('#ledGap').placeholder='Padrão do tipo: '+fmt(L.gap/10).replace(',0','');$('#ledMarg').placeholder='Padrão do tipo: '+fmt(L.margem/10).replace(',0','');
+  $('#ledGap').placeholder='Padrão do tipo: '+f0(L.gap);$('#ledMarg').placeholder='Padrão do tipo: '+f0(L.margem);
   if(!t){$('#ledPick').innerHTML='<p class="note">Escolha o tipo primeiro.</p>';return}
   const leds=t.leds&&t.leds.length?t.leds:LED_ALL;
   if(!leds.includes(selLed))selLed=leds.includes(6500)?6500:null;
@@ -1376,7 +1395,7 @@ function frame(P,ctx,pg){pg={...pg,setor:setorNome(pg.setor)};
   P.push({t:'rect',x:226,y:8,w:63,h:11,r:2,fill:col});
   P._setor=pg.setor;P._setorT={t:'text',x:257.5,y:15.3,s:pg.setor,size:4.2,bold:true,color:'#ffffff',anchor:'middle'};P.push(P._setorT);
   P.push({t:'text',x:18,y:15.5,s:`${pg.setor} ITEM ${ctx.item} - ${ctx.descItem}`.toUpperCase(),size:3.4,bold:true,color:'#000000'});
-  if(ctx.tipo)P.push({t:'text',x:18,y:21,s:`Tipo: ${ctx.tipo}   •   LED: ${ctx.led}   •   CAIXA: ${ctx.caixa/10} cm`,size:2.6,color:'#555555'});
+  if(ctx.tipo)P.push({t:'text',x:18,y:21,s:`Tipo: ${ctx.tipo}   •   LED: ${ctx.led}   •   CAIXA: ${ctx.caixa} mm`,size:2.6,color:'#555555'});
   P._f0=P.length;P._ref=refImg;
 }
 /* ---------- imagem de referência do projetista: 7 x 5 cm no canto superior direito ---------- */
@@ -1537,7 +1556,7 @@ function buildDoc(){
        P.push({t:'text',x:X0+3,y:Y0+5,s:'PARAFUSOS DA LATERAL — PINTAR NA COR DA LETRA',size:2.8,bold:true,color:'#c2410c'});
        P.push({t:'text',x:X0+3,y:Y0+10.5,s:'REF.: AUTO-ATARRAXANTE CABEÇA PANELA PHILLIPS DIN 7981 — 5,5 x 25 MM',size:2.5,bold:true,color:'#000000'});
        P.push({t:'text',x:X0+3,y:Y0+16,s:`QUANTIDADE: ${np} UN.`,size:3.6,bold:true,color:'#000000'});
-       P.push({t:'text',x:X0+3,y:Y0+21,s:`1 a cada 20 cm do perímetro externo das letras (${f2(perE)} m)`,size:2.3,color:'#555555'});
+       P.push({t:'text',x:X0+3,y:Y0+21,s:`1 a cada 200 mm do perímetro externo das letras (${f2(perE)} m)`,size:2.3,color:'#555555'});
        P.push({t:'text',x:X0+3,y:Y0+27,s:fit('POR LETRA: '+pc.map((v,i)=>`${i+1}: ${v}`).join('  •  '),133,2.3),size:2.3,bold:true,color:'#000000'})}
       P.push({t:'rect',x:100,y:137,w:40,h:30,r:2,fill:sw,stroke:'#000000',lw:0.3});P.push({t:'text',x:120,y:135.5,s:'AMOSTRA (referência de tela)',size:2.3,color:'#555555',anchor:'middle'});
       legend(P,pg,[{cor:sw,legenda:partes==='lateral'?'Lateral pintada (contorno)':(tBorda?`Borda da frente pintada (${tBorda} mm) + lateral`:'Área pintada'),offset:0,polys:[1],noOff:true},...(partes==='lateral'?[{cor:'#ffffff',legenda:'Frente sem pintura (acrílico)',offset:0,polys:[1],noOff:true}]:[])]);
@@ -1561,7 +1580,7 @@ function buildDoc(){
       pages.push(P);info.push({pg,lines:[],vec:[{color:RC['CORTE EXTERNO'],polys:R.outer},{color:RC['CORTE INTERNO'],polys:R.inner}]});return;
     }
     if(pg.tipo==='led'){
-      const ov={};const gq=num($('#ledGap').value),mq=num($('#ledMarg').value);if(gq>0)ov.gap=gq*10;if(mq>0)ov.margem=mq*10;
+      const ov={};const gq=num($('#ledGap').value),mq=num($('#ledMarg').value);if(gq>0)ov.gap=gq<30?gq*10:gq;if(mq>0)ov.margem=mq<20?mq*10:mq;
       const R=distributeLED(cp,{...(pg.led||{}),...ov,ajuste:ledAdj});ledInfo=R;
       const P=[];frame(P,ctx,pg);
       P.push({t:'text',x:PW/2,y:30,s:pg.titulo||'DISTRIBUIÇÃO DE LED',size:4.2,color:'#000000',anchor:'middle'});
@@ -1588,8 +1607,8 @@ function buildDoc(){
       cotas(P,dx,dy,bb.w*s,bb.h*s,Math.round(bb.w),Math.round(bb.h));
       P.push({t:'text',x:284,y:25,s:escTxt,size:2.4,bold:true,color:'#2f6fa8',anchor:'end'});
       const Pp=R.P;const w=R.watts;
-      matTable(P,pg,[['ILUMINAÇÃO:',`LED ${fmt(Pp.larg/10)}CM x ${fmt(Pp.alt/10)}CM`],['TEMPERATURA:',ctx.led],['QTD. MÓDULOS:',`${R.mods.length} un`],['CONSUMO:',`${w.toLocaleString('pt-BR',{maximumFractionDigits:1})} W  (+20% = ${(w*1.2).toLocaleString('pt-BR',{maximumFractionDigits:1})} W)`],['REATOR:',reatorTxt(w*1.2)],['ESPAÇAMENTO:',`${fmt(Pp.gap/10)} CM CENTRO A CENTRO`],['QTD. REAL:',' ']]);
-      legend(P,pg,[{cor:'#e03131',legenda:`Contorno base`,offset:Pp.base,polys:R.boundary},{cor:'#000000',legenda:`Módulo LED ${fmt(Pp.larg/10)}x${fmt(Pp.alt/10)}cm — ${Pp.watts}W`,offset:0,polys:[1],noOff:true},{cor:'#7a7a7a',legenda:'Fio entre módulos (zig-zag)',offset:0,polys:[1],noOff:true},{cor:'#1c7ed6',legenda:'Linha base (centro do traço)',offset:0,polys:[1],noOff:true}]);
+      matTable(P,pg,[['ILUMINAÇÃO:',`LED ${f0(Pp.larg)} x ${f0(Pp.alt)} MM`],['TEMPERATURA:',ctx.led],['QTD. MÓDULOS:',`${R.mods.length} un`],['CONSUMO:',`${w.toLocaleString('pt-BR',{maximumFractionDigits:1})} W  (+20% = ${(w*1.2).toLocaleString('pt-BR',{maximumFractionDigits:1})} W)`],['REATOR:',reatorTxt(w*1.2)],['ESPAÇAMENTO:',`${fmt(Pp.gap/10)} CM CENTRO A CENTRO`],['QTD. REAL:',' ']]);
+      legend(P,pg,[{cor:'#e03131',legenda:`Contorno base`,offset:Pp.base,polys:R.boundary},{cor:'#000000',legenda:`Módulo LED ${f0(Pp.larg)}x${f0(Pp.alt)} mm — ${Pp.watts}W`,offset:0,polys:[1],noOff:true},{cor:'#7a7a7a',legenda:'Fio entre módulos (zig-zag)',offset:0,polys:[1],noOff:true},{cor:'#1c7ed6',legenda:'Linha base (centro do traço)',offset:0,polys:[1],noOff:true}]);
       pages.push(P);info.push({pg,lines:[],vec:[{color:'#e03131',polys:R.boundary},{color:'#000000',polys:R.mods.map(m=>m.rect)}]});return;
     }
     const lines=(pg.linhas||[]).map(l=>({...l,polys:offset(cpRaw,l.offset,ladoDe(l))}));
@@ -1653,7 +1672,7 @@ function buildDoc(){
    L.forEach(g=>g.per=g.ps.reduce((s,p)=>s+chainLen(p.concat([p[0]])),0));
    const perTot=L.reduce((s,g)=>s+g.per,0);const hMax=Math.max(...L.map(g=>g.bb.h));
    // destaques
-   const boxes=[['MODELO DA LETRA',t.nome,110],['Nº DE PEÇAS',String(L.length),32],['ALTURA DA LETRA',`${Math.round(hMax)} mm`,38],['CAIXA',`${ctx.caixa/10} cm`,28],['PERÍMETRO TOTAL',`${(perTot/1000).toLocaleString('pt-BR',{maximumFractionDigits:2})} m`,45]];
+   const boxes=[['MODELO DA LETRA',t.nome,110],['Nº DE PEÇAS',String(L.length),32],['ALTURA DA LETRA',`${Math.round(hMax)} mm`,38],['CAIXA',`${ctx.caixa} mm`,28],['PERÍMETRO TOTAL',`${(perTot/1000).toLocaleString('pt-BR',{maximumFractionDigits:2})} m`,45]];
    let bx=12;boxes.forEach(([lb,v,w])=>{P.push({t:'rect',x:bx,y:25,w,h:17,r:2,fill:'#fff0f6',stroke:'#c2255c',lw:0.5});
      P.push({t:'text',x:bx+w/2,y:30,s:lb,size:2.6,bold:true,color:'#c2255c',anchor:'middle'});
      if(lb==='MODELO DA LETRA'&&v.length*3.6*0.52>w-4){const ws=v.split(' ');let l1='';while(ws.length&&(l1+' '+ws[0]).trim().length*3.1*0.52<w-4)l1=(l1+' '+ws.shift()).trim();
@@ -2063,7 +2082,7 @@ function listaCorte(comp,o,fixs){
   rows.forEach((r,i)=>{r.item=i+1;r.desc=tubDesc(r.perfil,r.parede||o.parede);r.total=r.len*r.q;r.cor=PERFIS[r.perfil].cor;
     r.uso=[...r.tipos].join(' / ')+(comp.length>1?` — F${[...r.faces].join(', F')}`:'')});
   {const nj=comp.reduce((s,c)=>s+(c.F.nJan||0),0);if(nj)rows.push({item:rows.length+1,fix:true,desc:'Fixação: cadeirinha (chapa dobrada)',uso:`1 por janela 15x15 — ${nj} janela(s)`,len:0,q:nj,total:0,cor:'#ff6633'});
-    const nt=comp.reduce((s,c)=>s+(c.F.nTravCad?Math.max(2,Math.ceil(c.F.W/1500-1e-9)):0),0);if(nt)rows.push({item:rows.length+1,fix:true,desc:'Fixação: cadeirinha (chapa dobrada)',uso:'Nas travas a 15 cm do topo e da base — 1 a cada 1,5 m',len:0,q:nt,total:0,cor:'#ff6633'});
+    const nt=comp.reduce((s,c)=>s+(c.F.nTravCad?Math.max(2,Math.ceil(c.F.W/1500-1e-9)):0),0);if(nt)rows.push({item:rows.length+1,fix:true,desc:'Fixação: cadeirinha (chapa dobrada)',uso:'Nas travas a 150 mm do topo e da base — 1 a cada 1.500 mm',len:0,q:nt,total:0,cor:'#ff6633'});
     const nc=comp.reduce((s,c)=>s+(c.F.nCant||0),0);if(nc)rows.push({item:rows.length+1,fix:true,desc:'Travamento: cantoneira interna AJR 003 (19,05 x 19,05 x 32 mm, ch. 1,58)',uso:'2 embaixo por quadro — fixar antes na parede e parafusar por baixo',len:0,q:nc,total:0,cor:'#e8590c'})}
   fixs.forEach(fx=>{const q=fixQtd(comp,fx);rows.push({item:rows.length+1,fix:true,desc:'Fixação: '+fx.nome,uso:FIX_POS[fx.pos]||'',len:fx.comp||0,q,total:(fx.comp||0)*q,cor:fx.cor||'#ff6633'})});
   return rows;
@@ -2360,7 +2379,7 @@ function tRender(){if(tModo==='desenho'){dRender3D();return}
     const ok3=v3Set(r.M.acm?r.M.boxes.concat(r.M.acm.boxes):r.M.boxes);$('#t3dNote').hidden=ok3;
     if(!ok3){const P=[];isoPrims(P,r.M.boxes,{x:10,y:10,w:PW-20,h:PH-20});$('#t3dAlt').innerHTML=toSVG(P)}
     const bb=bbox3(r.M.boxes.filter(b=>!b.fix));
-    {const gr=tFaces.map((f,i)=>f.W>MAX_W||f.H>MAX_H?i+1:0).filter(Boolean);if(gr.length&&!$('#tDivMsg').innerHTML)$('#tDivMsg').innerHTML=`<div class="msg warn">Face ${gr.join(', ')} passa de 6 m de comprimento ou 2 m de altura — precisa ser dividida. <button class="btn ghost sm" id="tDivBtn">Dividir agora</button></div>`;if(!gr.length&&/Dividir agora/.test($('#tDivMsg').innerHTML))$('#tDivMsg').innerHTML=''}
+    {const gr=tFaces.map((f,i)=>passaLim(f)?i+1:0).filter(Boolean);if(gr.length)$('#tDivMsg').innerHTML=`<div class="msg warn"><b>Face ${gr.join(', ')}</b> passa do limite de 6.000 x 2.100 mm (um lado até 6.000 e o outro até 2.100). Termine a configuração e depois escolha: <div class="row" style="gap:6px;margin-top:6px"><button class="btn pink sm" id="tDivBtn">Dividir em partes iguais</button><button class="btn ghost sm" id="tDivManter">Manter a estrutura original</button></div></div>`;else if(/tDivBtn/.test($('#tDivMsg').innerHTML))$('#tDivMsg').innerHTML=''}
     $('#t3dInfo').textContent=`${r.M.comp.length} face(s) • conjunto ${f0(bb.x1-bb.x0)} × ${f0(bb.y1-bb.y0)} × ${f0(bb.z1-bb.z0)} mm (L × A × P)`;
     {const C=setorChips(r.pages,tSelPage,'data-pg');tSelPage=C.sel;$('#tPgPick').innerHTML=C.html;$('#tPrev').innerHTML=C.shown.map(P=>`<div class="pg">${toSVG(P)}</div>`).join('')}
     const t=r.M;$('#tMsg').innerHTML=`<div class="msg ok">${t.comp.map(c=>`F${c.i+1}: ${c.F.nb+1-(c.F.sI?1:0)} verticais, ${c.F.rows.length} travessa(s)`).join(' • ')}${r.o.trav40?' • travessa 20x40':''} • ${r.plano.map(g=>`${g.nBarras} barra(s) de ${g.perfil}${g.parede?' #'+g.parede:''}`).join(', ')} para ${r.o.un} un.${r.M.acm?` • ACM: ${r.M.acm.esc.n} chapa(s) ${f1(r.M.acm.esc.SW/1000)}x5 (${Math.round(r.M.acm.esc.aprov*100)}%), fita ${ACM_FITA[r.M.acm.fitaTipo]} ${f1(r.M.acm.fitaTot)} m`:''}</div>`;
@@ -2373,25 +2392,23 @@ $('#tFaces').addEventListener('input',e=>{const c=e.target.closest('.fcard');con
   if(k==='modo'){f.modo=e.target.value;if(f.modo==='pers')paraPers(f);renderFaces();tAtualizar();return}
   if(k==='nV'||k==='nH'){const v=e.target.value.trim();f[k]=v===''?null:Math.max(0,Math.round(num(v))||0)}else f[k]=(k==='junta'||k==='alinha')?e.target.value:num(e.target.value);if(k==='prof'||k==='junta'||k==='W'||k==='H')v3Fit=false;tAtualizar()});
 $('#tFaces').addEventListener('change',e=>{const k=e.target.dataset.k;if(k==='junta'){v3Fit=true;acmUI();tAtualizar()}
-  if(k==='W'||k==='H'){const c=e.target.closest('.fcard');if(!c)return;let i=+c.dataset.i;const f=tFaces[i];
-    // parte de um grupo já dividido: refaz o grupo inteiro com a nova medida total
-    if(f.grp&&((k==='H'&&f.H>MAX_H)||(k==='W'&&f.W>MAX_W))){const ix=tFaces.map((g,j)=>g.grp===f.grp?j:-1).filter(j=>j>=0);const a0=ix[0],a1=ix[ix.length-1];
-      if(a1-a0+1===ix.length){const base=tFaces.filter(g=>g.grp===f.grp&&g.junta!=='cima'),col=tFaces.filter((g,j)=>g.grp===f.grp&&(j===a0||g.junta==='cima'));
-        const Wt=k==='W'?base.reduce((s,g)=>s+(g===f?f.W:g.W),0):base.reduce((s,g)=>s+g.W,0),Hn=k==='H'?f.H:col.reduce((s,g)=>s+g.H,0);const m={...tFaces[a0],W:Wt,H:Hn};delete m.grp;const n=ix.length;
-        tFaces.splice(a0,n,m);tFaces.forEach((g,j)=>{if(j<=a0||g.ref==null)return;if(g.ref>=a0&&g.ref<=a1)g.ref=a0;else if(g.ref>a1)g.ref-=n-1});i=a0}}
-    if(dividirFace(i)){renderFaces();acmUI();v3Fit=true;tAtualizar()}}});
+  if(k==='W'||k==='H'){const c=e.target.closest('.fcard');if(c){const f=tFaces[+c.dataset.i];if(f&&f.semDiv&&!cabeLim(f.W,f.H))delete f.semDiv}v3Fit=true;tAtualizar()}});
 // ---------- divisão automática: mais de 6 m de comprimento ou 2 m de altura ----------
-const MAX_W=6000,MAX_H=2000;
+const MAX_L=6000,MAX_C=2100;const MAX_W=MAX_L,MAX_H=MAX_C;
+// cabe se um lado ≤ 6.000 e o outro ≤ 2.100 (em qualquer orientação)
+const cabeLim=(W,H)=>Math.max(W,H)<=MAX_L+0.5&&Math.min(W,H)<=MAX_C+0.5;
+const passaLim=f=>!f.semDiv&&!cabeLim(f.W,f.H);
+function divPlano(W,H){const a=[Math.ceil(W/MAX_L-1e-9),Math.ceil(H/MAX_C-1e-9)],b=[Math.ceil(W/MAX_C-1e-9),Math.ceil(H/MAX_L-1e-9)];return a[0]*a[1]<=b[0]*b[1]?a:b}
 function removeFace(idx){tFaces.splice(idx,1);tFaces.forEach((f,i)=>{if(f.ref==null)return;if(f.ref===idx)delete f.ref;else if(f.ref>idx)f.ref--;if(f.ref!=null&&f.ref>=i)delete f.ref})}
-function dividirFace(i){const f=tFaces[i];const nW=Math.ceil(f.W/MAX_W-1e-9),nH=Math.ceil(f.H/MAX_H-1e-9);if(nW<=1&&nH<=1)return false;
+function dividirFace(i){const f=tFaces[i];if(cabeLim(f.W,f.H))return false;const [nW,nH]=divPlano(f.W,f.H);if(nW<=1&&nH<=1)return false;
   const r=v=>Math.round(v*100)/100;const pw=r(f.W/nW),ph=r(f.H/nH);const base={...f,W:pw,H:ph,nV:null,nH:null,modo:'prop',vaosV:null,vaosH:null,grp:'g'+Date.now().toString(36)+i};delete base.ref;
   const novas=[];for(let c=0;c<nW;c++){const fundo=i+novas.length;for(let k=0;k<nH;k++){const g={...base};
       if(c===0&&k===0){g.junta=f.junta||'linha';if(f.ref!=null)g.ref=f.ref}else if(k===0){g.junta='linha';g.ref=i+(c-1)*nH}else g.junta='cima';novas.push(g)}}
   const add=novas.length-1;const ultimaBase=i+(nW-1)*nH;
   tFaces.forEach((g,k)=>{if(k<=i||g.ref==null)return;if(g.ref===i)g.ref=ultimaBase;else if(g.ref>i)g.ref+=add});
   tFaces.splice(i,1,...novas);
-  const msg=[f.W>MAX_W?`passa de 6 m de comprimento (${f0(f.W)} mm)`:'',f.H>MAX_H?`passa de 2 m de altura (${f0(f.H)} mm)`:''].filter(Boolean).join(' e ');
-  $('#tDivMsg').innerHTML=`<div class="msg warn"><b>Atenção:</b> a face ${i+1} ${msg} — precisa ser dividida. Dividi em ${nW>1?nW+' parte(s) na largura':''}${nW>1&&nH>1?' x ':''}${nH>1?nH+' na altura':''} iguais de ${f0(pw)} x ${f0(ph)} mm. Cada parte pode ser ajustada abaixo; nas emendas cada peça tem a sua trava (travas dobradas) para emendar uma na outra.</div>`;
+  const msg=`(${f0(f.W)} x ${f0(f.H)} mm) passa do limite de 6.000 x 2.100 mm`;
+  $('#tDivMsg').innerHTML=`<div class="msg ok">A face ${i+1} ${msg}. Dividi em ${nW>1?nW+' parte(s) na largura':''}${nW>1&&nH>1?' x ':''}${nH>1?nH+' na altura':''} iguais de ${f0(pw)} x ${f0(ph)} mm. Cada parte pode ser ajustada abaixo; nas emendas cada peça tem a sua trava (travas dobradas) para emendar uma na outra.</div>`;
   return true}
 $('#tFaces').addEventListener('click',e=>{const c=e.target.closest('.fcard');
   const au=e.target.closest('[data-auto]');if(au&&c){e.preventDefault();tFaces[+c.dataset.i][au.dataset.auto]=null;renderFaces();tAtualizar();return}
@@ -2471,7 +2488,7 @@ function edAplicar(f,F,V,H,msg){const a=F.a,ai=F.ai,gap=ai+10;
   $('#tEdMsg').innerHTML='';gravaPos(f,V,H.slice().sort((x,y)=>x-y));renderFaces();renderEditor();tAtualizar();return true}
 $('#tEd').addEventListener('change',e=>{const t=e.target;if(!t.dataset.ed)return;const c=$('#tEd')._ctx;if(!c)return;const {f,F}=c;const raw=t.value.trim();const v=num(raw.includes(',')?raw.replace(/\./g,''):raw);
   if(!(v>0)){renderEditor();return}
-  if(t.dataset.ed==='W'||t.dataset.ed==='H'){f[t.dataset.ed]=v;dividirFace(tFaces.indexOf(f));renderFaces();acmUI();v3Fit=true;renderEditor();tAtualizar();return}
+  if(t.dataset.ed==='W'||t.dataset.ed==='H'){f[t.dataset.ed]=v;renderFaces();acmUI();v3Fit=true;renderEditor();tAtualizar();return}
   const pos=posDe(f,F);const V=pos.V.slice(),H=pos.H.slice();const i=+t.dataset.i;
   if(t.dataset.ed==='sv'){const n=V.length;if(i<n)V[i]=(i?V[i-1]:0)+v;else V[n-1]=F.W-v}
   else{const D=H.slice().reverse();const n=D.length;const B=[F.H,...D,0];if(i<n)D[i]=B[i]-v;else D[n-1]=v;H.splice(0,H.length,...D.reverse())}
@@ -2533,7 +2550,7 @@ $('#tAcmFiles').onclick=async()=>{if(!lastBuild||!lastBuild.M.acm)return;const r
   let blob,name;if(fs.length===1){blob=new Blob([fs[0].buf],{type:'application/pdf'});name=fs[0].name}else{const z=new JSZip();fs.forEach(f=>z.file(f.name,f.buf));blob=await z.generateAsync({type:'blob'});name=nomeArq(`OS ${r.ctx.os||'sem número'} - item ${r.ctx.item} - ACM router.zip`)}
   try{const dl=window.claude&&claude.use?await claude.use('downloads'):null;if(!dl){$('#tMsg').insertAdjacentHTML('beforeend','<div class="msg err">Download indisponível nesta visualização.</div>');return}await dl.save({filename:name,data:blob})}catch(e){if(e&&e.code==='declined')return;$('#tMsg').insertAdjacentHTML('beforeend',`<div class="msg err">Não foi possível baixar (${esc(e.code||e.message)}).</div>`)}};
 
-$('#tDivMsg').addEventListener('click',e=>{if(e.target.id!=='tDivBtn')return;for(let i=tFaces.length-1;i>=0;i--)dividirFace(i);renderFaces();acmUI();v3Fit=true;tAtualizar()});
+$('#tDivMsg').addEventListener('click',e=>{if(e.target.id==='tDivManter'){tFaces.forEach(f=>{if(!cabeLim(f.W,f.H))f.semDiv=true});$('#tDivMsg').innerHTML='<div class="msg ok">Estrutura mantida no tamanho original (sem divisão).</div>';tAtualizar();return}if(e.target.id!=='tDivBtn')return;for(let i=tFaces.length-1;i>=0;i--)dividirFace(i);renderFaces();acmUI();v3Fit=true;tAtualizar()});
 
 /* ================= ACM nas testeiras ================= */
 const ACM_LEN=5000;const ACM_LARG={3:[1220,1500],4:[1250,1500]};
@@ -2838,19 +2855,20 @@ if($('#aAdesBox')){
   $('#aAdesOk').onclick=()=>{const nome=$('#aAdesNome').value.trim();if(!nome)return;tAcm.apl.cor={marca:'Manual',linha:'',nome,hex:$('#aAdesHex').value};$('#aAdesNome').value='';adesUI();tAtualizar()}}
 
 /* ---------- aplicação no ACM: adesivo (P1) ou letra caixa (acabamento) ---------- */
-function aplDef(){return{tipo:'',nome:'',polys:null,w0:0,h0:0,larg:0,hm:'centro',hv:0,vm:'centro',vv:0,faixa:{on:false,h:0,al:'base',d:0}}}
+function aplDef(){return{unid:'mm',tipo:'',nome:'',polys:null,w0:0,h0:0,larg:0,hm:'centro',hv:0,vm:'centro',vv:0,faixa:{on:false,h:0,al:'base',d:0}}}
 if(!tAcm.apl)tAcm.apl=aplDef();
 // retângulo da frente (faces no mesmo plano da face 1), na medida final
 function frenteTesteira(M){const faces=tFaces,o=M.o;const Lf=layoutFaces(faces,o);const A=Lf[0];const dot=(u,v)=>u[0]*v[0]+u[1]*v[1];
   const fr=Lf.filter(L=>Math.abs(L.d[0]-A.d[0])<1e-6&&Math.abs(L.d[1]-A.d[1])<1e-6&&Math.abs(dot(L.O,A.n)-dot(A.O,A.n))<1);
   const s=fr.map(L=>dot([L.O[0]-A.O[0],L.O[1]-A.O[1]],A.d));const x0=Math.min(...s),x1=Math.max(...fr.map((L,i)=>s[i]+L.W)),y0=Math.min(...fr.map(L=>L.oy)),y1=Math.max(...fr.map(L=>L.oy+L.H));
   return{A,x0,x1,y0,y1,W:x1-x0,H:y1-y0,faces:fr.map((L,i)=>({i:Lf.indexOf(L),x:s[i]-x0,y:L.oy-y0,W:L.W,H:L.H}))}}
-function aplPos(F,ap){const aw=ap.larg>0?ap.larg*10:ap.w0,ah=ap.w0>0?aw*ap.h0/ap.w0:0;
-  const x=ap.hm==='esquerda'?ap.hv*10:ap.hm==='direita'?F.W-aw-ap.hv*10:(F.W-aw)/2;
-  const y=ap.vm==='baixo'?ap.vv*10:ap.vm==='cima'?F.H-ah-ap.vv*10:(F.H-ah)/2;return{x,y,w:aw,h:ah}}
+function aplMigra(ap){if(!ap||ap.unid==='mm')return;ap.larg=(ap.larg||0)*10;ap.hv=(ap.hv||0)*10;ap.vv=(ap.vv||0)*10;if(ap.faixa){ap.faixa.h=(ap.faixa.h||0)*10;ap.faixa.d=(ap.faixa.d||0)*10}ap.unid='mm'}
+function aplPos(F,ap){const aw=ap.larg>0?ap.larg:ap.w0,ah=ap.w0>0?aw*ap.h0/ap.w0:0;
+  const x=ap.hm==='esquerda'?ap.hv:ap.hm==='direita'?F.W-aw-ap.hv:(F.W-aw)/2;
+  const y=ap.vm==='baixo'?ap.vv:ap.vm==='cima'?F.H-ah-ap.vv:(F.H-ah)/2;return{x,y,w:aw,h:ah}}
 // faixa horizontal de adesivo: posição na frente e tiras para a P1 (+20 mm de cada lado)
 function faixaDef(){return{on:false,h:0,al:'base',d:0}}
-function faixaPos(F,fx){const h=Math.min(fx.h*10,F.H);const y=fx.al==='topo'?F.H-h:fx.al==='dist'?Math.min(fx.d*10,F.H-h):0;return{y,h}}
+function faixaPos(F,fx){const h=Math.min(fx.h,F.H);const y=fx.al==='topo'?F.H-h:fx.al==='dist'?Math.min(fx.d,F.H-h):0;return{y,h}}
 function adesRolo(c){return !c?1220:c.marca==='Oracal'?1260:/Color Max/.test(c.linha||'')?1000:1220}
 function faixaTiras(M,o){const ap=tAcm.apl,fx=ap&&ap.faixa;if(!tAcm.on||!ap||ap.tipo!=='adesivo'||!fx||!fx.on||!(fx.h>0)||!M.acm)return null;
   const F=frenteTesteira(M);const B=faixaPos(F,fx);const env=tAcm.inst!=='rente';const segue=env&&(fx.al==='base'||fx.al==='topo');const rolo=adesRolo(ap.cor),SB=20;
@@ -2865,15 +2883,15 @@ function faixaArquivo(T,base){if(!T||!T.tiras.length)return null;const {jsPDF}=w
   const lst=[];T.tiras.forEach(t=>{for(let k=0;k<t.q;k++)lst.push(t)});const H=lst.reduce((s,t)=>s+t.Ht+G,G);
   const doc=new jsPDF({unit:'mm',format:[W,H],orientation:W>H?'l':'p',compress:true});doc.setLineWidth(0.1);doc.setDrawColor(255,0,192);let y=G;
   lst.forEach(t=>{doc.rect(G,y,t.W,t.Ht);y+=t.Ht+G});
-  return{name:nomeArq(`${base} - ADESIVO FAIXA P1 (${T.total} tiras, +2cm cada lado).pdf`),buf:doc.output('arraybuffer')}}
+  return{name:nomeArq(`${base} - ADESIVO FAIXA P1 (${T.total} tiras, +20mm cada lado).pdf`),buf:doc.output('arraybuffer')}}
 function aplPagina(M,o,ctx,pages,tags){const ap=tAcm.apl;if(!tAcm.on||!ap||!ap.tipo)return;
   const ades=ap.tipo==='adesivo';const temArte=!!(ap.polys&&ap.polys.length);const FX=ades?faixaTiras(M,o):null;if(!temArte&&!FX)return;
   const F=frenteTesteira(M);const Q=temArte?aplPos(F,ap):null;const k=temArte?Q.w/ap.w0:1;const art=temArte?ap.polys.map(p=>p.map(([x,y])=>[Q.x+x*k,Q.y+y*k])):[];
   const COR=ades?(ap.cor&&ap.cor.hex||'#1c7ed6'):'#c2255c';const CORT=ades?'#1c7ed6':'#c2255c';const P=[];frame(P,ctx,{setor:ades?'P1':'ACABAMENTO'});
-  const fx=ap.faixa||faixaDef();const AL={base:'ALINHADA À BASE',topo:'ALINHADA AO TOPO',dist:`A ${f1(fx.d)} CM DA BASE`};
+  const fx=ap.faixa||faixaDef();const AL={base:'ALINHADA À BASE',topo:'ALINHADA AO TOPO',dist:`A ${f0(fx.d)} MM DA BASE`};
   P.push({t:'text',x:18,y:31,s:`${o.un}X`,size:7,bold:true,italic:true,color:'#000000'});
   P.push({t:'text',x:PW/2,y:30,s:ades?(temArte?'ADESIVO NO ACM DA TESTEIRA':'FAIXA DE ADESIVO NO ACM DA TESTEIRA'):'LETRA CAIXA FIXADA NO ACM (NA EMPRESA)',size:4.2,bold:true,color:'#000000',anchor:'middle'});
-  const sub=[];if(temArte)sub.push(`${ap.nome||'arte'} • ${f0(Q.w)} x ${f0(Q.h)} mm • ${{centro:'CENTRALIZADO NA LARGURA',esquerda:`A ${f0(ap.hv)} CM DA ESQUERDA`,direita:`A ${f0(ap.hv)} CM DA DIREITA`}[ap.hm]} • ${{centro:'CENTRALIZADO NA ALTURA',cima:`A ${f0(ap.vv)} CM DO TOPO`,baixo:`A ${f0(ap.vv)} CM DA BASE`}[ap.vm]}`);
+  const sub=[];if(temArte)sub.push(`${ap.nome||'arte'} • ${f0(Q.w)} x ${f0(Q.h)} mm • ${{centro:'CENTRALIZADO NA LARGURA',esquerda:`A ${f0(ap.hv)} MM DA ESQUERDA`,direita:`A ${f0(ap.hv)} MM DA DIREITA`}[ap.hm]} • ${{centro:'CENTRALIZADO NA ALTURA',cima:`A ${f0(ap.vv)} MM DO TOPO`,baixo:`A ${f0(ap.vv)} MM DA BASE`}[ap.vm]}`);
   if(FX)sub.push(`FAIXA ${f0(FX.B.h)} mm ${AL[fx.al]}`);
   P.push({t:'text',x:PW/2,y:35,s:fit(sub.join('   |   '),260,2.5),size:2.5,color:'#555555',anchor:'middle'});
   // vista de frente totalmente cotada
@@ -2951,14 +2969,15 @@ function aplPlanif(M,o,ctx,pages,tags){const ap=tAcm.apl;if(!tAcm.on||!ap||ap.ti
 async function aplCarrega(file){try{const buf=await file.arrayBuffer();const r=await readPdf(buf);
     let ps=r.paths&&r.paths.length?flattenPaths(r.paths,1,0.15):r.polys;if(!ps||!ps.length){$('#aAplInfo').innerHTML='<div class="msg err">Não encontrei desenho vetorial nesse PDF.</div>';return}
     const b=bbox(ps);ps=ps.map(p=>p.map(([x,y])=>[+(x-b.x0).toFixed(2),+(y-b.y0).toFixed(2)]));
-    const ap=tAcm.apl;ap.polys=ps;ap.w0=b.w;ap.h0=b.h;ap.nome=file.name;if(!ap.larg)ap.larg=Math.round(b.w)/10;acmAplUI();tAtualizar()}
+    const ap=tAcm.apl;ap.polys=ps;ap.w0=b.w;ap.h0=b.h;ap.nome=file.name;if(!ap.larg)ap.larg=Math.round(b.w);acmAplUI();tAtualizar()}
   catch(e){$('#aAplInfo').innerHTML=`<div class="msg err">Não consegui ler o PDF (${esc(e.message)}).</div>`}}
-function acmAplUI(){if(!$('#aApl'))return;if(!tAcm.apl)tAcm.apl=aplDef();const ap=tAcm.apl;
+function acmAplUI(){if($('#aSoltas'))$('#aSoltas').checked=!!tAcm.soltas;if(!$('#aApl'))return;if(!tAcm.apl)tAcm.apl=aplDef();const ap=tAcm.apl;aplMigra(ap);
   document.querySelectorAll('#aApl button').forEach(b=>b.classList.toggle('sel',b.dataset.m===(ap.tipo||'')));$('#aAplBox').hidden=!ap.tipo;
   $('#aAplInfo').innerHTML=ap.polys?`<div class="msg ok">${esc(ap.nome)} — arte de ${f0(ap.w0)} x ${f0(ap.h0)} mm no PDF</div>`:'<p class="note" style="margin:0">Envie o PDF da arte (em vetor).</p>';
   $('#aAplW').value=ap.larg||'';$('#aAplHm').value=ap.hm;$('#aAplHv').value=ap.hv||'';$('#aAplVm').value=ap.vm;$('#aAplVv').value=ap.vv||'';
   $('#aAplHv').disabled=ap.hm==='centro';$('#aAplVv').disabled=ap.vm==='centro';
-  $('#aAplH').textContent=ap.polys&&ap.larg?`Altura proporcional: ${f1(ap.larg*ap.h0/ap.w0)} cm`:'';adesUI()}
+  $('#aAplH').textContent=ap.polys&&ap.larg?`Altura proporcional: ${f0(ap.larg*ap.h0/ap.w0)} mm`:'';adesUI()}
+if($('#aSoltas')){$('#aSoltas').addEventListener('change',()=>{tAcm.soltas=$('#aSoltas').checked;tAtualizar()})}
 if($('#aApl')){
   $('#aApl').onclick=e=>{const b=e.target.closest('button');if(!b)return;tAcm.apl.tipo=b.dataset.m;acmAplUI();tAtualizar()};
   $('#aAplPdf').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)aplCarrega(f)};
@@ -2972,7 +2991,7 @@ const tuboKgM=(f,p,t)=>Math.max(0,(2*(f+p)-4*t)*t*0.00785);   // kg por metro de
 const numBR=v=>parseFloat(String(v||'').replace(',','.'))||0;
 const kgTxt=v=>v>0&&v<0.1?'< 0,1 kg':v>0?`${v<10?v.toLocaleString('pt-BR',{maximumFractionDigits:1}):Math.round(v).toLocaleString('pt-BR')} kg`:'—';
 function instLer(){const g=id=>$('#'+id);if(!g('iHm'))return{hm:'centro',vm:'centro'};
-  return{hm:g('iHm').value,hv:numBR(g('iHv').value)*10,vm:g('iVm').value,vv:numBR(g('iVv').value)*10,pw:numBR(g('iPw').value)*10,ph:numBR(g('iPh').value)*10,ancT:g('iAncT')?g('iAncT').value:'bucha',ancB:g('iAncB')?g('iAncB').value.trim():'',ancQ:g('iAncQ')?numBR(g('iAncQ').value):0}}
+  return{hm:g('iHm').value,hv:numBR(g('iHv').value),vm:g('iVm').value,vv:numBR(g('iVv').value),pw:numBR(g('iPw').value),ph:numBR(g('iPh').value),ancT:g('iAncT')?g('iAncT').value:'bucha',ancB:g('iAncB')?g('iAncB').value.trim():'',ancQ:g('iAncQ')?numBR(g('iAncQ').value):0}}
 const ANC={bucha:{nome:'BUCHA DE NYLON + PARAFUSO',base:'ALVENARIA / CONCRETO',bit:'Bucha 8 mm + parafuso fixer 4,5 x 45 mm',broca:'Broca 8 mm (vídea)'},
   parabolt:{nome:'PARABOLT (CHUMBADOR MECÂNICO)',base:'CONCRETO',bit:'Parabolt 3/8" x 3"',broca:'Broca 3/8" (10 mm)'},
   quimico:{nome:'CHUMBADOR QUÍMICO',base:'TIJOLO / BLOCO VAZADO',bit:'Barra roscada 3/8" + bucha telada + resina',broca:'Broca 12 mm'},
@@ -3035,8 +3054,8 @@ function ancIcone(P,cx,cy,w,t){const s=w/90;const L=(x1,y1,x2,y2,c,ww)=>P.push({
     P.push({t:'rect',x:x0+62*s,y:cy-8*s,w:2*s,h:16*s,fill:'#adb5bd',stroke:'#495057',lw:0.3},{t:'rect',x:x0+66*s,y:cy-6*s,w:6*s,h:12*s,fill:'#868e96',stroke:'#495057',lw:0.3})}
   else{const x0=cx-30*s;P.push({t:'rect',x:x0,y:cy-6*s,w:5*s,h:12*s,fill:'#adb5bd',stroke:'#495057',lw:0.3});P.push({t:'rect',x:x0+5*s,y:cy-2*s,w:45*s,h:4*s,fill:'#ced4da',stroke:'#495057',lw:0.25});
     for(let k=0;k<20;k++)L(x0+5*s+k*2.2*s,cy-2*s,x0+6*s+k*2.2*s,cy+2*s,'#495057',0.15);P.push({t:'poly',pts:[[x0+50*s,cy-2*s],[x0+56*s,cy],[x0+50*s,cy+2*s]],color:'#495057',w:0.25})}}
-function instPosTxt(I){const h={centro:'CENTRALIZADO NA LARGURA',esquerda:`A ${f0(I.hv/10)} CM DA ESQUERDA`,direita:`A ${f0(I.hv/10)} CM DA DIREITA`}[I.hm];
-  const v={centro:'CENTRALIZADO NA ALTURA',baixo:`A ${f0(I.vv/10)} CM DO PISO / BASE`,cima:`A ${f0(I.vv/10)} CM DO TETO / TOPO`}[I.vm];return h+' • '+v}
+function instPosTxt(I){const h={centro:'CENTRALIZADO NA LARGURA',esquerda:`A ${f0(I.hv)} MM DA ESQUERDA`,direita:`A ${f0(I.hv)} MM DA DIREITA`}[I.hm];
+  const v={centro:'CENTRALIZADO NA ALTURA',baixo:`A ${f0(I.vv)} MM DO PISO / BASE`,cima:`A ${f0(I.vv)} MM DO TETO / TOPO`}[I.vm];return h+' • '+v}
 function caixaCheck(P,x,y,s=5){P.push({t:'rect',x,y,w:s,h:s,r:0.6,fill:'#ffffff',stroke:'#212529',lw:0.35})}
 // desenha a forma de uma peça (polígonos em mm ou retângulos) dentro de uma caixa
 function miniDesenho(P,d,bx,by,bw,bh){if(!d)return;const ps=d.polys||[];const rs=d.rects||[];
@@ -3062,7 +3081,7 @@ function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'}
   if(prod.un>1)lin('QUANTIDADE:',`${prod.un} UN.`);
   lin('POSIÇÃO:',instPosTxt(I),'#d6336c');
   {const A=ancInfo(I,prod);if(A)lin('ANCORAGEM:',`${A.nome} — ${A.q} UN. (ver folha de ancoragem)`,'#d6336c')}
-  if(I.pw&&I.ph)lin('PAREDE:',`${f0(I.pw/10)} cm (L) x ${f0(I.ph/10)} cm (A)`);else if(I.pw)lin('PAREDE:',`${f0(I.pw/10)} cm (L)`);else if(I.ph)lin('PAREDE:',`${f0(I.ph/10)} cm (A)`);
+  if(I.pw&&I.ph)lin('PAREDE:',`${f0(I.pw)} mm (L) x ${f0(I.ph)} mm (A)`);else if(I.pw)lin('PAREDE:',`${f0(I.pw)} mm (L)`);else if(I.ph)lin('PAREDE:',`${f0(I.ph)} mm (A)`);
   if(prod.metodo&&prod.metodo.length){P.push({t:'text',x:IX,y:y+1,s:'MÉTODO DE INSTALAÇÃO',size:2.6,bold:true,color:'#c2255c'});y+=4.5;
     prod.metodo.forEach(t=>{P.push({t:'text',x:IX,y,s:fit('• '+t,286-IX,2.4),size:2.4,color:'#000000'});y+=3.8});y+=1}
   if(prod.letras&&prod.letras.length){const det=prod.letras[0].pan!=null;P.push({t:'text',x:IX,y:y+1,s:det?'POR LETRA: ALTURA • BROCANTES NO PVC • PANELA NA LATERAL':'ALTURA DE CADA LETRA',size:2.6,bold:true,color:'#c2255c'});y+=3;
@@ -3090,18 +3109,18 @@ function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'}
   cotaH(P,X(L0),X(L0+W),Y(B0+H)-4,Y(B0+H),fmm(W),fs);cotaV(P,X(L0+W)+5,Y(B0+H),Y(B0),X(L0+W),fmm(H),fs);
   // saídas
   if(I.hm==='centro'){P.push({t:'line',x1:X(PWm/2),y1:Y(PHm)+5,x2:X(PWm/2),y2:Y(0)-1,color:CR,w:0.2});P.push({t:'text',x:X(PWm/2)+1,y:Y(0)-2,s:'EIXO — CENTRALIZADO',size:2.3,bold:true,color:CR});
-    if(I.pw){cotaH(P,X(0),X(L0),Y(B0)+4,null,`${f0(L0/10)} cm`,fs,CR);cotaH(P,X(L0+W),X(PWm),Y(B0)+4,null,`${f0((PWm-L0-W)/10)} cm`,fs,CR)}}
-  else if(I.hm==='esquerda')cotaH(P,X(0),X(L0),Y(B0)+4,null,`${f0(I.hv/10)} cm`,fs,CR);
-  else cotaH(P,X(L0+W),X(PWm),Y(B0)+4,null,`${f0(I.hv/10)} cm`,fs,CR);
+    if(I.pw){cotaH(P,X(0),X(L0),Y(B0)+4,null,`${f0(L0)} mm`,fs,CR);cotaH(P,X(L0+W),X(PWm),Y(B0)+4,null,`${f0((PWm-L0-W))} mm`,fs,CR)}}
+  else if(I.hm==='esquerda')cotaH(P,X(0),X(L0),Y(B0)+4,null,`${f0(I.hv)} mm`,fs,CR);
+  else cotaH(P,X(L0+W),X(PWm),Y(B0)+4,null,`${f0(I.hv)} mm`,fs,CR);
   if(I.vm==='centro'){P.push({t:'line',x1:X(0)-2,y1:Y(PHm/2),x2:X(PWm)+2,y2:Y(PHm/2),color:CR,w:0.2});
-    if(I.ph){cotaV(P,X(L0+W/2),Y(PHm),Y(B0+H),null,`${f0((PHm-B0-H)/10)} cm`,fs,CR);cotaV(P,X(L0+W/2),Y(B0),Y(0),null,`${f0(B0/10)} cm`,fs,CR)}}
-  else if(I.vm==='baixo')cotaV(P,X(L0+W/2),Y(B0),Y(0),null,`${f0(I.vv/10)} cm`,fs,CR);
-  else cotaV(P,X(L0+W/2),Y(PHm),Y(B0+H),null,`${f0(I.vv/10)} cm`,fs,CR);
+    if(I.ph){cotaV(P,X(L0+W/2),Y(PHm),Y(B0+H),null,`${f0((PHm-B0-H))} mm`,fs,CR);cotaV(P,X(L0+W/2),Y(B0),Y(0),null,`${f0(B0)} mm`,fs,CR)}}
+  else if(I.vm==='baixo')cotaV(P,X(L0+W/2),Y(B0),Y(0),null,`${f0(I.vv)} mm`,fs,CR);
+  else cotaV(P,X(L0+W/2),Y(PHm),Y(B0+H),null,`${f0(I.vv)} mm`,fs,CR);
   // saída vertical pequena: escreve ao lado
-  if(I.vm!=='centro'&&I.vv*s<8){const yy=I.vm==='cima'?(Y(PHm)+Y(B0+H))/2:(Y(B0)+Y(0))/2;const tx=`${f0(I.vv/10)} cm ${I.vm==='cima'?'DO TETO / TOPO':'DO PISO / BASE'}`;const dir=X(L0+W)+19+tx.length*1.4<286;P.push(dir?{t:'line',x1:X(L0+W)+12,y1:yy,x2:X(L0+W)+18,y2:yy,color:CR,w:0.2}:{t:'line',x1:X(L0)-6,y1:yy,x2:X(L0)-1,y2:yy,color:CR,w:0.2},{t:'text',x:dir?X(L0+W)+19:X(L0)-7,y:yy+1,s:tx,size:2.6,bold:true,color:CR,anchor:dir?'start':'end'})}
-  if(I.hm!=='centro'&&I.hv*s<8){const xx=I.hm==='esquerda'?X(0):X(PWm);P.push({t:'text',x:xx,y:Y(B0+H)-6,s:`${f0(I.hv/10)} cm ${I.hm==='esquerda'?'DA ESQUERDA':'DA DIREITA'}`,size:2.6,bold:true,color:CR,anchor:I.hm==='esquerda'?'start':'end'})}
-  if(I.pw)cotaH(P,X(0),X(PWm),Y(0)+(I.vm==='baixo'||I.ph?6:4),Y(0),`PAREDE ${f0(I.pw/10)} cm`,2.4);
-  if(I.ph)cotaV(P,X(0)-6,Y(PHm),Y(0),X(0),`${f0(I.ph/10)} cm`,2.4);
+  if(I.vm!=='centro'&&I.vv*s<8){const yy=I.vm==='cima'?(Y(PHm)+Y(B0+H))/2:(Y(B0)+Y(0))/2;const tx=`${f0(I.vv)} mm ${I.vm==='cima'?'DO TETO / TOPO':'DO PISO / BASE'}`;const dir=X(L0+W)+19+tx.length*1.4<286;P.push(dir?{t:'line',x1:X(L0+W)+12,y1:yy,x2:X(L0+W)+18,y2:yy,color:CR,w:0.2}:{t:'line',x1:X(L0)-6,y1:yy,x2:X(L0)-1,y2:yy,color:CR,w:0.2},{t:'text',x:dir?X(L0+W)+19:X(L0)-7,y:yy+1,s:tx,size:2.6,bold:true,color:CR,anchor:dir?'start':'end'})}
+  if(I.hm!=='centro'&&I.hv*s<8){const xx=I.hm==='esquerda'?X(0):X(PWm);P.push({t:'text',x:xx,y:Y(B0+H)-6,s:`${f0(I.hv)} mm ${I.hm==='esquerda'?'DA ESQUERDA':'DA DIREITA'}`,size:2.6,bold:true,color:CR,anchor:I.hm==='esquerda'?'start':'end'})}
+  if(I.pw)cotaH(P,X(0),X(PWm),Y(0)+(I.vm==='baixo'||I.ph?6:4),Y(0),`PAREDE ${f0(I.pw)} mm`,2.4);
+  if(I.ph)cotaV(P,X(0)-6,Y(PHm),Y(0),X(0),`${f0(I.ph)} mm`,2.4);
   return P}
 
 /* ---------- PROJETO DE EXPEDIÇÃO ---------- */
@@ -3174,21 +3193,22 @@ function prodLetras(t,ctx,orig,defs,ledInfo,furos,nests){const regs=regionsOf(to
   const qualExtra=[];(nests||[]).forEach(N=>{const B=N.best;if(!B)return;B.sheets.forEach((sh,k)=>{const polys=[];sh.items.forEach(it=>{const pc=pieceAt(N.pieces[it.i],it);(pc.lines[0]?[pc.lines[0]]:[]).forEach(l=>l.polys.forEach(p=>polys.push(p)))});
     qualExtra.push({desc:`APROVEITAMENTO ${N.nome==='ACRILICO'?'ACRÍLICO':'CHAPA GALV.'} ${k+1}/${B.sheets.length}`,cont:`Chapa ${B.w} x ${B.h} mm — ${sh.items.length} peças`,q:1,draw:{rects:[{x0:0,y0:0,x1:B.w,y1:B.h,cor:'#f8f9fa'}],polys,fill:N.nome==='ACRILICO'?'#ffc9de':'#dee2e6'}})})});
   return{tipo:'letra',mat:matLetras(defs,regs,ledInfo,ctx,nests,nb,np),anc:{peca:temPVC?'FUNDO DE PVC':'FUNDO DA LETRA',auto:temPVC?nb:L.length*3,onde:temPVC?'nos furos do PVC (molde kraft)':'3 por letra (estimado)'},qualExtra,nome:ctx.descItem||t.nome,W:b.w,H:b.h,D:cx,un:1,letras:L.map((g,k)=>({h:g.bb.h,broc:temPVC?(brocL[k]||0):null,pan:panL[k]})),
-    metodo:[...(temPVC?[`Fixar o molde kraft na parede, furar pelos furos e parafusar o FUNDO DE PVC com parafuso BROCANTE PHILLIPS (${nb} no total).`]:[]),`Encaixar a frente da letra${temPVC?' sobre o PVC':''} e fixar pela LATERAL com ${PANELA} — um a cada 20 cm (${np} no total).`,'Os parafusos da lateral vão pintados na cor da letra.'],contorno:orig,volumes:vols,
+    metodo:[...(temPVC?[`Fixar o molde kraft na parede, furar pelos furos e parafusar o FUNDO DE PVC com parafuso BROCANTE PHILLIPS (${nb} no total).`]:[]),`Encaixar a frente da letra${temPVC?' sobre o PVC':''} e fixar pela LATERAL com ${PANELA} — um a cada 200 mm (${np} no total).`,'Os parafusos da lateral vão pintados na cor da letra.'],contorno:orig,volumes:vols,
     checks:['MEDIDAS','ACABAMENTO / PINTURA',...(temLed?['LED ACENDE']:[]),...(temPVC?['FUROS PVC']:[])]}}
 function prodTesteira(M,o,ctx){const comp=M.comp;const vols=[];const b3=bbox3(M.acm?M.boxes.concat(M.acm.boxes):M.boxes.filter(b=>!b.fix));
   comp.forEach(c=>{const F=c.F;let kg=0;F.mem.forEach(m=>{const pp=PERFIS[m.perfil];if(!pp)return;kg+=(m.len+(m.ext||0))/1000*tuboKgM(pp.f,pp.p,numBR(m.parede||o.parede))});
     const front=F.mem.filter(m=>m.z0<F.p+1&&m.tipo!=='Ligação de profundidade').map(m=>({x0:m.x0,y0:m.y0,x1:m.x1,y1:m.y1,cor:PERFIS[m.perfil].cor}));
     vols.push({desc:`ESTRUTURA — FACE ${c.i+1}`,cont:`Quadro de metalon soldado${F.box?' (caixa)':''}${tPint==='toda'?', pintado':tPint==='soldas'?', proteção nas soldas':''}`,dims:`${f0(F.W)} x ${f0(F.H)} x ${f0(F.D)}`,q:o.un,kg,draw:{rects:front}})});
-  if(M.acm){const A=M.acm;const areaT=A.grp.reduce((s,g)=>s+g.p.area*g.q,0)/1e6;const big=A.grp.reduce((m,g)=>g.p.bw*g.p.bh>m.bw*m.bh?g.p:m,A.grp[0].p);
-    vols.push({desc:'ACM',cont:`${A.grp.reduce((s,g)=>s+g.q,0)} peça(s) de ACM ${A.t} mm — ${acmDesc()}`,dims:`maior ${f0(big.bw)} x ${f0(big.bh)}`,q:o.un,kg:areaT*KG.acm[A.t],draw:{polys:[big.pts],fill:A.hex}})}
+  if(M.acm&&!tAcm.soltas){const A=M.acm;const areaT=A.grp.reduce((s,g)=>s+g.p.area*g.q,0)/1e6;const kgA=areaT*KG.acm[A.t]/Math.max(1,vols.length);vols.forEach(v=>{v.kg+=kgA;v.cont+=` + ACM ${A.t} mm colado`})}
+  if(M.acm&&tAcm.soltas){const A=M.acm;const areaT=A.grp.reduce((s,g)=>s+g.p.area*g.q,0)/1e6;const big=A.grp.reduce((m,g)=>g.p.bw*g.p.bh>m.bw*m.bh?g.p:m,A.grp[0].p);
+    vols.push({desc:'ACM (SOLTO P/ INSTALAR NO LOCAL)',cont:`${A.grp.reduce((s,g)=>s+g.q,0)} peça(s) de ACM ${A.t} mm — ${acmDesc()}`,dims:`maior ${f0(big.bw)} x ${f0(big.bh)}`,q:o.un,kg:areaT*KG.acm[A.t],draw:{polys:[big.pts],fill:A.hex}})}
   const nc=comp.reduce((s,c)=>s+(c.F.nCant||0),0),nj=comp.reduce((s,c)=>s+(c.F.nJan||0),0);const fx=[];if(nj||comp.some(c=>c.F.nTravCad))fx.push('cadeirinhas');if(nc)fx.push(`${nc} cantoneiras AJR 003`);
   if(M.acm&&M.acm.paraf)fx.push(`${M.acm.paraf} brocantes`);if(M.acm)fx.push(`fita ${ACM_FITA[M.acm.fitaTipo]} ${f1(M.acm.fitaTot)} m`);
   if(fx.length)vols.push({desc:'FIXAÇÕES / ACESSÓRIOS',cont:fx.join(', '),dims:'—',q:1,kg:0,draw:null});
   const qualExtra=[];if(M.acm){const E=M.acm.esc;E.bins.forEach((b,k)=>{const polys=b.pcs.map(pc=>{const it=pc.it;return it.pts.map(q=>{const r=pc.rot?[q[1],it.bw-q[0]]:q;return[pc.x+r[0],pc.y+r[1]]})});
     qualExtra.push({desc:`APROVEITAMENTO ACM ${k+1}/${E.bins.length}`,cont:`Chapa ${f1(E.SW/1000)} x 5,00 m — ${b.pcs.length} peça(s)`,q:1,draw:{rects:[{x0:0,y0:0,x1:ACM_LEN,y1:E.SW,cor:'#f8f9fa'}],polys,fill:M.acm.hex}})})}
   const nCad=comp.reduce((s,c)=>s+(c.F.nJan||0)+(c.F.nTravCad||0),0);const ancAuto=nCad*2+nc||Math.max(4,2*Math.ceil((b3.x1-b3.x0)/600));
-  return{tipo:'testeira',mat:matTesteira(M,o),anc:{peca:nCad?'CADEIRINHA':nc?'CANTONEIRA AJR 003':'TUBO DA ESTRUTURA',auto:ancAuto,onde:nCad?`2 por cadeirinha (${nCad})${nc?` + 1 por cantoneira (${nc})`:''}`:nc?`1 por cantoneira (${nc})`:'a cada 60 cm no tubo (estimado)'},qualExtra,nome:ctx.descItem,W:b3.x1-b3.x0,H:b3.y1-b3.y0,D:b3.z1-b3.z0,un:o.un,volumes:vols,
+  return{tipo:'testeira',mat:matTesteira(M,o),anc:{peca:nCad?'CADEIRINHA':nc?'CANTONEIRA AJR 003':'TUBO DA ESTRUTURA',auto:ancAuto,onde:nCad?`2 por cadeirinha (${nCad})${nc?` + 1 por cantoneira (${nc})`:''}`:nc?`1 por cantoneira (${nc})`:'a cada 600 mm no tubo (estimado)'},qualExtra,nome:ctx.descItem,W:b3.x1-b3.x0,H:b3.y1-b3.y0,D:b3.z1-b3.z0,un:o.un,volumes:vols,
     contornoRects:M.boxes.filter(b=>!b.fix).map(b=>({x0:b.x0,y0:b.y0,x1:b.x1,y1:b.y1,cor:b.cor})).concat(M.acm?[]:[]),contorno:[[[b3.x0,b3.y0],[b3.x1,b3.y0],[b3.x1,b3.y1],[b3.x0,b3.y1]]],
     checks:['MEDIDAS','SOLDAS',...(tPint!=='nao'?['PINTURA']:[]),...(M.acm?['ACM']:[])]}}
 function prodEstrutura(bs,L,un,ctx,titulo){const b3=bbox3(bs);let kg=0;
@@ -3743,8 +3763,14 @@ const b64=u8=>{let s='';const c=0x8000;for(let i=0;i<u8.length;i+=c)s+=String.fr
 const unb64=t=>{const s=atob(t);const u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u};
 // ---------- lista ----------
 function pedListaRender(){const q=($('#pedBusca').value||'').toLowerCase();
-  const L=pedidos.slice().sort((a,b)=>(b.atualizado||0)-(a.atualizado||0)).filter(p=>!q||[p.os,p.nome,p.cliente].join(' ').toLowerCase().includes(q));
-  $('#pedLista').innerHTML=L.length?L.map(p=>`<button class="type" data-ped="${esc(p.id)}" style="grid-template-columns:1fr auto;width:100%"><div><b>Pedido ${esc(p.os||'—')}${p.nome?' — '+esc(p.nome):''}</b><div style="font-size:13px;margin-top:2px"><b>Cliente:</b> ${esc(p.cliente||'—')} &nbsp;•&nbsp; <b>Projetista:</b> ${esc(p.projetista||'—')}</div><div class="d">${(p.itens||[]).length} item(ns)${p.entrega?' • entrega '+esc(p.entrega.split('-').reverse().join('/')):''}</div></div><span class="note">${p.atualizado?new Date(p.atualizado).toLocaleDateString('pt-BR'):''}</span></button>`).join(''):'<p class="note">Nenhum pedido ainda. Toque em "+ Novo pedido".</p>';
+  const L=pedidos.slice().sort((a,b)=>(b.atualizado||0)-(a.atualizado||0)).filter(p=>!q||[p.os,p.nome,p.cliente,p.projetista].join(' ').toLowerCase().includes(q));
+  const nI=pedidos.reduce((s,p)=>s+(p.itens||[]).length,0);$('#pedSub').textContent=`${pedidos.length} pedido${pedidos.length===1?'':'s'} • ${nI} ite${nI===1?'m':'ns'}`;
+  const dt=v=>v?new Date(v).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'}):'';
+  const chips=p=>{const c={};(p.itens||[]).forEach(i=>{const k=TIPO_NOME[i.tipo]||i.tipo;c[k]=(c[k]||0)+1});const e=Object.entries(c);return e.length?e.map(([k,n])=>`<span>${esc(k)}${n>1?' ×'+n:''}</span>`).join(''):'<span style="background:#fff5f5;color:#c92a2a">sem itens</span>'};
+  $('#pedLista').innerHTML=L.length?L.map(p=>`<button class="pedRow" data-ped="${esc(p.id)}"><div class="pedOS"><small>OS</small><b>${esc(p.os||'—')}</b></div>
+    <div class="pedMain"><div class="t">${esc(p.nome||p.cliente||'Pedido sem nome')}</div><div class="m">${esc(p.cliente||'sem cliente')}${p.projetista?' • proj. '+esc(p.projetista):''}</div><div class="pedChips">${chips(p)}</div></div>
+    <div class="pedSide">${dt(p.atualizado)}${p.entrega?`<span class="e">entrega ${esc(p.entrega.split('-').reverse().join('/'))}</span>`:''}<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div></div></button>`).join('')
+    :`<div class="pedVazio">${q?'Nenhum pedido encontrado.':'Nenhum pedido ainda. Toque em <b>+ Novo pedido</b> para começar.'}</div>`;
   $('#pedNota').textContent=local?'Modo local: os pedidos ficam só neste aparelho.':'Os pedidos ficam salvos no sistema e aparecem em todos os aparelhos.'}
 $('#pedBusca').addEventListener('input',pedListaRender);
 $('#pedLista').onclick=e=>{const b=e.target.closest('[data-ped]');if(!b)return;const p=pedidos.find(x=>x.id===b.dataset.ped);if(p)pedAbrir(p)};
@@ -3817,7 +3843,7 @@ async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHT
   catch(e){console.error(e);msg(`<span style="color:#ffc9c9">Não salvou: ${esc(e.message)}</span>`)}}
 // abre um item: restaura tudo; se "mostrar", vai para a aba dele e gera
 async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)throw new Error('estado do item não encontrado');const F=it.fonteId?await lerJSON(it.fonteId):null;
-  itemAtual={id:it.id,tipo:it.tipo,n:it.n};$('#item').value=it.n;refImg=E.refImg||null;fpObsPg={...(E.fpObsPg||{})};refRender();instReset();if(E.inst)putInputs(E.inst);instImg=E.instImg||null;ancImg=E.ancImg||null;instRender();
+  itemAtual={id:it.id,tipo:it.tipo,n:it.n};$('#item').value=it.n;refImg=E.refImg||null;fpObsPg={...(E.fpObsPg||{})};refRender();instReset();if(E.inst){if(!E.inst.iUnid){['iHv','iVv','iPw','iPh'].forEach(k=>{if(E.inst[k])E.inst[k]=String(Math.round(numBR(E.inst[k])*10))});E.inst.iUnid='mm'}putInputs(E.inst)}instImg=E.instImg||null;ancImg=E.ancImg||null;instRender();
   if(E.cor){selEsc=E.cor.selEsc||selEsc;renderEsc();putInputs(E.cor.inputs)}
   if(it.tipo==='letra'){limpaTipo('letra');putInputs(E.inputs);selType=E.selType;selLed=E.selLed;selChapa=E.selChapa;selCaixa=E.selCaixa||80;
     $('#xPages').innerHTML='';(E.xPages||[]).forEach((p,i)=>$('#xPages').insertAdjacentHTML('beforeend',pageBlock(p,i)));renumberIn($('#xPages'));
