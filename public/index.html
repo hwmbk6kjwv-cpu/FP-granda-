@@ -175,6 +175,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div class="row" style="gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)"><button class="btn pink" id="pedGerar">Gerar FP completa do pedido</button><button class="btn ghost" id="pedBaixar" hidden>Baixar FP completa (PDF)</button><button class="btn danger sm" id="pedExcluir" style="margin-left:auto">Excluir pedido</button></div>
       <div id="pedMsg"></div>
       <div class="prev" id="pedPrev"></div>
+      <div class="fpObsBox" style="margin-top:12px;padding:12px;border:1.5px solid #e03131;border-radius:12px;background:#fff5f5"><label class="f" style="margin-top:0;color:#c92a2a">Observação da FP (sai em vermelho no canto inferior direito de todas as folhas)</label><textarea class="fpObsTa" rows="2" placeholder="Ex.: conferir medida na obra"></textarea><button class="btn pink sm fpObsBtn" type="button" style="margin-top:6px">Atualizar FP com a observação</button></div>
     </div>
   </section>
   <section id="osSec" hidden>
@@ -255,6 +256,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div id="prodFiles" hidden style="margin-top:12px"></div>
       <div id="outMsg"></div>
       <div class="prev" id="prev"></div>
+      <div class="fpObsBox" style="margin-top:12px;padding:12px;border:1.5px solid #e03131;border-radius:12px;background:#fff5f5"><label class="f" style="margin-top:0;color:#c92a2a">Observação da FP (sai em vermelho no canto inferior direito de todas as folhas)</label><textarea class="fpObsTa" rows="2" placeholder="Ex.: conferir medida na obra"></textarea><button class="btn pink sm fpObsBtn" type="button" style="margin-top:6px">Atualizar FP com a observação</button></div>
     </div>
   </section>
 
@@ -282,6 +284,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div id="mTabela" style="overflow:auto;margin-top:8px"></div>
       <div class="row" id="mPgPick" style="gap:6px;margin-top:10px"></div>
       <div class="prev" id="mPrev"></div>
+      <div class="fpObsBox" style="margin-top:12px;padding:12px;border:1.5px solid #e03131;border-radius:12px;background:#fff5f5"><label class="f" style="margin-top:0;color:#c92a2a">Observação da FP (sai em vermelho no canto inferior direito de todas as folhas)</label><textarea class="fpObsTa" rows="2" placeholder="Ex.: conferir medida na obra"></textarea><button class="btn pink sm fpObsBtn" type="button" style="margin-top:6px">Atualizar FP com a observação</button></div>
     </div>
   </section>
   <section id="tab-testeiras" hidden>
@@ -317,6 +320,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <ul id="dNotas" class="note" style="margin:8px 0 0;padding-left:18px"></ul>
       <div class="row" id="dPgPick" style="gap:6px;margin-top:10px"></div>
       <div class="prev" id="dPrev"></div>
+      <div class="fpObsBox" style="margin-top:12px;padding:12px;border:1.5px solid #e03131;border-radius:12px;background:#fff5f5"><label class="f" style="margin-top:0;color:#c92a2a">Observação da FP (sai em vermelho no canto inferior direito de todas as folhas)</label><textarea class="fpObsTa" rows="2" placeholder="Ex.: conferir medida na obra"></textarea><button class="btn pink sm fpObsBtn" type="button" style="margin-top:6px">Atualizar FP com a observação</button></div>
     </div>
     <div class="card tm-pad" id="tOpts">
       <h2>Testeira em metalon</h2>
@@ -394,6 +398,21 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
             <div><label class="f">Na altura</label><select id="aAplVm"><option value="centro">Centralizado</option><option value="cima">A partir do topo</option><option value="baixo">A partir da base</option></select></div>
             <div><label class="f">Saída (cm)</label><input type="text" id="aAplVv" inputmode="decimal"></div>
           </div>
+          <div id="aAdesBox" hidden style="margin-top:10px">
+            <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;font-size:13px"><input type="checkbox" id="aFxOn"> Faixa horizontal de adesivo</label>
+            <div id="aFxBox" hidden class="g2" style="margin-top:4px">
+              <div><label class="f">Altura da faixa (cm)</label><input type="text" id="aFxH" inputmode="decimal"></div>
+              <div><label class="f">Posição</label><select id="aFxAl"><option value="base">Alinhada à base</option><option value="topo">Alinhada ao topo</option><option value="dist">A X cm da base</option></select></div>
+              <div id="aFxDW"><label class="f">Distância da base (cm)</label><input type="text" id="aFxD" inputmode="decimal"></div>
+              <div class="note" style="align-self:end">Com envelope 1 ou 2 dobras e faixa na base/topo, o adesivo cobre a dobra. A P1 recebe as tiras com +2 cm de cada lado.</div>
+            </div>
+            <label class="f">Cor do adesivo — marca</label>
+            <div class="row" id="aAdesMarca" style="gap:6px;flex-wrap:wrap"></div>
+            <div class="row" id="aAdesCores" style="gap:5px;flex-wrap:wrap;margin-top:8px;max-height:260px;overflow:auto"></div>
+            <div id="aAdesMan" hidden class="row" style="gap:6px;margin-top:8px;align-items:center"><input type="text" id="aAdesNome" placeholder="Nome / código da cor" style="flex:1"><input type="color" id="aAdesHex" value="#1c7ed6" style="width:44px;height:38px;padding:2px"><button class="btn sm" id="aAdesOk" type="button">Usar</button></div>
+            <div id="aAdesSel" style="margin-top:6px;font-size:13px"></div>
+            <p class="note" style="margin:4px 0 0">Oracal 651 (cores oficiais) e Imprimax Gold Max / Gold Fosco / Color Max. A cor na tela é aproximada — confirme na cartela física.</p>
+          </div>
         </div>
         <p class="note" style="margin:6px 0 0">Cores dos catálogos Bold, Day Brasil (Tecbond), Geoplast, ProjetoAlumínio e Alucomaxx; a cor na tela é aproximada — confirme na cartela física. A cor manual fica salva em "Minhas cores".</p>
       </div>
@@ -421,6 +440,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div class="row" id="tPgPick" style="gap:6px;margin-top:10px"></div>
       <div id="tMsg"></div>
       <div class="prev" id="tPrev"></div>
+      <div class="fpObsBox" style="margin-top:12px;padding:12px;border:1.5px solid #e03131;border-radius:12px;background:#fff5f5"><label class="f" style="margin-top:0;color:#c92a2a">Observação da FP (sai em vermelho no canto inferior direito de todas as folhas)</label><textarea class="fpObsTa" rows="2" placeholder="Ex.: conferir medida na obra"></textarea><button class="btn pink sm fpObsBtn" type="button" style="margin-top:6px">Atualizar FP com a observação</button></div>
     </div>
   </section>
   <section id="instSec" hidden>
@@ -1320,7 +1340,13 @@ function obsBox(P,ctx){
   P.push({t:'text',x:x+2,y:yy+4,s:'OBSERVAÇÕES:',size:2.8,bold:true,color:'#000000'});
   shown.forEach((s,i)=>P.push({t:'text',x:x+2,y:yy+7.6+i*3.4,s,size:2.6,color:'#000000'}));
 }
-function footer(P,ctx,n,total){if(P._ref&&!P._refOk)refAplica(P);obsBox(P,ctx);
+// observação geral da FP: canto inferior direito, em vermelho, em todas as folhas
+let fpObs='';
+function obsFPDraw(P){const s=(fpObs||'').replace(/\s+/g,' ').trim();if(!s)return;const maxc=62;const ws=('OBS.: '+s).split(' ');const ls=[];let c='';
+  ws.forEach(w=>{if((c+' '+w).trim().length>maxc){ls.push(c);c=w}else c=(c+' '+w).trim()});if(c)ls.push(c);const L=ls.slice(0,4);if(ls.length>4)L[3]=L[3].slice(0,maxc-1)+'…';
+  const lh=3.3,x1=PW-9,w=maxc*1.42+4,h=L.length*lh+2.4,y0=169.6-h;P.push({t:'rect',x:x1-w,y:y0,w,h,fill:'#ffffff',stroke:'#e03131',lw:0.3});
+  L.forEach((l,i)=>P.push({t:'text',x:x1-2,y:y0+3.3+i*lh,s:l,size:2.7,bold:true,color:'#e03131',anchor:'end'}))}
+function footer(P,ctx,n,total){if(P._ref&&!P._refOk)refAplica(P);obsBox(P,ctx);obsFPDraw(P);
   const y0=171;P.push({t:'line',x1:8,y1:y0,x2:PW-8,y2:y0,color:'#000000',w:0.3});
   const LG=empresa.logo&&empresa.lw?empresa:{logo:GRANDA_LOGO,lw:375,lh:134};
   if(LG.logo){const mw=56,mh=24,s=Math.min(mw/LG.lw,mh/LG.lh);const w=LG.lw*s,h=LG.lh*s;P.push({t:'img',x:11+(mw-w)/2,y:174+(mh-h)/2,w,h,src:LG.logo})}
@@ -2180,7 +2206,7 @@ function lerOpcoes(){const n=k=>num($('#'+k).value);
 function montar(){const o=lerOpcoes();
   tFaces.forEach((f,i)=>{if(!(f.W>100&&f.H>100))throw new Error(`Face ${i+1}: informe largura e altura (mm).`)});
   const fixs=fixacoes.filter(f=>fixSel.has(f.id));const comp=compor(acmFaces(tFaces,o),o);
-  const M={o,comp,fixs,lista:listaCorte(comp,o,fixs),boxes:boxesMundo(comp,fixs)};M.acm=acmCalc(comp,o);return M}
+  const M={o,comp,fixs,lista:listaCorte(comp,o,fixs),boxes:boxesMundo(comp,fixs)};M.acm=acmCalc(comp,o);if(M.acm)M.acm._faixa=faixaTiras(M,o);return M}
 
 function buildTesteira(){
   const M=montar();const {o,comp,fixs,lista}=M;
@@ -2710,6 +2736,7 @@ function acmArquivos(A,base){const {jsPDF}=window.jspdf;const out=[];const E=A.e
     b.pcs.forEach(pc=>{const it=pc.it;doc.setLineWidth(0.1);doc.setDrawColor(...hex(ACM_CORTE));it.pts.forEach((q,k)=>{const p=tr(it,pc,q);k?doc.lineTo(p[0],p[1]):doc.moveTo(p[0],p[1])});doc.close();doc.stroke();
       doc.setLineWidth(0.05);doc.setDrawColor(...hex(ACM_VINCO));it.vin.forEach(([a,c])=>{const p=tr(it,pc,a),q=tr(it,pc,c);doc.line(p[0],p[1],q[0],q[1])})});
     out.push({name:nomeArq(`${base} - ACM ${A.t}mm chapa ${i+1} de ${E.bins.length} (${E.SW}x5000).pdf`),buf:doc.output('arraybuffer')})});
+  if(A._faixa){const f=faixaArquivo(A._faixa,base);if(f)out.push(f)}
   return out}
 
 /* ---------- interface ---------- */
@@ -2770,49 +2797,106 @@ function acmMontagem(A,M,o,ctx,pages,tags){const P=[];frame(P,ctx,{setor:'MONTAG
     ls.forEach((l,j)=>P.push({t:'text',x:ix+(j?4:0),y:y+j*3.3,s:(j?'':`${k+1}. `)+l,size:2.3,color:'#000000'}));y+=ls.length*3.3+1.2});
   pages.push(P);tags.push('ACM MONTAGEM')}
 
+/* ---------- catálogo de cores de adesivo (vinil de recorte) ---------- */
+const ADES_ORACAL='000|Transparent|dad9e1;010|White|e6e9ee;010M|Matte White|e6e9ee;020|Golden Yellow|fbaa00;019|Signal Yellow|e6a700;021|Yellow|fec500;022|Light Yellow|f2ca00;022M|Matte Light Yellow|f2ca00;025|Brimstone Yellow|f2e210;026|Purple Red|5e050e;312|Burgundy|6f000e;312M|Matte Burgundy|6f000e;030|Dark Red|900e16;031|Red|b0000d;031M|Matte Red|b0000d;032|Light Red|c91100;034|Orange|e1512c;034M|Matte Orange|e1512c;047|Orange Red|d33100;036|Light Orange|ea6700;035|Pastel Orange|fc6c00;341|Coral|f88873;404|Purple|412773;040|Violet|5d2c68;040M|Matte Violet|5d2c68;043|Lavender|775ea0;042|Lilac|b893bc;041|Pink|c22b6b;041M|Matte Pink|c22b6b;045|Soft Pink|ed84b6;045M|Matte Soft Pink|ed84b6;562|Deep Sea Blue|131e3a;518|Steel Blue|13133e;050|Dark Blue|1b2e5d;050M|Matte Dark Blue|1b2e5d;065|Cobalt Blue|12226c;049|King Blue|152a78;086|Brilliant Blue|1930ab;067|Blue|003a79;057|Traffic Blue|00408c;051|Gentian Blue|004684;098|Gentian|0050a2;052|Azure Blue|005dab;084|Sky Blue|0075bb;084M|Matte Sky Blue|0075bb;053|Light Blue|0089c3;056|Ice Blue|3da1d2;066|Turquoise Blue|00818c;054|Turquoise|009b97;054M|Matte Turquoise|009b97;055|Mint|5fcdb7;060|Dark Green|004028;613|Forest Green|005236;061|Green|00784b;061M|Matte Green|00784b;068|Grass Green|007a42;062|Light Green|00873c;064|Yellow Green|289901;063|Lime-tree Green|6aa72d;080|Brown|432f1e;080M|Matte Brown|432f1e;083|Nut Brown|af591f;824|Imitation Gold|d2972f;081|Light Brown|a8885c;082|Beige|cec09f;023|Cream|ebd494;070|Black|0d0e11;070M|Matte Black|231f20;073|Dark Grey|4b4c4c;073M|Matte Dark Grey|4b4c4c;071|Grey|757d7c;071M|Matte Grey|757d7c;076|Telegrey|818689;074|Middle Grey|8a8f8b;072|Light Grey|bfc2c0;090|Silver Grey|686a6d;090M|Matte Silver Grey Metallic|686a6d;091|Gold|756232;091M|Matte Gold Metallic|756232;092|Copper|6b411d';
+const ADES_CAT=[
+  {marca:'Oracal',linha:'651 (brilho / M = fosco)',cores:ADES_ORACAL.split(';').map(s=>{const[c,n,h]=s.split('|');return{cod:c,nome:n,hex:'#'+h}})},
+  {marca:'Imprimax',linha:'Gold Max (brilho)',cores:'Amarelo Médio|Amarelo Milano|Amarelo Ouro|Azul Céu|Azul Marinho|Azul Neon|Azul Noturno|Azul Recife|Azul Riviera|Bege|Bege Escuro|Branco|Chocolate|Cinza Claro|Cinza Escuro|Cinza Médio|Creme|Grafite|Laranja|Laranja Botânico|Laranja Escuro|Lilás|Ouro|Pink|Prata|Prata Alumínio|Prata Alumínio Escuro|Preto|Rosa Claro|Terracota|Verde Abacate|Verde Amazonas|Verde Bandeira|Verde Cítrico|Verde Escuro|Vermelho Fogo|Vermelho Tomate|Vermelho Vivo|Vinho|Violeta'},
+  {marca:'Imprimax',linha:'Gold Fosco',cores:'Azul Night Trenton|Branco Fosco|Grafite Fosco|Laranja Botânico Fosco|Prata Alumínio Fosco|Preto Fosco|Verde Bandeira Fosco|Verde Pérola|Vermelho Vivo Fosco'},
+  {marca:'Imprimax',linha:'Color Max',cores:'Amarelo Citrus|Amarelo Médio|Amarelo Milano|Amarelo Ouro|Azul Céu|Azul Céu Intenso|Azul Marinho|Azul Médio|Azul Noturno|Bege|Cinza Claro|Cinza Claro Fosco|Cinza Escuro|Cinza Médio|Cobre|Dourado|Escovado Prata|Laranja|Magenta|Marrom|Ouro|Prata|Preto|Preto Fosco|Preto Super Brilho|Rosa Claro|Tomate Cereja|Verde Abacate|Verde Amazonas|Verde Bandeira|Verde Escuro|Verde Maçã|Verde Turquesa|Vermelho Tomate|Vermelho Vivo'}];
+// cor aproximada pelo nome (Imprimax não publica hex)
+function adesHex(n){const s=n.toLowerCase().replace(/ fosco$/,'');const T=[['amarelo citrus','#e8e21a'],['amarelo médio','#fcc200'],['amarelo milano','#ffd400'],['amarelo ouro','#f5a800'],['azul céu intenso','#0083c9'],['azul céu','#3ea4dc'],['azul marinho','#14286b'],['azul neon','#1f6fff'],['azul noturno','#0f1c3f'],['azul night trenton','#18233d'],['azul recife','#0088b8'],['azul riviera','#0060a8'],['azul médio','#0050a0'],['bege escuro','#b49a72'],['bege','#d8c7a0'],['branco','#f4f5f2'],['chocolate','#4a2c1d'],['cinza claro','#c3c5c4'],['cinza escuro','#4f5254'],['cinza médio','#8a8e8f'],['cobre','#9a5a2e'],['creme','#efe0b4'],['dourado','#c9a43b'],['escovado prata','#b8bcc0'],['grafite','#3a3d40'],['laranja botânico','#f26a1b'],['laranja escuro','#d9480f'],['laranja','#f07800'],['lilás','#b893bc'],['magenta','#c2186b'],['marrom','#5c3a21'],['ouro','#b8963e'],['pink','#e0407e'],['prata alumínio escuro','#8c9196'],['prata alumínio','#a9adb1'],['prata','#b0b4b8'],['preto','#141414'],['rosa claro','#f2a6c4'],['terracota','#a8502e'],['tomate cereja','#d42a1c'],['verde abacate','#5e8a2a'],['verde amazonas','#00704a'],['verde bandeira','#00843d'],['verde cítrico','#8cc63f'],['verde escuro','#0b4a2e'],['verde maçã','#6cbf3a'],['verde pérola','#3f8f7a'],['verde turquesa','#00a19a'],['vermelho fogo','#e2231a'],['vermelho tomate','#d8301e'],['vermelho vivo','#c8102e'],['vinho','#6b0f1f'],['violeta','#5d2c68']];
+  const r=T.find(([k])=>s.startsWith(k));return r?r[1]:'#9aa0a6'}
+function adesCatalogo(){const out=[];ADES_CAT.forEach(c=>(typeof c.cores==='string'?c.cores.split('|').map(n=>({nome:n,hex:adesHex(n)})):c.cores).forEach(x=>out.push({marca:c.marca,linha:c.linha,...x})));return out}
+function adesDesc(c){return c?`${c.marca&&c.marca!=='Manual'?c.marca+' '+(c.linha||'').replace(/\s*\(.*\)/,'')+' — ':''}${c.cod?c.cod+' ':''}${c.nome}`:'COR A DEFINIR'}
+let adesMarca='';
+function adesUI(){const ap=tAcm.apl;const box=$('#aAdesBox');if(!box)return;box.hidden=ap.tipo!=='adesivo';if(box.hidden)return;
+  if(!adesMarca&&ap.cor)adesMarca=ap.cor.marca==='Manual'?'Manual':ap.cor.marca;
+  $('#aAdesMarca').innerHTML=['Oracal','Imprimax','Manual'].map(m=>`<button class="chip${m===adesMarca?' on':''}" data-adm="${m}" style="padding:9px 13px;font-size:13px">${m==='Manual'?'Outra / manual':m}</button>`).join('');
+  $('#aAdesMan').hidden=adesMarca!=='Manual';
+  const all=adesCatalogo();const cat=all.filter(c=>c.marca===adesMarca);const linhas=[...new Set(cat.map(c=>c.linha))];
+  $('#aAdesCores').innerHTML=adesMarca&&adesMarca!=='Manual'?linhas.map(l=>`<div style="width:100%"><span class="note" style="font-size:11px">${esc(l)}</span></div>`+cat.filter(c=>c.linha===l).map(c=>{const on=ap.cor&&ap.cor.marca===c.marca&&ap.cor.linha===c.linha&&ap.cor.nome===c.nome;return `<button class="chip${on?' on':''}" data-adc="${all.indexOf(c)}" style="display:inline-flex;gap:6px;align-items:center;padding:7px 10px;font-size:12px"><span style="width:14px;height:14px;border-radius:3px;background:${c.hex};border:1px solid #0002;display:inline-block"></span>${c.cod?`<b>${esc(c.cod)}</b> `:''}${esc(c.nome)}</button>`}).join('')).join(''):'';
+  if(!ap.faixa)ap.faixa=faixaDef();const fx=ap.faixa;$('#aFxOn').checked=!!fx.on;$('#aFxBox').hidden=!fx.on;$('#aFxH').value=fx.h||'';$('#aFxAl').value=fx.al;$('#aFxD').value=fx.d||'';$('#aFxDW').hidden=fx.al!=='dist';
+  $('#aAdesSel').innerHTML=ap.cor?`<span style="display:inline-flex;gap:6px;align-items:center"><span style="width:16px;height:16px;border-radius:3px;background:${ap.cor.hex};border:1px solid #0003;display:inline-block"></span><b>${esc(adesDesc(ap.cor))}</b></span>`:'<span class="note">Nenhuma cor escolhida.</span>'}
+if($('#aAdesBox')){
+  $('#aAdesMarca').onclick=e=>{const b=e.target.closest('[data-adm]');if(!b)return;adesMarca=b.dataset.adm;adesUI()};
+  $('#aAdesCores').onclick=e=>{const b=e.target.closest('[data-adc]');if(!b)return;tAcm.apl.cor=adesCatalogo()[+b.dataset.adc];adesUI();tAtualizar()};
+  ['aFxOn','aFxH','aFxAl','aFxD'].forEach(id=>$('#'+id).addEventListener('change',()=>{const ap=tAcm.apl;if(!ap.faixa)ap.faixa=faixaDef();const fx=ap.faixa;fx.on=$('#aFxOn').checked;fx.h=numBR($('#aFxH').value);fx.al=$('#aFxAl').value;fx.d=numBR($('#aFxD').value);adesUI();tAtualizar()}));
+  $('#aAdesOk').onclick=()=>{const nome=$('#aAdesNome').value.trim();if(!nome)return;tAcm.apl.cor={marca:'Manual',linha:'',nome,hex:$('#aAdesHex').value};$('#aAdesNome').value='';adesUI();tAtualizar()}}
+
 /* ---------- aplicação no ACM: adesivo (P1) ou letra caixa (acabamento) ---------- */
-function aplDef(){return{tipo:'',nome:'',polys:null,w0:0,h0:0,larg:0,hm:'centro',hv:0,vm:'centro',vv:0}}
+function aplDef(){return{tipo:'',nome:'',polys:null,w0:0,h0:0,larg:0,hm:'centro',hv:0,vm:'centro',vv:0,faixa:{on:false,h:0,al:'base',d:0}}}
 if(!tAcm.apl)tAcm.apl=aplDef();
 // retângulo da frente (faces no mesmo plano da face 1), na medida final
 function frenteTesteira(M){const faces=tFaces,o=M.o;const Lf=layoutFaces(faces,o);const A=Lf[0];const dot=(u,v)=>u[0]*v[0]+u[1]*v[1];
   const fr=Lf.filter(L=>Math.abs(L.d[0]-A.d[0])<1e-6&&Math.abs(L.d[1]-A.d[1])<1e-6&&Math.abs(dot(L.O,A.n)-dot(A.O,A.n))<1);
   const s=fr.map(L=>dot([L.O[0]-A.O[0],L.O[1]-A.O[1]],A.d));const x0=Math.min(...s),x1=Math.max(...fr.map((L,i)=>s[i]+L.W)),y0=Math.min(...fr.map(L=>L.oy)),y1=Math.max(...fr.map(L=>L.oy+L.H));
-  return{A,x0,x1,y0,y1,W:x1-x0,H:y1-y0,faces:fr.map((L,i)=>({x:s[i]-x0,y:L.oy-y0,W:L.W,H:L.H}))}}
+  return{A,x0,x1,y0,y1,W:x1-x0,H:y1-y0,faces:fr.map((L,i)=>({i:Lf.indexOf(L),x:s[i]-x0,y:L.oy-y0,W:L.W,H:L.H}))}}
 function aplPos(F,ap){const aw=ap.larg>0?ap.larg*10:ap.w0,ah=ap.w0>0?aw*ap.h0/ap.w0:0;
   const x=ap.hm==='esquerda'?ap.hv*10:ap.hm==='direita'?F.W-aw-ap.hv*10:(F.W-aw)/2;
   const y=ap.vm==='baixo'?ap.vv*10:ap.vm==='cima'?F.H-ah-ap.vv*10:(F.H-ah)/2;return{x,y,w:aw,h:ah}}
-function aplPagina(M,o,ctx,pages,tags){const ap=tAcm.apl;if(!tAcm.on||!ap||!ap.tipo||!ap.polys||!ap.polys.length)return;
-  const F=frenteTesteira(M);const Q=aplPos(F,ap);const k=Q.w/ap.w0;const art=ap.polys.map(p=>p.map(([x,y])=>[Q.x+x*k,Q.y+y*k]));
-  const ades=ap.tipo==='adesivo';const COR=ades?'#1c7ed6':'#c2255c';const P=[];frame(P,ctx,{setor:ades?'P1':'ACABAMENTO'});
+// faixa horizontal de adesivo: posição na frente e tiras para a P1 (+20 mm de cada lado)
+function faixaDef(){return{on:false,h:0,al:'base',d:0}}
+function faixaPos(F,fx){const h=Math.min(fx.h*10,F.H);const y=fx.al==='topo'?F.H-h:fx.al==='dist'?Math.min(fx.d*10,F.H-h):0;return{y,h}}
+function adesRolo(c){return !c?1220:c.marca==='Oracal'?1260:/Color Max/.test(c.linha||'')?1000:1220}
+function faixaTiras(M,o){const ap=tAcm.apl,fx=ap&&ap.faixa;if(!tAcm.on||!ap||ap.tipo!=='adesivo'||!fx||!fx.on||!(fx.h>0)||!M.acm)return null;
+  const F=frenteTesteira(M);const B=faixaPos(F,fx);const env=tAcm.inst!=='rente';const segue=env&&(fx.al==='base'||fx.al==='topo');const rolo=adesRolo(ap.cor),SB=20;
+  const fIdx={};F.faces.forEach(f=>fIdx[f.i+1]=f);const tiras=[];
+  M.acm.grp.forEach(g=>{const p=g.p;const faces=g.refs.map(r=>+(/^F(\d+)/.exec(r)||[])[1]).filter(n=>fIdx[n]);if(!faces.length)return;const f=fIdx[faces[0]];
+    const y0=Math.max(B.y,f.y),y1=Math.min(B.y+B.h,f.y+f.H);if(y1-y0<1)return;
+    let h=y1-y0;const dobraB=segue&&fx.al==='base'&&p.lados.b&&f.y<1,dobraT=segue&&fx.al==='topo'&&p.lados.t&&f.y+f.H>F.H-1;if(dobraB||dobraT)h+=p.e;
+    const L=p.w+(env&&p.lados.l?p.e:0)+(env&&p.lados.r?p.e:0);const W=L+2*SB,Ht=h+2*SB;const nb=Math.ceil(Ht/rolo);
+    tiras.push({id:g.id,refs:g.refs.filter((r,k)=>fIdx[faces[k]]),L,h,W,Ht:nb>1?Ht/nb+SB:Ht,nb,q:faces.length*o.un*nb,dobra:dobraB||dobraT})});
+  return{F,B,segue,rolo,tiras,total:tiras.reduce((s,t)=>s+t.q,0)}}
+function faixaArquivo(T,base){if(!T||!T.tiras.length)return null;const {jsPDF}=window.jspdf;const G=30,W=Math.max(...T.tiras.map(t=>t.W))+2*G;
+  const lst=[];T.tiras.forEach(t=>{for(let k=0;k<t.q;k++)lst.push(t)});const H=lst.reduce((s,t)=>s+t.Ht+G,G);
+  const doc=new jsPDF({unit:'mm',format:[W,H],orientation:W>H?'l':'p',compress:true});doc.setLineWidth(0.1);doc.setDrawColor(255,0,192);let y=G;
+  lst.forEach(t=>{doc.rect(G,y,t.W,t.Ht);y+=t.Ht+G});
+  return{name:nomeArq(`${base} - ADESIVO FAIXA P1 (${T.total} tiras, +2cm cada lado).pdf`),buf:doc.output('arraybuffer')}}
+function aplPagina(M,o,ctx,pages,tags){const ap=tAcm.apl;if(!tAcm.on||!ap||!ap.tipo)return;
+  const ades=ap.tipo==='adesivo';const temArte=!!(ap.polys&&ap.polys.length);const FX=ades?faixaTiras(M,o):null;if(!temArte&&!FX)return;
+  const F=frenteTesteira(M);const Q=temArte?aplPos(F,ap):null;const k=temArte?Q.w/ap.w0:1;const art=temArte?ap.polys.map(p=>p.map(([x,y])=>[Q.x+x*k,Q.y+y*k])):[];
+  const COR=ades?(ap.cor&&ap.cor.hex||'#1c7ed6'):'#c2255c';const CORT=ades?'#1c7ed6':'#c2255c';const P=[];frame(P,ctx,{setor:ades?'P1':'ACABAMENTO'});
+  const fx=ap.faixa||faixaDef();const AL={base:'ALINHADA À BASE',topo:'ALINHADA AO TOPO',dist:`A ${f1(fx.d)} CM DA BASE`};
   P.push({t:'text',x:18,y:31,s:`${o.un}X`,size:7,bold:true,italic:true,color:'#000000'});
-  P.push({t:'text',x:PW/2,y:30,s:ades?'ADESIVO NO ACM DA TESTEIRA':'LETRA CAIXA FIXADA NO ACM (NA EMPRESA)',size:4.2,bold:true,color:'#000000',anchor:'middle'});
-  P.push({t:'text',x:PW/2,y:35,s:`${ap.nome||'arte'} • ${f0(Q.w)} x ${f0(Q.h)} mm • ${{centro:'CENTRALIZADO NA LARGURA',esquerda:`A ${f0(ap.hv)} CM DA ESQUERDA`,direita:`A ${f0(ap.hv)} CM DA DIREITA`}[ap.hm]} • ${{centro:'CENTRALIZADO NA ALTURA',cima:`A ${f0(ap.vv)} CM DO TOPO`,baixo:`A ${f0(ap.vv)} CM DA BASE`}[ap.vm]}`,size:2.5,color:'#555555',anchor:'middle'});
+  P.push({t:'text',x:PW/2,y:30,s:ades?(temArte?'ADESIVO NO ACM DA TESTEIRA':'FAIXA DE ADESIVO NO ACM DA TESTEIRA'):'LETRA CAIXA FIXADA NO ACM (NA EMPRESA)',size:4.2,bold:true,color:'#000000',anchor:'middle'});
+  const sub=[];if(temArte)sub.push(`${ap.nome||'arte'} • ${f0(Q.w)} x ${f0(Q.h)} mm • ${{centro:'CENTRALIZADO NA LARGURA',esquerda:`A ${f0(ap.hv)} CM DA ESQUERDA`,direita:`A ${f0(ap.hv)} CM DA DIREITA`}[ap.hm]} • ${{centro:'CENTRALIZADO NA ALTURA',cima:`A ${f0(ap.vv)} CM DO TOPO`,baixo:`A ${f0(ap.vv)} CM DA BASE`}[ap.vm]}`);
+  if(FX)sub.push(`FAIXA ${f0(FX.B.h)} mm ${AL[fx.al]}`);
+  P.push({t:'text',x:PW/2,y:35,s:fit(sub.join('   |   '),260,2.5),size:2.5,color:'#555555',anchor:'middle'});
   // vista de frente totalmente cotada
   const R={x:34,y:46,w:236,h:56};const s=Math.min(R.w/F.W,R.h/F.H);const ox=R.x+(R.w-F.W*s)/2,oy=R.y+(R.h-F.H*s)/2;const X=x=>ox+x*s,Y=y=>oy+(F.H-y)*s;
   P.push({t:'rect',x:X(0),y:Y(F.H),w:F.W*s,h:F.H*s,fill:mixB(tAcm.cor&&tAcm.cor.hex||'#c8ccd2'),stroke:'#212529',lw:0.3});
+  if(FX)P.push({t:'rect',x:X(0),y:Y(FX.B.y+FX.B.h),w:F.W*s,h:FX.B.h*s,fill:COR,stroke:CORT,lw:0.15});
   F.faces.forEach(f=>P.push({t:'rect',x:X(f.x),y:Y(f.y+f.H),w:f.W*s,h:f.H*s,stroke:'#868e96',lw:0.12}));
-  P.push({t:'pathfill',polys:art.map(p=>p.map(([x,y])=>[X(x),Y(y)])),fill:COR});
-  P.push({t:'rect',x:X(Q.x),y:Y(Q.y+Q.h),w:Q.w*s,h:Q.h*s,stroke:COR,lw:0.15});
+  if(temArte){P.push({t:'pathfill',polys:art.map(p=>p.map(([x,y])=>[X(x),Y(y)])),fill:COR});P.push({t:'rect',x:X(Q.x),y:Y(Q.y+Q.h),w:Q.w*s,h:Q.h*s,stroke:CORT,lw:0.15})}
   const fs=2.6,C2='#d6336c';
   cotaH(P,X(0),X(F.W),Y(F.H)-6,Y(F.H),fmm(F.W),fs);cotaV(P,X(0)-7,Y(F.H),Y(0),X(0),fmm(F.H),fs);
-  cotaH(P,X(Q.x),X(Q.x+Q.w),Y(Q.y+Q.h)-2.5,null,fmm(Q.w),2.4,COR);cotaV(P,X(Q.x+Q.w)+2.5,Y(Q.y+Q.h),Y(Q.y),null,fmm(Q.h),2.4,COR);
-  const ym=Y(Q.y+Q.h/2),xm=X(Q.x+Q.w/2);
-  if(Q.x>1)cotaH(P,X(0),X(Q.x),ym,null,f0(Q.x),2.4,C2);if(F.W-Q.x-Q.w>1)cotaH(P,X(Q.x+Q.w),X(F.W),ym,null,f0(F.W-Q.x-Q.w),2.4,C2);
-  if(F.H-Q.y-Q.h>1)cotaV(P,xm,Y(F.H),Y(Q.y+Q.h),null,f0(F.H-Q.y-Q.h),2.4,C2);if(Q.y>1)cotaV(P,xm,Y(Q.y),Y(0),null,f0(Q.y),2.4,C2);
+  if(FX){const xr=X(F.W)+3;cotaV(P,xr,Y(FX.B.y+FX.B.h),Y(FX.B.y),null,f0(FX.B.h),2.4,CORT);if(FX.B.y>1)cotaV(P,xr,Y(FX.B.y),Y(0),null,f0(FX.B.y),2.4,C2);if(F.H-FX.B.y-FX.B.h>1)cotaV(P,xr,Y(F.H),Y(FX.B.y+FX.B.h),null,f0(F.H-FX.B.y-FX.B.h),2.4,C2)}
+  if(temArte){cotaH(P,X(Q.x),X(Q.x+Q.w),Y(Q.y+Q.h)-2.5,null,fmm(Q.w),2.4,CORT);cotaV(P,X(Q.x+Q.w)+2.5,Y(Q.y+Q.h),Y(Q.y),null,fmm(Q.h),2.4,CORT);
+    const ym=Y(Q.y+Q.h/2),xm=X(Q.x+Q.w/2);
+    if(Q.x>1)cotaH(P,X(0),X(Q.x),ym,null,f0(Q.x),2.4,C2);if(F.W-Q.x-Q.w>1)cotaH(P,X(Q.x+Q.w),X(F.W),ym,null,f0(F.W-Q.x-Q.w),2.4,C2);
+    if(F.H-Q.y-Q.h>1)cotaV(P,xm,Y(F.H),Y(Q.y+Q.h),null,f0(F.H-Q.y-Q.h),2.4,C2);if(Q.y>1)cotaV(P,xm,Y(Q.y),Y(0),null,f0(Q.y),2.4,C2)}
   P.push({t:'text',x:R.x+R.w/2,y:R.y+R.h+8,s:'FRENTE DA TESTEIRA (MEDIDA FINAL COM ACM) — MEDIDAS EM MM',size:2.6,bold:true,color:COR_DIM,anchor:'middle'});
   // vista isométrica explodida
   const A=F.A,t=+tAcm.esp;const dz=Math.max(150,0.35*Math.min(F.W,F.H));
   const W3=(x,y,z)=>[A.O[0]+(F.x0+x)*A.d[0]+z*A.n[0],F.y0+y,A.O[1]+(F.x0+x)*A.d[1]+z*A.n[1]];
   const est=M.boxes.filter(b=>!b.fix).map(b=>({...b,cor:'#d5d9de'}));const acmB=M.acm?M.acm.boxes.filter(b=>!b.wire).map(b=>({...b})):[];
   const ISO=isoPrims(P,est.concat(acmB),{x:14,y:112,w:150,h:50});
-  P.push({t:'pathfill',polys:art.map(p=>p.map(([x,y])=>ISO.I(...W3(x,y,-t-dz)))),fill:COR});
-  [[Q.x,Q.y],[Q.x+Q.w,Q.y],[Q.x,Q.y+Q.h],[Q.x+Q.w,Q.y+Q.h]].forEach(([x,y])=>{const a=ISO.I(...W3(x,y,-t)),b=ISO.I(...W3(x,y,-t-dz));P.push({t:'line',x1:a[0],y1:a[1],x2:b[0],y2:b[1],color:'#868e96',w:0.12})});
+  if(FX){const z=-t-dz;P.push({t:'pathfill',polys:[[[0,FX.B.y],[F.W,FX.B.y],[F.W,FX.B.y+FX.B.h],[0,FX.B.y+FX.B.h]].map(([x,y])=>ISO.I(...W3(x,y,z)))],fill:COR})}
+  if(temArte)P.push({t:'pathfill',polys:art.map(p=>p.map(([x,y])=>ISO.I(...W3(x,y,-t-dz)))),fill:COR});
+  const gu=temArte?[[Q.x,Q.y],[Q.x+Q.w,Q.y],[Q.x,Q.y+Q.h],[Q.x+Q.w,Q.y+Q.h]]:[[0,FX.B.y],[F.W,FX.B.y],[0,FX.B.y+FX.B.h],[F.W,FX.B.y+FX.B.h]];
+  gu.forEach(([x,y])=>{const a=ISO.I(...W3(x,y,-t)),b=ISO.I(...W3(x,y,-t-dz));P.push({t:'line',x1:a[0],y1:a[1],x2:b[0],y2:b[1],color:'#868e96',w:0.12})});
   P.push({t:'text',x:89,y:166,s:'VISTA ISOMÉTRICA EXPLODIDA',size:2.4,bold:true,color:'#555555',anchor:'middle'});
   // informações
-  const ix=176;let y=118;const lin=(k,v)=>{P.push({t:'text',x:ix,y,s:k,size:2.2,color:'#868e96'},{t:'text',x:ix,y:y+3.6,s:fit(v,108,2.6),size:2.6,bold:true,color:'#000000'});y+=8};
-  lin('TIPO:',ades?'ADESIVO — SETOR P1':'LETRA CAIXA — SETOR ACABAMENTO');lin('ARTE:',`${ap.nome||'—'} (${f0(Q.w)} x ${f0(Q.h)} mm)`);
+  const ix=176;let y=FX?114:118;const lin=(k,v)=>{P.push({t:'text',x:ix,y,s:k,size:2.2,color:'#868e96'},{t:'text',x:ix,y:y+3.6,s:fit(v,108,2.6),size:2.6,bold:true,color:'#000000'});y+=FX?7:8};
+  lin('TIPO:',ades?'ADESIVO — SETOR P1':'LETRA CAIXA — SETOR ACABAMENTO');if(temArte)lin('ARTE:',`${ap.nome||'—'} (${f0(Q.w)} x ${f0(Q.h)} mm)`);
+  if(ades){lin('COR DO ADESIVO:',adesDesc(ap.cor).toUpperCase());if(ap.cor)P.push({t:'rect',x:ix-5,y:y-(FX?5.2:6.2),w:3.6,h:3.6,fill:ap.cor.hex,stroke:'#212529',lw:0.15})}
   lin('ACM:',`${t} MM — ${acmDesc().toUpperCase()}`);
-  P.push({t:'text',x:ix,y:y+1,s:fit(ades?'Aplicar o adesivo no ACM antes de montar, seguindo as medidas de saída.':'Fixar a letra caixa no ACM aqui na empresa, seguindo as medidas de saída.',108,2.4),size:2.4,bold:true,color:COR});
+  if(FX){P.push({t:'text',x:ix,y,s:`FAIXA: CORTAR ${FX.total} TIRA(S) DE ADESIVO (+20 MM DE SOBRA EM CADA LADO)`,size:2.4,bold:true,color:'#c92a2a'});y+=3.6;
+    FX.tiras.slice(0,4).forEach(tq=>{P.push({t:'text',x:ix,y,s:fit(`${tq.q}x  ${f0(tq.W)} x ${f0(tq.Ht)} mm — ACM ${tq.id} (${tq.refs.join(', ')})${tq.dobra?' • cobre a dobra':''}${tq.nb>1?` • ${tq.nb} faixas emendadas (rolo ${FX.rolo})`:''}`,108,2.3),size:2.3,color:'#000000'});y+=3.3});
+    if(FX.tiras.length>4){P.push({t:'text',x:ix,y,s:`+ ${FX.tiras.length-4} tamanho(s) — ver arquivo da P1`,size:2.3,color:'#000000'});y+=3.3}
+    P.push({t:'text',x:ix,y,s:fit(`${FX.segue?'Altura = faixa + dobra do envelope':'Altura = faixa'}; rolo ${FX.rolo} mm; aplicar antes de dobrar.`,108,2.2),size:2.2,color:'#555555'});y+=4}
+  P.push({t:'text',x:ix,y:y+1,s:fit(ades?'Aplicar o adesivo no ACM antes de montar, seguindo as medidas de saída.':'Fixar a letra caixa no ACM aqui na empresa, seguindo as medidas de saída.',108,2.4),size:2.4,bold:true,color:CORT});
   pages.push(P);tags.push(ades?'ADESIVO':'LETRA NO ACM')}
 async function aplCarrega(file){try{const buf=await file.arrayBuffer();const r=await readPdf(buf);
     let ps=r.paths&&r.paths.length?flattenPaths(r.paths,1,0.15):r.polys;if(!ps||!ps.length){$('#aAplInfo').innerHTML='<div class="msg err">Não encontrei desenho vetorial nesse PDF.</div>';return}
@@ -2824,7 +2908,7 @@ function acmAplUI(){if(!$('#aApl'))return;if(!tAcm.apl)tAcm.apl=aplDef();const a
   $('#aAplInfo').innerHTML=ap.polys?`<div class="msg ok">${esc(ap.nome)} — arte de ${f0(ap.w0)} x ${f0(ap.h0)} mm no PDF</div>`:'<p class="note" style="margin:0">Envie o PDF da arte (em vetor).</p>';
   $('#aAplW').value=ap.larg||'';$('#aAplHm').value=ap.hm;$('#aAplHv').value=ap.hv||'';$('#aAplVm').value=ap.vm;$('#aAplVv').value=ap.vv||'';
   $('#aAplHv').disabled=ap.hm==='centro';$('#aAplVv').disabled=ap.vm==='centro';
-  $('#aAplH').textContent=ap.polys&&ap.larg?`Altura proporcional: ${f1(ap.larg*ap.h0/ap.w0)} cm`:''}
+  $('#aAplH').textContent=ap.polys&&ap.larg?`Altura proporcional: ${f1(ap.larg*ap.h0/ap.w0)} cm`:'';adesUI()}
 if($('#aApl')){
   $('#aApl').onclick=e=>{const b=e.target.closest('button');if(!b)return;tAcm.apl.tipo=b.dataset.m;acmAplUI();tAtualizar()};
   $('#aAplPdf').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)aplCarrega(f)};
@@ -3014,6 +3098,13 @@ if($('#instIn')){
   $('#instZone').addEventListener('input',()=>{$('#instZone').textContent=Z});
   $('#instBox').addEventListener('change',()=>{instRender();if(typeof pedSujo!=='undefined')pedSujo=true;refRefaz()});
   instRender()}
+
+/* ---------- observação geral da FP (campo abaixo de cada prévia) ---------- */
+const FPOBS_RUN={pedPrev:()=>$('#pedGerar').click(),prev:()=>{if(!$('#gerar').disabled)$('#gerar').click()},mPrev:()=>mFolhasRender(),dPrev:()=>dRender3D(),tPrev:()=>tRender()};
+function fpObsSync(){document.querySelectorAll('.fpObsTa').forEach(t=>{if(t!==document.activeElement)t.value=fpObs})}
+document.querySelectorAll('.fpObsBox').forEach(box=>{const pid=box.previousElementSibling&&box.previousElementSibling.id;const ta=box.querySelector('.fpObsTa');
+  ta.addEventListener('input',()=>{fpObs=ta.value;fpObsSync()});
+  box.querySelector('.fpObsBtn').onclick=()=>{fpObs=ta.value;fpObsSync();try{(FPOBS_RUN[pid]||(()=>{}))()}catch(e){console.error(e)}}});
 
 /* ================= ESTRUTURA POR DESENHO (PDF + descrição → 3D montado pelo Claude) ================= */
 let tModo='padrao';let dSrc=null,dModel=null,dHist=[],dPrevModels=[],dBuild=null,dSel='MONTAGEM';
@@ -3447,9 +3538,9 @@ function irAba(tab){const b=document.querySelector(`nav button[data-tab="${tab}"
 function proximoN(){return Math.max(0,...(pedAtual.itens||[]).map(i=>+i.n||0))+1}
 document.querySelectorAll('[data-novo]').forEach(b=>b.onclick=()=>{const tipo=b.dataset.novo;itemAtual={id:'i'+Date.now().toString(36),tipo,n:proximoN(),novo:true};
   limpaTipo(tipo);$('#item').value=itemAtual.n;irAba(TIPO_ABA[tipo]);if(tipo==='testeira')setModo('padrao');if(tipo==='estrutura')setModo('desenho');pedSujo=true;pedBarRender();window.scrollTo(0,0)});
-function limpaTipo(tipo){refImg=null;refRender();instReset();
+function limpaTipo(tipo){refImg=null;fpObs='';fpObsSync();refRender();instReset();
   if(tipo==='letra'){src=null;srcBytes=null;ledAdj={};resetOut();prevSet('');$('#outMsg').innerHTML='';$('#fileInfo').innerHTML='';$('#drop').classList.remove('has');$('#dropTxt').textContent='Toque para escolher o PDF';$('#xPages').innerHTML='';$('#obs').value='';selLed=6500;selCaixa=80;renderLeds();renderCaixa();updateBtn()}
-  if(tipo==='testeira'){tFaces=[{W:1000,H:1000,prof:0,junta:'linha'}];tAcm={on:false,esp:3,inst:'rente',fita:'vhb',chapa:'auto',marca:'',cor:null,jt:false,jmm:5,je:false,envT:'ext',apl:aplDef()};acmUI();acmAplUI();renderFaces();v3Fit=true}
+  if(tipo==='testeira'){tFaces=[{W:1000,H:1000,prof:0,junta:'linha'}];tAcm={on:false,esp:3,inst:'rente',fita:'vhb',chapa:'auto',marca:'',cor:null,jt:false,jmm:5,je:false,envT:'ext',apl:aplDef()};acmUI();adesMarca="";acmAplUI();renderFaces();v3Fit=true}
   if(tipo==='estrutura'){dSrc=null;dModel=null;dHist=[];dPrevModels=[];$('#dTxt').value='';$('#dAlt').value='';$('#dInfo').innerHTML='';$('#dDraw').innerHTML='';$('#dPecas').innerHTML='';$('#dDropTxt').textContent='Toque para escolher o PDF';$('#dAltBox').hidden=true;$('#dResCard').hidden=true;dBotao()}
   if(tipo==='modelo3d'){mSrc=null;mBytes=null;mPecas=[];$('#mInfo').innerHTML='';$('#mDropTxt').textContent='Toque para escolher o arquivo 3D (.stl ou .obj)';$('#mResCard').hidden=true}}
 // ---------- barra do pedido (aparece nas abas de trabalho) ----------
@@ -3477,7 +3568,7 @@ function capturaEstado(tipo){
 async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHTML=t};
   try{const n=Math.max(1,Math.round(num($('#item').value))||1);
     const outro=(pedAtual.itens||[]).find(i=>+i.n===n&&(!itemAtual||i.id!==itemAtual.id));if(outro)throw new Error(`já existe o item ${n} neste pedido (${TIPO_NOME[outro.tipo]}). Mude o número do item.`);
-    msg('Salvando…');const C=capturaEstado(tipo);C.estado.refImg=refImg;C.estado.inst=capInputs(['#instBox']);C.estado.instImg=instImg;
+    msg('Salvando…');const C=capturaEstado(tipo);C.estado.refImg=refImg;C.estado.fpObs=fpObs;C.estado.inst=capInputs(['#instBox']);C.estado.instImg=instImg;
     let it=itemAtual&&itemAtual.tipo===tipo?pedAtual.itens.find(i=>i.id===itemAtual.id):null;const velho=it?{e:it.estadoId,f:it.fonteId}:null;
     const estadoId=await guardaJSON(C.estado);const fonteId=C.fonte?(it&&it.fonteNome===C.fonte.nome&&it.fonteTam===C.fonte.b64.length?it.fonteId:await guardaJSON(C.fonte)):null;
     const reg={id:it?it.id:(itemAtual&&itemAtual.id)||'i'+Date.now().toString(36),n,tipo,desc:C.desc,resumo:C.resumo,estadoId,fonteId,fonteNome:C.fonte?C.fonte.nome:'',fonteTam:C.fonte?C.fonte.b64.length:0,atualizado:Date.now()};
@@ -3487,14 +3578,14 @@ async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHT
   catch(e){console.error(e);msg(`<span style="color:#ffc9c9">Não salvou: ${esc(e.message)}</span>`)}}
 // abre um item: restaura tudo; se "mostrar", vai para a aba dele e gera
 async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)throw new Error('estado do item não encontrado');const F=it.fonteId?await lerJSON(it.fonteId):null;
-  itemAtual={id:it.id,tipo:it.tipo,n:it.n};$('#item').value=it.n;refImg=E.refImg||null;refRender();instReset();if(E.inst)putInputs(E.inst);instImg=E.instImg||null;instRender();
+  itemAtual={id:it.id,tipo:it.tipo,n:it.n};$('#item').value=it.n;refImg=E.refImg||null;fpObs=E.fpObs||'';fpObsSync();refRender();instReset();if(E.inst)putInputs(E.inst);instImg=E.instImg||null;instRender();
   if(E.cor){selEsc=E.cor.selEsc||selEsc;renderEsc();putInputs(E.cor.inputs)}
   if(it.tipo==='letra'){limpaTipo('letra');putInputs(E.inputs);selType=E.selType;selLed=E.selLed;selChapa=E.selChapa;selCaixa=E.selCaixa||80;
     $('#xPages').innerHTML='';(E.xPages||[]).forEach((p,i)=>$('#xPages').insertAdjacentHTML('beforeend',pageBlock(p,i)));renumberIn($('#xPages'));
     renderTypes();renderLeds();selChapa=E.selChapa;selCaixa=E.selCaixa||80;renderChapa();renderCaixa();if(E.cor)putInputs(E.cor.inputs);
     if(F)await carregaLetra(F.nome,unb64(F.b64));ledAdj=E.ledAdj||{};if(E.desc!=null)$('#descItem').value=E.desc;updateBtn();
     if(mostrar){irAba('novo');setTimeout(()=>$('#gerar').click(),50)}}
-  if(it.tipo==='testeira'){putInputs(E.inputs);tFaces=E.tFaces;tPint=E.tPint||'nao';tAcm=E.tAcm?{apl:aplDef(),...E.tAcm}:{on:false,esp:3,inst:'rente',fita:'vhb',chapa:'auto',marca:'',cor:null,jt:false,jmm:5,je:false,envT:'ext',apl:aplDef()};acmUI();acmAplUI();fixSel.clear();(E.fixSel||[]).forEach(x=>fixSel.add(x));
+  if(it.tipo==='testeira'){putInputs(E.inputs);tFaces=E.tFaces;tPint=E.tPint||'nao';tAcm=E.tAcm?{apl:aplDef(),...E.tAcm}:{on:false,esp:3,inst:'rente',fita:'vhb',chapa:'auto',marca:'',cor:null,jt:false,jmm:5,je:false,envT:'ext',apl:aplDef()};acmUI();adesMarca="";acmAplUI();fixSel.clear();(E.fixSel||[]).forEach(x=>fixSel.add(x));
     document.querySelectorAll('#tPintModo button').forEach(x=>x.classList.toggle('sel',x.dataset.m===tPint));$('#tPintSlot').hidden=tPint!=='toda';$('#tH40box').hidden=!$('#t40').checked;
     renderFaces();renderFixPick();if(mostrar){irAba('testeiras');setModo('padrao');v3Fit=true;tRender()}}
   if(it.tipo==='estrutura'){putInputs(E.inputs);dSrc=E.dSrc;dModel=E.dModel;dHist=E.dHist||[];dPrevModels=[];dPint=E.dPint||'nao';
