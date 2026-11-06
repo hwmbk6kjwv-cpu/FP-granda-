@@ -1476,6 +1476,14 @@ function buildDoc(){
       const area=areaOf(orig)-(inner.length?areaOf(inner):0);const areaLat=perim*ctx.caixa/1000;
       const nLet=regionsOf(toC(orig)).length;
       matTable(P,pg,[['ESCALA:',CI.esc],['CÓDIGO:',CI.code||'A DEFINIR'],...(CI.nome?[['NOME DA COR:',CI.nome]]:[]),...(CI.rgb?[['REF.:',CI.esc==='CMYK'?`RGB ${CI.rgb.join(' ')} (aprox.)`:`CMYK ${CI.cmyk.join(' ')} (aprox.)`]]:[]),['ACABAMENTO:',acab],['TINTA:',tinta||'----'],['PINTAR:',{frente_lateral:'FRENTE + LATERAL',lateral:'SOMENTE LATERAL',frente:'SOMENTE FRENTE'}[partes]],['INTERNO:','BRANCO — PISTOLA'],['CAIXA:',`${ctx.caixa/10} CM`],['ÁREA LATERAL:',`${areaLat.toLocaleString('pt-BR',{maximumFractionDigits:2})} M2 (${perim.toLocaleString('pt-BR',{maximumFractionDigits:2})} M x ${ctx.caixa/10} CM)`],...(partes!=='lateral'?[['ÁREA FRENTE:',`${area.toLocaleString('pt-BR',{maximumFractionDigits:2})} M2${tBorda?` (BORDA ${tBorda} MM)`:''}`]]:[])]);
+      {const Ls=ordenaPecas(regionsOf(toC(orig)).map(r=>{const ps=fromC(r);return{ps,bb:bbox(ps)}}));const pc=Ls.map(g=>panelaPorLetra(g.ps));const np=pc.reduce((a,v)=>a+v,0);
+       const perE=Ls.reduce((a,g)=>a+chainLen(g.ps[0].concat([g.ps[0][0]])),0)/1000;const X0=146,Y0=114;
+       P.push({t:'rect',x:X0,y:Y0,w:139,h:34,r:2,fill:'#fff4e6',stroke:'#e8590c',lw:0.35});
+       P.push({t:'text',x:X0+3,y:Y0+5,s:'PARAFUSOS DA LATERAL — PINTAR NA COR DA LETRA',size:2.8,bold:true,color:'#c2410c'});
+       P.push({t:'text',x:X0+3,y:Y0+10.5,s:'REF.: AUTO-ATARRAXANTE CABEÇA PANELA PHILLIPS DIN 7981 — 5,5 x 25 MM',size:2.5,bold:true,color:'#000000'});
+       P.push({t:'text',x:X0+3,y:Y0+16,s:`QUANTIDADE: ${np} UN.`,size:3.6,bold:true,color:'#000000'});
+       P.push({t:'text',x:X0+3,y:Y0+21,s:`1 a cada 20 cm do perímetro externo das letras (${f2(perE)} m)`,size:2.3,color:'#555555'});
+       P.push({t:'text',x:X0+3,y:Y0+27,s:fit('POR LETRA: '+pc.map((v,i)=>`${i+1}: ${v}`).join('  •  '),133,2.3),size:2.3,bold:true,color:'#000000'})}
       P.push({t:'rect',x:100,y:137,w:40,h:30,r:2,fill:sw,stroke:'#000000',lw:0.3});P.push({t:'text',x:120,y:135.5,s:'AMOSTRA (referência de tela)',size:2.3,color:'#555555',anchor:'middle'});
       legend(P,pg,[{cor:sw,legenda:partes==='lateral'?'Lateral pintada (contorno)':(tBorda?`Borda da frente pintada (${tBorda} mm) + lateral`:'Área pintada'),offset:0,polys:[1],noOff:true},...(partes==='lateral'?[{cor:'#ffffff',legenda:'Frente sem pintura (acrílico)',offset:0,polys:[1],noOff:true}]:[])]);
       if(pg.instrucao)P.push({t:'text',x:150,y:142,s:'OBS.: '+fit(pg.instrucao,120,2.6),size:2.6,bold:true,color:'#c92a2a'});
