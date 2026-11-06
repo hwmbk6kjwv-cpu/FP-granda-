@@ -475,7 +475,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
           <div><label class="f">Altura da parede (mm, opcional)</label><input type="text" id="iPh" inputmode="decimal"></div>
         </div>
         <label class="f">Ancoragem na parede</label>
-        <select id="iAncT"><option value="bucha">Bucha de nylon + parafuso (alvenaria)</option><option value="parabolt">Parabolt / chumbador mecânico (concreto)</option><option value="quimico">Chumbador químico (bloco vazado)</option><option value="brocante">Parafuso brocante (estrutura metálica)</option><option value="madeira">Parafuso para madeira</option><option value="nenhuma">Sem ancoragem</option></select>
+        <select id="iAncT"><option value="alvenaria">Parede de alvenaria — bucha 8 + sextavado rosca soberba 1/4 x 70</option><option value="drywall">Parede de drywall — bucha Sforbolt c/ parafuso 1/4</option><option value="aco">Tubo de aço ou ACM — brocante sextavado 5,5 x 2" + fixer 4,5 x 45</option><option value="parabolt">Concreto — parabolt</option><option value="quimico">Bloco vazado — chumbador químico</option><option value="nenhuma">Sem ancoragem</option></select>
         <div id="ancBox" class="g2" style="margin-top:6px">
           <div><label class="f">Bitola / material</label><input type="text" id="iAncB"></div>
           <div><label class="f">Quantidade (vazio = automático)</label><input type="text" id="iAncQ" inputmode="numeric"></div>
@@ -491,7 +491,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
     </div>
   </section>
   <section id="tab-tipos" hidden>
-    <div class="card"><h2>Parâmetros da lista de material</h2><p class="note" style="margin-top:-6px">Usados para calcular tinta, catalisador, wash primer, lateral das letras e fio. Ficam salvos neste aparelho.</p><div id="mppBox"></div></div>
+    <div class="card"><h2>Parâmetros da relação de material (RM)</h2><p class="note" style="margin-top:-6px">Usados para calcular tinta, catalisador, wash primer, lateral das letras e fio. Ficam salvos neste aparelho.</p><div id="mppBox"></div></div>
     <div class="card">
       <div class="row" style="justify-content:space-between"><h2 style="margin:0">Tipos de letra</h2><button class="btn acc" id="novoTipo">+ Novo tipo</button></div>
       <p class="note" id="storeNote"></p>
@@ -551,7 +551,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
 <script>
 const LED_ALL=[10000,6500,3500];
 const LED_COLOR={10000:'#cfe3ff',6500:'#f4f7ff',3500:'#ffd89a'};
-const SETORES={'LETRA CAIXA':'#c2255c','ROUTER':'#4338a0','IMPRESSÃO':'#f0a855','ELÉTRICA':'#e8a400','SERRALHERIA':'#5fd35f','PINTURA':'#2f9e44','MONTAGEM':'#1971c2','INSTALAÇÃO':'#d6336c','P1':'#0c8599','ACABAMENTO':'#7048e8','EXPEDIÇÃO':'#495057','QUALIDADE':'#0ca678'};
+const SETORES={'LETRA CAIXA':'#c2255c','ROUTER':'#4338a0','IMPRESSÃO':'#f0a855','ELÉTRICA':'#e8a400','SERRALHERIA':'#5fd35f','PINTURA':'#2f9e44','MONTAGEM':'#1971c2','INSTALAÇÃO':'#d6336c','P1':'#0c8599','ACABAMENTO':'#7048e8','EXPEDIÇÃO':'#495057','QUALIDADE':'#0ca678','TERCEIRIZAÇÃO':'#e8590c','RM':'#495057','MATERIAL':'#495057'};
 const PG_BLANK={setor:'ROUTER',titulo:'',material:'',espessura:'',cor:'',textura:'',linhas:[]};
 // Usado só se o banco do artefato não estiver disponível (modo local).
 // legenda padrão da router (cores dos arquivos de corte)
@@ -1334,6 +1334,15 @@ function chapaFilete(cp,t,trava,fator){
   return {outer,inner:innerAll,bars};
 }
 
+// circuitos: quais letras vão ligadas juntas em cada fonte. Letras grandes (> 350 mm de altura) só usam fontes de 100 ou 150 W
+const CIRC_COR=['#e8590c','#1971c2','#2f9e44','#ae3ec9','#c92a2a','#0c8599','#f08c00','#5c940d'];
+function ledCircuitos(R){const Ls=ordenaPecas(R.letters||[]);if(!Ls.length)return null;const wm=(R.P&&R.P.watts)||1.2;
+  const grande=Ls.some(g=>g.bb.h>350);const caps=grande?[100,150]:[60,100,150];const MAX=150;const out=[];let cur=null;
+  Ls.forEach((g,k)=>{const w=g.n*wm;if(w*1.2>MAX){const n=Math.ceil(w*1.2/MAX);for(let j=0;j<n;j++)out.push({letras:[k+1],w:w/n,parte:`${j+1}/${n}`});cur=null;return}if(!cur||(cur.w+w)*1.2>MAX){cur={letras:[],w:0};out.push(cur)}cur.letras.push(k+1);cur.w+=w});
+  out.forEach((c,i)=>{c.fonte=caps.find(v=>v>=c.w*1.2)||MAX;c.n=i+1;c.cor=CIRC_COR[i%CIRC_COR.length]});
+  return{grande,caps,lista:out,porLetra:Ls.map((g,k)=>out.find(c=>c.letras.includes(k+1)).n)}}
+const circTxt=c=>`FONTE ${c.n} (${c.fonte} W): LETRA${c.letras.length>1?'S':''} ${c.letras.length>2&&c.letras[c.letras.length-1]-c.letras[0]===c.letras.length-1?c.letras[0]+' A '+c.letras[c.letras.length-1]:c.letras.join(', ')} ${c.parte?' (PARTE '+c.parte+' DOS LEDS)':''} — ${String(Math.round(c.w*10)/10).replace('.',',')} W`;
+
 
 /* ---------- Folha padrão Granda (A4 deitada, mm) ---------- */
 const PW=297,PH=210,BLUE='#2f6fa8';
@@ -1420,7 +1429,7 @@ function refRender(){$('#refPrev').innerHTML=refImg?`<div class="row" style="gap
 function instColoca(tb){const s=$('#instSec');const alvo=tb==='novo'?$('#gerar').closest('.card'):tb==='testeiras'?$('#t3d').closest('.card'):tb==='modelo'?$('#mResCard'):null;
   if(alvo&&alvo.parentNode&&alvo.previousElementSibling!==s)alvo.parentNode.insertBefore(s,alvo)}
 let lSel='',lDoc=null;
-const lSetNome=s=>({MATERIAL:'Lista de material',MONTAGEM:'Montagem ACM','LETRA CAIXA':'Letra caixa',ROUTER:'Router',P1:'P1',PINTURA:'Pintura','ELÉTRICA':'Elétrica',ACABAMENTO:'Acabamento','INSTALAÇÃO':'Instalação','EXPEDIÇÃO':'Expedição',QUALIDADE:'Qualidade',SERRALHERIA:'Serralheria',OUTRAS:'Outras'}[s]||s);
+const lSetNome=s=>({RM:'Relação de material (RM)',MONTAGEM:'Montagem ACM','LETRA CAIXA':'Letra caixa',ROUTER:'Router',P1:'P1',PINTURA:'Pintura','ELÉTRICA':'Elétrica',ACABAMENTO:'Acabamento','INSTALAÇÃO':'Instalação','EXPEDIÇÃO':'Expedição',QUALIDADE:'Qualidade',SERRALHERIA:'Serralheria',OUTRAS:'Outras'}[s]||s);
 // fichas de produção separadas por setor (botões)
 function setorChips(pages,sel,attr){const sk=P=>P._setor||'OUTRAS';const sets=[...new Set(pages.map(sk))];if(!sets.includes(sel))sel=sets[0];
   const html=sets.map(s=>{const n=pages.filter(P=>sk(P)===s).length;return `<button class="chip${s===sel?' on':''}" ${attr}="${esc(s)}">${esc(lSetNome(s))}${n>1?` (${n})`:''}</button>`}).join('');
@@ -1490,7 +1499,7 @@ function nFuros(tam){return Math.max(4,Math.ceil(tam/100-1e-9)-1)}
 function circ(c,r,n=20){const o=[];for(let k=0;k<n;k++){const a=2*Math.PI*k/n;o.push([c[0]+r*Math.cos(a),c[1]+r*Math.sin(a)])}return o}
 function furosPVC(polys,extra=0){const furos=[];
   regionsOf(toC(polys)).forEach(rg=>{const ps=fromC(rg);const b=bbox(ps);const tam=Math.max(b.w,b.h)+extra;const n=nFuros(tam);
-    let ins=[];for(const d of [10,7,5,3]){ins=offset(rg,-(d+FURO_D/2));if(ins.length)break}
+    let ins=[];for(const d of [15,10.5,7.5,4.5]){ins=offset(rg,-(d+FURO_D/2));if(ins.length)break}
     let cand=[];ins.forEach(p=>{for(let i=0;i<p.length;i++){const a=p[i],c=p[(i+1)%p.length];const L=Math.hypot(c[0]-a[0],c[1]-a[1]);const k=Math.max(1,Math.ceil(L/3));for(let j=0;j<k;j++)cand.push([a[0]+(c[0]-a[0])*j/k,a[1]+(c[1]-a[1])*j/k])}});
     if(!cand.length)cand=[[(b.x0+b.x1)/2,(b.y0+b.y1)/2]];
     const cx=(b.x0+b.x1)/2,cy=(b.y0+b.y1)/2;const sel=[cand.reduce((m,q)=>Math.hypot(q[0]-cx,q[1]-cy)>Math.hypot(m[0]-cx,m[1]-cy)?q:m)];
@@ -1567,7 +1576,7 @@ function buildDoc(){
     if(pg.tipo==='chapa'){
       const C={opcoes:[5,7,10],padrao:7,trava:2.5,fator:1.5,...pg.chapa};const tt=selChapa||C.padrao;
       const R=chapaFilete(cp,tt,C.trava,C.fator);
-      const P=[];frame(P,ctx,pg);
+      const P=[];frame(P,ctx,{...pg,setor:'TERCEIRIZAÇÃO'});
       P.push({t:'text',x:PW/2,y:30,s:pg.titulo||'CHAPA',size:4.2,color:'#000000',anchor:'middle'});
       compLinha(P,['CORTE EXTERNO na linha original',`CORTE INTERNO ${fmt(tt)} mm para dentro`,`travas de ${fmt(C.trava)} mm`],fresaR);
       const bb=bbox(R.outer);const BX=30,BY=42,BW=254,BH=94;const s=SC;const dx=BX+(BW-bb.w*s)/2,dy=BY+(BH-bb.h*s)/2;
@@ -1582,7 +1591,7 @@ function buildDoc(){
     }
     if(pg.tipo==='led'){
       const ov={};const gq=num($('#ledGap').value),mq=num($('#ledMarg').value);if(gq>0)ov.gap=gq<30?gq*10:gq;if(mq>0)ov.margem=mq<20?mq*10:mq;
-      const R=distributeLED(cp,{...(pg.led||{}),...ov,ajuste:ledAdj});ledInfo=R;
+      const R=distributeLED(cp,{...(pg.led||{}),...ov,ajuste:ledAdj});R.circ=ledCircuitos(R);ledInfo=R;
       const P=[];frame(P,ctx,pg);
       P.push({t:'text',x:PW/2,y:30,s:pg.titulo||'DISTRIBUIÇÃO DE LED',size:4.2,color:'#000000',anchor:'middle'});
       const bb=bbox(R.boundary.length?R.boundary:orig);
@@ -1602,13 +1611,14 @@ function buildDoc(){
          const over=xs.length?xs[xs.length-1]+W0-(BX+BW+10):0;if(over>0)xs=xs.map(x=>x-over);for(let i=xs.length-2;i>=0;i--)xs[i]=Math.min(xs[i],xs[i+1]-W0-G0);
          it.forEach((i,j)=>{const x=xs[j],y=yTop+r*15;const cx=x+W0/2;
            P.push({t:'line',x1:i.px,y1:i.py+0.6,x2:cx,y2:y,color:'#adb5bd',w:0.15});
-           P.push({t:'circle',x:cx,y:y+1.8,r:1.8,fill:'#e8a400',stroke:'#e8a400',lw:0.1},{t:'text',x:cx,y:y+2.6,s:String(i.k+1),size:2.1,bold:true,color:'#ffffff',anchor:'middle'});
+           {const cc=R.circ&&R.circ.lista.length>1?R.circ.lista[R.circ.porLetra[i.k]-1]:null;const cor=cc?cc.cor:'#e8a400';P.push({t:'circle',x:cx,y:y+1.8,r:1.8,fill:cor,stroke:cor,lw:0.1},{t:'text',x:cx,y:y+2.6,s:String(i.k+1),size:2.1,bold:true,color:'#ffffff',anchor:'middle'});if(cc)P.push({t:'text',x:cx,y:y-0.8,s:'F'+cc.n,size:1.9,bold:true,color:cor,anchor:'middle'})}
            P.push({t:'text',x:cx,y:y+6.6,s:`${i.g.n} LED${i.g.n===1?'':'S'}${i.g.aj?'*':''}`,size:2.3,bold:true,color:i.g.aj?'#1971c2':'#000000',anchor:'middle'});
            P.push({t:'rect',x:x+1,y:y+7.6,w:W0-2,h:5.2,stroke:'#000000',lw:0.2,fill:'#ffffff'})})}}
       cotas(P,dx,dy,bb.w*s,bb.h*s,Math.round(bb.w),Math.round(bb.h));
       P.push({t:'text',x:284,y:25,s:escTxt,size:2.4,bold:true,color:'#2f6fa8',anchor:'end'});
       const Pp=R.P;const w=R.watts;
-      matTable(P,pg,[['ILUMINAÇÃO:',`LED ${f0(Pp.larg)} x ${f0(Pp.alt)} MM`],['TEMPERATURA:',ctx.led],['QTD. MÓDULOS:',`${R.mods.length} un`],['CONSUMO:',`${w.toLocaleString('pt-BR',{maximumFractionDigits:1})} W  (+20% = ${(w*1.2).toLocaleString('pt-BR',{maximumFractionDigits:1})} W)`],['REATOR:',reatorTxt(w*1.2)],['ESPAÇAMENTO:',`${fmt(Pp.gap/10)} CM CENTRO A CENTRO`],['QTD. REAL:',' ']]);
+      if(R.circ&&R.circ.lista.length){const L=R.circ.lista;let yy=167-Math.min(L.length,6)*4.2-4;P.push({t:'text',x:98,y:yy,s:'LIGAÇÃO ELÉTRICA — LETRAS LIGADAS JUNTAS',size:2.5,bold:true,color:'#c2255c'});yy+=4.2;L.slice(0,6).forEach(c=>{P.push({t:'circle',x:99.6,y:yy-1,r:1.3,fill:c.cor,stroke:c.cor,lw:0.1},{t:'text',x:102.5,y:yy,s:fit(circTxt(c),95,2.4),size:2.4,bold:true,color:'#000000'});yy+=4.2});if(L.length>6)P.push({t:'text',x:102.5,y:yy,s:`+ ${L.length-6} fonte(s) — ver instalação`,size:2.2,color:'#555555'})}
+      matTable(P,pg,[['ILUMINAÇÃO:',`LED ${f0(Pp.larg)} x ${f0(Pp.alt)} MM`],['TEMPERATURA:',ctx.led],['QTD. MÓDULOS:',`${R.mods.length} un`],['CONSUMO:',`${w.toLocaleString('pt-BR',{maximumFractionDigits:1})} W  (+20% = ${(w*1.2).toLocaleString('pt-BR',{maximumFractionDigits:1})} W)`],['FONTES:',R.circ?(()=>{const c={};R.circ.lista.forEach(x=>c[x.fonte]=(c[x.fonte]||0)+1);return Object.entries(c).map(([w2,n])=>`${n}x ${w2} W`).join(' + ')+(R.circ.grande?' (LETRA > 350 MM)':'')})():reatorTxt(w*1.2)],['ESPAÇAMENTO:',`${fmt(Pp.gap/10)} CM CENTRO A CENTRO`],['QTD. REAL:',' ']]);
       legend(P,pg,[{cor:'#e03131',legenda:`Contorno base`,offset:Pp.base,polys:R.boundary},{cor:'#000000',legenda:`Módulo LED ${f0(Pp.larg)}x${f0(Pp.alt)} mm — ${Pp.watts}W`,offset:0,polys:[1],noOff:true},{cor:'#7a7a7a',legenda:'Fio entre módulos (zig-zag)',offset:0,polys:[1],noOff:true},{cor:'#1c7ed6',legenda:'Linha base (centro do traço)',offset:0,polys:[1],noOff:true}]);
       pages.push(P);info.push({pg,lines:[],vec:[{color:'#e03131',polys:R.boundary},{color:'#000000',polys:R.mods.map(m=>m.rect)}]});return;
     }
@@ -1621,6 +1631,10 @@ function buildDoc(){
     const ref=lines.filter(l=>l.polys.length).sort((a,c)=>c.offset-a.offset)[0];const rb=ref?bbox(ref.polys):bb;
     if(/PVC/i.test(pg.material||'')&&lines.length&&lines[0].polys.length){const pc=lines.find(l=>/EXTERNO/i.test(l.legenda||''))||lines[0];
       if(!furosDoc){furosDoc=furosPVC(pc.polys,Math.max(0,-2*(pc.offset||0)));pvcPolys=pc.polys}
+      // miolos das letras (contornos internos) do PVC saem como CORTE INTERNO
+      {const pin=(pt,poly)=>{let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const [xi,yi]=poly[i],[xj,yj]=poly[j];if((yi>pt[1])!==(yj>pt[1])&&pt[0]<(xj-xi)*(pt[1]-yi)/(yj-yi)+xi)c=!c}return c};
+       const ext=lines.filter(l=>/EXTERNO/i.test(l.legenda||''));ext.forEach(l=>{const hol=[],out=[];l.polys.forEach(p=>{const n=l.polys.filter(q=>q!==p&&pin(p[0],q)).length;(n%2?hol:out).push(p)});
+         if(hol.length){l.polys=out;lines.push({cor:RC['CORTE INTERNO'],legenda:'CORTE INTERNO (miolos das letras)',offset:l.offset,noOff:true,polys:hol})}})}
       lines.push({cor:RC['CORTE INTERNO'],legenda:`FURO Ø${FURO_D} p/ parafuso — ${furosDoc.length} furos (CORTE INTERNO)`,offset:0,noOff:true,polys:furosDoc.map(f=>circ(f.c,FURO_D/2))})}
     const BX=30,BY=42,BW=254,BH=94;
     const s=SC;const dx=BX+(BW-bb.w*s)/2,dy=BY+(BH-bb.h*s)/2;
@@ -1644,22 +1658,7 @@ function buildDoc(){
     const ok=opts.filter(o=>!o.naoCabe.length);const pool=ok.length?ok:opts;
     const best=pool.slice().sort((a,b)=>(b.util-a.util)||(a.sheets.length-b.sheets.length))[0];
     nests.push({...job,opts,best});
-    const P=[];frame(P,ctx,{setor:'ROUTER'});
-    P.push({t:'text',x:PW/2,y:30,s:`APROVEITAMENTO DE CHAPA — ${job.titulo.toUpperCase()}`,size:4,bold:true,color:'#000000',anchor:'middle'});
-    let ty=37;P.push({t:'text',x:14,y:ty,s:`${job.pieces.length} peças • espaço entre peças ${fmt(gap)} mm (fresa) • margem ${fmt(mg)} mm`,size:2.8,color:'#333333'});ty+=5;
-    opts.forEach(o=>{const isB=o===best;P.push({t:'text',x:14,y:ty,s:`${isB?'» ':''}Chapa ${(o.w/1000).toLocaleString('pt-BR')}x${(o.h/1000).toLocaleString('pt-BR')} m: ${o.sheets.length} chapa(s) • aproveitamento ${(o.util*100).toFixed(1).replace('.',',')}%${o.naoCabe.length?` • ${o.naoCabe.length} peça(s) não cabem`:''}${isB?'  (MELHOR OPÇÃO)':''}`,size:2.8,bold:isB,color:isB?'#2b8a3e':'#000000'});ty+=4.5});
-    P.push({t:'rect',x:205,y:33,w:80,h:12,r:1.5,fill:'#ebf7ee',stroke:'#2b8a3e',lw:0.3});
-    P.push({t:'text',x:245,y:38,s:'QUANTITATIVO DE CHAPAS',size:2.6,bold:true,color:'#2b8a3e',anchor:'middle'});
-    P.push({t:'text',x:245,y:43,s:`${best.sheets.length} chapa(s) ${(best.w/1000).toLocaleString('pt-BR')} x ${(best.h/1000).toLocaleString('pt-BR')} m`,size:3.6,bold:true,color:'#000000',anchor:'middle'});
-    const n=best.sheets.length,cols=Math.min(n,best.w/best.h>1.4?2:3),rows=Math.ceil(n/cols);const AX=14,AY=ty+3,AW=270,AH=166-AY-2;
-    const s=Math.min((AW-(cols-1)*6)/(cols*best.w),(AH-(rows-1)*9)/(rows*best.h));
-    best.sheets.forEach((sh,k)=>{const cx=AX+(k%cols)*(best.w*s+6),cy=AY+Math.floor(k/cols)*(best.h*s+9);
-      P.push({t:'rect',x:cx,y:cy,w:best.w*s,h:best.h*s,fill:'#f8f9fa',stroke:'#495057',lw:0.25});
-      const uw=Math.round(sh.usedW||best.w),sob=best.w-uw;
-      P.push({t:'text',x:cx,y:cy+best.h*s+3.5,s:`CHAPA ${k+1}/${n} — ${best.w}x${best.h} mm — ${sh.items.length} peças — usa ${uw} mm${sob>=100?` — SOBRA ${sob} x ${best.h} mm`:''}`,size:2.5,bold:true,color:'#000000'});
-      if(sob>=100){P.push({t:'rect',x:cx+uw*s,y:cy,w:sob*s,h:best.h*s,fill:'#e6f4ea',stroke:'#2b8a3e',lw:0.2});P.push({t:'text',x:cx+(uw+sob/2)*s,y:cy+best.h*s/2+1.2,s:`SOBRA ${sob} x ${best.h}`,size:Math.min(3.4,sob*s/12),bold:true,color:'#2b8a3e',anchor:'middle'})}
-      sh.items.forEach(it=>{const pc=pieceAt(job.pieces[it.i],it);pc.lines.forEach(l=>l.polys.forEach(p=>P.push({t:'poly',pts:p.map(([x,y])=>[cx+x*s,cy+(best.h-y)*s]),color:l.color,w:0.12})))})});
-    ins.push({after:job.after,P});
+    nestNaFolha(pages[job.after],job,best,opts,gap,mg);
   }
   // PVC (fundo): aproveitamento só para a lista de material (chapa 2440 x 1220)
   try{const inf=info.find(x=>x.lines&&x.lines.length&&/PVC/i.test(x.pg.material||''));if(inf){const Lx=inf.lines.filter(l=>l.polys.length&&/EXTERNO/i.test(l.legenda||''));const pcs=piecesFromLines(Lx.length?Lx:inf.lines);if(pcs.length){const r=nestSheets(pcs,2440,1220,gap,mg);nests.push({nome:'PVC',titulo:inf.pg.titulo,pieces:pcs,semQual:true,best:{w:2440,h:1220,...r}})}}}catch(e){console.error('nest PVC',e)}
@@ -1756,6 +1755,38 @@ function buildDoc(){
 
 /* ---------- Renderizadores ---------- */
 // Amplia a folha inteira por K; as linhas de corte mantêm espessura real.
+// move/escala um item de desenho: (v-c)*k+o
+function trItem(p,k,cx,cy,ox,oy){const q={...p};const X=x=>(x-cx)*k+ox,Y=y=>(y-cy)*k+oy;
+  if(q.pts)q.pts=q.pts.map(([x,y])=>[X(x),Y(y)]);if(q.polys&&p.t==='pathfill')q.polys=q.polys.map(pp=>pp.map(([x,y])=>[X(x),Y(y)]));
+  if(typeof q.x==='number')q.x=X(q.x);if(typeof q.y==='number')q.y=Y(q.y);if(typeof q.x1==='number'){q.x1=X(q.x1);q.y1=Y(q.y1);q.x2=X(q.x2);q.y2=Y(q.y2)}
+  ['w','h','size','r'].forEach(n=>{if(typeof q[n]==='number'&&!((p.t==='poly'||p.t==='path')&&n==='w'))q[n]*=k});if(p.t==='line'&&typeof p.w==='number')q.w=Math.max(0.1,p.w*k);return q}
+const itBox=p=>{if(p.pts){const ys=p.pts.map(q=>q[1]),xs=p.pts.map(q=>q[0]);return[Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)]}
+  if(p.t==='pathfill'){let a=[1e9,1e9,-1e9,-1e9];p.polys.forEach(pp=>pp.forEach(([x,y])=>{a=[Math.min(a[0],x),Math.min(a[1],y),Math.max(a[2],x),Math.max(a[3],y)]}));return a}
+  if(p.t==='line')return[Math.min(p.x1,p.x2),Math.min(p.y1,p.y2),Math.max(p.x1,p.x2),Math.max(p.y1,p.y2)];
+  if(p.t==='circle')return[p.x-p.r,p.y-p.r,p.x+p.r,p.y+p.r];if(p.t==='text')return[p.x-1,p.y-(p.size||3),p.x+1,p.y];return[p.x||0,p.y||0,(p.x||0)+(p.w||0),(p.y||0)+(p.h||0)]};
+// aproveitamento na mesma folha da peça: o desenho da peça sobe/encolhe e as chapas entram embaixo
+function nestNaFolha(P,job,best,opts,gap,mg){const f0=P._f0||0;const cont=P.slice(f0);const top=[],mid=[],bot=[];
+  cont.forEach(p=>{const b=itBox(p);if(b[3]<=36.6)top.push(p);else if(b[1]>=133.5)bot.push(p);else mid.push(p)});
+  let mb=[1e9,1e9,-1e9,-1e9];mid.forEach(p=>{const b=itBox(p);mb=[Math.min(mb[0],b[0]),Math.min(mb[1],b[1]),Math.max(mb[2],b[2]),Math.max(mb[3],b[3])]});
+  const MH=56;const k=mid.length?Math.min(1,MH/(mb[3]-mb[1]),270/(mb[2]-mb[0])):1;const cx=(mb[0]+mb[2])/2;
+  const mid2=mid.map(p=>trItem(p,k,cx,mb[1],PW/2,38));const yN=38+(mb[3]-mb[1])*k+3;
+  P.length=f0;P.push(...top,...mid2,...bot);
+  // aproveitamento
+  const n=best.sheets.length,wm=(best.w/1000).toLocaleString('pt-BR'),hm=(best.h/1000).toLocaleString('pt-BR');
+  P.push({t:'line',x1:12,y1:yN-1.5,x2:285,y2:yN-1.5,color:'#ced4da',w:0.2});
+  P.push({t:'text',x:14,y:yN+2.4,s:`APROVEITAMENTO DE CHAPA — ${n} chapa(s) de ${wm} x ${hm} m • ${(best.util*100).toFixed(1).replace('.',',')}% • ${job.pieces.length} peças • fresa ${fmt(gap)} mm • margem ${fmt(mg)} mm`,size:2.6,bold:true,color:'#2b8a3e'});
+  const outras=opts.filter(o=>o!==best).map(o=>`${(o.w/1000).toLocaleString('pt-BR')}x${(o.h/1000).toLocaleString('pt-BR')}: ${o.sheets.length} ch. ${(o.util*100).toFixed(0)}%`).join(' • ');
+  if(outras)P.push({t:'text',x:285,y:yN+2.4,s:'outras: '+outras,size:2.1,color:'#868e96',anchor:'end'});
+  const AX=14,AY=yN+7,AW=271,AH=Math.max(12,132.5-AY);const cols=Math.min(n,best.w/best.h>1.4?(n>2?3:2):3),rows=Math.ceil(n/cols);
+  const s=Math.min((AW-(cols-1)*5)/(cols*best.w),(AH-(rows-1)*5)/(rows*best.h));
+  best.sheets.forEach((sh,k2)=>{const x0=AX+(k2%cols)*(best.w*s+5),y0=AY+Math.floor(k2/cols)*(best.h*s+5);
+    P.push({t:'rect',x:x0,y:y0,w:best.w*s,h:best.h*s,fill:'#f8f9fa',stroke:'#495057',lw:0.2});
+    const uw=Math.round(sh.usedW||best.w),sob=best.w-uw;
+    if(sob>=100){P.push({t:'rect',x:x0+uw*s,y:y0,w:sob*s,h:best.h*s,fill:'#e6f4ea',stroke:'#2b8a3e',lw:0.15});P.push({t:'text',x:x0+(uw+sob/2)*s,y:y0+best.h*s/2+1,s:`SOBRA ${sob} x ${best.h}`,size:Math.min(2.6,sob*s/12),bold:true,color:'#2b8a3e',anchor:'middle'})}
+    sh.items.forEach(it=>{const pc=pieceAt(job.pieces[it.i],it);pc.lines.forEach(l=>l.polys.forEach(p=>P.push({t:'poly',pts:p.map(([x,y])=>[x0+x*s,y0+(best.h-y)*s]),color:l.color,w:0.1})))});
+    P.push({t:'text',x:x0+1,y:y0-0.8,s:`CHAPA ${k2+1}/${n} — usa ${uw} mm`,size:1.9,bold:true,color:'#000000'})});
+  // quantitativo no rodapé central
+  P.push({t:'rect',x:96,y:150,w:72,h:12,r:1.5,fill:'#ebf7ee',stroke:'#2b8a3e',lw:0.3},{t:'text',x:132,y:154.5,s:'QUANTITATIVO DE CHAPAS',size:2.4,bold:true,color:'#2b8a3e',anchor:'middle'},{t:'text',x:132,y:159.5,s:`${n} chapa(s) ${wm} x ${hm} m`,size:3.4,bold:true,color:'#000000',anchor:'middle'})}
 function scaleP(P,K){const m=v=>v*K;const out=P.map(p=>{const q={...p};
   if(q.pts)q.pts=q.pts.map(([x,y])=>[x*K,y*K]);if(q.polys&&p.t==='pathfill')q.polys=q.polys.map(pp=>pp.map(([x,y])=>[x*K,y*K]));
   ['x','y','w','h','x1','y1','x2','y2','size','r'].forEach(k=>{if(typeof q[k]==='number'&&!((p.t==='poly'||p.t==='path')&&k==='w'))q[k]=m(q[k])});
@@ -2995,14 +3026,18 @@ const tuboKgM=(f,p,t)=>Math.max(0,(2*(f+p)-4*t)*t*0.00785);   // kg por metro de
 const numBR=v=>parseFloat(String(v||'').replace(',','.'))||0;
 const kgTxt=v=>v>0&&v<0.1?'< 0,1 kg':v>0?`${v<10?v.toLocaleString('pt-BR',{maximumFractionDigits:1}):Math.round(v).toLocaleString('pt-BR')} kg`:'—';
 function instLer(){const g=id=>$('#'+id);if(!g('iHm'))return{hm:'centro',vm:'centro'};
-  return{hm:g('iHm').value,hv:numBR(g('iHv').value),vm:g('iVm').value,vv:numBR(g('iVv').value),pw:numBR(g('iPw').value),ph:numBR(g('iPh').value),ancT:g('iAncT')?g('iAncT').value:'bucha',ancB:g('iAncB')?g('iAncB').value.trim():'',ancQ:g('iAncQ')?numBR(g('iAncQ').value):0}}
-const ANC={bucha:{nome:'BUCHA DE NYLON + PARAFUSO',base:'ALVENARIA / CONCRETO',bit:'Bucha 8 mm + parafuso fixer 4,5 x 45 mm',broca:'Broca 8 mm (vídea)'},
-  parabolt:{nome:'PARABOLT (CHUMBADOR MECÂNICO)',base:'CONCRETO',bit:'Parabolt 3/8" x 3"',broca:'Broca 3/8" (10 mm)'},
-  quimico:{nome:'CHUMBADOR QUÍMICO',base:'TIJOLO / BLOCO VAZADO',bit:'Barra roscada 3/8" + bucha telada + resina',broca:'Broca 12 mm'},
-  brocante:{nome:'PARAFUSO BROCANTE',base:'ESTRUTURA METÁLICA',bit:'Brocante 4,2 x 32 mm',broca:'sem pré-furo (ponta broca)'},
-  madeira:{nome:'PARAFUSO PARA MADEIRA',base:'MADEIRA / MDF',bit:'Parafuso 4,5 x 50 mm',broca:'Broca 3 mm (guia)'}};
-function ancInfo(I,prod){if(!I.ancT||I.ancT==='nenhuma'||!ANC[I.ancT])return null;const A=ANC[I.ancT];const a=prod.anc||{};const auto=(a.auto||0)*(prod.tipo==='letra'?1:1);
-  return{...A,tipo:I.ancT,bit:I.ancB||A.bit,q:I.ancQ>0?Math.round(I.ancQ):auto,manual:I.ancQ>0,peca:a.peca||'PEÇA',onde:I.ancQ>0?'quantidade informada':a.onde||''}}
+  return{hm:g('iHm').value,hv:numBR(g('iHv').value),vm:g('iVm').value,vv:numBR(g('iVv').value),pw:numBR(g('iPw').value),ph:numBR(g('iPh').value),ancT:g('iAncT')?g('iAncT').value:'alvenaria',ancB:g('iAncB')?g('iAncB').value.trim():'',ancQ:g('iAncQ')?numBR(g('iAncQ').value):0}}
+const ANC={alvenaria:{nome:'BUCHA 8 + PARAFUSO SEXTAVADO ROSCA SOBERBA 1/4 x 70 MM',base:'PAREDE DE ALVENARIA',bit:'Bucha 8 mm + parafuso sext. rosca soberba 1/4 x 70 mm',broca:'Broca 8 mm (vídea)',draw:'bucha',
+    passos:['Marcar os furos com o molde/gabarito e conferir o nível.','Furar com broca 8 mm (vídea) e limpar o pó.','Colocar a bucha 8 rente à parede.','Posicionar a peça e apertar o parafuso sextavado 1/4 x 70 mm.']},
+  drywall:{nome:'BUCHA DE DRYWALL TIPO SFORBOLT C/ PARAFUSO 1/4',base:'PAREDE DE DRYWALL (BASE OCA)',bit:'Bucha Sforbolt p/ bases ocas c/ parafuso 1/4',broca:'Broca conforme a bucha',draw:'bucha',
+    passos:['Marcar os furos e conferir se não há perfil/montante atrás.','Furar o drywall na medida da bucha.','Colocar a bucha Sforbolt e apertar até abrir atrás da placa.','Posicionar a peça e apertar o parafuso 1/4.']},
+  aco:{nome:'PARAFUSO BROCANTE SEXTAVADO 5,5 x 2" + PARAFUSO FIXER 4,5 x 45',base:'TUBO DE AÇO OU ACM',bit:'Sext. flang. c/ arruela broc. (12x2) 5,5 x 2" + fixer cab. chata Philips 4,5 x 45',broca:'sem pré-furo (ponta broca)',draw:'brocante',
+    passos:['Posicionar a peça sobre o tubo de aço ou o ACM.','Parafusar com o brocante sextavado 5,5 x 2" (a ponta broca fura o metal).','Usar o fixer 4,5 x 45 onde for indicado (ACM/peças finas).','Não exagerar no torque para não espanar.']},
+  parabolt:{nome:'PARABOLT (CHUMBADOR MECÂNICO)',base:'CONCRETO',bit:'Parabolt 3/8" x 3"',broca:'Broca 3/8" (10 mm)',draw:'parabolt'},
+  quimico:{nome:'CHUMBADOR QUÍMICO',base:'TIJOLO / BLOCO VAZADO',bit:'Barra roscada 3/8" + bucha telada + resina',broca:'Broca 12 mm',draw:'quimico'}};
+const ANC_ANTIGO={bucha:'alvenaria',brocante:'aco',madeira:'alvenaria'};
+function ancInfo(I,prod){const key=ANC_ANTIGO[I.ancT]||I.ancT;if(!key||key==='nenhuma'||!ANC[key])return null;const A={...ANC[key],key,tipo:ANC[key].draw};const a=prod.anc||{};const auto=(a.auto||0)*(prod.tipo==='letra'?1:1);
+  return{...A,bit:I.ancB||A.bit,q:I.ancQ>0?Math.round(I.ancQ):auto,manual:I.ancQ>0,peca:a.peca||'PEÇA',onde:I.ancQ>0?'quantidade informada':a.onde||''}}
 // vista explodida da ancoragem (corte lateral): parede → bucha/chumbador → peça → parafuso/porca
 function ancExplodida(P,R,A){const cy=R.y+R.h*0.46,s=Math.min(R.h/42,R.w/150);const L=(x1,y1,x2,y2,c,w,d)=>P.push({t:'line',x1,y1,x2,y2,color:c||'#212529',w:w||0.3,...(d?{dash:d}:{})});
   const lab=(x,t1,t2)=>{P.push({t:'text',x,y:R.y+R.h-7,s:t1,size:2.5,bold:true,color:'#000000',anchor:'middle'});if(t2)P.push({t:'text',x,y:R.y+R.h-3.6,s:t2,size:2.2,color:'#555555',anchor:'middle'})};
@@ -3041,11 +3076,11 @@ function folhaAncoragem(ctx,prod){const I=instLer();const A=ancInfo(I,prod);if(!
   let y=46;const IX=126;const lin=(k,v,c)=>{P.push({t:'text',x:IX,y,s:k,size:2.4,color:'#868e96'},{t:'text',x:IX+40,y,s:fit(v,286-IX-40,3.2),size:3.2,bold:true,color:c||'#000000'});y+=7};
   lin('MÉTODO SELECIONADO:',A.nome,'#d6336c');lin('BASE / PAREDE:',A.base);lin('MATERIAL:',A.bit);lin('BROCA:',A.broca);
   lin('QUANTIDADE:',`${A.q} UN.${prod.un>1?` (total para ${prod.un} un.)`:''}`,'#d6336c');lin('ONDE:',A.onde+(A.manual?'':' — automático'));lin('FIXA NA PEÇA:',A.peca);
-  const passos={bucha:['Marcar os furos com o molde/gabarito e conferir o nível.','Furar com '+A.broca.toLowerCase()+' na profundidade da bucha + 10 mm e limpar o pó.','Colocar a bucha rente à parede.','Posicionar a peça e apertar o parafuso.'],
+  const passos=A.passos||{bucha:['Marcar os furos com o molde/gabarito e conferir o nível.','Furar com '+A.broca.toLowerCase()+' na profundidade da bucha + 10 mm e limpar o pó.','Colocar a bucha rente à parede.','Posicionar a peça e apertar o parafuso.'],
     parabolt:['Marcar e furar com '+A.broca.toLowerCase()+' (concreto).','Limpar o furo e bater o parabolt até a arruela encostar.','Colocar a peça, arruela e porca.','Apertar a porca para expandir a jaqueta.'],
     quimico:['Furar com '+A.broca.toLowerCase()+' e limpar bem o pó (escova + sopro).','Colocar a bucha telada e injetar a resina.','Inserir a barra roscada girando e respeitar o tempo de cura.','Colocar a peça, arruela e porca e apertar.'],
     brocante:['Posicionar a peça sobre a estrutura metálica.','Parafusar direto (a ponta broca fura o metal), sem pré-furo.','Não exagerar no torque para não espanar.'],
-    madeira:['Marcar os pontos e fazer furo guia de 3 mm.','Posicionar a peça e parafusar.']}[A.tipo];
+    madeira:['Marcar os pontos e fazer furo guia de 3 mm.','Posicionar a peça e parafusar.']}[A.tipo]||[];
   y+=1;P.push({t:'text',x:IX,y,s:'PASSO A PASSO',size:2.6,bold:true,color:'#c2255c'});y+=4.4;passos.forEach((t,k)=>{P.push({t:'text',x:IX,y,s:fit(`${k+1}. ${t}`,160,2.5),size:2.5,color:'#000000'});y+=4.2});
   ancExplodida(P,{x:20,y:119,w:266,h:50},A);P.push({t:'text',x:286,y:P.length?132:0,s:`x ${A.q} UN.`,size:6,bold:true,color:'#d6336c',anchor:'end'});
   return P}
@@ -3077,23 +3112,24 @@ function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'}
   const temF=!!instImg;const FX=20,FY=26,FW=138,FH=98;   // foto grande (≈ 2x a área de 9,8x7 cm), a 2 cm da margem
   if(temF){const k=Math.min(FW/instImg.w,(FH-4)/instImg.h),w=instImg.w*k,h=instImg.h*k;
     P.push({t:'rect',x:FX,y:FY,w:FW,h:FH,fill:'#ffffff',stroke:'#868e96',lw:0.25},{t:'img',x:FX+(FW-w)/2,y:FY+4+(FH-4-h)/2,w,h,src:instImg.src,fmt:'JPEG'},{t:'text',x:FX+1.5,y:FY+3,s:'FOTO DE INSTALAÇÃO',size:2.2,bold:true,color:'#868e96'})}
-  const IX=temF?FX+FW+8:20;let y=31;
+  const IX=temF?FX+FW+8:20;const XR=temF?286:150;let y=31;
   P.push({t:'text',x:IX,y,s:'PROJETO DE INSTALAÇÃO',size:4.6,bold:true,color:'#d6336c'});y+=7;
-  P.push({t:'text',x:IX,y,s:fit(`ITEM ${ctx.item} — ${prod.nome}`,286-IX,3.4),size:3.4,bold:true,color:'#000000'});y+=5.5;
-  const lin=(k,v,c)=>{P.push({t:'text',x:IX,y,s:k,size:2.4,color:'#868e96'},{t:'text',x:IX+34,y,s:fit(v,286-IX-34,3),size:3,bold:true,color:c||'#000000'});y+=5};
+  P.push({t:'text',x:IX,y,s:fit(`ITEM ${ctx.item} — ${prod.nome}`,XR-IX,3.4),size:3.4,bold:true,color:'#000000'});y+=5.5;
+  const lin=(k,v,c)=>{P.push({t:'text',x:IX,y,s:k,size:2.4,color:'#868e96'},{t:'text',x:IX+34,y,s:fit(v,XR-IX-34,3),size:3,bold:true,color:c||'#000000'});y+=5};
   lin('MEDIDAS EXTERNAS:',`${f0(prod.W)} (L) x ${f0(prod.H)} (A)${prod.D?` x ${f0(prod.D)} (P)`:''} mm`);
   if(prod.un>1)lin('QUANTIDADE:',`${prod.un} UN.`);
   lin('POSIÇÃO:',instPosTxt(I),'#d6336c');
   {const A=ancInfo(I,prod);if(A)lin('ANCORAGEM:',`${A.nome} — ${A.q} UN. (ver folha de ancoragem)`,'#d6336c')}
   if(I.pw&&I.ph)lin('PAREDE:',`${f0(I.pw)} mm (L) x ${f0(I.ph)} mm (A)`);else if(I.pw)lin('PAREDE:',`${f0(I.pw)} mm (L)`);else if(I.ph)lin('PAREDE:',`${f0(I.ph)} mm (A)`);
   if(prod.metodo&&prod.metodo.length){P.push({t:'text',x:IX,y:y+1,s:'MÉTODO DE INSTALAÇÃO',size:2.6,bold:true,color:'#c2255c'});y+=4.5;
-    prod.metodo.forEach(t=>{P.push({t:'text',x:IX,y,s:fit('• '+t,286-IX,2.4),size:2.4,color:'#000000'});y+=3.8});y+=1}
-  if(prod.letras&&prod.letras.length){const det=prod.letras[0].pan!=null;P.push({t:'text',x:IX,y:y+1,s:det?'POR LETRA: ALTURA • BROCANTES NO PVC • PANELA NA LATERAL':'ALTURA DE CADA LETRA',size:2.6,bold:true,color:'#c2255c'});y+=3;
-    const per=temF?4:6,cw=det?(temF?52:56):(temF?27:30);prod.letras.forEach((l,k)=>{const c=Math.floor(k/per),r=k%per;const x=IX+c*(cw+2),yy=y+r*4.4;if(x+cw>286)return;
-      P.push({t:'rect',x,y:yy,w:cw,h:4.4,fill:r%2?'#ffffff':'#fff0f6',stroke:'#adb5bd',lw:0.1},{t:'text',x:x+1.5,y:yy+3.1,s:`${k+1}. ${f0(l.h)} mm${det?`  •  ${l.broc!=null?l.broc+' broc.':''}  •  ${l.pan} panela`:''}`,size:2.3,bold:true,color:'#000000'})});
+    prod.metodo.forEach(t=>{P.push({t:'text',x:IX,y,s:fit('• '+t,XR-IX,2.4),size:2.4,color:'#000000'});y+=3.8});y+=1}
+  if(prod.circ&&prod.circ.lista.length){P.push({t:'text',x:IX,y:y+1,s:'LIGAÇÃO ELÉTRICA (LETRAS LIGADAS JUNTAS)',size:2.6,bold:true,color:'#c2255c'});y+=4.5;prod.circ.lista.forEach(c=>{P.push({t:'circle',x:IX+1.2,y:y-1,r:1.2,fill:c.cor,stroke:c.cor,lw:0.1},{t:'text',x:IX+3.6,y,s:fit(circTxt(c),XR-IX-4,2.4),size:2.4,bold:true,color:'#000000'});y+=3.9});y+=1}
+  if(prod.letras&&prod.letras.length){const det=prod.letras[0].pan!=null;P.push({t:'text',x:IX,y:y+1,s:det?'POR LETRA: ALTURA • FIXAÇÕES NO PVC • PANELA NA LATERAL':'ALTURA DE CADA LETRA',size:2.6,bold:true,color:'#c2255c'});y+=3;
+    const per=temF?4:6,cw=det?(temF?52:56):(temF?27:30);prod.letras.forEach((l,k)=>{const c=Math.floor(k/per),r=k%per;const x=IX+c*(cw+2),yy=y+r*4.4;if(x+cw>XR)return;
+      P.push({t:'rect',x,y:yy,w:cw,h:4.4,fill:r%2?'#ffffff':'#fff0f6',stroke:'#adb5bd',lw:0.1},{t:'text',x:x+1.5,y:yy+3.1,s:`${k+1}. ${f0(l.h)} mm${det?`  •  ${l.broc!=null?l.broc+' fix.':''}  •  ${l.pan} panela`:''}`,size:2.3,bold:true,color:'#000000'})});
     y+=Math.min(per,prod.letras.length)*4.4+2}
   // desenho da parede com a peça e as medidas de saída
-  let R;if(temF&&166-(y+4)>=48)R={x:IX-4,y:y+2,w:288-IX,h:166-y-2};else{const top=Math.max(temF?FY+FH+4:y+4,y+2);R={x:22,y:top+2,w:262,h:166-top-4}}
+  let R;if(!temF)R={x:156,y:28,w:130,h:138};else if(temF&&166-(y+4)>=48)R={x:IX-4,y:y+2,w:288-IX,h:166-y-2};else{const top=Math.max(temF?FY+FH+4:y+4,y+2);R={x:22,y:top+2,w:262,h:166-top-4}}
   const W=prod.W,H=prod.H;const mg=Math.max(250,0.35*Math.max(W,H));
   const L0=I.hm==='esquerda'?I.hv:I.hm==='direita'?(I.pw?I.pw-W-I.hv:mg):(I.pw?(I.pw-W)/2:mg);
   const PWm=I.pw||(I.hm==='direita'?L0+W+I.hv:L0+W+mg);
@@ -3176,10 +3212,10 @@ function paginasFinais(pages,tags,ctx,prod){try{
   const an=folhaAncoragem(ctx,prod);if(an){pages.push(an);if(tags)tags.push('INSTALAÇÃO')}
   folhasExpedicao(ctx,prod).forEach(P=>{pages.push(P);if(tags)tags.push('EXPEDIÇÃO')});
   folhasQualidade(ctx,prod).forEach(P=>{pages.push(P);if(tags)tags.push('QUALIDADE')});
-  try{const rows=matResolve([...(prod.mat||[]),...needsAncoragem(ancInfo(instLer(),prod))]);if(rows.length){folhasMaterial(ctx,prod,rows).forEach(P=>{pages.push(P);if(tags)tags.push('MATERIAL')});matUlt=rows;setTimeout(matCardRender,0)}}catch(e){console.error('lista de material',e)}}catch(e){console.error('paginasFinais',e)}}
+  try{const rows=matResolve([...(prod.mat||[]),...needsAncoragem(ancInfo(instLer(),prod))]);if(rows.length){folhasMaterial(ctx,prod,rows).forEach(P=>{pages.push(P);if(tags)tags.push('RM')});matUlt=rows;setTimeout(matCardRender,0)}}catch(e){console.error('lista de material',e)}}catch(e){console.error('paginasFinais',e)}}
 
 /* ---------- produtos ---------- */
-function prodLetras(t,ctx,orig,defs,ledInfo,furos,nests){const regs=regionsOf(toC(orig)).map(r=>{const ps=fromC(r);return{ps,bb:bbox(ps)}});const L=ordenaPecas(regs);
+function prodLetras(t,ctx,orig,defs,ledInfo,furos,nests){const fixBit=(()=>{try{const I=instLer();const k=ANC_ANTIGO[I.ancT]||I.ancT;return ANC[k]?(I.ancB||ANC[k].bit).toLowerCase():'parafuso'}catch(e){return 'parafuso'}})();const regs=regionsOf(toC(orig)).map(r=>{const ps=fromC(r);return{ps,bb:bbox(ps)}});const L=ordenaPecas(regs);
   const ar=p=>{let a=0;for(let i=0,j=p.length-1;i<p.length;j=i++)a+=(p[j][0]+p[i][0])*(p[j][1]-p[i][1]);return a/2};
   const temPVC=defs.some(p=>/PVC/i.test(p.material||'')),temAcr=defs.some(p=>/ACR/i.test((p.material||'')+' '+(p.titulo||''))),temLed=defs.some(p=>p.tipo==='led');
   const cx=ctx.caixa||80;const vols=[];const brocL=[],panL=[];
@@ -3191,13 +3227,13 @@ function prodLetras(t,ctx,orig,defs,ledInfo,furos,nests){const regs=regionsOf(to
       vols.push({desc:`LETRA ${k+1} — FUNDO PVC`,cont:`Fundo em PVC 10 mm${nf?` (${nf} furos Ø3)`:''}`,dims:`${f0(g.bb.w)} x ${f0(g.bb.h)} x 10`,q:1,kg:area*KG.pvc10,draw:{polys:g.ps,fill:'#e9ecef'}})}});
   L.forEach((g,k)=>panL[k]=panelaPorLetra(g.ps));const nb=brocL.reduce((a,v)=>a+(v||0),0),np=panL.reduce((a,v)=>a+v,0);
   const b=bbox(orig);
-  vols.push({desc:'PARAFUSOS',cont:`${temPVC?nb+' brocantes Phillips (PVC na parede) + ':''}${np} cabeça panela Phillips 5,5x25 (lateral, pintados)`,dims:'—',q:1,kg:0,draw:null});
+  vols.push({desc:'PARAFUSOS',cont:`${temPVC?nb+' fixações na parede ('+fixBit+') + ':''}${np} cabeça panela Phillips 5,5x25 (lateral, pintados)`,dims:'—',q:1,kg:0,draw:null});
   vols.push({desc:'MOLDE KRAFT',cont:`Molde em papel kraft (enrolado)${furos?' com a furação':''}`,dims:`${f0(b.w+100)} x ${f0(b.h+100)}`,q:1,kg:(b.w+100)*(b.h+100)/1e6*0.1,draw:{rects:[{x0:0,y0:0,x1:b.w+100,y1:b.h+100,cor:'#f4e3c3'}]}});
   if(temLed&&ledInfo)vols.push({desc:'ELÉTRICA',cont:'Fonte / reator e fiação da iluminação',dims:'—',q:1,kg:0,draw:null});
   const qualExtra=[];(nests||[]).forEach(N=>{const B=N.best;if(!B||N.semQual)return;B.sheets.forEach((sh,k)=>{const polys=[];sh.items.forEach(it=>{const pc=pieceAt(N.pieces[it.i],it);(pc.lines[0]?[pc.lines[0]]:[]).forEach(l=>l.polys.forEach(p=>polys.push(p)))});
     qualExtra.push({desc:`APROVEITAMENTO ${N.nome==='ACRILICO'?'ACRÍLICO':'CHAPA GALV.'} ${k+1}/${B.sheets.length}`,cont:`Chapa ${B.w} x ${B.h} mm — ${sh.items.length} peças`,q:1,draw:{rects:[{x0:0,y0:0,x1:B.w,y1:B.h,cor:'#f8f9fa'}],polys,fill:N.nome==='ACRILICO'?'#ffc9de':'#dee2e6'}})})});
-  return{tipo:'letra',mat:matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L),anc:{peca:temPVC?'FUNDO DE PVC':'FUNDO DA LETRA',auto:temPVC?nb:L.length*3,onde:temPVC?'nos furos do PVC (molde kraft)':'3 por letra (estimado)'},qualExtra,nome:ctx.descItem||t.nome,W:b.w,H:b.h,D:cx,un:1,letras:L.map((g,k)=>({h:g.bb.h,broc:temPVC?(brocL[k]||0):null,pan:panL[k]})),
-    metodo:[...(temPVC?[`Fixar o molde kraft na parede, furar pelos furos e parafusar o FUNDO DE PVC com parafuso BROCANTE PHILLIPS (${nb} no total).`]:[]),`Encaixar a frente da letra${temPVC?' sobre o PVC':''} e fixar pela LATERAL com ${PANELA} — um a cada 200 mm (${np} no total).`,'Os parafusos da lateral vão pintados na cor da letra.'],contorno:orig,volumes:vols,
+  return{tipo:'letra',circ:ledInfo&&ledInfo.circ,mat:matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L),anc:{peca:temPVC?'FUNDO DE PVC':'FUNDO DA LETRA',auto:temPVC?nb:L.length*3,onde:temPVC?'nos furos do PVC (molde kraft)':'3 por letra (estimado)'},qualExtra,nome:ctx.descItem||t.nome,W:b.w,H:b.h,D:cx,un:1,letras:L.map((g,k)=>({h:g.bb.h,broc:temPVC?(brocL[k]||0):null,pan:panL[k]})),
+    metodo:[...(temPVC?[`Fixar o molde kraft na parede, furar pelos furos e fixar o FUNDO DE PVC com ${fixBit} (${nb} no total).`]:[]),`Encaixar a frente da letra${temPVC?' sobre o PVC':''} e fixar pela LATERAL com ${PANELA} — um a cada 200 mm (${np} no total).`,'Os parafusos da lateral vão pintados na cor da letra.'],contorno:orig,volumes:vols,
     checks:['MEDIDAS','ACABAMENTO / PINTURA',...(temLed?['LED ACENDE']:[]),...(temPVC?['FUROS PVC']:[])]}}
 function prodTesteira(M,o,ctx){const comp=M.comp;const vols=[];const b3=bbox3(M.acm?M.boxes.concat(M.acm.boxes):M.boxes.filter(b=>!b.fix));
   comp.forEach(c=>{const F=c.F;let kg=0;F.mem.forEach(m=>{const pp=PERFIS[m.perfil];if(!pp)return;kg+=(m.len+(m.ext||0))/1000*tuboKgM(pp.f,pp.p,numBR(m.parede||o.parede))});
@@ -3229,13 +3265,13 @@ function instCarrega(blob){if(!blob||!/^image\//.test(blob.type))return;const ur
   im.onerror=()=>URL.revokeObjectURL(url);im.src=url}
 function instRender(){const b=$('#instPrev');if(!b)return;b.innerHTML=instImg?`<div class="row" style="gap:10px;align-items:center"><img src="${instImg.src}" style="width:140px;height:100px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff"><button class="btn ghost sm" id="instDel">Remover foto</button></div>`:'';
   $('#iHv').disabled=$('#iHm').value==='centro';$('#iVv').disabled=$('#iVm').value==='centro';
-  if($('#ancPrev')){$('#ancPrev').innerHTML=ancImg?`<div class="row" style="gap:10px;align-items:center"><img src="${ancImg.src}" style="width:90px;height:70px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff"><button class="btn ghost sm" id="ancDel">Remover foto</button></div>`:'';const t=$('#iAncT').value;const A=ANC[t];$('#ancBox').hidden=!A;if(A)$('#iAncB').placeholder=A.bit}}
+  if($('#ancPrev')){$('#ancPrev').innerHTML=ancImg?`<div class="row" style="gap:10px;align-items:center"><img src="${ancImg.src}" style="width:90px;height:70px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff"><button class="btn ghost sm" id="ancDel">Remover foto</button></div>`:'';const t=ANC_ANTIGO[$('#iAncT').value]||$('#iAncT').value;const A=ANC[t];$('#ancBox').hidden=!A;if(A)$('#iAncB').placeholder=A.bit}}
 let ancImg=null;
 function ancCarrega(blob){if(!blob||!/^image\//.test(blob.type))return;const url=URL.createObjectURL(blob);const im=new Image();
   im.onload=()=>{const Mx=1000,k=Math.min(1,Mx/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
     const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);
     ancImg={src:c.toDataURL('image/jpeg',0.85),w:c.width,h:c.height};if(typeof pedSujo!=='undefined')pedSujo=true;instRender();refRefaz()};im.onerror=()=>URL.revokeObjectURL(url);im.src=url}
-function instReset(){instImg=null;ancImg=null;if($('#iAncT')){$('#iAncT').value='bucha';$('#iAncB').value='';$('#iAncQ').value=''}['iPw','iPh','iHv','iVv'].forEach(i=>{if($('#'+i))$('#'+i).value=''});if($('#iHm')){$('#iHm').value='centro';$('#iVm').value='centro'}instRender()}
+function instReset(){instImg=null;ancImg=null;if($('#iAncT')){$('#iAncT').value='alvenaria';$('#iAncB').value='';$('#iAncQ').value=''}['iPw','iPh','iHv','iVv'].forEach(i=>{if($('#'+i))$('#'+i).value=''});if($('#iHm')){$('#iHm').value='centro';$('#iVm').value='centro'}instRender()}
 if($('#instIn')){
   $('#instIn').onchange=e=>{instCarrega(e.target.files[0]);e.target.value=''};
   $('#ancIn').onchange=e=>{ancCarrega(e.target.files[0]);e.target.value=''};
@@ -3296,14 +3332,15 @@ function mpBarras(lens,barra=6000,serra=3){const pcs=lens.slice().sort((a,b)=>b-
 function needMetalon(perfil,parede,nBarras,uso){const d=mpDim(perfil);const p=String(parede||'').replace('.',',');
   return{k:`metalon|${perfil}|${p}`,desc:`Metalon ${perfil}${p?' parede '+p:''} — barra 6 m`,q:nBarras,un:'un',uso,
     busca:d?{must:[['METALON','TUBO'],d],want:[p?p+'MM':'','GALVANIZADO']}:null}}
-function needsAncoragem(A){if(!A||!A.q)return[];const q=A.q;
-  if(A.tipo==='bucha')return[{k:'anc|bucha8',desc:'Bucha 8 mm nylon',q,un:'un',uso:'ancoragem',busca:{must:['BUCHA','8MM']}},{k:'anc|fixer45',desc:'Parafuso fixer 4,5 x 45 (bucha 8)',q,un:'un',uso:'ancoragem',busca:{must:['FIXER','4.5X45']}}];
-  if(A.tipo==='parabolt')return[{k:'anc|parabolt38',desc:'Parabolt 3/8" x 3"',q,un:'un',uso:'ancoragem',busca:{must:['PARABOLT','3/8'],want:['X 3 ']}}];
-  if(A.tipo==='quimico')return[{k:'anc|quim-resina',desc:'Chumbador químico (frasco)',q:Math.max(1,Math.ceil(q/10)),un:'un',uso:'ancoragem (~10 furos por frasco)',busca:{must:['CHUMBADOR QUIMICO'],want:['FRASCO']}},
+function needsAncoragem(A){if(!A||!A.q)return[];const q=A.q;const k=A.key||A.tipo;
+  if(k==='alvenaria')return[{k:'anc|bucha8',desc:'Bucha 8 mm nylon',q,un:'un',uso:'fixação na parede (alvenaria)',busca:{must:['BUCHA','8MM']}},{k:'anc|sext14x70',desc:'Parafuso sext. rosca soberba 1/4 x 70 mm',q,un:'un',uso:'fixação na parede (alvenaria)',busca:{must:['SEXT','SOBERBA','1/4 X 70']}}];
+  if(k==='drywall')return[{k:'anc|sforbolt',desc:'Bucha drywall Sforbolt c/ parafuso 1/4',q,un:'un',uso:'fixação na parede (drywall)',busca:{must:['SFORBOLT']}}];
+  if(k==='aco')return[{k:'anc|brocsext',desc:'Parafuso sext. flang. c/ arruela broc. (12x2) 5,5 x 2"',q,un:'un',uso:'fixação em tubo de aço / ACM',busca:{must:['BROC','5.5 X 2']}},{k:'anc|fixer45',desc:'Parafuso fixer cab. chata Philips 4,5 x 45',q,un:'un',uso:'fixação em tubo de aço / ACM',busca:{must:['FIXER','4.5X45']}}];
+  if(k==='parabolt')return[{k:'anc|parabolt38',desc:'Parabolt 3/8" x 3"',q,un:'un',uso:'ancoragem',busca:{must:['PARABOLT','3/8'],want:['X 3 ']}}];
+  if(k==='quimico')return[{k:'anc|quim-resina',desc:'Chumbador químico (frasco)',q:Math.max(1,Math.ceil(q/10)),un:'un',uso:'ancoragem (~10 furos por frasco)',busca:{must:['CHUMBADOR QUIMICO'],want:['FRASCO']}},
     {k:'anc|quim-camisa',desc:'Camisa telada p/ chumbador químico',q,un:'un',uso:'ancoragem',busca:{must:['CAMISA','CHUMBADOR']}},
     {k:'anc|barra38',desc:'Barra roscada 3/8" x 1 m',q:Math.max(1,Math.ceil(q*0.12)),un:'un',uso:'ancoragem (12 cm por furo)',busca:{must:['BARRA ROSCADA','3/8']}}];
-  if(A.tipo==='brocante')return[{k:'anc|broc42',desc:'Parafuso brocante 4,2 x 32',q,un:'un',uso:'ancoragem',busca:{must:['BROCANTE','4.2']},}];
-  if(A.tipo==='madeira')return[{k:'anc|madeira45',desc:'Parafuso p/ madeira 4,5 x 50',q,un:'un',uso:'ancoragem',busca:{must:['PARAFUSO',['MADEIRA',' MAD ']]}}];return[]}
+  return[]}
 // cor do adesivo → busca no catálogo
 function buscaAdesivo(c){if(!c)return{must:['ADESIVO']};if(c.marca==='Oracal')return{must:['ADESIVO','ORACAL',[`651 ${c.cod.replace(/M$/,'')}`]],want:[/M$/.test(c.cod)?'FOSCO':'']};
   if(c.marca==='Imprimax'){const l=/Color/.test(c.linha)?'COLOR MAX':'GOLD MAX';return{must:['ADESIVO','IMPRIMAX',c.nome.replace(/ Fosco$/,'').split(' ')[0]],want:[...c.nome.split(' '),l,/Fosco/.test(c.nome+c.linha)?'FOSCO':'']}}
@@ -3345,10 +3382,9 @@ function matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L){const N=[];const temLed=
   if(pint||areaGalv>0){const soLat=pint&&pint.partes==='lateral';N.push(...needsTinta(soLat?areaLat:areaGalv+areaLat,soLat?'lateral das letras':'letras (face + lateral)'))}
   if(temLed){const P=ledInfo.P||{};const wt=+P.watts||0.72;const t=String(ctx.led||'').match(/\d{4,5}/);const tk=t?t[0]:'6500';const ws=String(wt).replace('.',',');
     N.push({k:`led|${tk}|${wt}`,desc:`Módulo LED ${tk}K ${ws} W 12 V`,q:ledInfo.mods.length,un:'un',uso:'iluminação (configuração do sistema)',busca:{must:['MODULO LED',`${tk}K`,[`${(+wt).toFixed(2)}W`,`${+wt}W`]],want:['3P','VINILSUL']}});
-    const c={};fontes(ledInfo.watts*1.2).forEach(w=>c[w]=(c[w]||0)+1);
-    Object.entries(c).forEach(([w,q])=>N.push({k:`fonte|${w}`,desc:`Fonte blindada ${w} W 12 V IP67`,q,un:'un',uso:`${f1(ledInfo.watts)} W + 20%`,busca:{must:['REATOR',`${w}W`,'IP67']}}));
-    const larg=(L||[]).reduce((a,g)=>a+g.bb.w,0)/1000*MPP.fioFator;N.push({k:'fio|1.5',desc:'Fio 1,5 mm',q:Math.round(larg*100)/100,un:'m',uso:`largura das letras x ${MPP.fioFator}`,busca:{must:[['FIO','CABO'],'1.5MM']}})}
-  if(nb)N.push({k:'let|brocante',desc:'Parafuso brocante Phillips (PVC)',q:nb,un:'un',uso:'fundo de PVC na parede',busca:{must:['BROCANTE'],want:['4.2X45']}});
+    const c={};(ledInfo.circ?ledInfo.circ.lista.map(x=>x.fonte):fontes(ledInfo.watts*1.2)).forEach(w=>c[w]=(c[w]||0)+1);
+    Object.entries(c).forEach(([w,q])=>N.push({k:`fonte|${w}`,desc:`Fonte blindada ${w} W 12 V IP67`,q,un:'un',uso:ledInfo.circ?`${ledInfo.circ.lista.length} circuito(s)${ledInfo.circ.grande?' — letra > 350 mm: só 100/150 W':''}`:`${f1(ledInfo.watts)} W + 20%`,busca:{must:['REATOR',`${w}W`,'IP67']}}));
+    const larg=(L||[]).reduce((a,g)=>a+g.bb.w,0)/1000*MPP.fioFator;const meio=Math.round(larg/2*100)/100;N.push({k:'fio|1.5|preto',desc:'Cabo flexível 1,5 mm preto',q:meio,un:'m',uso:`metade de largura das letras x ${MPP.fioFator}`,busca:{must:['CABO FLEXIVEL','PRETO','01.50MM']}},{k:'fio|1.5|verm',desc:'Cabo flexível 1,5 mm vermelho',q:meio,un:'m',uso:`metade de largura das letras x ${MPP.fioFator}`,busca:{must:['CABO FLEXIVEL','VERMELHO','01.50MM']}})}
   if(np)N.push({k:'let|panela',desc:'Parafuso cabeça panela (lateral)',q:np,un:'un',uso:'lateral das letras',busca:{must:['CABECA PANELA','2.9X6.5']}});
   return N}
 function matEstrutura(L,un){const g={};(L||[]).forEach(r=>{if(!/tubo|metalon|barra/i.test((r.tipo||'')+' '+(r.nome||'')))return;const k=(r.perfil||'')+'|'+(r.parede||'');(g[k]=g[k]||[]);for(let i=0;i<(r.q||1)*un;i++)g[k].push(r.len||0)});
@@ -3408,8 +3444,8 @@ function fontes(need){const out=[];let n=need;while(n>0.01){const w=n<=60?60:n<=
 // ---------- folha LISTA DE MATERIAL ----------
 function folhasMaterial(ctx,prod,rows){const pages=[];const tot=rows.reduce((s,r)=>s+r.tot,0);const brl=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
   const cols=[['CÓD.',14],['MATÉRIA-PRIMA',94],['UN.',9],['QTD.',14],['VALOR UN.',21],['TOTAL',22],['DATA VALOR',18],['USO',81]];const RH=6.6,per=17;let P=null,y=0;
-  const novo=()=>{P=[];frame(P,ctx,{setor:'MATERIAL'});P._ref=null;pages.push(P);
-    P.push({t:'text',x:PW/2,y:30,s:'LISTA DE MATERIAL',size:4.6,bold:true,color:'#000000',anchor:'middle'});
+  const novo=()=>{P=[];frame(P,ctx,{setor:'RM'});P._ref=null;pages.push(P);
+    P.push({t:'text',x:PW/2,y:30,s:'RELAÇÃO DE MATERIAL (RM)',size:4.6,bold:true,color:'#000000',anchor:'middle'});
     P.push({t:'text',x:PW/2,y:35,s:`ITEM ${ctx.item} — ${fit(prod.nome,120,2.6)}${prod.un>1?` • ${prod.un} un.`:''} • valores de referência da planilha de ${MP_DATA}`,size:2.6,color:'#555555',anchor:'middle'});
     y=40;let x=12;cols.forEach(([h,w])=>{P.push({t:'rect',x,y,w,h:5,fill:'#495057',stroke:'#000000',lw:0.15},{t:'text',x:x+w/2,y:y+3.5,s:h,size:2.3,bold:true,color:'#ffffff',anchor:'middle'});x+=w});y+=5};
   rows.forEach((r,i)=>{if(!P||i%per===0)novo();let x=12;const sem=r.cod==null,sp=!!r.semPreco;
@@ -3421,11 +3457,11 @@ function folhasMaterial(ctx,prod,rows){const pages=[];const tot=rows.reduce((s,r
   if(!P)novo();
   {const X0=12+14+94+9+14;P.push({t:'rect',x:X0,y:y+1.5,w:43,h:7,fill:'#212529',stroke:'#000000',lw:0.2},{t:'text',x:X0+2,y:y+6,s:'TOTAL',size:3,bold:true,color:'#ffffff'},{t:'text',x:X0+41,y:y+6,s:brl(tot),size:3.2,bold:true,color:'#ffffff',anchor:'end'})}
   const sem=rows.filter(r=>r.cod==null).length,spN=rows.filter(r=>r.semPreco).length;
-  P.push({t:'text',x:12,y:Math.min(166,y+14),s:fit(`${spN?`${spN} item(ns) SEM PREÇO (em vermelho), fora do total — informar o valor na lista abaixo das fichas. `:''}${sem?`${sem} item(ns) SEM CÓDIGO. `:''}Quantidades pelo projeto; sem consumíveis (solda, disco).`,272,2.3),size:2.3,color:sem||spN?'#c92a2a':'#555555'});
+  P.push({t:'text',x:12,y:Math.min(166,y+14),s:fit(`${spN?`${spN} item(ns) SEM PREÇO (em vermelho), fora do total — informar o valor na RM abaixo das fichas. `:''}${sem?`${sem} item(ns) SEM CÓDIGO. `:''}Quantidades pelo projeto; sem consumíveis (solda, disco).`,272,2.3),size:2.3,color:sem||spN?'#c92a2a':'#555555'});
   return pages}
 // ---------- tela: conferir / trocar o código de cada material ----------
 let matUlt=null;
-function matCardRender(){const html=matUlt&&matUlt.length?`<div style="margin-top:14px;padding:12px;border:1.5px solid #495057;border-radius:12px;background:#f8f9fa"><div class="row" style="justify-content:space-between"><b>Lista de material</b><span class="note">total ${matUlt.reduce((s,r)=>s+r.tot,0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</span></div>
+function matCardRender(){const html=matUlt&&matUlt.length?`<div style="margin-top:14px;padding:12px;border:1.5px solid #495057;border-radius:12px;background:#f8f9fa"><div class="row" style="justify-content:space-between"><b>Relação de material (RM)</b><span class="note">total ${matUlt.reduce((s,r)=>s+r.tot,0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</span></div>
   ${matUlt.map((r,i)=>`<div class="row" style="gap:8px;align-items:center;border-top:1px solid var(--line);padding:6px 0;font-size:13px"><div style="flex:1;min-width:0"><div style="font-weight:600;${r.cod==null||r.semPreco?'color:#c92a2a':''}">${r.cod==null?'SEM CÓDIGO — '+esc(r.desc):esc(r.cod+' — '+r.nome)+(r.semPreco?' (SEM PREÇO)':'')}</div><div class="note" style="font-size:11px">${esc(r.desc)} • ${String(r.q).replace('.',',')} ${esc(r.unMP)} x ${r.vu.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}${r.data?' (valor de '+esc(r.data)+')':''}${r.manual?' • escolhido manualmente':''}</div></div><button class="btn ghost sm" type="button" data-mpk="${i}">Trocar</button></div>`).join('')}${matUlt.some(r=>r.semPreco)?`<div style="margin-top:10px;padding:10px;border:1.5px solid #e03131;border-radius:10px;background:#fff5f5"><b style="color:#c92a2a">Sem preço no cadastro — informe o valor</b>${matUlt.filter(r=>r.semPreco).map(r=>`<div class="row" style="gap:6px;align-items:center;margin-top:6px;flex-wrap:nowrap"><span style="flex:1;min-width:0;font-size:12.5px">${esc(r.cod+' — '+r.nome)}</span><input type="text" inputmode="decimal" placeholder="R$ un." data-mppr="${r.cod}" style="max-width:96px"></div>`).join('')}<button class="btn pink sm" type="button" data-mpprok="1" style="margin-top:8px">Salvar valores e atualizar</button></div>`:''}</div>`:'';
   document.querySelectorAll('.matBox').forEach(b=>b.innerHTML=html)}
 function matRodar(prevId){try{const t=typeof abaAtual==='function'?abaAtual():'';if(t==='novo')FPOBS_RUN.prev();else if(t==='testeiras'){if(tModo==='desenho')dRender3D();else tRender()}else if(t==='modelo')mFolhasRender();else (FPOBS_RUN[prevId]||(()=>{}))()}catch(e){console.error(e)}}
