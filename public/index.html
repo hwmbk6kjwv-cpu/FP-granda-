@@ -469,7 +469,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
 <script>
 const LED_ALL=[10000,6500,3500];
 const LED_COLOR={10000:'#cfe3ff',6500:'#f4f7ff',3500:'#ffd89a'};
-const SETORES={'LETRA CAIXA':'#c2255c','ROUTER':'#4338a0','IMPRESSÃO':'#f0a855','ELÉTRICA':'#e8a400','SERRALHERIA':'#5fd35f','PINTURA':'#2f9e44','MONTAGEM':'#1971c2','INSTALAÇÃO':'#d6336c','P1':'#0c8599'};
+const SETORES={'LETRA CAIXA':'#c2255c','ROUTER':'#4338a0','IMPRESSÃO':'#f0a855','ELÉTRICA':'#e8a400','SERRALHERIA':'#5fd35f','PINTURA':'#2f9e44','MONTAGEM':'#1971c2','INSTALAÇÃO':'#d6336c','P1':'#0c8599','ACABAMENTO':'#7048e8'};
 const PG_BLANK={setor:'ROUTER',titulo:'',material:'',espessura:'',cor:'',textura:'',linhas:[]};
 // Usado só se o banco do artefato não estiver disponível (modo local).
 // legenda padrão da router (cores dos arquivos de corte)
@@ -1380,6 +1380,28 @@ function ordenaPecas(arr){
   arr.slice().sort((a,b)=>b.bb.y1-a.bb.y1).forEach(g=>{const c=(g.bb.y0+g.bb.y1)/2;let L=lines.find(l=>c<=l.y1+H*0.1&&c>=l.y0-H*0.1);if(!L){L={y0:g.bb.y0,y1:g.bb.y1,items:[]};lines.push(L)}L.items.push(g);L.y0=Math.min(L.y0,g.bb.y0);L.y1=Math.max(L.y1,g.bb.y1)});
   lines.sort((a,b)=>b.y1-a.y1);return lines.flatMap(l=>l.items.sort((a,b)=>(a.bb.x0+a.bb.x1)/2-(b.bb.x0+b.bb.x1)/2));
 }
+/* ---------- furação do fundo de PVC (Ø3) e cantos a 45° para encaixe ---------- */
+const FURO_D=3;
+function nFuros(tam){return tam<=400?3:Math.ceil(tam/100-1e-9)-1}
+function circ(c,r,n=20){const o=[];for(let k=0;k<n;k++){const a=2*Math.PI*k/n;o.push([c[0]+r*Math.cos(a),c[1]+r*Math.sin(a)])}return o}
+function furosPVC(polys,extra=0){const furos=[];
+  regionsOf(toC(polys)).forEach(rg=>{const ps=fromC(rg);const b=bbox(ps);const tam=Math.max(b.w,b.h)+extra;const n=nFuros(tam);
+    let ins=[];for(const d of [10,7,5,3]){ins=offset(rg,-(d+FURO_D/2));if(ins.length)break}
+    let cand=[];ins.forEach(p=>{for(let i=0;i<p.length;i++){const a=p[i],c=p[(i+1)%p.length];const L=Math.hypot(c[0]-a[0],c[1]-a[1]);const k=Math.max(1,Math.ceil(L/3));for(let j=0;j<k;j++)cand.push([a[0]+(c[0]-a[0])*j/k,a[1]+(c[1]-a[1])*j/k])}});
+    if(!cand.length)cand=[[(b.x0+b.x1)/2,(b.y0+b.y1)/2]];
+    const cx=(b.x0+b.x1)/2,cy=(b.y0+b.y1)/2;const sel=[cand.reduce((m,q)=>Math.hypot(q[0]-cx,q[1]-cy)>Math.hypot(m[0]-cx,m[1]-cy)?q:m)];
+    const dmin=q=>Math.min(...sel.map(s=>Math.hypot(q[0]-s[0],q[1]-s[1])));
+    while(sel.length<Math.min(n,cand.length)){let best=null,bd=-1;for(const q of cand){const d=dmin(q);if(d>bd){bd=d;best=q}}if(bd<8)break;sel.push(best)}
+    sel.forEach(c=>furos.push({c,tam}))});
+  return furos}
+// cantos vivos convexos do PVC (onde a lateral faz a dobra): cortar a 45° para encaixar
+function cantosVivos(polys,ang=25){const out=[];
+  regionsOf(toC(polys)).forEach(rg=>{const ps=fromC(rg);const ar=p=>{let a=0;for(let i=0,j=p.length-1;i<p.length;j=i++)a+=(p[j][0]+p[i][0])*(p[j][1]-p[i][1]);return a/2};
+    const sg=Math.sign(ar(ps[0]))||1;
+    ps.forEach(p=>{const n=p.length;for(let i=0;i<n;i++){const a=p[(i-1+n)%n],b=p[i],c=p[(i+1)%n];const u=[b[0]-a[0],b[1]-a[1]],v=[c[0]-b[0],c[1]-b[1]];
+      const lu=Math.hypot(...u),lv=Math.hypot(...v);if(lu<0.5||lv<0.5)continue;const cr=(u[0]*v[1]-u[1]*v[0])/(lu*lv),dt=(u[0]*v[0]+u[1]*v[1])/(lu*lv);
+      const t=Math.atan2(cr,dt)*180/Math.PI;if(Math.abs(t)>=ang&&(-cr*sg)>0)out.push(b)}})});
+  return out}
 function buildDoc(){
   const t=types.find(x=>x.id===selType);
   let b=bbox(src.polys);
@@ -1391,7 +1413,7 @@ function buildDoc(){
   const ctx={os:$('#os').value.trim(),item:$('#item').value||'1',descItem:$('#descItem').value.trim()||'LETRA CAIXA',cliente:$('#cliente').value.trim(),vendedor:$('#vendedor').value.trim(),projetista:$('#projetista').value.trim(),endereco:$('#endereco').value.trim(),entrega:d?d.split('-').reverse().join('/'):'',tipo:t.nome,led:selLed.toLocaleString('pt-BR')+' K',caixa:selCaixa,obs:$('#obs').value.trim()};
   let defs=pagesOf(t).concat(readPages($('#xPages')));
   if(!defs.length)defs=[{...PG_BLANK,setor:'ROUTER',titulo:'ORIGINAL - LINHA PRETA',material:'',linhas:[{offset:0,legenda:'Original',cor:'#000000'}]}];
-  const pages=[],info=[];
+  const pages=[],info=[];let furosDoc=null,pvcPolys=null,acabP=null;
   let ledInfo=null;
   const mo=Math.max(0,...defs.flatMap(p=>(p.linhas||[]).map(l=>l.offset)));
   const hasLed=defs.some(p=>p.tipo==='led');const K=1; // FP em A4; o tamanho real (1:1) vai nos arquivos de produção
@@ -1483,6 +1505,9 @@ function buildDoc(){
     const all=lines.flatMap(l=>l.polys);const draw=all.length?all:orig;
     const bb=bbox(draw);
     const ref=lines.filter(l=>l.polys.length).sort((a,c)=>c.offset-a.offset)[0];const rb=ref?bbox(ref.polys):bb;
+    if(/PVC/i.test(pg.material||'')&&lines.length&&lines[0].polys.length){const pc=lines.find(l=>/EXTERNO/i.test(l.legenda||''))||lines[0];
+      if(!furosDoc){furosDoc=furosPVC(pc.polys,Math.max(0,-2*(pc.offset||0)));pvcPolys=pc.polys}
+      lines.push({cor:RC['CORTE INTERNO'],legenda:`FURO Ø${FURO_D} p/ parafuso — ${furosDoc.length} furos (CORTE INTERNO)`,offset:0,noOff:true,polys:furosDoc.map(f=>circ(f.c,FURO_D/2))})}
     const BX=30,BY=42,BW=254,BH=94;
     const s=SC;const dx=BX+(BW-bb.w*s)/2,dy=BY+(BH-bb.h*s)/2;
     const map=p=>p.map(([x,y])=>[dx+(x-bb.x0)*s,dy+(bb.y1-y)*s]);
@@ -1560,6 +1585,28 @@ function buildDoc(){
      P.push({t:'rect',x:12,y:105.5,w:273,h:6.5,r:1.5,fill:'#fff0f6',stroke:'#c2255c',lw:0.4});
      P.push({t:'text',x:148.5,y:110,s:`GALVANIZADA — FRENTE: ${cpg.espessura&&cpg.espessura!=='----'?cpg.espessura:'CHAPA 20'}   •   LATERAIS: ${C2.lateral} (altura ${ctx.caixa} mm)`,size:3.4,bold:true,color:'#000000',anchor:'middle'})}}
    pages.unshift(P);}
+  // ---- ACABAMENTO: cantos do PVC a 45° para encaixe ----
+  if(pvcPolys){const P=[];frame(P,ctx,{setor:'ACABAMENTO'});const cv=cantosVivos(pvcPolys);
+   P.push({t:'text',x:PW/2,y:30,s:'ACABAMENTO — FUNDO EM PVC',size:4.4,bold:true,color:'#000000',anchor:'middle'});
+   P.push({t:'rect',x:30,y:34,w:237,h:10,r:2,fill:'#f3f0ff',stroke:'#7048e8',lw:0.4});
+   P.push({t:'text',x:PW/2,y:40.6,s:'CORTAR OS CANTOS DO PVC A 45° PARA ENCAIXAR NA LATERAL DA LETRA',size:4.2,bold:true,color:'#5f3dc4',anchor:'middle'});
+   const bb=bbox(pvcPolys);const BX=20,BY=52,BW=190,BH=80;const s=Math.min(BW/bb.w,BH/bb.h);const dx=BX+(BW-bb.w*s)/2,dy=BY+(BH-bb.h*s)/2;
+   const map=p=>p.map(([x,y])=>[dx+(x-bb.x0)*s,dy+(bb.y1-y)*s]);
+   pvcPolys.forEach(p=>P.push({t:'polyf',pts:map(p),fill:'#f1f3f5',stroke:'#495057',lw:0.18}));
+   cv.forEach(q=>{const [x,y]=map([q])[0];P.push({t:'circle',x,y,r:1.1,fill:'#7048e8',stroke:'#ffffff',lw:0.1})});
+   (furosDoc||[]).forEach(f=>{const [x,y]=map([f.c])[0];P.push({t:'circle',x,y,r:0.5,fill:'#ff5500',stroke:'#ff5500',lw:0.05})});
+   // detalhe do canto
+   const DX=222,DY=56;P.push({t:'text',x:DX+30,y:DY-2,s:'DETALHE DO CANTO',size:2.8,bold:true,color:'#5f3dc4',anchor:'middle'});
+   P.push({t:'polyf',pts:[[DX,DY+46],[DX,DY+12],[DX+12,DY],[DX+56,DY],[DX+56,DY+46]],fill:'#e9ecef',stroke:'#212529',lw:0.3});
+   P.push({t:'path',pts:[[DX,DY+12],[DX,DY],[DX+12,DY]],color:'#adb5bd',w:0.25});
+   P.push({t:'line',x1:DX-1,y1:DY+13,x2:DX+13,y2:DY-1,color:'#7048e8',w:0.6});
+   P.push({t:'text',x:DX+14,y:DY+9,s:'CORTE A 45°',size:2.6,bold:true,color:'#7048e8'});
+   P.push({t:'text',x:DX+28,y:DY+30,s:'PVC 10 MM',size:3,bold:true,color:'#495057',anchor:'middle'});
+   P.push({t:'text',x:DX+28,y:DY+54,s:'Vista de cima do canto da peça',size:2.2,color:'#555555',anchor:'middle'});
+   P.push({t:'circle',x:BX+2,y:BY+BH+6,r:1.1,fill:'#7048e8',stroke:'#ffffff',lw:0.1},{t:'text',x:BX+5,y:BY+BH+7,s:`Cantos a cortar a 45°: ${cv.length}`,size:2.6,bold:true,color:'#000000'});
+   if(furosDoc)P.push({t:'circle',x:BX+62,y:BY+BH+6,r:0.6,fill:'#ff5500',stroke:'#ff5500',lw:0.05},{t:'text',x:BX+65,y:BY+BH+7,s:`Furos Ø${FURO_D} já feitos na router: ${furosDoc.length} (não cortar em cima)`,size:2.6,color:'#000000'});
+   matTable(P,{},[['MATERIAL:','PVC 10 MM (FUNDO)'],['SERVIÇO:','CORTE DOS CANTOS A 45°'],['CANTOS:',`${cv.length}`],['ESCALA:',`1:${Math.round(1/s)}`]]);
+   acabP=P;pages.push(P)}
   // ---- MOLDE em papel kraft (setor P1): original + retângulo com 50 mm de margem ----
   {const P=[];frame(P,ctx,{setor:'P1'});const bb=bbox(orig);const MG=50;const RW=bb.w+2*MG,RH=bb.h+2*MG;
    P.push({t:'text',x:PW/2,y:30,s:'MOLDE — PAPEL KRAFT',size:4.6,bold:true,color:'#000000',anchor:'middle'});
@@ -1570,16 +1617,18 @@ function buildDoc(){
    const X=x=>ox+(x-bb.x0+MG)*s,Y=y=>oy+(bb.y1+MG-y)*s;
    P.push({t:'rect',x:ox,y:oy,w:RW*s,h:RH*s,fill:'#f4e3c3',stroke:'#7a5a2b',lw:0.4});
    orig.forEach(p=>P.push({t:'poly',pts:p.map(([x,y])=>[X(x),Y(y)]),color:'#000000',w:0.2}));
+   (furosDoc||[]).forEach(f=>P.push({t:'circle',x:X(f.c[0]),y:Y(f.c[1]),r:Math.max(0.45,FURO_D/2*s),fill:'#e03131',stroke:'#e03131',lw:0.05}));
    cotaH(P,ox,ox+RW*s,oy-7,oy,fmm(RW),3);cotaV(P,ox-8,oy,oy+RH*s,ox,fmm(RH),3);
+   if(furosDoc)P.push({t:'text',x:PW/2,y:52.5,s:`FUROS EM VERMELHO = MESMA POSIÇÃO DOS FUROS DO PVC: FIXAR O MOLDE NA PAREDE E FURAR POR ELE (${furosDoc.length} FUROS)`,size:2.8,bold:true,color:'#e03131',anchor:'middle'});
    // margem de 50 mm indicada
    cotaH(P,ox,X(bb.x0),oy+RH*s+6,oy+RH*s,'50',2.4);cotaV(P,ox+RW*s+6,oy,Y(bb.y1),ox+RW*s,'50',2.4);
    cotaH(P,X(bb.x0),X(bb.x1),oy+RH*s+6,null,fmm(bb.w)+' (arte)',2.4);
-   matTable(P,{},[['MATERIAL:','PAPEL KRAFT'],['MOLDE:',`${fmt(RW)} x ${fmt(RH)} MM`],['ARTE:',`${fmt(bb.w)} x ${fmt(bb.h)} MM`],['MARGEM:','50 MM EM CADA LADO'],['ESCALA:','1:1 (TAMANHO REAL)']]);
+   matTable(P,{},[['MATERIAL:','PAPEL KRAFT'],['MOLDE:',`${fmt(RW)} x ${fmt(RH)} MM`],['ARTE:',`${fmt(bb.w)} x ${fmt(bb.h)} MM`],['MARGEM:','50 MM EM CADA LADO'],...(furosDoc?[['FUROS:',`${furosDoc.length} Ø${FURO_D} = PVC (MARCAR/FURAR)`]]:[]),['ESCALA:','1:1 (TAMANHO REAL)']]);
    P.push({t:'text',x:284,y:25,s:`ESCALA DA FOLHA 1:${Math.round(1/s)} — ARQUIVO DO MOLDE EM 1:1`,size:2.4,bold:true,color:'#2f6fa8',anchor:'end'});
    pages.splice(1,0,P);}
   if(!FOOT_SKIP)pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length));
   pages.forEach((P,i)=>{pages[i]=scaleP(P,K)});
-  return {pages,info,ctx,W:b.w,H:b.h,escala,ledInfo,K,nests,orig};
+  return {pages,info,ctx,W:b.w,H:b.h,escala,ledInfo,K,nests,orig,furos:furosDoc};
 }
 
 /* ---------- Renderizadores ---------- */
@@ -1699,7 +1748,7 @@ $('#gerar').onclick=()=>{
     const base=`OS ${d.ctx.os||'sem número'} - item ${d.ctx.item}`;prodFiles=[];const cnt={};
     {const v=vecPDF([{color:'#000000',polys:d.orig}]);if(v)prodFiles.push({name:nomeArq(`${base} - ORIGINAL.pdf`),label:'ORIGINAL (arquivo do cliente em linha preta)',buf:v.buf,dim:`${fmt(v.w)} × ${fmt(v.h)} mm`})}
     {const b=bbox(d.orig),MG=50;const rect=[[b.x0-MG,b.y0-MG],[b.x1+MG,b.y0-MG],[b.x1+MG,b.y1+MG],[b.x0-MG,b.y1+MG]];
-     const v=vecPDF([{color:'#000000',polys:[rect]},{color:'#000000',polys:d.orig}],1);if(v)prodFiles.push({name:nomeArq(`${base} - MOLDE KRAFT (P1).pdf`),label:'MOLDE KRAFT — setor P1 (arte + margem de 5 cm)',buf:v.buf,dim:`${fmt(v.w)} × ${fmt(v.h)} mm`})}
+     const v=vecPDF([{color:'#000000',polys:[rect]},{color:'#000000',polys:d.orig},...(d.furos?[{color:'#e03131',polys:d.furos.map(f=>circ(f.c,FURO_D/2))}]:[])],1);if(v)prodFiles.push({name:nomeArq(`${base} - MOLDE KRAFT (P1).pdf`),label:'MOLDE KRAFT — setor P1 (arte + margem de 5 cm)',buf:v.buf,dim:`${fmt(v.w)} × ${fmt(v.h)} mm`})}
     d.info.forEach(inf=>{const v=vecPDF(inf.vec||[]);if(!v)return;const pg=inf.pg;
       let nm=(pg.tipo==='led'?'ELETRICA - posicao dos LEDs':(pg.tipo==='chapa'?'FILETE - '+(pg.material||'chapa'):(pg.material||pg.titulo||'peca')+(pg.espessura&&pg.espessura!=='----'?' '+pg.espessura:'')));
       cnt[nm]=(cnt[nm]||0)+1;if(cnt[nm]>1)nm+=' '+cnt[nm];
