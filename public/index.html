@@ -258,6 +258,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div class="row" id="lPgPick" style="gap:6px;margin-top:10px;flex-wrap:wrap"></div>
       <div class="prev" id="prev"></div>
     </div>
+    <div class="card isbCard"><button class="btn pink isbBtn" type="button" style="width:100%;padding:14px;font-size:16px">Salvar item</button><div class="note isbMsg" style="margin-top:6px"></div></div>
   </section>
 
   <section id="tab-modelo" hidden>
@@ -285,6 +286,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div class="row" id="mPgPick" style="gap:6px;margin-top:10px"></div>
       <div class="prev" id="mPrev"></div>
     </div>
+    <div class="card isbCard"><button class="btn pink isbBtn" type="button" style="width:100%;padding:14px;font-size:16px">Salvar item</button><div class="note isbMsg" style="margin-top:6px"></div></div>
   </section>
   <section id="tab-testeiras" hidden>
     <div class="leds" id="tModo" style="margin-bottom:14px"><button data-m="padrao" class="sel"><b>Testeira padrão</b><span class="note" style="display:block">quadro, caixa, L, U</span></button><button data-m="desenho"><b>Estrutura por desenho</b><span class="note" style="display:block">PDF + descrição → 3D</span></button></div>
@@ -439,6 +441,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div id="tMsg"></div>
       <div class="prev" id="tPrev"></div>
     </div>
+    <div class="card isbCard"><button class="btn pink isbBtn" type="button" style="width:100%;padding:14px;font-size:16px">Salvar item</button><div class="note isbMsg" style="margin-top:6px"></div></div>
   </section>
   <section id="instSec" hidden>
     <div class="card">
@@ -3674,7 +3677,10 @@ function limpaTipo(tipo){refImg=null;fpObsPg={};refRender();instReset();
 // ---------- barra do pedido (aparece nas abas de trabalho) ----------
 function abaAtual(){const b=document.querySelector('nav button.on');return b?b.dataset.tab:''}
 function tipoDaAba(){const t=abaAtual();return t==='novo'?'letra':t==='testeiras'?(tModo==='desenho'?'estrutura':'testeira'):t==='modelo'?'modelo3d':null}
-function pedBarRender(){const bar=$('#pedBar');const tipo=tipoDaAba();if(!pedAtual||!tipo){bar.hidden=true;return}bar.hidden=false;
+function isbRender(){const tipo=tipoDaAba();const it=pedAtual&&itemAtual&&itemAtual.tipo===tipo?itemAtual:null;
+  document.querySelectorAll('.isbBtn').forEach(b=>b.textContent=!pedAtual?'Salvar item (cria o pedido com os dados da OS)':it&&!it.novo?`Salvar alterações no item ${$('#item').value||it.n}`:`Salvar como item ${$('#item').value||''}`)}
+document.querySelectorAll('.isbBtn').forEach(b=>b.onclick=()=>{const tipo=tipoDaAba();if(!tipo)return;if(!pedAtual){const p={id:'p'+Date.now().toString(36),nome:'',itens:[],criado:Date.now()};OS_IDS.forEach(k=>p[k]=$('#'+k).value.trim());pedidos.push(p);pedAtual=JSON.parse(JSON.stringify(p));itemAtual={id:'i'+Date.now().toString(36),tipo,n:Math.max(1,Math.round(num($('#item').value))||1),novo:true}}itemSalvar(tipo)});
+function pedBarRender(){isbRender();const bar=$('#pedBar');const tipo=tipoDaAba();if(!pedAtual||!tipo){bar.hidden=true;return}bar.hidden=false;
   const it=itemAtual&&itemAtual.tipo===tipo?itemAtual:null;
   bar.innerHTML=`<div class="in"><span><b>Pedido ${esc(pedAtual.os||'—')}${pedAtual.nome?' — '+esc(pedAtual.nome):''}</b> · ${esc(pedAtual.cliente||'sem cliente')} · proj. ${esc(pedAtual.projetista||'—')} · ${it?`${it.novo?'novo ':''}item ${esc($('#item').value||it.n)} (${TIPO_NOME[tipo]})`:`${TIPO_NOME[tipo]} ainda não está no pedido`}</span>
     <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap"><button class="btn pink" id="pbSalvar">${it&&!it.novo?'Salvar alterações no item':'Salvar como item '+esc($('#item').value||'')}</button><button class="btn ghost" id="pbVer" style="background:#fff">Ver pedido</button></span></div><div id="pbMsg" class="note" style="padding:4px 2px"></div>`;
@@ -3693,7 +3699,7 @@ function capturaEstado(tipo){
   if(tipo==='testeira')return{estado:{inputs:capInputs(['#tOpts']),cor,tFaces,tPint,fixSel:[...fixSel],tAcm:JSON.parse(JSON.stringify(tAcm))},desc:$('#tDesc').value.trim()||'TESTEIRA',resumo:tFaces.map(f=>f0(f.W)+'x'+f0(f.H)).join(' + ')};
   if(tipo==='estrutura'){if(!dModel)throw new Error('monte o 3D antes de salvar');return{estado:{inputs:capInputs(['#dCard']),cor,dSrc,dModel,dHist,dPint},desc:$('#dDesc').value.trim()||'ESTRUTURA',resumo:dModel.titulo}}
   if(tipo==='modelo3d'){if(!mSrc||!mBytes)throw new Error('carregue o arquivo 3D antes de salvar');return{estado:{inputs:capInputs(['#tab-modelo'])},fonte:{nome:mSrc.name,b64:b64(mBytes)},desc:$('#mDesc').value.trim()||'ESTRUTURA',resumo:`${mPecas.length} peça(s)`}}}
-async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHTML=t};
+async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHTML=t;document.querySelectorAll('.isbMsg').forEach(e=>e.innerHTML=t.replace(/#b2f2bb/,'#2b8a3e').replace(/#ffc9c9/,'#c92a2a'))};
   try{const n=Math.max(1,Math.round(num($('#item').value))||1);
     const outro=(pedAtual.itens||[]).find(i=>+i.n===n&&(!itemAtual||i.id!==itemAtual.id));if(outro)throw new Error(`já existe o item ${n} neste pedido (${TIPO_NOME[outro.tipo]}). Mude o número do item.`);
     msg('Salvando…');const C=capturaEstado(tipo);C.estado.refImg=refImg;C.estado.fpObsPg=fpObsPg;C.estado.inst=capInputs(['#instBox']);C.estado.instImg=instImg;C.estado.ancImg=ancImg;
@@ -3702,7 +3708,8 @@ async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHT
     const reg={id:it?it.id:(itemAtual&&itemAtual.id)||'i'+Date.now().toString(36),n,tipo,desc:C.desc,resumo:C.resumo,estadoId,fonteId,fonteNome:C.fonte?C.fonte.nome:'',fonteTam:C.fonte?C.fonte.b64.length:0,atualizado:Date.now()};
     pedAtual.itens=(pedAtual.itens||[]).filter(i=>i.id!==reg.id).concat([reg]);await pedSalvar(pedAtual);
     if(velho){if(velho.e!==estadoId)apagaJSON(velho.e);if(velho.f&&velho.f!==fonteId)apagaJSON(velho.f)}
-    itemAtual={id:reg.id,tipo,n};pedSujo=false;pedBarRender();$('#pbMsg').innerHTML=`<span style="color:#b2f2bb">✓ Item ${n} salvo no pedido.</span>`}
+    itemAtual={id:reg.id,tipo,n};pedSujo=false;pedBarRender();msg(`<span style="color:#b2f2bb">✓ Item ${n} salvo no pedido.</span>`);
+    irAba('pedidos');pedAbrir(pedAtual);window.scrollTo(0,0);setTimeout(()=>{const m=$('#pedMsg');if(m)m.innerHTML=`<div class="msg ok">✓ Item ${n} (${TIPO_NOME[tipo]}) salvo no pedido.</div>`},60)}
   catch(e){console.error(e);msg(`<span style="color:#ffc9c9">Não salvou: ${esc(e.message)}</span>`)}}
 // abre um item: restaura tudo; se "mostrar", vai para a aba dele e gera
 async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)throw new Error('estado do item não encontrado');const F=it.fonteId?await lerJSON(it.fonteId):null;
