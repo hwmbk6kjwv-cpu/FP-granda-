@@ -198,23 +198,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
         <div id="refZone" contenteditable="true" style="flex:1;min-width:150px;border:1.5px dashed var(--line);border-radius:10px;padding:8px 10px;font-size:13px;color:#868e96;outline:none">Colar print aqui (toque e segure → Colar, ou Ctrl+V)</div>
       </div>
       <div id="refPrev" style="margin-top:8px"></div>
-      <div id="instBox" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">
-        <label class="f" style="color:#d6336c">Projeto de instalação</label>
-        <div class="g2">
-          <div><label class="f">Na largura</label><select id="iHm"><option value="centro">Centralizado</option><option value="esquerda">A partir da esquerda</option><option value="direita">A partir da direita</option></select></div>
-          <div><label class="f">Saída na largura (cm)</label><input type="text" id="iHv" inputmode="decimal" placeholder="ex.: 30"></div>
-          <div><label class="f">Na altura</label><select id="iVm"><option value="centro">Centralizado</option><option value="cima">A partir de cima (teto/topo)</option><option value="baixo">A partir de baixo (piso/base)</option></select></div>
-          <div><label class="f">Saída na altura (cm)</label><input type="text" id="iVv" inputmode="decimal" placeholder="ex.: 10"></div>
-          <div><label class="f">Largura da parede (cm, opcional)</label><input type="text" id="iPw" inputmode="decimal"></div>
-          <div><label class="f">Altura da parede (cm, opcional)</label><input type="text" id="iPh" inputmode="decimal"></div>
-        </div>
-        <label class="f">Foto de instalação</label>
-        <div class="row" style="gap:8px;align-items:stretch">
-          <label class="btn ghost sm" style="display:inline-flex;align-items:center">Enviar foto<input type="file" id="instIn" accept="image/*" hidden></label>
-          <div id="instZone" contenteditable="true" style="flex:1;min-width:150px;border:1.5px dashed var(--line);border-radius:10px;padding:8px 10px;font-size:13px;color:#868e96;outline:none">Colar foto aqui (toque e segure → Colar)</div>
-        </div>
-        <div id="instPrev" style="margin-top:8px"></div>
-      </div>
+
     </div>
   </section>
   <section id="tab-novo" hidden>
@@ -426,6 +410,27 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div class="prev" id="tPrev"></div>
     </div>
   </section>
+  <section id="instSec" hidden>
+    <div class="card">
+      <div id="instBox">
+        <h2>Projeto de instalação <span class="badge">vale para este item</span></h2>
+        <div class="g2">
+          <div><label class="f">Na largura</label><select id="iHm"><option value="centro">Centralizado</option><option value="esquerda">A partir da esquerda</option><option value="direita">A partir da direita</option></select></div>
+          <div><label class="f">Saída na largura (cm)</label><input type="text" id="iHv" inputmode="decimal" placeholder="ex.: 30"></div>
+          <div><label class="f">Na altura</label><select id="iVm"><option value="centro">Centralizado</option><option value="cima">A partir de cima (teto/topo)</option><option value="baixo">A partir de baixo (piso/base)</option></select></div>
+          <div><label class="f">Saída na altura (cm)</label><input type="text" id="iVv" inputmode="decimal" placeholder="ex.: 10"></div>
+          <div><label class="f">Largura da parede (cm, opcional)</label><input type="text" id="iPw" inputmode="decimal"></div>
+          <div><label class="f">Altura da parede (cm, opcional)</label><input type="text" id="iPh" inputmode="decimal"></div>
+        </div>
+        <label class="f">Foto de instalação</label>
+        <div class="row" style="gap:8px;align-items:stretch">
+          <label class="btn ghost sm" style="display:inline-flex;align-items:center">Enviar foto<input type="file" id="instIn" accept="image/*" hidden></label>
+          <div id="instZone" contenteditable="true" style="flex:1;min-width:150px;border:1.5px dashed var(--line);border-radius:10px;padding:8px 10px;font-size:13px;color:#868e96;outline:none">Colar foto aqui (toque e segure → Colar)</div>
+        </div>
+        <div id="instPrev" style="margin-top:8px"></div>
+      </div>
+    </div>
+  </section>
   <section id="tab-tipos" hidden>
     <div class="card">
       <div class="row" style="justify-content:space-between"><h2 style="margin:0">Tipos de letra</h2><button class="btn acc" id="novoTipo">+ Novo tipo</button></div>
@@ -614,7 +619,7 @@ $('#typeList').onclick=e=>{const b=e.target.closest('.type');if(b)openModal(type
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
   const tb=b.dataset.tab;$('#tab-pedidos').hidden=tb!=='pedidos';$('#tab-novo').hidden=tb!=='novo';$('#tab-tipos').hidden=tb!=='tipos';$('#tab-testeiras').hidden=tb!=='testeiras';$('#tab-modelo').hidden=tb!=='modelo';if(tb==='modelo')setTimeout(()=>m3Draw(),30);
-  $('#osSec').hidden=tb==='tipos'||(tb==='pedidos'&&!pedAtual);pedBarRender();if(tb==='testeiras')setTimeout(tRender,30);pickerCasa();$('#itemBox').hidden=false;$('#descBox').hidden=tb==='testeiras';
+  $('#osSec').hidden=tb==='tipos'||(tb==='pedidos'&&!pedAtual);$('#instSec').hidden=!['novo','modelo','testeiras'].includes(tb);pedBarRender();if(tb==='testeiras')setTimeout(tRender,30);pickerCasa();$('#itemBox').hidden=false;$('#descBox').hidden=tb==='testeiras';
 });
 async function shrinkImage(f,max,type){
   const img=new Image();img.src=URL.createObjectURL(f);await img.decode();
