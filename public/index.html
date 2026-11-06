@@ -341,9 +341,12 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
         <div><label class="f">Barra (mm) / perda serra (mm)</label><div class="row" style="flex-wrap:nowrap;gap:6px"><input type="number" id="tBarra" value="6000" inputmode="numeric"><input type="number" id="tSerra" value="3" inputmode="numeric" style="max-width:70px"></div></div>
       </div>
       <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;margin-top:12px;font-size:13px"><input type="checkbox" id="t40"> Travessa 20x40 de reforço</label>
+      <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;margin-top:8px;font-size:13px"><input type="checkbox" id="tMeia"> Cantos em meia esquadria (45°)</label>
       <div id="tH40box" hidden><label class="f">Altura do centro da travessa 20x40 a partir da base (mm)</label><input type="number" id="tH40" value="150" inputmode="numeric"></div>
       <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">3. Fixação</h2>
       
+      <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;font-size:13px"><input type="checkbox" id="tCad"> Cadeirinha — janelas 15x15 nos cantos</label>
+      <p class="note" style="margin:4px 0 8px">Janela de 15 x 15 cm nos 4 cantos de cada quadro (e no centro, em cima e embaixo, se passar de 1,5 m), com tubo 1 cm mais fino que o contorno.</p>
       <div class="row" id="tFixBox" style="gap:6px"></div>
       <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">4. ACM</h2>
       <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;font-size:13px"><input type="checkbox" id="aOn"> Revestir a testeira com ACM</label>
@@ -1827,7 +1830,9 @@ function calcFace(f,o){
   const zf=q=>[(p-q.p)/2,(p-q.p)/2+q.p];
   const zt=q=>{const z0=al==='frente'?0:al==='fundo'?p-q.p:(p-q.p)/2;return[z0,z0+q.p]}; // travas internas
   const quadro=(zoff,tag)=>{const [z0,z1]=zf(pf).map(z=>z+zoff);const P=o.perfil;
-    if(horInteira){M({x0:0,x1:W,y0:H-a,y1:H,z0,z1,perfil:P,len:W,tipo:'Horizontal '+tag,hz:'t'+tag});M({x0:0,x1:W,y0:0,y1:a,z0,z1,perfil:P,len:W,tipo:'Horizontal '+tag,hz:'b'+tag});
+    if(o.meia){const c='45°';M({x0:0,x1:W,y0:H-a,y1:H,z0,z1,perfil:P,len:W,tipo:'Horizontal '+tag,hz:'t'+tag,corte:c});M({x0:0,x1:W,y0:0,y1:a,z0,z1,perfil:P,len:W,tipo:'Horizontal '+tag,hz:'b'+tag,corte:c});
+      if(!sI)M({x0:0,x1:a,y0:0,y1:H,z0,z1,perfil:P,len:H,tipo:'Vertical '+tag,corte:c});M({x0:W-a,x1:W,y0:0,y1:H,z0,z1,perfil:P,len:H,tipo:'Vertical '+tag,corte:c})}
+    else if(horInteira){M({x0:0,x1:W,y0:H-a,y1:H,z0,z1,perfil:P,len:W,tipo:'Horizontal '+tag,hz:'t'+tag});M({x0:0,x1:W,y0:0,y1:a,z0,z1,perfil:P,len:W,tipo:'Horizontal '+tag,hz:'b'+tag});
       if(!sI)M({x0:0,x1:a,y0:a,y1:H-a,z0,z1,perfil:P,len:H-2*a,tipo:'Vertical '+tag});M({x0:W-a,x1:W,y0:a,y1:H-a,z0,z1,perfil:P,len:H-2*a,tipo:'Vertical '+tag})}
     else{M({x0:0,x1:a,y0:0,y1:H,z0,z1,perfil:P,len:H,tipo:'Vertical '+tag});M({x0:W-a,x1:W,y0:0,y1:H,z0,z1,perfil:P,len:H,tipo:'Vertical '+tag});
       M({x0:a,x1:W-a,y0:H-a,y1:H,z0,z1,perfil:P,len:W-2*a,tipo:'Horizontal '+tag});M({x0:a,x1:W-a,y0:0,y1:a,z0,z1,perfil:P,len:W-2*a,tipo:'Horizontal '+tag})}
@@ -1841,10 +1846,21 @@ function calcFace(f,o){
   if(box){quadro(D-p,'quadro traseiro');
     vcs.forEach((c,i)=>{if(i===0&&sI)return;const w=vw(i);const P=(i===0||i===nb)?o.perfil:PV;
       [[H-a,H],[0,a]].forEach(([y0,y1])=>M({x0:c-w/2,x1:c+w/2,y0,y1,z0:p,z1:D-p,perfil:P,len:D-2*p,tipo:'Ligação de profundidade'}))})}
-  return {W,H,D,box,a,p,ai,aiV,nb,sI,horInt:horInteira,vcs,rows,y40,mem,al,pers};
+  // janelas 15x15 nos cantos para a fixação cadeirinha (tubo 1 cm mais fino que o contorno, faceado pelo fundo)
+  let nJan=0;const PJ=o.cad?perfilJanela(o.perfil):null;
+  if(o.cad&&PJ){const pj=PERFIS[PJ],aw=pj.f,S=150,zoff=box?D-p:0,z1=zoff+p,z0=z1-pj.p;
+    const vInt=mem.filter(m=>/^Vertical interna/.test(m.tipo)&&m.z0<zoff+p+1&&m.z1>zoff-1).map(m=>[m.x0,m.x1]);
+    const hor=(x0,x1,y0)=>{let segs=[[x0,x1]];vInt.forEach(([v0,v1])=>{segs=segs.flatMap(([s0,s1])=>v1<=s0||v0>=s1?[[s0,s1]]:[[s0,v0],[v1,s1]].filter(([u,w])=>w-u>5))});
+      segs.forEach(([s0,s1])=>M({x0:s0,x1:s1,y0,y1:y0+aw,z0,z1,perfil:PJ,len:s1-s0,tipo:'Janela cadeirinha'}))};
+    const ver=(x0,y0,y1)=>{if(vInt.some(([v0,v1])=>v0<x0+aw&&v1>x0))return;M({x0,x1:x0+aw,y0,y1,z0,z1,perfil:PJ,len:y1-y0,tipo:'Janela cadeirinha'})};
+    const xa=sI?0:a;const jan=[{l:xa,vx:[S-aw],hx:[xa,S-aw]},{vx:[W-S],hx:[W-S+aw,W-a]}];
+    if(W>1500)jan.push({vx:[W/2-S/2,W/2+S/2-aw],hx:[W/2-S/2+aw,W/2+S/2-aw]});
+    if(W>=2*S+40&&H>=2*S+40)jan.forEach(j=>{j.vx.forEach(x=>{ver(x,a,S);ver(x,H-S,H-a)});hor(j.hx[0],j.hx[1],S-aw);hor(j.hx[0],j.hx[1],H-S);nJan+=2})}
+  return {W,H,D,box,a,p,ai,aiV,nb,sI,horInt:horInteira,nJan,meia:!!o.meia,vcs,rows,y40,mem,al,pers};
 }
 /* ---------- composição das faces (planta: x para a direita, z para trás) ---------- */
 // a face se liga a quem? (empilhada: a de baixo; em linha/L: a anterior no mesmo nível)
+function perfilJanela(k){const a=PERFIS[k].f,alvo=a-10;const sq=Object.keys(PERFIS).filter(q=>PERFIS[q].f===PERFIS[q].p);return sq.find(q=>PERFIS[q].f===alvo)||sq.filter(q=>PERFIS[q].f<a).sort((x,y)=>PERFIS[y].f-PERFIS[x].f)[0]||null}
 function faceRef(faces,i){const f=faces[i];if(f.ref!=null&&f.ref<i&&f.ref>=0)return f.ref;if(f.junta==='cima')return i-1;let k=i-1;while(k>0&&faces[k].junta==='cima')k=faceRef(faces,k);return k}
 // posição de cada face na medida final
 function layoutFaces(faces,o){const p=PERFIS[o.perfil].p;const out=[];
@@ -1885,11 +1901,12 @@ function fixQtd(comp,fx){const q=Math.max(1,fx.qtd||1);
 /* ---------- lista de corte (soma todas as faces) ---------- */
 function listaCorte(comp,o,fixs){
   const rows=[];
-  comp.forEach(c=>c.F.mem.forEach(m=>{if(m.merged)return;const len=Math.round((m.len+(m.ext||0))*10)/10;let r=rows.find(r=>r.perfil===m.perfil&&r.parede===m.parede&&Math.abs(r.len-len)<0.05);
-    if(!r){r={perfil:m.perfil,parede:m.parede,len,q:0,faces:new Set(),tipos:new Set()};rows.push(r)}r.q++;r.faces.add(c.i+1);(m.extF||[]).forEach(k=>r.faces.add(k));r.tipos.add(m.tipo.replace(/ quadro (frontal|traseiro)/,m.tipo.includes('traseiro')?' (traseiro)':''))}));
+  comp.forEach(c=>c.F.mem.forEach(m=>{if(m.merged)return;const len=Math.round((m.len+(m.ext||0))*10)/10;const corte=m.corte||'90°';let r=rows.find(r=>r.perfil===m.perfil&&r.parede===m.parede&&r.corte===corte&&Math.abs(r.len-len)<0.05);
+    if(!r){r={perfil:m.perfil,parede:m.parede,corte,len,q:0,faces:new Set(),tipos:new Set()};rows.push(r)}r.q++;r.faces.add(c.i+1);(m.extF||[]).forEach(k=>r.faces.add(k));r.tipos.add(m.tipo.replace(/ quadro (frontal|traseiro)/,m.tipo.includes('traseiro')?' (traseiro)':''))}));
   rows.sort((x,y)=>PERF_ORD.indexOf(x.perfil)-PERF_ORD.indexOf(y.perfil)||y.len-x.len);
   rows.forEach((r,i)=>{r.item=i+1;r.desc=tubDesc(r.perfil,r.parede||o.parede);r.total=r.len*r.q;r.cor=PERFIS[r.perfil].cor;
     r.uso=[...r.tipos].join(' / ')+(comp.length>1?` — F${[...r.faces].join(', F')}`:'')});
+  {const nj=comp.reduce((s,c)=>s+(c.F.nJan||0),0);if(nj)rows.push({item:rows.length+1,fix:true,desc:'Fixação: cadeirinha (chapa dobrada)',uso:`1 por janela 15x15 — ${nj} janela(s)`,len:0,q:nj,total:0,cor:'#ff6633'})}
   fixs.forEach(fx=>{const q=fixQtd(comp,fx);rows.push({item:rows.length+1,fix:true,desc:'Fixação: '+fx.nome,uso:FIX_POS[fx.pos]||'',len:fx.comp||0,q,total:(fx.comp||0)*q,cor:fx.cor||'#ff6633'})});
   return rows;
 }
@@ -1976,7 +1993,7 @@ function folhaFace(P,c,o,nFaces){
   const F=c.F;const fs=3.1;
   P.push({t:'text',x:18,y:31,s:`${o.un}X`,size:7,bold:true,italic:true,color:'#000000'});
   P.push({t:'text',x:PW/2,y:30,s:nFaces>1?`FACE ${c.i+1} DE ${nFaces}`:'FACE DA TESTEIRA',size:4.2,bold:true,color:'#000000',anchor:'middle'});
-  const sub=[`${f1(F.W)} x ${f1(F.H)} mm`,F.box?`PROFUNDIDADE ${f0(F.D)} mm (estrutura em caixa)`:'QUADRO SIMPLES',c.i>0?JUNTAS[c.f.junta||'linha'].toUpperCase()+` DA FACE ${c.i}`:'',c.f._fW&&(Math.abs(c.f._fW-F.W)>0.01||Math.abs(c.f._fH-F.H)>0.01)?`ESTRUTURA P/ ACM (FINAL ${f0(c.f._fW)} x ${f0(c.f._fH)})`:''].filter(Boolean).join('  •  ');
+  const sub=[`${f1(F.W)} x ${f1(F.H)} mm`,F.box?`PROFUNDIDADE ${f0(F.D)} mm (estrutura em caixa)`:'QUADRO SIMPLES',c.i>0?JUNTAS[c.f.junta||'linha'].toUpperCase()+` DA FACE ${c.i}`:'',F.meia?'CANTOS EM MEIA ESQUADRIA 45°':'',F.nJan?`${F.nJan} JANELAS 15x15 P/ CADEIRINHA`:'',c.f._fW&&(Math.abs(c.f._fW-F.W)>0.01||Math.abs(c.f._fH-F.H)>0.01)?`ESTRUTURA P/ ACM (FINAL ${f0(c.f._fW)} x ${f0(c.f._fH)})`:''].filter(Boolean).join('  •  ');
   P.push({t:'text',x:PW/2,y:35,s:sub,size:2.6,color:'#555555',anchor:'middle'});
   // frente
   const FX=44,FY=48,FW=136,FH=104;const s=Math.min(FW/F.W,FH/F.H);const ox=FX+(FW-F.W*s)/2,oy=FY+(FH-F.H*s)/2;
@@ -1984,6 +2001,7 @@ function folhaFace(P,c,o,nFaces){
   const front=F.mem.filter(m=>m.z0<F.p+1&&m.tipo!=='Ligação de profundidade');
   front.sort((a,b)=>(PERFIS[a.perfil].f===F.a?1:0)-(PERFIS[b.perfil].f===F.a?1:0));
   front.forEach(m=>P.push({t:'rect',x:X(m.x0),y:Y(m.y1),w:Math.max(0.3,(m.x1-m.x0)*s),h:Math.max(0.3,(m.y1-m.y0)*s),fill:PERFIS[m.perfil].cor,stroke:'#1a1a1a',lw:0.12}));
+  if(F.meia)[[0,0,1,1],[F.W,0,-1,1],[0,F.H,1,-1],[F.W,F.H,-1,-1]].forEach(([x,y,dx,dy],k)=>{if(F.sI&&x===0)return;P.push({t:'line',x1:X(x),y1:Y(y),x2:X(x+dx*F.a),y2:Y(y+dy*F.a),color:'#1a1a1a',w:0.25})});
   // medidas internas (vão livre entre os tubos) em laranja
   {const CI='#d9480f',fi=2.1;const vx=[];F.vcs.forEach((c,i)=>{const w=i===0&&F.sI?0:(i===0||i===F.nb)?F.a:F.aiV;vx.push([c-w/2,c+w/2])});
    const hy=[[0,F.a],[F.H-F.a,F.H],...F.rows.map(r=>[r-F.ai/2,r+F.ai/2]),...(F.y40!=null?[[F.y40-20,F.y40+20]]:[])].sort((p,q)=>p[0]-q[0]);
@@ -2024,7 +2042,7 @@ const COLS=[['Nº',8],['METAL',19],['COR',15],['DESCRIÇÃO',50],['USO',84],['CO
 function tabelaCorte(P,rows,tx,ty){const rh=4.6;let cx=tx;
   COLS.forEach(([h,w])=>{P.push({t:'rect',x:cx,y:ty,w,h:rh,fill:'#e6e6e6',stroke:'#000000',lw:0.2},{t:'text',x:cx+w/2,y:ty+3.3,s:h,size:2.3,bold:true,color:'#000000',anchor:'middle'});cx+=w});
   rows.forEach((r,i)=>{const y=ty+rh*(i+1);let cx=tx;const cor=r.cor;
-    const vals=[String(r.item),r.fix?'Aço':'Galvanizado',cor.toUpperCase(),r.desc,r.uso,r.fix?'—':'90°',f1(r.len),String(r.q),f1(r.total)];
+    const vals=[String(r.item),r.fix?'Aço':'Galvanizado',cor.toUpperCase(),r.desc,r.uso,r.fix?'—':(r.corte||'90°'),f1(r.len),String(r.q),f1(r.total)];
     COLS.forEach(([h,w],k)=>{P.push({t:'rect',x:cx,y,w,h:rh,fill:(k===0||k===2)?cor:'#ffffff',stroke:'#000000',lw:0.2});
       const left=k===3||k===4;P.push({t:'text',x:left?cx+1.2:cx+w/2,y:y+3.3,s:left?fit(vals[k],w-2,k===4?2.1:2.4):vals[k],size:k===4?2.1:2.4,bold:k===6,color:((k===0||k===2)&&escuro(cor))?'#ffffff':'#000000',anchor:left?undefined:'middle'});cx+=w})});
   return ty+rh*(rows.length+1)}
@@ -2032,7 +2050,7 @@ function tabelaCorte(P,rows,tx,ty){const rh=4.6;let cx=tx;
 /* ---------- leitura do formulário ---------- */
 let tFaces=[{W:1000,H:1000,prof:0,junta:'linha'}];let tVer=0;
 function lerOpcoes(){const n=k=>num($('#'+k).value);
-  return {un:Math.max(1,Math.round(n('tUn'))||1),perfil:$('#tPerfil').value,perfilInt:$('#tPerfilInt').value,parede:$('#tParede').value||'1,25',paredeInt:$('#tParedeInt').value||$('#tParede').value||'1,25',vaoV:n('tVaoV')||1400,vaoH:n('tVaoH')||1000,trav40:$('#t40').checked,perfilV:(tAcm.on&&tAcm.jt)?'30x20':null,h40:n('tH40')||150,barra:n('tBarra')||6000,serra:n('tSerra')||3}}
+  return {un:Math.max(1,Math.round(n('tUn'))||1),perfil:$('#tPerfil').value,perfilInt:$('#tPerfilInt').value,parede:$('#tParede').value||'1,25',paredeInt:$('#tParedeInt').value||$('#tParede').value||'1,25',vaoV:n('tVaoV')||1400,vaoH:n('tVaoH')||1000,trav40:$('#t40').checked,meia:$('#tMeia').checked,cad:$('#tCad').checked,perfilV:(tAcm.on&&tAcm.jt)?'30x20':null,h40:n('tH40')||150,barra:n('tBarra')||6000,serra:n('tSerra')||3}}
 function montar(){const o=lerOpcoes();
   tFaces.forEach((f,i)=>{if(!(f.W>100&&f.H>100))throw new Error(`Face ${i+1}: informe largura e altura (mm).`)});
   const fixs=fixacoes.filter(f=>fixSel.has(f.id));const comp=compor(acmFaces(tFaces,o),o);
