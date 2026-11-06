@@ -3342,12 +3342,12 @@ function matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L){const N=[];const temLed=
   // pintura: face/filete + lateral
   if(pint||areaGalv>0){const soLat=pint&&pint.partes==='lateral';N.push(...needsTinta(soLat?areaLat:areaGalv+areaLat,soLat?'lateral das letras':'letras (face + lateral)'))}
   if(temLed){const P=ledInfo.P||{};const wt=+P.watts||0.72;const t=String(ctx.led||'').match(/\d{4,5}/);const tk=t?t[0]:'6500';const ws=String(wt).replace('.',',');
-    N.push({k:`led|${tk}|${wt}`,desc:`Módulo LED ${tk}K ${ws} W 12 V`,q:ledInfo.mods.length,un:'un',uso:'iluminação (configuração do sistema)',busca:{must:['MODULO LED',`${tk}K`,`${String(wt).replace(',','.')}W`],want:['INTERMEDIARIO','3P']}});
+    N.push({k:`led|${tk}|${wt}`,desc:`Módulo LED ${tk}K ${ws} W 12 V`,q:ledInfo.mods.length,un:'un',uso:'iluminação (configuração do sistema)',busca:{must:['MODULO LED',`${tk}K`,[`${(+wt).toFixed(2)}W`,`${+wt}W`]],want:['3P','VINILSUL']}});
     const c={};fontes(ledInfo.watts*1.2).forEach(w=>c[w]=(c[w]||0)+1);
     Object.entries(c).forEach(([w,q])=>N.push({k:`fonte|${w}`,desc:`Fonte blindada ${w} W 12 V IP67`,q,un:'un',uso:`${f1(ledInfo.watts)} W + 20%`,busca:{must:['REATOR',`${w}W`,'IP67']}}));
     const larg=(L||[]).reduce((a,g)=>a+g.bb.w,0)/1000*MPP.fioFator;N.push({k:'fio|1.5',desc:'Fio 1,5 mm',q:Math.round(larg*100)/100,un:'m',uso:`largura das letras x ${MPP.fioFator}`,busca:{must:[['FIO','CABO'],'1.5MM']}})}
   if(nb)N.push({k:'let|brocante',desc:'Parafuso brocante Phillips (PVC)',q:nb,un:'un',uso:'fundo de PVC na parede',busca:{must:['BROCANTE'],want:['4.2X45']}});
-  if(np)N.push({k:'let|panela',desc:'Parafuso cabeça panela Phillips 5,5 x 25 (DIN 7981)',q:np,un:'un',uso:'lateral das letras',busca:{must:['PANELA',['5.5X25','5.5 X 25']]}});
+  if(np)N.push({k:'let|panela',desc:'Parafuso cabeça panela (lateral)',q:np,un:'un',uso:'lateral das letras',busca:{must:['CABECA PANELA','2.9X6.5']}});
   return N}
 function matEstrutura(L,un){const g={};(L||[]).forEach(r=>{if(!/tubo|metalon|barra/i.test((r.tipo||'')+' '+(r.nome||'')))return;const k=(r.perfil||'')+'|'+(r.parede||'');(g[k]=g[k]||[]);for(let i=0;i<(r.q||1)*un;i++)g[k].push(r.len||0)});
   return Object.entries(g).map(([k,lens])=>{const [p,w]=k.split('|');return needMetalon(p,w,mpBarras(lens),'estrutura')})}
