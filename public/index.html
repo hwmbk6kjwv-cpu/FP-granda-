@@ -3365,9 +3365,15 @@ function matResolve(N){return N.filter(n=>n.q>0||n.m2>0||n.litros>0).map(n=>{con
 const mpData=d=>{const m=String(d||'').match(/(\d{2})\/(\d{2})\/(\d{4})/);return m?+(m[3]+m[2]+m[1]):0};
 // cor (hex) de cada tinta do cadastro, pela referência escrita no nome: Pantone, RAL, Oracal ou nome da cor
 const TINTA_COR=[['AZUL MARINHO','#1b2a5c'],['AZUL CLARO','#5aa9e6'],['VERDE LIMAO','#9bcb3b'],['VERDE ESCURO','#0b4a2e'],['CINZA CLARO','#c3c5c4'],['CINZA ESCURO','#4f5254'],['BRANCO','#f4f5f2'],['PRETO','#141414'],['GRAFITE','#3a3d40'],['CINZA','#8a8e8f'],['PRATA','#b0b4b8'],['ALUMINIO','#a9adb1'],['AMARELO','#f5c400'],['LARANJA','#f07800'],['VERMELHO','#c8102e'],['VINHO','#6b0f1f'],['BORDO','#6b0f1f'],['ROSA','#e88fb4'],['PINK','#e0407e'],['MAGENTA','#c2186b'],['ROXO','#5d2c68'],['LILAS','#b893bc'],['VIOLETA','#5d2c68'],['AZUL','#0050a0'],['TURQUESA','#00a19a'],['VERDE','#00843d'],['MARROM','#5c3a21'],['BEGE','#d8c7a0'],['CREME','#efe0b4'],['DOURADO','#c9a43b'],['OURO','#b8963e'],['COBRE','#9a5a2e'],['BRONZE','#8c6a3f']];
-const corPantone=c=>{const k=String(c||'').toUpperCase().replace(/\s*C\b|\s+/g,'').replace(/^PANTONE/,'');const r=typeof PANTONE_LIST!=='undefined'&&PANTONE_LIST.find(p=>p[0].toUpperCase().replace(/\s*C\b|\s+/g,'')===k);return r?r[1]:null};
-const corRAL=c=>{const k=String(c||'').replace(/\D/g,'');const r=typeof RAL_LIST!=='undefined'&&RAL_LIST.find(p=>p[0]===k);return r?r[2]:null};
-function tintaHex(nome){const n=mpNorm(nome);let m=n.match(/PANTONE\s*(\d{3,4})\s*C?/);if(m){const h=corPantone(m[1]);if(h)return h}
+// Pantone/RAL fora da cartela: cores básicas pelo nome e, se for número, o tom vizinho mais próximo (mesma família de pigmento)
+const PANT_BASE=[['YELLOW','#fedd00'],['ORANGE021','#fe5000'],['021','#fe5000'],['WARMRED','#f9423a'],['REDO32','#ef3340'],['032','#ef3340'],['RUBINERED','#ce0058'],['RHODAMINERED','#e10098'],['PURPLE','#bb29bb'],['VIOLET','#440099'],['BLUE072','#10069f'],['072','#10069f'],['REFLEXBLUE','#001489'],['PROCESSBLUE','#0085ca'],['GREEN','#00ab84'],['BLACK','#2d2926'],['COOLGRAY','#97999b'],['WARMGRAY','#a59c94'],['WHITE','#f4f5f2']];
+const corPantone=(c,viz=true)=>{const raw=String(c||'').toUpperCase().replace(/^PANTONE/,'').trim();const k=raw.replace(/\s*C\b|\s+/g,'');if(!k)return null;
+  const r=typeof PANTONE_LIST!=='undefined'&&PANTONE_LIST.find(p=>p[0].toUpperCase().replace(/\s*C\b|\s+/g,'')===k);if(r)return r[1];
+  const b=PANT_BASE.find(([n])=>k.replace(/[^A-Z0-9]/g,'').startsWith(n));if(b)return b[1];
+  const n=parseInt(k,10);if(viz&&!isNaN(n)&&typeof PANTONE_LIST!=='undefined'){let best=null,bd=11;PANTONE_LIST.forEach(p=>{const v=parseInt(p[0],10);if(!isNaN(v)&&String(v).length===String(n).length&&Math.abs(v-n)<bd){bd=Math.abs(v-n);best=p[1]}});return best}return null};
+const corRAL=c=>{const k=String(c||'').replace(/\D/g,'');if(!k||typeof RAL_LIST==='undefined')return null;const r=RAL_LIST.find(p=>p[0]===k);if(r)return r[2];
+  const n=+k;let best=null,bd=1e9;RAL_LIST.forEach(p=>{if(p[0][0]===k[0]&&Math.abs(+p[0]-n)<bd){bd=Math.abs(+p[0]-n);best=p[2]}});return best};
+function tintaHex(nome){const n=mpNorm(nome);let m=n.match(/PANTONE\s*(\d{3,4})\s*C?/);if(m){const h=corPantone(m[1],false);if(h)return h}
   m=n.match(/RAL\s*(\d{4})/);if(m){const h=corRAL(m[1]);if(h)return h}
   m=n.match(/(\d{3})\s*ORACAL|ORACAL\s*(\d{3})/);if(m&&typeof ADES_ORACAL!=='undefined'){const c=m[1]||m[2];const r=ADES_ORACAL.split(';').find(x=>x.split('|')[0]===c);if(r)return '#'+r.split('|')[2]}
   const w=TINTA_COR.find(([k])=>n.includes(' '+k));return w?w[1]:null}
@@ -3376,8 +3382,9 @@ const hex2lab=h=>{const v=parseInt(String(h).slice(1),16);let [r,g,b]=[(v>>16)&2
 const dE=(a,b)=>{const p=hex2lab(a),q=hex2lab(b);return Math.hypot(p[0]-q[0],p[1]-q[1],p[2]-q[2])};
 let TINTA_HEX=null;
 // cor pedida: código Pantone/RAL, CMYK/RGB, amostra escolhida ou nome da cor
-function corAlvo(CI){if(CI.esc==='PANTONE'&&CI.code){const h=corPantone(CI.code);if(h)return h}if(CI.esc==='RAL'&&CI.code){const h=corRAL(CI.code);if(h)return h}
-  if(CI.rgb)return CI.hex;if(CI.hex&&CI.hex.toLowerCase()!=='#1a1a1a')return CI.hex;if(CI.nome){const w=TINTA_COR.find(([k])=>mpNorm(' '+CI.nome).includes(' '+k));if(w)return w[1]}return CI.hex||null}
+function corAlvo(CI){if(CI.esc==='PANTONE'&&CI.code){const h=corPantone(CI.code,false);if(h)return h}if(CI.esc==='RAL'&&CI.code){const h=corRAL(CI.code);if(h)return h}
+  if(CI.rgb)return CI.hex;if(CI.nome){const w=TINTA_COR.find(([k])=>mpNorm(' '+CI.nome).includes(' '+k));if(w)return w[1]}
+  if(CI.code){const h=CI.esc==='RAL'?corRAL(CI.code):corPantone(CI.code,true);if(h)return h}if(CI.hex&&CI.hex.toLowerCase()!=='#1a1a1a')return CI.hex;return null}
 // escolhe a tinta do cadastro: tipo (PU / Duco / Galvimax) + a cor mais próxima; mesmo código/cliente ganha prioridade; empate → preço mais recente
 function mpTinta(tipo,CI,cliente,acab){const pre=tipo==='GALVIMAX'?/^TINTA GALVIMAX/:tipo==='TINTA DUCO'?/^TINTA DUCO/:/^TINTA PU/;
   if(!TINTA_HEX)TINTA_HEX=MP.map(r=>/^TINTA/i.test(r[1])?tintaHex(r[1]):null);
