@@ -3427,7 +3427,8 @@ function dArea(){let area=0,lin=0;dModel.pecas.forEach(p=>{const d=[p.x1-p.x0,p.
 let mSrc=null,mPecas=[],mBuild=null,mSel='SERRALHERIA';
 // ---------- leitura dos arquivos ----------
 function parseSTL(buf){const dv=new DataView(buf);const tris=[];
-  const isBin=()=>{if(buf.byteLength<84)return false;const n=dv.getUint32(80,true);return 84+n*50===buf.byteLength};
+  const isBin=()=>{if(buf.byteLength<84)return false;const n=dv.getUint32(80,true);if(84+n*50===buf.byteLength)return true;
+    const ini=new TextDecoder().decode(new Uint8Array(buf,0,Math.min(buf.byteLength,600)));return !(/^\s*solid/.test(ini)&&/facet|vertex/.test(ini))&&n>0&&84+n*50<=buf.byteLength};
   if(isBin()){const n=dv.getUint32(80,true);for(let i=0;i<n;i++){const o=84+i*50+12;const t=[];for(let k=0;k<3;k++)t.push([dv.getFloat32(o+k*12,true),dv.getFloat32(o+k*12+4,true),dv.getFloat32(o+k*12+8,true)]);tris.push(t)}
     return [{nome:'',tris}]}
   const txt=new TextDecoder().decode(buf);const objs=[];let cur=null;const re=/(solid\s*([^\n]*))|(vertex\s+([-\d.eE+]+)\s+([-\d.eE+]+)\s+([-\d.eE+]+))/g;let m,vs=[];
@@ -3502,7 +3503,7 @@ async function mCarrega(nome,buf,manterUn){const f={name:nome};$('#mDropTxt').te
     const lo=[1e18,1e18,1e18],hi=[-1e18,-1e18,-1e18];pecas.forEach(p=>p.tris.forEach(t=>t.forEach(v=>{for(let i=0;i<3;i++){if(v[i]<lo[i])lo[i]=v[i];if(v[i]>hi[i])hi[i]=v[i]}})));const span=Math.max(hi[0]-lo[0],hi[1]-lo[1],hi[2]-lo[2]);
     if(!manterUn)$('#mUn').value=span<30?'1000':span<300&&ext==='obj'?'10':'1';
     mSrc={name:f.name,pecas};mProcessa()}
-  catch(err){mSrc=null;$('#mInfo').innerHTML=`<div class="msg err">Não consegui ler: ${esc(err.message)}</div>`}}
+  catch(err){console.error('mCarrega',err&&err.stack);mSrc=null;$('#mInfo').innerHTML=`<div class="msg err">Não consegui ler: ${esc(err.message)}</div>`}}
 ['#mUn','#mEixo','#mQt','#mDesc'].forEach(s=>$(s).addEventListener('change',()=>{if(mSrc)mProcessa()}));
 ['#mQt','#mDesc','#item'].forEach(s=>$(s).addEventListener('input',()=>{if(mSrc)mFolhasRender()}));
 // mundo: x direita, y para cima, z para trás (frente = z menor)
