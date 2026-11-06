@@ -2764,7 +2764,7 @@ function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'}
   lin('MEDIDAS EXTERNAS:',`${f0(prod.W)} (L) x ${f0(prod.H)} (A)${prod.D?` x ${f0(prod.D)} (P)`:''} mm`);
   if(prod.un>1)lin('QUANTIDADE:',`${prod.un} UN.`);
   lin('POSIÇÃO:',instPosTxt(I),'#d6336c');
-  if(I.pw||I.ph)lin('PAREDE:',`${I.pw?f0(I.pw/10)+' cm (L)':'—'} x ${I.ph?f0(I.ph/10)+' cm (A)':'—'}`);
+  if(I.pw&&I.ph)lin('PAREDE:',`${f0(I.pw/10)} cm (L) x ${f0(I.ph/10)} cm (A)`);else if(I.pw)lin('PAREDE:',`${f0(I.pw/10)} cm (L)`);else if(I.ph)lin('PAREDE:',`${f0(I.ph/10)} cm (A)`);
   if(prod.letras&&prod.letras.length){P.push({t:'text',x:IX,y:y+1,s:'ALTURA DE CADA LETRA',size:2.6,bold:true,color:'#c2255c'});y+=3;
     const per=temF?4:8,cw=temF?27:30;prod.letras.forEach((l,k)=>{const c=Math.floor(k/per),r=k%per;const x=IX+c*(cw+2),yy=y+r*4.4;if(x+cw>286)return;
       P.push({t:'rect',x,y:yy,w:cw,h:4.4,fill:r%2?'#ffffff':'#fff0f6',stroke:'#adb5bd',lw:0.1},{t:'text',x:x+1.5,y:yy+3.1,s:`${k+1}. ${l.nome?l.nome+' ':''}${f0(l.h)} mm`,size:2.4,bold:true,color:'#000000'})});
@@ -2802,7 +2802,6 @@ function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'}
   if(I.hm!=='centro'&&I.hv*s<8){const xx=I.hm==='esquerda'?X(0):X(PWm);P.push({t:'text',x:xx,y:Y(B0+H)-6,s:`${f0(I.hv/10)} cm ${I.hm==='esquerda'?'DA ESQUERDA':'DA DIREITA'}`,size:2.6,bold:true,color:CR,anchor:I.hm==='esquerda'?'start':'end'})}
   if(I.pw)cotaH(P,X(0),X(PWm),Y(0)+(I.vm==='baixo'||I.ph?6:4),Y(0),`PAREDE ${f0(I.pw/10)} cm`,2.4);
   if(I.ph)cotaV(P,X(0)-6,Y(PHm),Y(0),X(0),`${f0(I.ph/10)} cm`,2.4);
-  if(!I.pw||!I.ph)P.push({t:'text',x:R.x,y:166,s:'Parede desenhada só como referência (medida não informada) — valem as medidas de saída em vermelho.',size:2.2,color:'#868e96'});
   return P}
 
 /* ---------- PROJETO DE EXPEDIÇÃO ---------- */
