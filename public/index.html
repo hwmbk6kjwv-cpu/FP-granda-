@@ -1913,7 +1913,7 @@ function listaCorte(comp,o,fixs){
   rows.forEach((r,i)=>{r.item=i+1;r.desc=tubDesc(r.perfil,r.parede||o.parede);r.total=r.len*r.q;r.cor=PERFIS[r.perfil].cor;
     r.uso=[...r.tipos].join(' / ')+(comp.length>1?` — F${[...r.faces].join(', F')}`:'')});
   {const nj=comp.reduce((s,c)=>s+(c.F.nJan||0),0);if(nj)rows.push({item:rows.length+1,fix:true,desc:'Fixação: cadeirinha (chapa dobrada)',uso:`1 por janela 15x15 — ${nj} janela(s)`,len:0,q:nj,total:0,cor:'#ff6633'});
-    const nt=comp.reduce((s,c)=>s+(c.F.nTravCad?Math.max(2,Math.round(c.F.W/1000)+1):0),0);if(nt)rows.push({item:rows.length+1,fix:true,desc:'Fixação: cadeirinha (chapa dobrada)',uso:'Nas travas a 15 cm do topo e da base (sugerido ~1 por metro)',len:0,q:nt,total:0,cor:'#ff6633'});
+    const nt=comp.reduce((s,c)=>s+(c.F.nTravCad?Math.max(2,Math.ceil(c.F.W/1500-1e-9)):0),0);if(nt)rows.push({item:rows.length+1,fix:true,desc:'Fixação: cadeirinha (chapa dobrada)',uso:'Nas travas a 15 cm do topo e da base — 1 a cada 1,5 m',len:0,q:nt,total:0,cor:'#ff6633'});
     const nc=comp.reduce((s,c)=>s+(c.F.nCant||0),0);if(nc)rows.push({item:rows.length+1,fix:true,desc:'Travamento: cantoneira interna AJR 003 (19,05 x 19,05 x 32 mm, ch. 1,58)',uso:'2 embaixo por quadro — fixar antes na parede e parafusar por baixo',len:0,q:nc,total:0,cor:'#e8590c'})}
   fixs.forEach(fx=>{const q=fixQtd(comp,fx);rows.push({item:rows.length+1,fix:true,desc:'Fixação: '+fx.nome,uso:FIX_POS[fx.pos]||'',len:fx.comp||0,q,total:(fx.comp||0)*q,cor:fx.cor||'#ff6633'})});
   return rows;
