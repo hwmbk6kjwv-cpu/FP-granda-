@@ -1877,7 +1877,7 @@ $('#gerar').onclick=()=>{
       let nm=(pg.tipo==='led'?'ELETRICA - posicao dos LEDs':(pg.tipo==='chapa'?'FILETE - '+(pg.material||'chapa'):(pg.material||pg.titulo||'peca')+(pg.espessura&&pg.espessura!=='----'?' '+pg.espessura:'')));
       cnt[nm]=(cnt[nm]||0)+1;if(cnt[nm]>1)nm+=' '+cnt[nm];
       prodFiles.push({name:nomeArq(`${base} - ${nm}.pdf`),label:nm,buf:v.buf,dim:`${fmt(v.w)} × ${fmt(v.h)} mm`})});
-    for(const N of d.nests){const B=N.best;const wm=(B.w/1000).toLocaleString('pt-BR'),hm=(B.h/1000).toLocaleString('pt-BR');
+    for(const N of d.nests){if(N.semQual)continue;const B=N.best;const wm=(B.w/1000).toLocaleString('pt-BR'),hm=(B.h/1000).toLocaleString('pt-BR');
       B.sheets.forEach((sh,k)=>{const vec=[{color:'#adb5bd',polys:[[[0,0],[B.w,0],[B.w,B.h],[0,B.h]]]}];
         sh.items.forEach(it=>{const pc=pieceAt(N.pieces[it.i],it);pc.lines.forEach(l=>vec.push(l))});
         const v=vecPDF(vec);if(v)prodFiles.push({name:nomeArq(`${base} - ${N.nome} CHAPA ${k+1} de ${B.sheets.length} (${B.w}x${B.h}).pdf`),label:`${N.nome==='ACRILICO'?'Acrílico':'Chapa galvanizada'} — chapa ${k+1} de ${B.sheets.length} (${wm}x${hm} m, encaixe pronto)`,buf:v.buf,dim:`${sh.items.length} peças`})});
