@@ -175,7 +175,6 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div class="row" style="gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)"><button class="btn pink" id="pedGerar">Gerar FP completa do pedido</button><button class="btn ghost" id="pedBaixar" hidden>Baixar FP completa (PDF)</button><button class="btn danger sm" id="pedExcluir" style="margin-left:auto">Excluir pedido</button></div>
       <div id="pedMsg"></div>
       <div class="prev" id="pedPrev"></div>
-      <div class="fpObsBox" style="margin-top:12px;padding:12px;border:1.5px solid #e03131;border-radius:12px;background:#fff5f5"><label class="f" style="margin-top:0;color:#c92a2a">Observação da FP (sai em vermelho no canto inferior direito de todas as folhas)</label><textarea class="fpObsTa" rows="2" placeholder="Ex.: conferir medida na obra"></textarea><button class="btn pink sm fpObsBtn" type="button" style="margin-top:6px">Atualizar FP com a observação</button></div>
     </div>
   </section>
   <section id="osSec" hidden>
@@ -256,7 +255,6 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div id="prodFiles" hidden style="margin-top:12px"></div>
       <div id="outMsg"></div>
       <div class="prev" id="prev"></div>
-      <div class="fpObsBox" style="margin-top:12px;padding:12px;border:1.5px solid #e03131;border-radius:12px;background:#fff5f5"><label class="f" style="margin-top:0;color:#c92a2a">Observação da FP (sai em vermelho no canto inferior direito de todas as folhas)</label><textarea class="fpObsTa" rows="2" placeholder="Ex.: conferir medida na obra"></textarea><button class="btn pink sm fpObsBtn" type="button" style="margin-top:6px">Atualizar FP com a observação</button></div>
     </div>
   </section>
 
@@ -284,7 +282,6 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div id="mTabela" style="overflow:auto;margin-top:8px"></div>
       <div class="row" id="mPgPick" style="gap:6px;margin-top:10px"></div>
       <div class="prev" id="mPrev"></div>
-      <div class="fpObsBox" style="margin-top:12px;padding:12px;border:1.5px solid #e03131;border-radius:12px;background:#fff5f5"><label class="f" style="margin-top:0;color:#c92a2a">Observação da FP (sai em vermelho no canto inferior direito de todas as folhas)</label><textarea class="fpObsTa" rows="2" placeholder="Ex.: conferir medida na obra"></textarea><button class="btn pink sm fpObsBtn" type="button" style="margin-top:6px">Atualizar FP com a observação</button></div>
     </div>
   </section>
   <section id="tab-testeiras" hidden>
@@ -320,7 +317,6 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <ul id="dNotas" class="note" style="margin:8px 0 0;padding-left:18px"></ul>
       <div class="row" id="dPgPick" style="gap:6px;margin-top:10px"></div>
       <div class="prev" id="dPrev"></div>
-      <div class="fpObsBox" style="margin-top:12px;padding:12px;border:1.5px solid #e03131;border-radius:12px;background:#fff5f5"><label class="f" style="margin-top:0;color:#c92a2a">Observação da FP (sai em vermelho no canto inferior direito de todas as folhas)</label><textarea class="fpObsTa" rows="2" placeholder="Ex.: conferir medida na obra"></textarea><button class="btn pink sm fpObsBtn" type="button" style="margin-top:6px">Atualizar FP com a observação</button></div>
     </div>
     <div class="card tm-pad" id="tOpts">
       <h2>Testeira em metalon</h2>
@@ -440,7 +436,6 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div class="row" id="tPgPick" style="gap:6px;margin-top:10px"></div>
       <div id="tMsg"></div>
       <div class="prev" id="tPrev"></div>
-      <div class="fpObsBox" style="margin-top:12px;padding:12px;border:1.5px solid #e03131;border-radius:12px;background:#fff5f5"><label class="f" style="margin-top:0;color:#c92a2a">Observação da FP (sai em vermelho no canto inferior direito de todas as folhas)</label><textarea class="fpObsTa" rows="2" placeholder="Ex.: conferir medida na obra"></textarea><button class="btn pink sm fpObsBtn" type="button" style="margin-top:6px">Atualizar FP com a observação</button></div>
     </div>
   </section>
   <section id="instSec" hidden>
@@ -1341,12 +1336,12 @@ function obsBox(P,ctx){
   shown.forEach((s,i)=>P.push({t:'text',x:x+2,y:yy+7.6+i*3.4,s,size:2.6,color:'#000000'}));
 }
 // observação geral da FP: canto inferior direito, em vermelho, em todas as folhas
-let fpObs='';
-function obsFPDraw(P){const s=(fpObs||'').replace(/\s+/g,' ').trim();if(!s)return;const maxc=62;const ws=('OBS.: '+s).split(' ');const ls=[];let c='';
+let fpObsPg={};
+function obsFPDraw(P,n){P._n=n;const s=(P._obs!==undefined?P._obs:fpObsPg[n]||'').replace(/\s+/g,' ').trim();if(!s)return;const maxc=44;const ws=('OBS.: '+s).split(' ');const ls=[];let c='';
   ws.forEach(w=>{if((c+' '+w).trim().length>maxc){ls.push(c);c=w}else c=(c+' '+w).trim()});if(c)ls.push(c);const L=ls.slice(0,4);if(ls.length>4)L[3]=L[3].slice(0,maxc-1)+'…';
-  const lh=3.3,x1=PW-9,w=maxc*1.42+4,h=L.length*lh+2.4,y0=169.6-h;P.push({t:'rect',x:x1-w,y:y0,w,h,fill:'#ffffff',stroke:'#e03131',lw:0.3});
+  const lh=3.3,x1=PW-9,w=Math.max(...L.map(l=>l.length))*1.66+4,h=L.length*lh+2.4,y0=169.6-h;P.push({t:'rect',x:x1-w,y:y0,w,h,fill:'#ffffff',stroke:'#e03131',lw:0.3});
   L.forEach((l,i)=>P.push({t:'text',x:x1-2,y:y0+3.3+i*lh,s:l,size:2.7,bold:true,color:'#e03131',anchor:'end'}))}
-function footer(P,ctx,n,total){if(P._ref&&!P._refOk)refAplica(P);obsBox(P,ctx);obsFPDraw(P);
+function footer(P,ctx,n,total){if(P._ref&&!P._refOk)refAplica(P);obsBox(P,ctx);obsFPDraw(P,n);
   const y0=171;P.push({t:'line',x1:8,y1:y0,x2:PW-8,y2:y0,color:'#000000',w:0.3});
   const LG=empresa.logo&&empresa.lw?empresa:{logo:GRANDA_LOGO,lw:375,lh:134};
   if(LG.logo){const mw=56,mh=24,s=Math.min(mw/LG.lw,mh/LG.lh);const w=LG.lw*s,h=LG.lh*s;P.push({t:'img',x:11+(mw-w)/2,y:174+(mh-h)/2,w,h,src:LG.logo})}
@@ -1735,7 +1730,7 @@ function toSVG(P){const K=P.K||1;
     else if(p.t==='img')o.push(`<image x="${r(p.x)}" y="${r(p.y)}" width="${r(p.w)}" height="${r(p.h)}" href="${p.src}"/>`);
     else if(p.t==='text')o.push(`<text x="${r(p.x)}" y="${r(p.y)}" font-size="${r(p.size)}" font-family="Helvetica,Arial,sans-serif" ${p.bold?'font-weight="700"':''} ${p.italic?'font-style="italic"':''} fill="${p.color}" ${p.anchor?`text-anchor="${p.anchor}"`:''} ${p.angle?`transform="rotate(${-p.angle} ${r(p.x)} ${r(p.y)})"`:''}>${esc(p.s)}</text>`);
   }
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${r(PW*K)} ${r(PH*K)}"><rect width="100%" height="100%" fill="#fff"/>${o.join('')}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg"${P._n?` data-pg="${P._n}"`:''} viewBox="0 0 ${r(PW*K)} ${r(PH*K)}"><rect width="100%" height="100%" fill="#fff"/>${o.join('')}</svg>`;
 }
 function hex(c){if(c.length===4)c='#'+c[1]+c[1]+c[2]+c[2]+c[3]+c[3];const n=parseInt(c.slice(1),16);return[(n>>16)&255,(n>>8)&255,n&255]}
 function toPDF(pages){
@@ -3099,12 +3094,23 @@ if($('#instIn')){
   $('#instBox').addEventListener('change',()=>{instRender();if(typeof pedSujo!=='undefined')pedSujo=true;refRefaz()});
   instRender()}
 
-/* ---------- observação geral da FP (campo abaixo de cada prévia) ---------- */
-const FPOBS_RUN={pedPrev:()=>$('#pedGerar').click(),prev:()=>{if(!$('#gerar').disabled)$('#gerar').click()},mPrev:()=>mFolhasRender(),dPrev:()=>dRender3D(),tPrev:()=>tRender()};
-function fpObsSync(){document.querySelectorAll('.fpObsTa').forEach(t=>{if(t!==document.activeElement)t.value=fpObs})}
-document.querySelectorAll('.fpObsBox').forEach(box=>{const pid=box.previousElementSibling&&box.previousElementSibling.id;const ta=box.querySelector('.fpObsTa');
-  ta.addEventListener('input',()=>{fpObs=ta.value;fpObsSync()});
-  box.querySelector('.fpObsBtn').onclick=()=>{fpObs=ta.value;fpObsSync();try{(FPOBS_RUN[pid]||(()=>{}))()}catch(e){console.error(e)}}});
+/* ---------- observação por folha da FP (campo fino abaixo de cada folha na prévia) ---------- */
+function fpObsLinha(pg){const n=+pg.querySelector('svg[data-pg]').dataset.pg;const d=document.createElement('div');d.className='fpObsRow';
+  d.style.cssText='display:flex;gap:8px;align-items:center;margin:6px 0 14px';const v=fpObsPg[n];
+  d.innerHTML=`<button class="btn ghost sm" type="button" style="padding:6px 12px;border-color:#e03131;color:#c92a2a;white-space:nowrap">${v?'✎ Editar observação':'+ Add observação'}</button>${v?`<span style="font-size:12px;color:#c92a2a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">${esc(v)}</span>`:''}`;
+  d.querySelector('button').onclick=()=>fpObsPopup(n,pg.closest('.prev').id);pg.after(d)}
+function fpObsPopup(n,prevId){let M=$('#fpObsModal');if(M)M.remove();M=document.createElement('div');M.id='fpObsModal';
+  M.style.cssText='position:fixed;inset:0;background:#0007;z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+  M.innerHTML=`<div style="background:#fff;border-radius:14px;padding:16px;width:100%;max-width:420px;box-shadow:0 10px 40px #0004">
+    <div style="font-weight:700;margin-bottom:4px">Observação — folha ${n}</div><div class="note" style="margin-bottom:8px">Sai em vermelho no canto inferior direito desta folha.</div>
+    <textarea id="fpObsTxt" rows="4" style="width:100%;box-sizing:border-box" placeholder="Ex.: conferir medida na obra"></textarea>
+    <div class="row" style="gap:8px;margin-top:10px;justify-content:flex-end"><button class="btn ghost sm" type="button" data-x="limpar">Remover</button><button class="btn ghost sm" type="button" data-x="cancelar">Cancelar</button><button class="btn pink sm" type="button" data-x="ok">Atualizar FP</button></div></div>`;
+  document.body.appendChild(M);const ta=M.querySelector('#fpObsTxt');ta.value=fpObsPg[n]||'';setTimeout(()=>ta.focus(),50);
+  M.onclick=e=>{const b=e.target.closest('[data-x]');if(e.target===M||(b&&b.dataset.x==='cancelar')){M.remove();return}if(!b)return;
+    const v=b.dataset.x==='limpar'?'':ta.value.trim();if(v)fpObsPg[n]=v;else delete fpObsPg[n];M.remove();try{(FPOBS_RUN[prevId]||(()=>{}))()}catch(err){console.error(err)}}}
+const FPOBS_RUN={prev:()=>{if(!$('#gerar').disabled)$('#gerar').click()},mPrev:()=>mFolhasRender(),dPrev:()=>dRender3D(),tPrev:()=>tRender()};
+['prev','mPrev','dPrev','tPrev'].forEach(id=>{const el=$('#'+id);if(!el)return;
+  new MutationObserver(()=>{el.querySelectorAll('.pg').forEach(pg=>{const nx=pg.nextElementSibling;if((!nx||!nx.classList.contains('fpObsRow'))&&pg.querySelector('svg[data-pg]'))fpObsLinha(pg)})}).observe(el,{childList:true})});
 
 /* ================= ESTRUTURA POR DESENHO (PDF + descrição → 3D montado pelo Claude) ================= */
 let tModo='padrao';let dSrc=null,dModel=null,dHist=[],dPrevModels=[],dBuild=null,dSel='MONTAGEM';
@@ -3538,7 +3544,7 @@ function irAba(tab){const b=document.querySelector(`nav button[data-tab="${tab}"
 function proximoN(){return Math.max(0,...(pedAtual.itens||[]).map(i=>+i.n||0))+1}
 document.querySelectorAll('[data-novo]').forEach(b=>b.onclick=()=>{const tipo=b.dataset.novo;itemAtual={id:'i'+Date.now().toString(36),tipo,n:proximoN(),novo:true};
   limpaTipo(tipo);$('#item').value=itemAtual.n;irAba(TIPO_ABA[tipo]);if(tipo==='testeira')setModo('padrao');if(tipo==='estrutura')setModo('desenho');pedSujo=true;pedBarRender();window.scrollTo(0,0)});
-function limpaTipo(tipo){refImg=null;fpObs='';fpObsSync();refRender();instReset();
+function limpaTipo(tipo){refImg=null;fpObsPg={};refRender();instReset();
   if(tipo==='letra'){src=null;srcBytes=null;ledAdj={};resetOut();prevSet('');$('#outMsg').innerHTML='';$('#fileInfo').innerHTML='';$('#drop').classList.remove('has');$('#dropTxt').textContent='Toque para escolher o PDF';$('#xPages').innerHTML='';$('#obs').value='';selLed=6500;selCaixa=80;renderLeds();renderCaixa();updateBtn()}
   if(tipo==='testeira'){tFaces=[{W:1000,H:1000,prof:0,junta:'linha'}];tAcm={on:false,esp:3,inst:'rente',fita:'vhb',chapa:'auto',marca:'',cor:null,jt:false,jmm:5,je:false,envT:'ext',apl:aplDef()};acmUI();adesMarca="";acmAplUI();renderFaces();v3Fit=true}
   if(tipo==='estrutura'){dSrc=null;dModel=null;dHist=[];dPrevModels=[];$('#dTxt').value='';$('#dAlt').value='';$('#dInfo').innerHTML='';$('#dDraw').innerHTML='';$('#dPecas').innerHTML='';$('#dDropTxt').textContent='Toque para escolher o PDF';$('#dAltBox').hidden=true;$('#dResCard').hidden=true;dBotao()}
@@ -3568,7 +3574,7 @@ function capturaEstado(tipo){
 async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHTML=t};
   try{const n=Math.max(1,Math.round(num($('#item').value))||1);
     const outro=(pedAtual.itens||[]).find(i=>+i.n===n&&(!itemAtual||i.id!==itemAtual.id));if(outro)throw new Error(`já existe o item ${n} neste pedido (${TIPO_NOME[outro.tipo]}). Mude o número do item.`);
-    msg('Salvando…');const C=capturaEstado(tipo);C.estado.refImg=refImg;C.estado.fpObs=fpObs;C.estado.inst=capInputs(['#instBox']);C.estado.instImg=instImg;
+    msg('Salvando…');const C=capturaEstado(tipo);C.estado.refImg=refImg;C.estado.fpObsPg=fpObsPg;C.estado.inst=capInputs(['#instBox']);C.estado.instImg=instImg;
     let it=itemAtual&&itemAtual.tipo===tipo?pedAtual.itens.find(i=>i.id===itemAtual.id):null;const velho=it?{e:it.estadoId,f:it.fonteId}:null;
     const estadoId=await guardaJSON(C.estado);const fonteId=C.fonte?(it&&it.fonteNome===C.fonte.nome&&it.fonteTam===C.fonte.b64.length?it.fonteId:await guardaJSON(C.fonte)):null;
     const reg={id:it?it.id:(itemAtual&&itemAtual.id)||'i'+Date.now().toString(36),n,tipo,desc:C.desc,resumo:C.resumo,estadoId,fonteId,fonteNome:C.fonte?C.fonte.nome:'',fonteTam:C.fonte?C.fonte.b64.length:0,atualizado:Date.now()};
@@ -3578,7 +3584,7 @@ async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHT
   catch(e){console.error(e);msg(`<span style="color:#ffc9c9">Não salvou: ${esc(e.message)}</span>`)}}
 // abre um item: restaura tudo; se "mostrar", vai para a aba dele e gera
 async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)throw new Error('estado do item não encontrado');const F=it.fonteId?await lerJSON(it.fonteId):null;
-  itemAtual={id:it.id,tipo:it.tipo,n:it.n};$('#item').value=it.n;refImg=E.refImg||null;fpObs=E.fpObs||'';fpObsSync();refRender();instReset();if(E.inst)putInputs(E.inst);instImg=E.instImg||null;instRender();
+  itemAtual={id:it.id,tipo:it.tipo,n:it.n};$('#item').value=it.n;refImg=E.refImg||null;fpObsPg={...(E.fpObsPg||{})};refRender();instReset();if(E.inst)putInputs(E.inst);instImg=E.instImg||null;instRender();
   if(E.cor){selEsc=E.cor.selEsc||selEsc;renderEsc();putInputs(E.cor.inputs)}
   if(it.tipo==='letra'){limpaTipo('letra');putInputs(E.inputs);selType=E.selType;selLed=E.selLed;selChapa=E.selChapa;selCaixa=E.selCaixa||80;
     $('#xPages').innerHTML='';(E.xPages||[]).forEach((p,i)=>$('#xPages').insertAdjacentHTML('beforeend',pageBlock(p,i)));renumberIn($('#xPages'));
@@ -3599,7 +3605,7 @@ function buildItem(tipo){if(tipo==='letra')return buildDoc();if(tipo==='testeira
 $('#pedGerar').onclick=async()=>{const its=(pedAtual.itens||[]).slice().sort((a,b)=>a.n-b.n);if(!its.length){$('#pedMsg').innerHTML='<div class="msg err">O pedido ainda não tem itens.</div>';return}
   const btn=$('#pedGerar');btn.disabled=true;const todas=[];const salvo={item:$('#item').value,ia:itemAtual};
   try{for(const [k,it] of its.entries()){$('#pedMsg').innerHTML=`<div class="msg ok">Gerando item ${it.n} (${k+1} de ${its.length}) — ${TIPO_NOME[it.tipo]}…</div>`;await new Promise(r=>setTimeout(r,30));
-      await itemAbrir(it,false);FOOT_SKIP=true;let r;try{r=buildItem(it.tipo)}finally{FOOT_SKIP=false}r.pages.forEach(P=>todas.push({P,ctx:r.ctx}))}
+      await itemAbrir(it,false);FOOT_SKIP=true;let r;try{r=buildItem(it.tipo)}finally{FOOT_SKIP=false}r.pages.forEach((P,j)=>{P._obs=fpObsPg[j+1]||'';todas.push({P,ctx:r.ctx})})}
     numeraSetores(todas.map(x=>x.P));todas.forEach((x,i)=>footer(x.P,x.ctx,i+1,todas.length));
     pedPdf=toPDF(todas.map(x=>x.P));$('#pedPrev').innerHTML=todas.map(x=>`<div class="pg">${toSVG(x.P)}</div>`).join('');
     $('#pedMsg').innerHTML=`<div class="msg ok">FP completa: ${its.length} item(ns), ${todas.length} página(s) numeradas em sequência.</div>`;$('#pedBaixar').hidden=false;$('#pedGerar').textContent='Atualizar FP completa do pedido'}
