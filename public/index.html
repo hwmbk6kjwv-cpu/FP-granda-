@@ -254,6 +254,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div id="ledAdjHome"><div id="ledAdj" hidden style="margin:10px 0 16px;padding:12px;border:1.5px solid #e8a400;border-radius:12px;background:#fffbea"></div></div>
       <div id="prodFiles" hidden style="margin-top:12px"></div>
       <div id="outMsg"></div>
+      <h2 id="lFichasT" hidden style="margin:16px 0 0">Fichas de produção</h2>
       <div class="row" id="lPgPick" style="gap:6px;margin-top:10px;flex-wrap:wrap"></div>
       <div class="prev" id="prev"></div>
     </div>
@@ -433,7 +434,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div id="t3dInfo"></div>
     </div>
     <div class="card tm-pad">
-      <div class="row" style="justify-content:space-between"><h2 style="margin:0">Folhas do projeto</h2><div class="row" style="gap:6px"><button class="btn ghost" id="tAcmFiles" hidden>Arquivos ACM (router 1:1)</button><button class="btn pink" id="tBaixar" disabled>Baixar PDF</button></div></div>
+      <div class="row" style="justify-content:space-between"><h2 style="margin:0">Fichas de produção</h2><div class="row" style="gap:6px"><button class="btn ghost" id="tAcmFiles" hidden>Arquivos ACM (router 1:1)</button><button class="btn pink" id="tBaixar" disabled>Baixar PDF</button></div></div>
       <div class="row" id="tPgPick" style="gap:6px;margin-top:10px"></div>
       <div id="tMsg"></div>
       <div class="prev" id="tPrev"></div>
@@ -1396,10 +1397,12 @@ function refRender(){$('#refPrev').innerHTML=refImg?`<div class="row" style="gap
 function instColoca(tb){const s=$('#instSec');const alvo=tb==='novo'?$('#gerar').closest('.card'):tb==='testeiras'?$('#t3d').closest('.card'):tb==='modelo'?$('#mResCard'):null;
   if(alvo&&alvo.parentNode&&alvo.previousElementSibling!==s)alvo.parentNode.insertBefore(s,alvo)}
 let lSel='',lDoc=null;
-const lSetNome=s=>({ROUTER:'Router',P1:'P1',PINTURA:'Pintura','ELÉTRICA':'Elétrica',ACABAMENTO:'Acabamento','INSTALAÇÃO':'Instalação','EXPEDIÇÃO':'Expedição',QUALIDADE:'Qualidade',SERRALHERIA:'Serralheria',OUTRAS:'Outras'}[s]||s);
-function lPrevRender(){const d=lDoc;if(!d){$('#lPgPick').innerHTML='';return}const sk=P=>P._setor||'OUTRAS';const sets=[...new Set(d.pages.map(sk))];if(!sets.includes(lSel))lSel=sets[0];
-  $('#lPgPick').innerHTML=sets.map(s=>{const n=d.pages.filter(P=>sk(P)===s).length;return `<button class="chip${s===lSel?' on':''}" data-lpg="${esc(s)}">${esc(lSetNome(s))}${n>1?` (${n})`:''}</button>`}).join('');
-  const shown=d.pages.filter(P=>sk(P)===lSel);prevSet(shown.map(P=>`<div class="pg">${toSVG(P)}</div>`).join(''));
+const lSetNome=s=>({MONTAGEM:'Montagem ACM','LETRA CAIXA':'Letra caixa',ROUTER:'Router',P1:'P1',PINTURA:'Pintura','ELÉTRICA':'Elétrica',ACABAMENTO:'Acabamento','INSTALAÇÃO':'Instalação','EXPEDIÇÃO':'Expedição',QUALIDADE:'Qualidade',SERRALHERIA:'Serralheria',OUTRAS:'Outras'}[s]||s);
+// fichas de produção separadas por setor (botões)
+function setorChips(pages,sel,attr){const sk=P=>P._setor||'OUTRAS';const sets=[...new Set(pages.map(sk))];if(!sets.includes(sel))sel=sets[0];
+  const html=sets.map(s=>{const n=pages.filter(P=>sk(P)===s).length;return `<button class="chip${s===sel?' on':''}" ${attr}="${esc(s)}">${esc(lSetNome(s))}${n>1?` (${n})`:''}</button>`}).join('');
+  return{sel,html,shown:pages.filter(P=>sk(P)===sel)}}
+function lPrevRender(){const d=lDoc;$('#lFichasT').hidden=!d;if(!d){$('#lPgPick').innerHTML='';return}const C=setorChips(d.pages,lSel,'data-lpg');lSel=C.sel;$('#lPgPick').innerHTML=C.html;const shown=C.shown;prevSet(shown.map(P=>`<div class="pg">${toSVG(P)}</div>`).join(''));
   const li=shown.findIndex(P=>P.some(p=>p.t==='text'&&/DISTRIBUIÇÃO DE LED/.test(p.s||'')));const pgs=$('#prev').querySelectorAll('.pg');
   if(li>=0&&pgs[li]&&!$('#ledAdj').hidden){pgs[li].after($('#ledAdj'));if(ledFoco){ledFoco=false;pgs[li].scrollIntoView({block:'start'})}}}
 function prevSet(html){$('#ledAdjHome').appendChild($('#ledAdj'));$('#prev').innerHTML=html}
@@ -1798,7 +1801,7 @@ $('#ledAdj').onclick=e=>{const z=e.target.closest('#ledAdjZero');if(z){ledAdj={}
   // o ajuste é relativo ao automático: se pediu menos e já está no mínimo, não passa de 1
   if(g&&g.n+(+b.dataset.d)<1)ledAdj[k]-=(+b.dataset.d);
   document.querySelectorAll('#ledAdj button').forEach(x=>x.disabled=true);ledFoco=true;setTimeout(()=>$('#gerar').click(),20)};
-function resetOut(){lastPdf=null;lDoc=null;if($('#lPgPick'))$('#lPgPick').innerHTML='';$('#gerar').textContent='Gerar FP';$('#ledAdj').hidden=true;$('#baixar').hidden=true;$('#prodFiles').hidden=true;prodFiles=[]}
+function resetOut(){lastPdf=null;lDoc=null;if($('#lPgPick')){$('#lPgPick').innerHTML='';$('#lFichasT').hidden=true}$('#gerar').textContent='Gerar FP';$('#ledAdj').hidden=true;$('#baixar').hidden=true;$('#prodFiles').hidden=true;prodFiles=[]}
 let srcBytes=null;
 $('#pdfIn').onchange=async e=>{const f=e.target.files[0];if(!f)return;await carregaLetra(f.name,new Uint8Array(await f.arrayBuffer()));e.target.value=''};
 async function carregaLetra(nome,bytes){resetOut();const f={name:nome};
@@ -2315,7 +2318,7 @@ function v3Set(boxes){if(!v3Init())return false;
 function v3View(k){const v={iso:[-0.65,1.12],frente:[0,Math.PI/2],lado:[Math.PI/2,Math.PI/2],topo:[0,0.06],tras:[Math.PI,Math.PI/2]}[k];V3.th=v[0];V3.ph=v[1];v3Draw()}
 
 /* ================= UI da aba Testeiras ================= */
-let tSelPage='FACE 1',lastBuild=null;
+let tSelPage='SERRALHERIA',lastBuild=null;
 function vaosHTML(f){const box=(k,lab,tot)=>{const L=f[k]||[];const soma=L.reduce((s,v)=>s+v,0);
   return `<label class="f">${lab}</label><div class="row" style="gap:6px">${L.map((v,i)=>`<div style="width:104px"><span class="note">Vão ${i+1}</span><input type="number" inputmode="decimal" data-vao="${k}" data-ix="${i}" value="${v}"></div>`).join('')}<div style="width:120px"><span class="note">Vão ${L.length+1} (restante)</span><input type="text" disabled value="${f1(tot-soma)}" data-rest="${k}"></div></div>`};
   return box('vaosV','Vãos verticais — da esquerda até o centro de cada trava (mm)',f.W)+box('vaosH','Vãos horizontais — de baixo para cima até o centro de cada trava (mm)',f.H)}
@@ -2356,9 +2359,7 @@ function tRender(){if(tModo==='desenho'){dRender3D();return}
     const bb=bbox3(r.M.boxes.filter(b=>!b.fix));
     {const gr=tFaces.map((f,i)=>f.W>MAX_W||f.H>MAX_H?i+1:0).filter(Boolean);if(gr.length&&!$('#tDivMsg').innerHTML)$('#tDivMsg').innerHTML=`<div class="msg warn">Face ${gr.join(', ')} passa de 6 m de comprimento ou 2 m de altura — precisa ser dividida. <button class="btn ghost sm" id="tDivBtn">Dividir agora</button></div>`;if(!gr.length&&/Dividir agora/.test($('#tDivMsg').innerHTML))$('#tDivMsg').innerHTML=''}
     $('#t3dInfo').textContent=`${r.M.comp.length} face(s) • conjunto ${f0(bb.x1-bb.x0)} × ${f0(bb.y1-bb.y0)} × ${f0(bb.z1-bb.z0)} mm (L × A × P)`;
-    const uniq=[...new Set(r.tags)];if(!uniq.includes(tSelPage))tSelPage=uniq.includes('FACE 1')?'FACE 1':uniq[0];
-    $('#tPgPick').innerHTML=uniq.map(t=>`<button class="chip${t===tSelPage?' on':''}" data-pg="${t}">${t==='MONTAGEM'?'Montagem e lista':t==='LISTA'?'Lista de corte':t==='PLANO DE CORTE'?'Plano de corte':t==='PINTURA'?'Pintura':t==='ACM'?'ACM planificação':t==='ACM CHAPAS'?'ACM chapas':t==='ACM MONTAGEM'?'ACM montagem':t==='ADESIVO'?'Adesivo (P1)':t==='LETRA NO ACM'?'Letra no ACM':t.replace('FACE','Face')}</button>`).join('');
-    $('#tPrev').innerHTML=r.pages.filter((P,i)=>r.tags[i]===tSelPage).map(P=>`<div class="pg">${toSVG(P)}</div>`).join('');
+    {const C=setorChips(r.pages,tSelPage,'data-pg');tSelPage=C.sel;$('#tPgPick').innerHTML=C.html;$('#tPrev').innerHTML=C.shown.map(P=>`<div class="pg">${toSVG(P)}</div>`).join('')}
     const t=r.M;$('#tMsg').innerHTML=`<div class="msg ok">${t.comp.map(c=>`F${c.i+1}: ${c.F.nb+1-(c.F.sI?1:0)} verticais, ${c.F.rows.length} travessa(s)`).join(' • ')}${r.o.trav40?' • travessa 20x40':''} • ${r.plano.map(g=>`${g.nBarras} barra(s) de ${g.perfil}${g.parede?' #'+g.parede:''}`).join(', ')} para ${r.o.un} un.${r.M.acm?` • ACM: ${r.M.acm.esc.n} chapa(s) ${f1(r.M.acm.esc.SW/1000)}x5 (${Math.round(r.M.acm.esc.aprov*100)}%), fita ${ACM_FITA[r.M.acm.fitaTipo]} ${f1(r.M.acm.fitaTot)} m`:''}</div>`;
     $('#tAcmFiles').hidden=!r.M.acm;
     $('#tBaixar').disabled=false}
@@ -3238,7 +3239,7 @@ const FPOBS_RUN={prev:()=>{if(!$('#gerar').disabled)$('#gerar').click()},mPrev:(
 $('#lPgPick').onclick=e=>{const b=e.target.closest('[data-lpg]');if(!b)return;lSel=b.dataset.lpg;lPrevRender()};
 
 /* ================= ESTRUTURA POR DESENHO (PDF + descrição → 3D montado pelo Claude) ================= */
-let tModo='padrao';let dSrc=null,dModel=null,dHist=[],dPrevModels=[],dBuild=null,dSel='MONTAGEM';
+let tModo='padrao';let dSrc=null,dModel=null,dHist=[],dPrevModels=[],dBuild=null,dSel='SERRALHERIA';
 function setModo(m){tModo=m;document.querySelectorAll('#tModo button').forEach(b=>b.classList.toggle('sel',b.dataset.m===m));
   document.querySelectorAll('#tab-testeiras .tm-pad').forEach(e=>e.hidden=m!=='padrao');
   document.querySelectorAll('#tab-testeiras .tm-des').forEach(e=>e.hidden=m!=='desenho'||(e.id==='dResCard'&&!dModel));
@@ -3336,9 +3337,7 @@ function dRender3D(){if(tModo!=='desenho')return;
   const L=dLista();
   $('#dTabela').innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="text-align:left;color:var(--mute)"><th>Nº</th><th>Peça</th><th>Perfil</th><th>Parede</th><th>Compr.</th><th>Qtd</th><th>Obs.</th></tr>${L.map(r=>`<tr style="border-top:1px solid var(--line)"><td><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${r.cor};vertical-align:-1px"></span> ${r.item}</td><td>${esc(r.nome)} <span class="note">(${r.refs.join(', ')})</span></td><td>${esc(r.perfil)}</td><td>${esc(r.parede)}</td><td>${f1(r.len)} mm</td><td>${r.q}</td><td class="note">${esc([...r.obs].join(' / '))}</td></tr>`).join('')}</table>`;
   $('#dNotas').innerHTML=dModel.notas.map(n=>`<li>${esc(n)}</li>`).join('');
-  try{dBuild=dFolhas();const tags=[...new Set(dBuild.tags)];if(!tags.includes(dSel))dSel=tags[0];
-    $('#dPgPick').innerHTML=tags.map(t=>`<button class="chip${t===dSel?' on':''}" data-dpg="${t}">${{MONTAGEM:'Montagem e lista',VISTAS:'Vistas e medidas',LISTA:'Lista de corte',PLANO:'Plano de corte',PINTURA:'Pintura'}[t]||t}</button>`).join('');
-    $('#dPrev').innerHTML=dBuild.pages.filter((P,i)=>dBuild.tags[i]===dSel).map(P=>`<div class="pg">${toSVG(P)}</div>`).join('');$('#dBaixar').disabled=false}
+  try{dBuild=dFolhas();{const C=setorChips(dBuild.pages,dSel,'data-dpg');dSel=C.sel;$('#dPgPick').innerHTML=C.html;$('#dPrev').innerHTML=C.shown.map(P=>`<div class="pg">${toSVG(P)}</div>`).join('')}$('#dBaixar').disabled=false}
   catch(e){console.error(e);$('#dMsg').innerHTML=`<div class="msg err">${esc(e.message)}</div>`;$('#dBaixar').disabled=true}}
 $('#dPgPick').onclick=e=>{const b=e.target.closest('[data-dpg]');if(!b)return;dSel=b.dataset.dpg;dRender3D()};
 function dFolhas(){const un=Math.max(1,Math.round(num($('#dUn').value))||1);const d=$('#entrega').value;
@@ -3422,7 +3421,7 @@ function dArea(){let area=0,lin=0;dModel.pecas.forEach(p=>{const d=[p.x1-p.x0,p.
   if(p.tipo==='chapa'){area+=2*d[1]*d[2]}else{area+=2*(d[0]+d[1])*d[2];lin+=d[2]}});return{area,lin}}
 
 /* ================= MODELO 3D (STL / OBJ do SketchUp ou SolidWorks → peças, cotas e folhas) ================= */
-let mSrc=null,mPecas=[],mBuild=null,mSel='MONTAGEM';
+let mSrc=null,mPecas=[],mBuild=null,mSel='SERRALHERIA';
 // ---------- leitura dos arquivos ----------
 function parseSTL(buf){const dv=new DataView(buf);const tris=[];
   const isBin=()=>{if(buf.byteLength<84)return false;const n=dv.getUint32(80,true);return 84+n*50===buf.byteLength};
@@ -3609,9 +3608,7 @@ function mFolhas(){const un=Math.max(1,Math.round(num($('#mQt').value))||1);cons
 function mFolhasRender(){if(!mSrc||!mPecas.length){$('#mResCard').hidden=true;return}$('#mResCard').hidden=false;
   try{mBuild=mFolhas();const L=mBuild.L;
     $('#mTabela').innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="text-align:left;color:var(--mute)"><th>Nº</th><th>Peça</th><th>Perfil</th><th>Parede (est.)</th><th>Compr.</th><th>Qtd</th></tr>${L.map(r=>`<tr style="border-top:1px solid var(--line)"><td><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${r.cor};vertical-align:-1px"></span> ${r.item}</td><td>${esc(r.nome)}</td><td>${esc(r.tipo==='chapa'?r.secao+' mm':r.perfil.toUpperCase())}</td><td>${esc(r.parede||'—')}</td><td>${r.tipo==='chapa'?'—':f1(r.len)+' mm'}</td><td>${r.q}</td></tr>`).join('')}</table>`;
-    const tags=[...new Set(mBuild.tags)];if(!tags.includes(mSel))mSel=tags[0];
-    $('#mPgPick').innerHTML=tags.map(t=>`<button class="chip${t===mSel?' on':''}" data-mpg="${t}">${{MONTAGEM:'Montagem e lista',VISTAS:'Vistas e medidas',LISTA:'Lista de corte',PLANO:'Plano de corte'}[t]||t}</button>`).join('');
-    $('#mPrev').innerHTML=mBuild.pages.filter((P,i)=>mBuild.tags[i]===mSel).map(P=>`<div class="pg">${toSVG(P)}</div>`).join('');$('#mBaixar').disabled=false}
+    {const C=setorChips(mBuild.pages,mSel,'data-mpg');mSel=C.sel;$('#mPgPick').innerHTML=C.html;$('#mPrev').innerHTML=C.shown.map(P=>`<div class="pg">${toSVG(P)}</div>`).join('')}$('#mBaixar').disabled=false}
   catch(e){console.error(e);$('#mInfo').insertAdjacentHTML('beforeend',`<div class="msg err">${esc(e.message)}</div>`)}}
 $('#mPgPick').onclick=e=>{const b=e.target.closest('[data-mpg]');if(!b)return;mSel=b.dataset.mpg;mFolhasRender()};
 $('#mBaixar').onclick=async()=>{if(!mBuild)return;const pdf=toPDF(mBuild.pages);const name=`OS ${mBuild.ctx.os||'sem número'} - modelo 3D - item ${mBuild.ctx.item}.pdf`.replace(/[\\/:*?"<>|]/g,'-');
