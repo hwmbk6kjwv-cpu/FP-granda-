@@ -1344,7 +1344,8 @@ function chapaFilete(cp,t,trava,fator){
 // circuitos: quais letras vão ligadas juntas em cada fonte. Letras grandes (> 350 mm de altura) só usam fontes de 100 ou 150 W
 const LED_FOLGA=1.25; // potência = qtd. de LEDs x potência do módulo + 25%
 const CIRC_COR=['#e8590c','#1971c2','#2f9e44','#ae3ec9','#c92a2a','#0c8599','#f08c00','#5c940d'];
-let ledFonte={}; // fonte escolhida à mão por letra: {nºletra: nºfonte}
+let ledFonte={};let ledFonteW={}; // potência escolhida à mão por fonte: {nºfonte: W}
+ // fonte escolhida à mão por letra: {nºletra: nºfonte}
 function ledCircuitos(R){const Ls=ordenaPecas(R.letters||[]);if(!Ls.length)return null;const wm=(R.P&&R.P.watts)||1.2;
   const grande=Ls.some(g=>g.bb.h>350);const caps=grande?[100,150]:[60,100,150];const MAX=150;let out=[];let cur=null;
   // automático: agrupa da esquerda para a direita até a fonte de 150 W
@@ -1355,7 +1356,7 @@ function ledCircuitos(R){const Ls=ordenaPecas(R.letters||[]);if(!Ls.length)retur
   if(man.length){const auto={};out.forEach(c=>c.letras.forEach(k=>{if(auto[k]==null)auto[k]=c.n}));const div=new Set(out.filter(c=>c.parte).flatMap(c=>c.letras));
     const grp={};Ls.forEach((g,k)=>{const L1=k+1;if(div.has(L1))return;const f=ledFonte[L1]!=null?+ledFonte[L1]:auto[L1];(grp[f]=grp[f]||{letras:[],w:0});grp[f].letras.push(L1);grp[f].w+=g.n*wm});
     const novos=Object.keys(grp).sort((a,b)=>a-b).map(f=>({...grp[f],manual:true}));out=[...novos,...out.filter(c=>c.parte)];out.forEach((c,i)=>c.n=i+1)}
-  out.forEach((c,i)=>{c.fonte=caps.find(v=>v>=c.w*LED_FOLGA)||MAX;c.excede=c.w*LED_FOLGA>MAX+1e-6;c.cor=CIRC_COR[i%CIRC_COR.length]});
+  out.forEach((c,i)=>{c.fonteAuto=caps.find(v=>v>=c.w*LED_FOLGA)||MAX;const mw=+(ledFonteW||{})[i+1];c.fonte=mw>0?mw:c.fonteAuto;c.manualW=mw>0;c.excede=c.w*LED_FOLGA>c.fonte+1e-6;c.cor=CIRC_COR[i%CIRC_COR.length]});
   return{grande,caps,lista:out,porLetra:Ls.map((g,k)=>(out.find(c=>c.letras.includes(k+1))||{n:0}).n)}}
 const circTxt=c=>`FONTE ${c.n} (${c.fonte} W): LETRA${c.letras.length>1?'S':''} ${c.letras.length>2&&c.letras[c.letras.length-1]-c.letras[0]===c.letras.length-1?c.letras[0]+' A '+c.letras[c.letras.length-1]:c.letras.join(', ')} ${c.parte?' (PARTE '+c.parte+' DOS LEDS)':''} — ${String(Math.round(c.w*10)/10).replace('.',',')} W${c.excede?' — PASSA DE 150 W!':''}`;
 
@@ -1888,19 +1889,19 @@ let ledAdj={},lastLed=null,ledFoco=false;
 let ledPend=false;
 function renderLedAdj(R){const box=$('#ledAdj');if(!R||!R.letters||!R.letters.length){box.hidden=true;return}box.hidden=false;ledPend=false;
   R.letters.forEach(g=>{if(g.alvo&&g.n<g.alvo)ledAdj[g.key]=g.n-(g.alvo-g.aj)});
-  const Ls=ordenaPecas(R.letters);const tem=Object.values(ledAdj).some(v=>v)||Object.keys(ledFonte).length;const C=R.circ;const nF=C?C.lista.length:1;
+  const Ls=ordenaPecas(R.letters);const tem=Object.values(ledAdj).some(v=>v)||Object.keys(ledFonte).length||Object.keys(ledFonteW).length;const C=R.circ;const nF=C?C.lista.length:1;
   box.innerHTML=`<div class="row" style="justify-content:space-between;align-items:center;gap:6px"><b style="font-size:12px;color:#8a6d00">LEDS E FONTES POR LETRA</b><span class="row" style="gap:6px">${tem?'<button class="btn ghost sm" id="ledAdjZero" style="padding:4px 8px;font-size:12px">Automático</button>':''}<button class="btn pink sm" id="ledAtu" style="padding:4px 10px;font-size:12px" disabled>Atualizar</button></span></div>
   <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">${Ls.map((g,k)=>{const fn=C?C.porLetra[k]:1;const cc=C&&C.lista[fn-1];const cor=cc?cc.cor:'#e8a400';const parte=cc&&cc.parte;
     return `<span style="display:inline-flex;align-items:center;gap:3px;border:1.5px solid ${g.aj?'#1971c2':cor};border-radius:8px;padding:2px 4px;background:${g.aj?'#e7f1ff':'#fff'};font-size:12px">
     <b style="background:${cor};color:#fff;border-radius:50%;width:17px;height:17px;display:inline-flex;align-items:center;justify-content:center;font-size:10px">${k+1}</b>
     <input type="number" min="1" data-lq="${g.key}" value="${g.n}" title="LEDs" style="width:44px;padding:2px 3px;font-size:12px;text-align:center;font-weight:700;min-height:0">
     ${parte?'<span style="font-size:10px;color:var(--mute)">div.</span>':`<select data-lf="${k+1}" title="Fonte" style="padding:2px;font-size:11px;font-weight:700;color:${cor};min-height:0;width:auto">${Array.from({length:nF+1},(_,i)=>`<option value="${i+1}" ${i+1===fn?'selected':''}>F${i+1}</option>`).join('')}</select>`}</span>`}).join('')}</div>
-  ${C?`<div class="ledCircL" style="margin-top:6px;font-size:11.5px;line-height:1.35">${C.lista.map(c=>`<div style="${c.excede?'color:#c92a2a;font-weight:700':''}"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c.cor};margin-right:4px"></span>${esc(circTxt(c))}</div>`).join('')}</div>`:''}`}
-$('#ledAdj').onclick=e=>{if(e.target.closest('#ledAdjZero')){ledAdj={};ledFonte={};ledFoco=true;$('#gerar').click();return}
+  ${C?`<div class="ledCircL" style="margin-top:6px;font-size:11.5px;line-height:1.35">${C.lista.map(c=>`<div style="${c.excede?'color:#c92a2a;font-weight:700':''}"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c.cor};margin-right:4px"></span>${esc(circTxt(c))} <select data-fw="${c.n}" title="Potência da fonte" style="padding:1px 2px;font-size:11px;font-weight:700;min-height:0;width:auto;color:${c.cor}">${[60,100,150].map(v=>`<option value="${v}" ${v===c.fonte?'selected':''}>${v} W${v===c.fonteAuto?' (auto)':''}</option>`).join('')}</select></div>`).join('')}</div>`:''}`}
+$('#ledAdj').onclick=e=>{if(e.target.closest('#ledAdjZero')){ledAdj={};ledFonte={};ledFonteW={};ledFoco=true;$('#gerar').click();return}
   if(e.target.closest('#ledAtu')){if(typeof pedSujo!=='undefined')pedSujo=true;ledFoco=true;$('#ledAtu').textContent='Atualizando…';setTimeout(()=>$('#gerar').click(),20)}};
-$('#ledAdj').addEventListener('change',e=>{const q=e.target.closest('[data-lq]'),f=e.target.closest('[data-lf]');
+$('#ledAdj').addEventListener('change',e=>{const q=e.target.closest('[data-lq]'),f=e.target.closest('[data-lf]'),fw=e.target.closest('[data-fw]');
   if(q){const k=q.dataset.lq;const g=(lastLed&&lastLed.letters||[]).find(x=>x.key===k);const v=Math.max(1,Math.round(+q.value||1));if(g){const base=g.n-(ledAdj[k]||0);ledAdj[k]=v-base}}
-  else if(f){ledFonte[+f.dataset.lf]=+f.value}else return;
+  else if(f){ledFonte[+f.dataset.lf]=+f.value}else if(fw){ledFonteW[+fw.dataset.fw]=+fw.value}else return;
   ledPend=true;const b=$('#ledAtu');if(b){b.disabled=false;b.textContent='Atualizar FP'}});
 function resetOut(){lastPdf=null;lDoc=null;if($('#lPgPick')){$('#lPgPick').innerHTML='';$('#lFichasT').hidden=true}$('#gerar').textContent='Gerar FP';$('#ledAdj').hidden=true;$('#baixar').hidden=true;$('#prodFiles').hidden=true;prodFiles=[]}
 let srcBytes=null;
@@ -1909,7 +1910,7 @@ async function carregaLetra(nome,bytes){resetOut();const f={name:nome};
   $('#dropTxt').textContent='Lendo '+f.name+'…';$('#fileInfo').innerHTML='';
   try{srcBytes=bytes.slice();
     const r=await readPdf(bytes.slice());
-    src={name:f.name,...r};ledAdj={};ledFonte={};
+    src={name:f.name,...r};ledAdj={};ledFonte={};ledFonteW={};
     $('#drop').classList.add('has');$('#dropTxt').textContent='✓ '+f.name;
     if(!r.polys.length)$('#fileInfo').innerHTML='<div class="msg err">Não encontrei nenhuma linha vetorial nesse PDF.</div>';
     else{const b=bbox(r.polys);$('#fileInfo').innerHTML=`<div class="msg ok">${r.polys.length} contorno(s) lido(s) — ${fmt(b.w)} × ${fmt(b.h)} mm</div>`+r.warnings.map(w=>`<div class="msg warn">${esc(w)}</div>`).join('')}
@@ -4019,7 +4020,7 @@ function proximoN(){return Math.max(0,...(pedAtual.itens||[]).map(i=>+i.n||0))+1
 document.querySelectorAll('[data-novo]').forEach(b=>b.onclick=()=>{const tipo=b.dataset.novo;itemAtual={id:'i'+Date.now().toString(36),tipo,n:proximoN(),novo:true};
   limpaTipo(tipo);$('#item').value=itemAtual.n;irAba(TIPO_ABA[tipo]);if(tipo==='testeira')setModo('padrao');if(tipo==='estrutura')setModo('desenho');pedSujo=true;pedBarRender();window.scrollTo(0,0)});
 function limpaTipo(tipo){refImg=null;fpObsPg={};matQtd={};refRender();instReset();
-  if(tipo==='letra'){src=null;srcBytes=null;ledAdj={};ledFonte={};resetOut();lDoc=null;lPrevRender();prevSet('');$('#outMsg').innerHTML='';$('#fileInfo').innerHTML='';$('#drop').classList.remove('has');$('#dropTxt').textContent='Toque para escolher o PDF';$('#xPages').innerHTML='';$('#obs').value='';selLed=6500;selCaixa=80;renderLeds();renderCaixa();updateBtn()}
+  if(tipo==='letra'){src=null;srcBytes=null;ledAdj={};ledFonte={};ledFonteW={};resetOut();lDoc=null;lPrevRender();prevSet('');$('#outMsg').innerHTML='';$('#fileInfo').innerHTML='';$('#drop').classList.remove('has');$('#dropTxt').textContent='Toque para escolher o PDF';$('#xPages').innerHTML='';$('#obs').value='';selLed=6500;selCaixa=80;renderLeds();renderCaixa();updateBtn()}
   if(tipo==='testeira'){tFaces=[{W:1000,H:1000,prof:0,junta:'linha'}];tAcm={on:false,esp:3,inst:'rente',fita:'vhb',chapa:'auto',marca:'',cor:null,jt:false,jmm:5,je:false,envT:'ext',apl:aplDef()};acmUI();adesMarca="";acmAplUI();renderFaces();v3Fit=true}
   if(tipo==='estrutura'){dSrc=null;dModel=null;dHist=[];dPrevModels=[];$('#dTxt').value='';$('#dAlt').value='';$('#dInfo').innerHTML='';$('#dDraw').innerHTML='';$('#dPecas').innerHTML='';$('#dDropTxt').textContent='Toque para escolher o PDF';$('#dAltBox').hidden=true;$('#dResCard').hidden=true;dBotao()}
   if(tipo==='modelo3d'){mSrc=null;mBytes=null;mPecas=[];$('#mInfo').innerHTML='';$('#mDropTxt').textContent='Toque para escolher o arquivo 3D (.stl ou .obj)';$('#mResCard').hidden=true}}
@@ -4043,7 +4044,7 @@ const PICK=['#pPicker'];
 function capturaEstado(tipo){
   const cor={inputs:capInputs(PICK),selEsc};
   if(tipo==='letra'){if(!src||!srcBytes)throw new Error('carregue o PDF da letra antes de salvar');
-    return{estado:{inputs:capInputs(['#tab-novo']),cor,selType,selLed,selLedW,selChapa,selCaixa,ledAdj,ledFonte,xPages:readPages($('#xPages')),desc:$('#descItem').value},fonte:{nome:src.name,b64:b64(srcBytes)},desc:$('#descItem').value.trim()||'LETRA CAIXA',
+    return{estado:{inputs:capInputs(['#tab-novo']),cor,selType,selLed,selLedW,selChapa,selCaixa,ledAdj,ledFonte,ledFonteW,xPages:readPages($('#xPages')),desc:$('#descItem').value},fonte:{nome:src.name,b64:b64(srcBytes)},desc:$('#descItem').value.trim()||'LETRA CAIXA',
       resumo:[(types.find(t=>t.id===selType)||{}).nome,selLed?selLed+' K':''].filter(Boolean).join(' • ')}}
   if(tipo==='testeira')return{estado:{inputs:capInputs(['#tOpts']),cor,tFaces,tPint,fixSel:[...fixSel],tAcm:JSON.parse(JSON.stringify(tAcm))},desc:$('#tDesc').value.trim()||'TESTEIRA',resumo:tFaces.map(f=>f0(f.W)+'x'+f0(f.H)).join(' + ')};
   if(tipo==='estrutura'){if(!dModel)throw new Error('monte o 3D antes de salvar');return{estado:{inputs:capInputs(['#dCard']),cor,dSrc,dModel,dHist,dPint},desc:$('#dDesc').value.trim()||'ESTRUTURA',resumo:dModel.titulo}}
@@ -4064,7 +4065,7 @@ async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHT
 async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)throw new Error('estado do item não encontrado');const F=it.fonteId?await lerJSON(it.fonteId):null;
   itemAtual={id:it.id,tipo:it.tipo,n:it.n};$('#item').value=it.n;if(it.tipo==='letra')limpaTipo('letra');refImg=E.refImg||null;fpObsPg={...(E.fpObsPg||{})};matQtd={...(E.matQtd||{})};refRender();instReset();if(E.inst){if(E.inst.iAncT&&ANC_ANTIGO[E.inst.iAncT])E.inst.iAncT=ANC_ANTIGO[E.inst.iAncT];if(!E.inst.iUnid){['iHv','iVv','iPw','iPh'].forEach(k=>{if(E.inst[k])E.inst[k]=String(Math.round(numBR(E.inst[k])*10))});E.inst.iUnid='mm'}putInputs(E.inst)}instImg=E.instImg||null;ancImg=E.ancImg||null;instRender();
   if(E.cor){selEsc=E.cor.selEsc||selEsc;renderEsc();putInputs(E.cor.inputs)}
-  if(it.tipo==='letra'){putInputs(E.inputs);selType=E.selType;selLed=E.selLed;selLedW=E.selLedW||null;ledFonte={...(E.ledFonte||{})};selChapa=E.selChapa;selCaixa=E.selCaixa||80;
+  if(it.tipo==='letra'){putInputs(E.inputs);selType=E.selType;selLed=E.selLed;selLedW=E.selLedW||null;ledFonte={...(E.ledFonte||{})};ledFonteW={...(E.ledFonteW||{})};selChapa=E.selChapa;selCaixa=E.selCaixa||80;
     $('#xPages').innerHTML='';(E.xPages||[]).forEach((p,i)=>$('#xPages').insertAdjacentHTML('beforeend',pageBlock(p,i)));renumberIn($('#xPages'));
     renderTypes();renderLeds();selChapa=E.selChapa;selCaixa=E.selCaixa||80;renderChapa();renderCaixa();if(E.cor)putInputs(E.cor.inputs);
     if(F)await carregaLetra(F.nome,unb64(F.b64));ledAdj=E.ledAdj||{};if(E.desc!=null)$('#descItem').value=E.desc;updateBtn();
