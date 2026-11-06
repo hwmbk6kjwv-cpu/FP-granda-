@@ -2768,7 +2768,8 @@ const PANELA='parafuso auto-atarraxante cabeça panela Phillips (DIN 7981, 5,5 x
 // parafusos cabeça panela na lateral: um a cada 20 cm do contorno externo de cada letra
 function panelaPorLetra(ps){const per=chainLen(ps[0].concat([ps[0][0]]));return Math.max(2,Math.ceil(per/200-1e-9))}
 /* ---------- PROJETO DE INSTALAÇÃO ---------- */
-function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'});const I=instLer();
+function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'});P._ref=null; // a folha de instalação não leva a imagem de referência, só a foto da instalação
+  const I=instLer();
   const temF=!!instImg;const FX=20,FY=26,FW=138,FH=98;   // foto grande (≈ 2x a área de 9,8x7 cm), a 2 cm da margem
   if(temF){const k=Math.min(FW/instImg.w,(FH-4)/instImg.h),w=instImg.w*k,h=instImg.h*k;
     P.push({t:'rect',x:FX,y:FY,w:FW,h:FH,fill:'#ffffff',stroke:'#868e96',lw:0.25},{t:'img',x:FX+(FW-w)/2,y:FY+4+(FH-4-h)/2,w,h,src:instImg.src,fmt:'JPEG'},{t:'text',x:FX+1.5,y:FY+3,s:'FOTO DE INSTALAÇÃO',size:2.2,bold:true,color:'#868e96'})}
