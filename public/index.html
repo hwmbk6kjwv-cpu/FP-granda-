@@ -1524,6 +1524,11 @@ function furosPVC(polys,extra=0){const furos=[];
     let cand=[];try{const SG=skeletonGraph(rg);SG.forEach(pt=>{const r=resample(pt.pts,3);r.forEach(q=>cand.push(q))})}catch(e){}
     if(!cand.length){let ins=[];for(const d of [15,10.5,7.5,4.5]){ins=offset(rg,-(d+FURO_D/2));if(ins.length)break}
       ins.forEach(p=>{for(let i=0;i<p.length;i++){const a=p[i],c=p[(i+1)%p.length];const L=Math.hypot(c[0]-a[0],c[1]-a[1]);const k=Math.max(1,Math.ceil(L/3));for(let j=0;j<k;j++)cand.push([a[0]+(c[0]-a[0])*j/k,a[1]+(c[1]-a[1])*j/k])}})}
+    // nunca furar nas pontas: tira os candidatos perto da borda (pontas do esqueleto encostam no contorno)
+    if(cand.length>3){const sd=(q,a,c)=>{const dx=c[0]-a[0],dy=c[1]-a[1],L=dx*dx+dy*dy;let u=L?((q[0]-a[0])*dx+(q[1]-a[1])*dy)/L:0;u=Math.max(0,Math.min(1,u));return Math.hypot(q[0]-a[0]-u*dx,q[1]-a[1]-u*dy)};
+      const db=q=>{let m=1e9;ps.forEach(p=>{for(let i=0;i<p.length;i++){const d=sd(q,p[i],p[(i+1)%p.length]);if(d<m)m=d}});return m};
+      const ds=cand.map(db);const srt=ds.slice().sort((x,y)=>x-y);const med=srt[Math.floor(srt.length/2)];const lim=Math.max(FURO_D,med*0.8);
+      const ok=cand.filter((q,i)=>ds[i]>=lim);if(ok.length)cand=ok}
     if(!cand.length)cand=[[(b.x0+b.x1)/2,(b.y0+b.y1)/2]];
     const cx=(b.x0+b.x1)/2,cy=(b.y0+b.y1)/2;const sel=[cand.reduce((m,q)=>Math.hypot(q[0]-cx,q[1]-cy)>Math.hypot(m[0]-cx,m[1]-cy)?q:m)];
     const dmin=q=>Math.min(...sel.map(s=>Math.hypot(q[0]-s[0],q[1]-s[1])));
@@ -3148,36 +3153,36 @@ function panelaPorLetra(ps){const per=chainLen(ps[0].concat([ps[0][0]]));return 
 /* ---------- PROJETO DE INSTALAÇÃO ---------- */
 function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'});P._ref=null; // a folha de instalação não leva a imagem de referência, só a foto da instalação
   const I=instLer();
-  const temF=!!instImg;const FX=20,FY=26,FW=138,FH=98;   // foto grande (≈ 2x a área de 9,8x7 cm), a 2 cm da margem
-  if(temF){const k=Math.min(FW/instImg.w,(FH-4)/instImg.h),w=instImg.w*k,h=instImg.h*k;
-    P.push({t:'rect',x:FX,y:FY,w:FW,h:FH,fill:'#ffffff',stroke:'#868e96',lw:0.25},{t:'img',x:FX+(FW-w)/2,y:FY+4+(FH-4-h)/2,w,h,src:instImg.src,fmt:'JPEG'},{t:'text',x:FX+1.5,y:FY+3,s:'FOTO DE INSTALAÇÃO',size:2.2,bold:true,color:'#868e96'})}
-  const IX=temF?FX+FW+8:20;const XR=temF?286:150;let y=31;
+  const temF=!!instImg;
+  const IX=temF?176:20;const XR=temF?286:150;let y=31;
   P.push({t:'text',x:IX,y,s:'PROJETO DE INSTALAÇÃO',size:4.6,bold:true,color:'#d6336c'});y+=7;
   P.push({t:'text',x:IX,y,s:fit(`ITEM ${ctx.item} — ${prod.nome}`,XR-IX,3.4),size:3.4,bold:true,color:'#000000'});y+=5.5;
   const lin=(k,v,c)=>{P.push({t:'text',x:IX,y,s:k,size:2.4,color:'#868e96'},{t:'text',x:IX+34,y,s:fit(v,XR-IX-34,3),size:3,bold:true,color:c||'#000000'});y+=5};
   lin('MEDIDAS EXTERNAS:',`${f0(prod.W)} (L) x ${f0(prod.H)} (A)${prod.D?` x ${f0(prod.D)} (P)`:''} mm`);
   if(prod.un>1)lin('QUANTIDADE:',`${prod.un} UN.`);
   lin('POSIÇÃO:',instPosTxt(I),'#d6336c');
-  {const A=ancInfo(I,prod);if(A)lin('ANCORAGEM:',`${A.nome} — ${A.q} UN. (ver folha de ancoragem)`,'#d6336c')}
+  {const A=ancInfo(I,prod);if(A)lin('ANCORAGEM:',`${A.nome} — ${A.q} UN.`,'#d6336c')}
   if(I.pw&&I.ph)lin('PAREDE:',`${f0(I.pw)} mm (L) x ${f0(I.ph)} mm (A)`);else if(I.pw)lin('PAREDE:',`${f0(I.pw)} mm (L)`);else if(I.ph)lin('PAREDE:',`${f0(I.ph)} mm (A)`);
+  if(temF){const FW=XR-IX,FH=40;const k=Math.min((FW-2)/instImg.w,(FH-5)/instImg.h),w=instImg.w*k,h=instImg.h*k;
+    P.push({t:'rect',x:IX,y,w:FW,h:FH,fill:'#ffffff',stroke:'#868e96',lw:0.25},{t:'img',x:IX+(FW-w)/2,y:y+4+(FH-5-h)/2,w,h,src:instImg.src,fmt:'JPEG'},{t:'text',x:IX+1.5,y:y+3,s:'FOTO DE INSTALAÇÃO',size:2,bold:true,color:'#868e96'});y+=FH+5}
   if(prod.metodo&&prod.metodo.length){const img=prod.tipo==='letra'&&typeof PANELA_IMG==='string'&&PANELA_IMG.startsWith('data:');const y0=y;P.push({t:'text',x:IX,y:y+1,s:'MÉTODO DE INSTALAÇÃO',size:2.6,bold:true,color:'#c2255c'});y+=4.5;
     const wl=XR-IX-(img?27:0),mc=Math.floor(wl/1.15);prod.metodo.forEach(t=>{const ws=('• '+t).split(' ');let c='';const ls=[];ws.forEach(w=>{if((c+' '+w).trim().length>mc){ls.push(c);c='  '+w}else c=(c+' '+w).trim()});if(c)ls.push(c);ls.forEach(s=>{P.push({t:'text',x:IX,y,s,size:2.4,color:'#000000'});y+=3.4});y+=0.6});
     if(img){P.push({t:'rect',x:XR-25,y:y0-1,w:25,h:27,r:1.5,fill:'#ffffff',stroke:'#c2255c',lw:0.2},{t:'img',x:XR-24,y:y0-0.4,w:23,h:23.6,src:PANELA_IMG,fmt:'JPEG'},{t:'text',x:XR-12.5,y:y0+25.2,s:'CABEÇA PANELA — LATERAL',size:1.6,bold:true,color:'#c2255c',anchor:'middle'},{t:'text',x:XR-12.5,y:y0+27.4,s:'FIXA A LETRA NO PVC',size:1.6,bold:true,color:'#c2255c',anchor:'middle'});y=Math.max(y,y0+29)}y+=1}
   if(prod.circ&&prod.circ.lista.length){P.push({t:'text',x:IX,y:y+1,s:'LIGAÇÃO ELÉTRICA (LETRAS LIGADAS JUNTAS)',size:2.6,bold:true,color:'#c2255c'});y+=4.5;prod.circ.lista.forEach(c=>{P.push({t:'circle',x:IX+1.2,y:y-1,r:1.2,fill:c.cor,stroke:c.cor,lw:0.1},{t:'text',x:IX+3.6,y,s:fit(circTxt(c),XR-IX-4,2.4),size:2.4,bold:true,color:'#000000'});y+=3.9});y+=1}
-  if(prod.letras&&prod.letras.length){const det=prod.letras[0].pan!=null;P.push({t:'text',x:IX,y:y+1,s:det?'POR LETRA: ALTURA • FIXAÇÕES NO PVC • PANELA NA LATERAL':'ALTURA DE CADA LETRA',size:2.6,bold:true,color:'#c2255c'});y+=3;
-    const per=temF?4:6,cw=det?(temF?52:56):(temF?27:30);prod.letras.forEach((l,k)=>{const c=Math.floor(k/per),r=k%per;const x=IX+c*(cw+2),yy=y+r*4.4;if(x+cw>XR)return;
+  if(prod.letras&&prod.letras.length&&!(prod.letras[0].ps)){const det=prod.letras[0].pan!=null;P.push({t:'text',x:IX,y:y+1,s:det?'POR LETRA: ALTURA • FIXAÇÕES NO PVC • PANELA NA LATERAL':'ALTURA DE CADA LETRA',size:2.6,bold:true,color:'#c2255c'});y+=3;
+    const per=6,cw=det?(temF?54:56):(temF?26:30);prod.letras.forEach((l,k)=>{const c=Math.floor(k/per),r=k%per;const x=IX+c*(cw+2),yy=y+r*4.4;if(x+cw>XR)return;
       P.push({t:'rect',x,y:yy,w:cw,h:4.4,fill:r%2?'#ffffff':'#fff0f6',stroke:'#adb5bd',lw:0.1},{t:'text',x:x+1.5,y:yy+3.1,s:`${k+1}. ${f0(l.h)} mm${det?`  •  ${l.broc!=null?l.broc+' fix.':''}  •  ${l.pan} panela`:''}`,size:2.3,bold:true,color:'#000000'})});
     y+=Math.min(per,prod.letras.length)*4.4+2}
   // desenho da parede com a peça e as medidas de saída
-  let R;if(!temF)R={x:156,y:28,w:130,h:138};else if(temF&&166-(y+4)>=48)R={x:IX-4,y:y+2,w:288-IX,h:166-y-2};else{const top=Math.max(temF?FY+FH+4:y+4,y+2);R={x:22,y:top+2,w:262,h:166-top-4}}
+  const R=temF?{x:10,y:26,w:162,h:140}:{x:156,y:28,w:130,h:138};
   const W=prod.W,H=prod.H;const mg=Math.max(250,0.35*Math.max(W,H));
   const L0=I.hm==='esquerda'?I.hv:I.hm==='direita'?(I.pw?I.pw-W-I.hv:mg):(I.pw?(I.pw-W)/2:mg);
   const PWm=I.pw||(I.hm==='direita'?L0+W+I.hv:L0+W+mg);
   const B0=I.vm==='baixo'?I.vv:I.vm==='cima'?(I.ph?I.ph-H-I.vv:mg):(I.ph?(I.ph-H)/2:mg);
   const PHm=I.ph||(I.vm==='cima'?B0+H+I.vv:B0+H+mg);
-  const s=Math.min((R.w-30)/PWm,(R.h-14)/PHm);const ox=R.x+18+((R.w-30)-PWm*s)/2,oy=R.y+4;const X=x=>ox+x*s,Y=v=>oy+(PHm-v)*s;
+  const s=Math.min((R.w-30)/PWm,(R.h-14)/PHm);const ox=R.x+18+((R.w-30)-PWm*s)/2,oy=R.y+4+Math.max(0,((R.h-14)-PHm*s)/2);const X=x=>ox+x*s,Y=v=>oy+(PHm-v)*s;
   P.push({t:'rect',x:X(0),y:Y(PHm),w:PWm*s,h:PHm*s,fill:'#f8f9fa',stroke:'#adb5bd',lw:0.3});
-  P.push({t:'text',x:X(PWm/2),y:Y(PHm)+3.4,s:I.ph?'TETO':(I.vm==='cima'?'TETO / TOPO':'PAREDE'),size:2.3,bold:true,color:'#868e96',anchor:'middle'});
+  P.push({t:'text',x:X(0)+2,y:Y(PHm)+3.8,s:I.ph?'TETO':(I.vm==='cima'?'TETO / TOPO':'PAREDE'),size:2.6,bold:true,color:'#868e96'});
   if(I.vm==='baixo'||I.ph)P.push({t:'line',x1:X(0)-3,y1:Y(0),x2:X(PWm)+3,y2:Y(0),color:'#495057',w:0.6},{t:'text',x:X(PWm/2),y:Y(0)+3.6,s:'PISO / BASE',size:2.3,bold:true,color:'#868e96',anchor:'middle'});
   // peça
   const pc=prod.contorno&&prod.contorno.length?prod.contorno:[[[0,0],[W,0],[W,H],[0,H]]];const pb=bbox(pc);const kx=W/Math.max(pb.w,1),ky=H/Math.max(pb.h,1);
@@ -3185,10 +3190,10 @@ function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'}
   P.push({t:'rect',x:X(L0),y:Y(B0+H),w:W*s,h:H*s,fill:'#fff0f6',stroke:'#d6336c',lw:0.15});
   if(prod.contornoRects)prod.contornoRects.forEach(r=>{const a=PM([r.x0,r.y1]),b=PM([r.x1,r.y0]);P.push({t:'rect',x:a[0],y:a[1],w:Math.max(0.2,b[0]-a[0]),h:Math.max(0.2,b[1]-a[1]),fill:r.cor||'#dee2e6',stroke:'#495057',lw:0.05})});
   else{P.push({t:'pathfill',polys:pc.map(p=>p.map(PM)),fill:'#ffc9de'});pc.forEach(p=>P.push({t:'poly',pts:p.map(PM),color:'#212529',w:0.15}))}
-  const CR='#d6336c',fs=2.6;
-  cotaH(P,X(L0),X(L0+W),Y(B0+H)-4,Y(B0+H),fmm(W),fs);cotaV(P,X(L0+W)+5,Y(B0+H),Y(B0),X(L0+W),fmm(H),fs);
+  const CR='#d6336c',fs=3.2;
+  cotaH(P,X(L0),X(L0+W),Y(B0+H)-5,Y(B0+H),`${f0(W)} mm`,fs);cotaV(P,X(L0+W)+6,Y(B0+H),Y(B0),X(L0+W),`${f0(H)} mm`,fs);
   // saídas
-  if(I.hm==='centro'){P.push({t:'line',x1:X(PWm/2),y1:Y(PHm)+5,x2:X(PWm/2),y2:Y(0)-1,color:CR,w:0.2});P.push({t:'text',x:X(PWm/2)+1,y:Y(0)-2,s:'EIXO — CENTRALIZADO',size:2.3,bold:true,color:CR});
+  if(I.hm==='centro'){P.push({t:'line',x1:X(PWm/2),y1:Y(PHm)+5,x2:X(PWm/2),y2:Y(0)-1,color:CR,w:0.2});P.push({t:'text',x:X(PWm/2)+1,y:Y(PHm)+3.8,s:'EIXO — CENTRALIZADO',size:2.3,bold:true,color:CR});
     if(I.pw){cotaH(P,X(0),X(L0),Y(B0)+4,null,`${f0(L0)} mm`,fs,CR);cotaH(P,X(L0+W),X(PWm),Y(B0)+4,null,`${f0((PWm-L0-W))} mm`,fs,CR)}}
   else if(I.hm==='esquerda')cotaH(P,X(0),X(L0),Y(B0)+4,null,`${f0(I.hv)} mm`,fs,CR);
   else cotaH(P,X(L0+W),X(PWm),Y(B0)+4,null,`${f0(I.hv)} mm`,fs,CR);
@@ -3199,8 +3204,8 @@ function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'}
   // saída vertical pequena: escreve ao lado
   if(I.vm!=='centro'&&I.vv*s<8){const yy=I.vm==='cima'?(Y(PHm)+Y(B0+H))/2:(Y(B0)+Y(0))/2;const tx=`${f0(I.vv)} mm ${I.vm==='cima'?'DO TETO / TOPO':'DO PISO / BASE'}`;const dir=X(L0+W)+19+tx.length*1.4<286;P.push(dir?{t:'line',x1:X(L0+W)+12,y1:yy,x2:X(L0+W)+18,y2:yy,color:CR,w:0.2}:{t:'line',x1:X(L0)-6,y1:yy,x2:X(L0)-1,y2:yy,color:CR,w:0.2},{t:'text',x:dir?X(L0+W)+19:X(L0)-7,y:yy+1,s:tx,size:2.6,bold:true,color:CR,anchor:dir?'start':'end'})}
   if(I.hm!=='centro'&&I.hv*s<8){const xx=I.hm==='esquerda'?X(0):X(PWm);P.push({t:'text',x:xx,y:Y(B0+H)-6,s:`${f0(I.hv)} mm ${I.hm==='esquerda'?'DA ESQUERDA':'DA DIREITA'}`,size:2.6,bold:true,color:CR,anchor:I.hm==='esquerda'?'start':'end'})}
-  if(I.pw)cotaH(P,X(0),X(PWm),Y(0)+(I.vm==='baixo'||I.ph?6:4),Y(0),`PAREDE ${f0(I.pw)} mm`,2.4);
-  if(I.ph)cotaV(P,X(0)-6,Y(PHm),Y(0),X(0),`${f0(I.ph)} mm`,2.4);
+  if(I.pw)cotaH(P,X(0),X(PWm),Y(0)+(I.vm==='baixo'||I.ph?6:4),Y(0),`PAREDE ${f0(I.pw)} mm`,3.2);
+  if(I.ph)cotaV(P,X(0)-7,Y(PHm),Y(0),X(0),`${f0(I.ph)} mm`,3.2);
   return P}
 
 /* ---------- INSTALAÇÃO: logo em proporção real com as medidas e o que vai em cada letra ---------- */
@@ -3284,7 +3289,6 @@ function folhasQualidade(ctx,prod){const pages=[];const V=(prod.volumes||[]).con
 function paginasFinais(pages,tags,ctx,prod){try{
   const a=folhaInstalacao(ctx,prod);pages.push(a);if(tags)tags.push('INSTALAÇÃO');
   if(prod.tipo==='letra'&&prod.letras&&prod.letras.length&&prod.letras[0].ps){const lg=folhaLogoInst(ctx,prod);if(lg){pages.push(lg);if(tags)tags.push('INSTALAÇÃO')}}
-  const an=folhaAncoragem(ctx,prod);if(an){pages.push(an);if(tags)tags.push('INSTALAÇÃO')}
   folhasExpedicao(ctx,prod).forEach(P=>{pages.push(P);if(tags)tags.push('EXPEDIÇÃO')});
   folhasQualidade(ctx,prod).forEach(P=>{pages.push(P);if(tags)tags.push('QUALIDADE')});
   try{const rows=matResolve([...(prod.mat||[]),...needsAncoragem(ancInfo(instLer(),prod))]);if(rows.length){folhasMaterial(ctx,prod,rows).forEach(P=>{pages.push(P);if(tags)tags.push('RM')});matUlt=rows;setTimeout(matCardRender,0)}}catch(e){console.error('lista de material',e)}}catch(e){console.error('paginasFinais',e)}}
