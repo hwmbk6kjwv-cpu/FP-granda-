@@ -89,6 +89,8 @@ header h1{font-size:15px;margin:0 0 0 auto;font-weight:600;text-align:right}
 header small{display:block;color:#c5cbe8;font-weight:400;font-size:11px}
 nav{position:sticky;top:0;z-index:50;display:flex;justify-content:flex-start;gap:6px;padding:10px 14px;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 2px 10px #0000000d;overflow-x:auto;scrollbar-width:none}
 nav::-webkit-scrollbar{display:none}
+#ledAdj.ledOver .ledCircL{font-size:10.5px!important;margin-top:3px!important}#ledAdj.ledOver{position:absolute;left:32.5%;top:62.5%;width:33.5%;max-height:18.5%;zoom:.72;overflow:auto;margin:0!important;padding:5px 7px!important;background:rgba(255,251,234,.97)!important;box-shadow:0 2px 10px #0002;z-index:5}
+#ledAdj.ledOver input,#ledAdj.ledOver select{font-size:11px!important}
 nav button:first-child{margin-left:auto}nav button:last-child{margin-right:auto}
 nav button{flex:none;display:inline-flex;align-items:center;gap:7px;border:0;background:transparent;padding:9px 14px;border-radius:999px;font:inherit;font-size:14px;font-weight:600;color:var(--mute);cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}
 nav button svg{width:17px;height:17px;flex:none}
@@ -230,7 +232,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
     <div class="card"><h2>3. Tipo de letra caixa</h2><div class="types" id="typePick"></div><div id="chapaBox" hidden><label class="f" style="margin-top:14px">Linha interna da chapa galvanizada</label><div class="leds" id="chapaPick"></div></div>
       <label class="f" style="margin-top:14px">Profundidade da caixa (espessura da letra)</label><div class="leds" id="caixaPick"></div></div>
     <div class="card"><h2>4. LED</h2><div class="leds" id="ledPick"></div><label class="f" style="margin-top:12px">Potência do módulo de LED</label><div class="leds" id="ledWPick"></div>
-      <div class="g2"><div><label class="f">Rabicho do fio por letra (mm)</label><input type="number" id="ledRab" value="500" step="50" min="0"></div><div><label class="f">Saída do fio na letra</label><select id="ledSaida"><option value="inf">Inferior centralizado</option><option value="sup">Superior centralizado</option></select></div></div>
+      <div class="g2"><div><label class="f">Rabicho do fio por letra (mm)</label><input type="number" id="ledRab" value="3000" step="100" min="0"></div><div><label class="f">Saída do fio na letra</label><select id="ledSaida"><option value="inf">Inferior centralizado</option><option value="sup">Superior centralizado</option></select></div></div>
       <div class="g2"><div><label class="f">Distância centro a centro (mm) <span class="badge">opcional</span></label><input type="number" step="1" id="ledGap" placeholder="Padrão do tipo: 80" inputmode="decimal"></div>
       <div><label class="f">Borda até a 1ª fileira (mm) <span class="badge">opcional</span></label><input type="number" step="1" id="ledMarg" placeholder="Padrão do tipo: 45" inputmode="decimal"></div></div>
       <p class="note" style="margin:6px 0 0">Use para diminuir o espaçamento só neste pedido. O mínimo é o comprimento do módulo + 2 mm (77 mm).</p></div>
@@ -1450,8 +1452,8 @@ function setorChips(pages,sel,attr){const sk=P=>P._setor||'OUTRAS';const sets=[.
   return{sel,html,shown:pages.filter(P=>sk(P)===sel)}}
 function lPrevRender(){const d=lDoc;$('#lFichasT').hidden=!d;if(!d){$('#lPgPick').innerHTML='';return}const C=setorChips(d.pages,lSel,'data-lpg');lSel=C.sel;$('#lPgPick').innerHTML=C.html;const shown=C.shown;prevSet(shown.map(P=>`<div class="pg">${toSVG(P)}</div>`).join(''));
   const li=shown.findIndex(P=>P.some(p=>p.t==='text'&&/DISTRIBUIÇÃO DE LED/.test(p.s||'')));const pgs=$('#prev').querySelectorAll('.pg');
-  if(li>=0&&pgs[li]&&!$('#ledAdj').hidden){pgs[li].after($('#ledAdj'));if(ledFoco){ledFoco=false;pgs[li].scrollIntoView({block:'start'})}}}
-function prevSet(html){$('#ledAdjHome').appendChild($('#ledAdj'));$('#prev').innerHTML=html}
+  if(li>=0&&pgs[li]&&!$('#ledAdj').hidden){const pgEl=pgs[li],A=$('#ledAdj');if(pgEl.clientWidth>=640){pgEl.style.position='relative';A.classList.add('ledOver');pgEl.appendChild(A)}else{A.classList.remove('ledOver');pgEl.after(A)}if(ledFoco){ledFoco=false;pgs[li].scrollIntoView({block:'start'})}}}
+function prevSet(html){$('#ledAdj').classList.remove('ledOver');$('#ledAdjHome').appendChild($('#ledAdj'));$('#prev').innerHTML=html}
 function refRefaz(){try{
   if(!$('#tab-testeiras').hidden){if(tModo==='desenho'){if(dModel&&typeof dAtualizar==='function')dAtualizar()}else tAtualizar()}
   else if(!$('#tab-novo').hidden&&lastPdf)$('#gerar').click();
@@ -1626,7 +1628,7 @@ function buildDoc(){
       R.boundary.forEach(p=>P.push({t:'poly',pts:map(p),color:'#e03131',w:0.18}));
       R.baseLines.forEach(b=>P.push({t:b.closed?'poly':'path',pts:map(b.pts),color:'#1c7ed6',w:0.2}));
       R.wires.forEach(w=>P.push({t:'path',pts:map(w),color:'#555555',w:0.25}));
-      (saidasFio||[]).forEach(c=>{const [x,y]=map([c])[0];P.push({t:'circle',x,y,r:1.1,fill:'#c92a2a',stroke:'#ffffff',lw:0.25})});
+      {const rm=(ctx.rab||0)/1000;P.push({t:'rect',x:12,y:24,w:86,h:13,r:1.5,fill:'#fff4e6',stroke:'#e8590c',lw:0.35},{t:'text',x:55,y:29.6,s:`RABICHO ${String(Math.round(rm*100)/100).replace('.',',')} METRO${rm===1?'':'S'} POR LETRA`,size:3.4,bold:true,color:'#000000',anchor:'middle'},{t:'text',x:55,y:34.4,s:`SAÍDA ${ctx.saida==='sup'?'SUPERIOR':'INFERIOR'} CENTRALIZADA • FIO PRETO + VERMELHO`,size:2.4,bold:true,color:'#c2410c',anchor:'middle'})}
       R.mods.forEach(m=>P.push({t:'poly',pts:map(m.rect),color:'#000000',w:0.1}));
       // LEDs por peça: etiquetas numa faixa abaixo do desenho, com linha de chamada até a peça (não ficam em cima das letras)
       {const Ls=ordenaPecas(R.letters);
@@ -1645,7 +1647,7 @@ function buildDoc(){
       P.push({t:'text',x:284,y:25,s:escTxt,size:2.4,bold:true,color:'#2f6fa8',anchor:'end'});
       const Pp=R.P;const w=R.watts;
       if(R.circ&&R.circ.lista.length){const L=R.circ.lista;let yy=167-Math.min(L.length,6)*4.2-4;P.push({t:'text',x:98,y:yy,s:'LIGAÇÃO ELÉTRICA — LETRAS LIGADAS JUNTAS',size:2.5,bold:true,color:'#c2255c'});yy+=4.2;L.slice(0,6).forEach(c=>{P.push({t:'circle',x:99.6,y:yy-1,r:1.3,fill:c.cor,stroke:c.cor,lw:0.1},{t:'text',x:102.5,y:yy,s:fit(circTxt(c),95,2.4),size:2.4,bold:true,color:'#000000'});yy+=4.2});if(L.length>6)P.push({t:'text',x:102.5,y:yy,s:`+ ${L.length-6} fonte(s) — ver instalação`,size:2.2,color:'#555555'})}
-      matTable(P,pg,[['ILUMINAÇÃO:',`LED ${f0(Pp.larg)} x ${f0(Pp.alt)} MM`],['TEMPERATURA:',ctx.led],['QTD. MÓDULOS:',`${R.mods.length} un`],['CONSUMO:',`${w.toLocaleString('pt-BR',{maximumFractionDigits:1})} W  (+25% = ${(w*LED_FOLGA).toLocaleString('pt-BR',{maximumFractionDigits:1})} W)`],['FONTES:',R.circ?(()=>{const c={};R.circ.lista.forEach(x=>c[x.fonte]=(c[x.fonte]||0)+1);return Object.entries(c).map(([w2,n])=>`${n}x ${w2} W`).join(' + ')+(R.circ.grande?' (LETRA > 350 MM)':'')})():reatorTxt(w*LED_FOLGA)],['ESPAÇAMENTO:',`${f0(Pp.gap)} MM CENTRO A CENTRO`],['SAÍDA DO FIO:',`${ctx.saida==='sup'?'SUPERIOR':'INFERIOR'} — 10 MM (PONTO VERM.)`],['RABICHO:',`${f0(ctx.rab||0)} MM (PRETO+VERM.)`],['QTD. REAL:',' ']]);
+      matTable(P,pg,[['ILUMINAÇÃO:',`LED ${f0(Pp.larg)} x ${f0(Pp.alt)} MM`],['TEMPERATURA:',ctx.led],['QTD. MÓDULOS:',`${R.mods.length} un`],['CONSUMO:',`${w.toLocaleString('pt-BR',{maximumFractionDigits:1})} W  (+25% = ${(w*LED_FOLGA).toLocaleString('pt-BR',{maximumFractionDigits:1})} W)`],['FONTES:',R.circ?(()=>{const c={};R.circ.lista.forEach(x=>c[x.fonte]=(c[x.fonte]||0)+1);return Object.entries(c).map(([w2,n])=>`${n}x ${w2} W`).join(' + ')+(R.circ.grande?' (LETRA > 350 MM)':'')})():reatorTxt(w*LED_FOLGA)],['ESPAÇAMENTO:',`${f0(Pp.gap)} MM CENTRO A CENTRO`],['QTD. REAL:',' ']]);
       legend(P,pg,[{cor:'#e03131',legenda:`Contorno base`,offset:Pp.base,polys:R.boundary},{cor:'#000000',legenda:`Módulo LED ${f0(Pp.larg)}x${f0(Pp.alt)} mm — ${Pp.watts}W`,offset:0,polys:[1],noOff:true},{cor:'#7a7a7a',legenda:'Fio entre módulos (zig-zag)',offset:0,polys:[1],noOff:true},{cor:'#1c7ed6',legenda:'Linha base (centro do traço)',offset:0,polys:[1],noOff:true}]);
       pages.push(P);info.push({pg,lines:[],vec:[{color:'#e03131',polys:R.boundary},{color:'#000000',polys:R.mods.map(m=>m.rect)}]});return;
     }
@@ -1888,7 +1890,7 @@ function renderLedAdj(R){const box=$('#ledAdj');if(!R||!R.letters||!R.letters.le
     <b style="background:${cor};color:#fff;border-radius:50%;width:17px;height:17px;display:inline-flex;align-items:center;justify-content:center;font-size:10px">${k+1}</b>
     <input type="number" min="1" data-lq="${g.key}" value="${g.n}" title="LEDs" style="width:44px;padding:2px 3px;font-size:12px;text-align:center;font-weight:700;min-height:0">
     ${parte?'<span style="font-size:10px;color:var(--mute)">div.</span>':`<select data-lf="${k+1}" title="Fonte" style="padding:2px;font-size:11px;font-weight:700;color:${cor};min-height:0;width:auto">${Array.from({length:nF+1},(_,i)=>`<option value="${i+1}" ${i+1===fn?'selected':''}>F${i+1}</option>`).join('')}</select>`}</span>`}).join('')}</div>
-  ${C?`<div style="margin-top:6px;font-size:11.5px;line-height:1.35">${C.lista.map(c=>`<div style="${c.excede?'color:#c92a2a;font-weight:700':''}"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c.cor};margin-right:4px"></span>${esc(circTxt(c))}</div>`).join('')}</div>`:''}`}
+  ${C?`<div class="ledCircL" style="margin-top:6px;font-size:11.5px;line-height:1.35">${C.lista.map(c=>`<div style="${c.excede?'color:#c92a2a;font-weight:700':''}"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c.cor};margin-right:4px"></span>${esc(circTxt(c))}</div>`).join('')}</div>`:''}`}
 $('#ledAdj').onclick=e=>{if(e.target.closest('#ledAdjZero')){ledAdj={};ledFonte={};ledFoco=true;$('#gerar').click();return}
   if(e.target.closest('#ledAtu')){if(typeof pedSujo!=='undefined')pedSujo=true;ledFoco=true;$('#ledAtu').textContent='Atualizando…';setTimeout(()=>$('#gerar').click(),20)}};
 $('#ledAdj').addEventListener('change',e=>{const q=e.target.closest('[data-lq]'),f=e.target.closest('[data-lf]');
@@ -3201,6 +3203,40 @@ function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'}
   if(I.ph)cotaV(P,X(0)-6,Y(PHm),Y(0),X(0),`${f0(I.ph)} mm`,2.4);
   return P}
 
+/* ---------- INSTALAÇÃO: logo em proporção real com as medidas e o que vai em cada letra ---------- */
+function folhaLogoInst(ctx,prod){const Ls=prod.letras;const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'});P._ref=null;
+  const all=[];Ls.forEach(l=>l.ps.forEach(p=>all.push(p)));const b=bbox(all);const CR='#d6336c';
+  P.push({t:'text',x:PW/2,y:29,s:'PROJETO DE INSTALAÇÃO — LOGO COM AS MEDIDAS REAIS',size:4.4,bold:true,color:CR,anchor:'middle'});
+  const RX=22,RW=PW-44,RY=40,RH=72;const s=Math.min(RW/b.w,RH/b.h);const ox=RX+(RW-b.w*s)/2,oy=RY+(RH-b.h*s)/2;
+  const M=([x,y])=>[ox+(x-b.x0)*s,oy+(b.y1-y)*s];const esc=Math.max(1,Math.round(1/s));
+  P.push({t:'text',x:PW/2,y:34.2,s:`ITEM ${ctx.item} — ${fit(prod.nome,150,3)}   •   ESCALA APROX. 1:${esc}   •   MEDIDAS EM mm (TAMANHO REAL)`,size:2.8,bold:true,color:'#000000',anchor:'middle'});
+  const circ=prod.circ&&prod.circ.lista||[];const corL=k=>{const c=circ.find(c=>c.letras.includes(k+1));return c?c.cor:'#212529'};
+  Ls.forEach((l,k)=>{P.push({t:'pathfill',polys:l.ps.map(p=>p.map(M)),fill:'#ffe3ec'});l.ps.forEach(p=>P.push({t:'poly',pts:p.map(M),color:'#212529',w:0.18}));
+    const c=M([(l.bb.x0+l.bb.x1)/2,(l.bb.y0+l.bb.y1)/2]);P.push({t:'circle',x:c[0],y:c[1],r:2.1,fill:corL(k),stroke:'#ffffff',lw:0.3},{t:'text',x:c[0],y:c[1]+0.9,s:String(k+1),size:2.4,bold:true,color:'#ffffff',anchor:'middle'})});
+  // cotas gerais
+  const tl=M([b.x0,b.y1]),br=M([b.x1,b.y0]);
+  cotaH(P,tl[0],br[0],tl[1]-5,tl[1],`${f0(b.w)} mm`,2.8);cotaV(P,br[0]+6,tl[1],br[1],br[0],`${f0(b.h)} mm`,2.8);
+  // distância entre as letras (vão) — cota vermelha logo acima
+  for(let k=0;k<Ls.length-1;k++){const a=Ls[k].bb,c=Ls[k+1].bb;const g=c.x0-a.x1;if(g<=1)continue;const x1=M([a.x1,0])[0],x2=M([c.x0,0])[0];if(x2-x1<1.2)continue;
+    const yy=M([0,Math.max(a.y1,c.y1)])[1]+1.2;P.push({t:'line',x1,y1:yy,x2,y2:yy,color:CR,w:0.15},{t:'line',x1,y1:yy-0.8,x2:x1,y2:yy+0.8,color:CR,w:0.15},{t:'line',x1:x2,y1:yy-0.8,x2,y2:yy+0.8,color:CR,w:0.15},{t:'text',x:(x1+x2)/2,y:yy-0.6,s:f0(g),size:1.7,bold:true,color:CR,anchor:'middle'})}
+  // quadro por letra embaixo de cada letra
+  const n=Ls.length,BW=Math.min(34,(PW-24)/Math.min(n,8)-1.5),BH=19;const rows=n>8?2:1;const per=Math.ceil(n/rows);
+  const yBox=Math.max(br[1]+6,RY+RH+4);
+  const xs=Ls.map(l=>M([(l.bb.x0+l.bb.x1)/2,0])[0]);
+  // posição ideal = centro da letra; arruma para não sobrepor (por linha)
+  const pos=[];for(let r=0;r<rows;r++){const ids=[];for(let k=r;k<n;k+=rows)ids.push(k);let last=12-1.5;ids.forEach(k=>{let x=Math.max(xs[k]-BW/2,last+1.5);pos[k]={x,y:yBox+r*(BH+3)};last=x+BW});
+    const over=last-(PW-12);if(over>0){for(let i=ids.length-1;i>=0;i--){const k=ids[i];const lim=i===ids.length-1?PW-12-BW:pos[ids[i+1]].x-1.5-BW;pos[k].x=Math.min(pos[k].x,lim)}}}
+  const bit=(prod.fixBit||'fixação');
+  Ls.forEach((l,k)=>{const {x,y}=pos[k];const cx=x+BW/2;const cL=M([(l.bb.x0+l.bb.x1)/2,l.bb.y0]);
+    P.push({t:'line',x1:cL[0],y1:cL[1]+0.6,x2:cx,y2:y,color:'#adb5bd',w:0.12,dash:[0.8,0.6]});
+    P.push({t:'rect',x,y,w:BW,h:BH,r:1.2,fill:'#fff0f6',stroke:corL(k),lw:0.35},{t:'rect',x,y,w:BW,h:4.4,r:1.2,fill:corL(k),stroke:corL(k),lw:0.1},
+      {t:'text',x:cx,y:y+3.2,s:`LETRA ${k+1}`,size:2.5,bold:true,color:'#ffffff',anchor:'middle'});
+    const L2=[[`${f0(l.w)} x ${f0(l.h)} mm`,'#000000'],l.broc!=null?[`${l.broc} fix. no PVC`,'#000000']:null,[`${l.pan} panela pintado`,'#c2255c'],circ.length?[(()=>{const c=circ.find(c=>c.letras.includes(k+1));return c?`FONTE ${c.n} (${c.fonte} W)`:''})(),corL(k)]:null].filter(Boolean);
+    L2.forEach(([s,c],i)=>P.push({t:'text',x:cx,y:y+7.6+i*3.3,s:fit(s,BW-1.5,2.15),size:2.15,bold:true,color:c,anchor:'middle'}))});
+  const yT=yBox+rows*(BH+3)+3;const nb=Ls.reduce((a,l)=>a+(l.broc||0),0),np=Ls.reduce((a,l)=>a+(l.pan||0),0);
+  if(yT<168){P.push({t:'rect',x:12,y:yT-4,w:PW-24,h:6.5,r:1.5,fill:'#f1f3f5',stroke:'#495057',lw:0.25},{t:'text',x:PW/2,y:yT,s:fit(`TOTAL: ${n} LETRA${n>1?'S':''}${nb?`  •  ${nb} x ${bit} (PVC na parede)`:''}  •  ${np} PARAFUSOS CABEÇA PANELA PINTADOS (lateral)${circ.length?`  •  ${circ.length} FONTE${circ.length>1?'S':''}`:''}`,PW-30,2.7),size:2.7,bold:true,color:'#000000',anchor:'middle'})}
+  return P}
+
 /* ---------- PROJETO DE EXPEDIÇÃO ---------- */
 function folhasExpedicao(ctx,prod){const pages=[];const V=prod.volumes||[];const tot=V.reduce((s,v)=>s+(v.q||1),0),kg=V.reduce((s,v)=>s+(v.kg||0)*(v.q||1),0);
   const cols=[['CARREGOU',16],['VOL.',13],['DESCRIÇÃO',58],['CONTEÚDO',70],['MEDIDAS (mm)',36],['QTD.',12],['PESO APROX.',22],['PEÇA',46]];
@@ -3247,6 +3283,7 @@ function folhasQualidade(ctx,prod){const pages=[];const V=(prod.volumes||[]).con
 
 function paginasFinais(pages,tags,ctx,prod){try{
   const a=folhaInstalacao(ctx,prod);pages.push(a);if(tags)tags.push('INSTALAÇÃO');
+  if(prod.tipo==='letra'&&prod.letras&&prod.letras.length&&prod.letras[0].ps){const lg=folhaLogoInst(ctx,prod);if(lg){pages.push(lg);if(tags)tags.push('INSTALAÇÃO')}}
   const an=folhaAncoragem(ctx,prod);if(an){pages.push(an);if(tags)tags.push('INSTALAÇÃO')}
   folhasExpedicao(ctx,prod).forEach(P=>{pages.push(P);if(tags)tags.push('EXPEDIÇÃO')});
   folhasQualidade(ctx,prod).forEach(P=>{pages.push(P);if(tags)tags.push('QUALIDADE')});
@@ -3271,7 +3308,7 @@ function prodLetras(t,ctx,orig,defs,ledInfo,furos,nests){const fixBit=(()=>{try{
   if(temLed&&ledInfo)vols.push({desc:'ELÉTRICA',cont:'Fonte / reator e fiação da iluminação',dims:'—',q:1,kg:0,draw:null});
   const qualExtra=[];(nests||[]).forEach(N=>{const B=N.best;if(!B||N.semQual)return;B.sheets.forEach((sh,k)=>{const polys=[];sh.items.forEach(it=>{const pc=pieceAt(N.pieces[it.i],it);(pc.lines[0]?[pc.lines[0]]:[]).forEach(l=>l.polys.forEach(p=>polys.push(p)))});
     qualExtra.push({desc:`APROVEITAMENTO ${N.nome==='ACRILICO'?'ACRÍLICO':'CHAPA GALV.'} ${k+1}/${B.sheets.length}`,cont:`Chapa ${B.w} x ${B.h} mm — ${sh.items.length} peças`,q:1,draw:{rects:[{x0:0,y0:0,x1:B.w,y1:B.h,cor:'#f8f9fa'}],polys,fill:N.nome==='ACRILICO'?'#ffc9de':'#dee2e6'}})})});
-  return{tipo:'letra',circ:ledInfo&&ledInfo.circ,mat:matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L),anc:{peca:temPVC?'FUNDO DE PVC':'FUNDO DA LETRA',auto:temPVC?nb:L.length*3,onde:temPVC?'nos furos do PVC (molde kraft)':'3 por letra (estimado)'},qualExtra,nome:ctx.descItem||t.nome,W:b.w,H:b.h,D:cx,un:1,letras:L.map((g,k)=>({h:g.bb.h,broc:temPVC?(brocL[k]||0):null,pan:panL[k]})),
+  return{tipo:'letra',circ:ledInfo&&ledInfo.circ,mat:matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L),anc:{peca:temPVC?'FUNDO DE PVC':'FUNDO DA LETRA',auto:temPVC?nb:L.length*3,onde:temPVC?'nos furos do PVC (molde kraft)':'3 por letra (estimado)'},qualExtra,nome:ctx.descItem||t.nome,W:b.w,H:b.h,D:cx,un:1,letras:L.map((g,k)=>({h:g.bb.h,w:g.bb.w,bb:g.bb,ps:g.ps,broc:temPVC?(brocL[k]||0):null,pan:panL[k]})),fixBit,
     metodo:[...(temPVC?[`Fixar o molde kraft na parede, furar pelos furos e fixar o FUNDO DE PVC com ${fixBit} (${nb} no total).`]:[]),`Encaixar a frente da letra${temPVC?' sobre o PVC':''} e fixar pela LATERAL com ${PANELA} — um a cada 200 mm (${np} no total).`,'Os parafusos da lateral vão pintados na cor da letra.'],contorno:orig,volumes:vols,
     checks:['MEDIDAS','ACABAMENTO / PINTURA',`PARAFUSOS CABEÇA PANELA PINTADOS (${np})`,...(temLed?['LED ACENDE']:[]),...(temPVC?['FUROS PVC']:[])]}}
 function prodTesteira(M,o,ctx){const comp=M.comp;const vols=[];const b3=bbox3(M.acm?M.boxes.concat(M.acm.boxes):M.boxes.filter(b=>!b.fix));
