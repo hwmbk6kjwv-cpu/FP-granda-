@@ -3243,6 +3243,48 @@ function folhaLogoInst(ctx,prod){const Ls=prod.letras;const P=[];frame(P,ctx,{se
   if(yT<168){P.push({t:'rect',x:12,y:yT-4,w:PW-24,h:6.5,r:1.5,fill:'#f1f3f5',stroke:'#495057',lw:0.25},{t:'text',x:PW/2,y:yT,s:fit(`TOTAL: ${n} LETRA${n>1?'S':''}${nb?`  •  ${nb} x ${bit} (PVC na parede)`:''}  •  ${np} PARAFUSOS CABEÇA PANELA PINTADOS (lateral)${circ.length?`  •  ${circ.length} FONTE${circ.length>1?'S':''}`:''}`,PW-30,2.7),size:2.7,bold:true,color:'#000000',anchor:'middle'})}
   return P}
 
+/* ---------- LIGAÇÃO DOS LEDS E REATORES (didático) — vai na instalação e na elétrica ---------- */
+function folhaLigacao(ctx,prod,setor){const Ls=prod.letras,C=prod.circ.lista;const P=[];frame(P,ctx,{setor});P._ref=null;
+  const all=[];Ls.forEach(l=>l.ps.forEach(p=>all.push(p)));const b=bbox(all);const CR='#d6336c';
+  const corL=k=>{const c=C.find(c=>c.letras.includes(k+1));return c?c.cor:'#868e96'};
+  P.push({t:'text',x:PW/2,y:29,s:'LIGAÇÃO DOS LEDS E REATORES — DISTÂNCIAS E COMO LIGAR',size:4.4,bold:true,color:'#000000',anchor:'middle'});
+  const rabM=(ctx.rab||0)/1000,sup=ctx.saida==='sup';
+  P.push({t:'text',x:PW/2,y:34.4,s:`ITEM ${ctx.item} — ${fit(prod.nome,90,2.8)}   •   ${Ls.length} LETRAS   •   ${C.length} REATOR${C.length>1?'ES':''}   •   RABICHO ${String(Math.round(rabM*100)/100).replace('.',',')} m POR LETRA (SAÍDA ${sup?'SUPERIOR':'INFERIOR'})`,size:2.7,bold:true,color:'#495057',anchor:'middle'});
+  // logo
+  const RX=24,RW=PW-48,RY=46,RH=52,yR0=128;const s=Math.min(RW/b.w,RH/b.h);const ox=RX+(RW-b.w*s)/2,oy=RY+(RH-b.h*s)/2;
+  const M=([x,y])=>[ox+(x-b.x0)*s,oy+(b.y1-y)*s];const esc=Math.max(1,Math.round(1/s));
+  Ls.forEach((l,k)=>{const cor=corL(k);P.push({t:'pathfill',polys:l.ps.map(p=>p.map(M)),fill:'#f8f9fa'});l.ps.forEach(p=>P.push({t:'poly',pts:p.map(M),color:cor,w:0.45}));
+    const c=M([(l.bb.x0+l.bb.x1)/2,(l.bb.y0+l.bb.y1)/2]);P.push({t:'circle',x:c[0],y:c[1]-1.2,r:2.2,fill:cor,stroke:'#ffffff',lw:0.3},{t:'text',x:c[0],y:c[1]-0.3,s:String(k+1),size:2.5,bold:true,color:'#ffffff',anchor:'middle'});
+    if(prod.ledN&&prod.ledN[k]!=null)P.push({t:'text',x:c[0],y:c[1]+3.6,s:`${prod.ledN[k]} LEDs`,size:2,bold:true,color:cor,anchor:'middle'})});
+  // distâncias: total, vão entre letras e distância entre centros
+  const tl=M([b.x0,b.y1]),br=M([b.x1,b.y0]);cotaH(P,tl[0],br[0],tl[1]-6,tl[1],`${f0(b.w)} mm`,3);cotaV(P,br[0]+6,tl[1],br[1],br[0],`${f0(b.h)} mm`,3);
+  for(let k=0;k<Ls.length-1;k++){const a=Ls[k].bb,c=Ls[k+1].bb;const g=c.x0-a.x1;const x1=M([a.x1,0])[0],x2=M([c.x0,0])[0];const yy=tl[1]-1.6;
+    if(g>1&&x2-x1>1){P.push({t:'line',x1,y1:yy,x2,y2:yy,color:CR,w:0.18},{t:'line',x1,y1:yy-0.9,x2:x1,y2:yy+0.9,color:CR,w:0.18},{t:'line',x1:x2,y1:yy-0.9,x2,y2:yy+0.9,color:CR,w:0.18},{t:'text',x:(x1+x2)/2,y:yy-0.7,s:f0(g),size:1.9,bold:true,color:CR,anchor:'middle'})}}
+  // reatores
+  const n=C.length,BW=Math.min(58,(PW-30)/n-4),BH=17,yR=128;
+  const ideal=C.map(c=>{const xs=c.letras.map(L=>{const bb=Ls[L-1].bb;return M([(bb.x0+bb.x1)/2,0])[0]});return xs.reduce((a,v)=>a+v,0)/xs.length});
+  const ord=C.map((c,i)=>i).sort((a,b)=>ideal[a]-ideal[b]);const px=[];let last=14-4;ord.forEach(i=>{let x=Math.max(ideal[i]-BW/2,last+4);px[i]=x;last=x+BW});
+  if(last>PW-14){const d=last-(PW-14);ord.forEach(i=>px[i]-=d);let m=14;ord.forEach(i=>{if(px[i]<m)px[i]=m;m=px[i]+BW+4})}
+  // fios: cada letra desce (ou sobe) até a barra do seu reator
+  const yb0=br[1]+8;C.forEach((c,i)=>{const yBus=yb0+i*2.4;const cx=px[i]+BW/2;const xs=[];
+    c.letras.forEach(L=>{const bb=Ls[L-1].bb;const xm=M([(bb.x0+bb.x1)/2,0])[0];const yl=M([0,bb.y0])[1];xs.push(xm);
+      P.push({t:'line',x1:xm,y1:yl+0.4,x2:xm,y2:yBus,color:c.cor,w:0.5})});
+    xs.push(cx);P.push({t:'line',x1:Math.min(...xs),y1:yBus,x2:Math.max(...xs),y2:yBus,color:c.cor,w:0.5},{t:'line',x1:cx,y1:yBus,x2:cx,y2:yR,color:c.cor,w:0.5})});
+  C.forEach((c,i)=>{const x=px[i],cx=x+BW/2;const kW=c.w*LED_FOLGA;
+    P.push({t:'rect',x,y:yR,w:BW,h:BH,r:1.5,fill:'#ffffff',stroke:c.cor,lw:0.5},{t:'rect',x,y:yR,w:BW,h:5,r:1.5,fill:c.cor,stroke:c.cor,lw:0.1},
+      {t:'text',x:cx,y:yR+3.6,s:`REATOR ${c.n} — ${c.fonte} W  12 V`,size:2.7,bold:true,color:'#ffffff',anchor:'middle'},
+      {t:'text',x:cx,y:yR+8.6,s:fit(`LETRA${c.letras.length>1?'S':''} ${c.letras.join(', ')}${c.parte?' (parte '+c.parte+')':''}`,BW-2,2.5),size:2.5,bold:true,color:'#000000',anchor:'middle'},
+      {t:'text',x:cx,y:yR+12,s:`LEDs: ${String(Math.round(c.w*10)/10).replace('.',',')} W  (+25% = ${String(Math.round(kW*10)/10).replace('.',',')} W)`,size:2.1,color:'#495057',anchor:'middle'},
+      {t:'text',x:cx,y:yR+15.2,s:c.excede?'PASSA DA POTÊNCIA DO REATOR!':`SOBRA ${Math.round(c.fonte-kW)} W`,size:2.1,bold:true,color:c.excede?'#c92a2a':'#2b8a3e',anchor:'middle'})});
+  // passo a passo
+  const yP=yR+BH+5;P.push({t:'rect',x:12,y:yP-3.6,w:PW-24,h:22,r:1.5,fill:'#fff9db',stroke:'#e8a400',lw:0.3},{t:'text',x:15,y:yP+0.4,s:'COMO LIGAR',size:2.8,bold:true,color:'#8a6d00'});
+  P.push({t:'text',x:PW-15,y:yP+0.4,s:`ESCALA APROX. 1:${esc} — medidas em mm (tamanho real). Em vermelho: vão entre as letras.`,size:2.1,color:'#868e96',anchor:'end'});
+  [`1. Cada letra sai com RABICHO de ${String(Math.round(rabM*100)/100).replace('.',',')} m (fio PRETO + VERMELHO), pela saída ${sup?'SUPERIOR':'INFERIOR'} centralizada do fundo.`,
+   '2. Junte as letras da MESMA COR no mesmo reator, em PARALELO: VERMELHO com VERMELHO (+) e PRETO com PRETO (−). Nunca ligue letra de uma cor no reator de outra.',
+   '3. Ligue os fios no lado de SAÍDA 12 V do reator (V+ vermelho / V− preto). A ENTRADA do reator vai na rede 127/220 V (fase e neutro).',
+   '4. Teste cada reator antes de fechar as letras. Reator em local ventilado e protegido da chuva (IP67).'].forEach((s,i)=>P.push({t:'text',x:15,y:yP+4.4+i*3.6,s:fit(s,PW-32,2.4),size:2.4,color:'#000000'}));
+  return P}
+
 /* ---------- PROJETO DE EXPEDIÇÃO ---------- */
 function folhasExpedicao(ctx,prod){const pages=[];const V=prod.volumes||[];const tot=V.reduce((s,v)=>s+(v.q||1),0),kg=V.reduce((s,v)=>s+(v.kg||0)*(v.q||1),0);
   const cols=[['CARREGOU',16],['VOL.',13],['DESCRIÇÃO',58],['CONTEÚDO',70],['MEDIDAS (mm)',36],['QTD.',12],['PESO APROX.',22],['PEÇA',46]];
@@ -3290,6 +3332,7 @@ function folhasQualidade(ctx,prod){const pages=[];const V=(prod.volumes||[]).con
 function paginasFinais(pages,tags,ctx,prod){try{
   const a=folhaInstalacao(ctx,prod);pages.push(a);if(tags)tags.push('INSTALAÇÃO');
   if(prod.tipo==='letra'&&prod.letras&&prod.letras.length&&prod.letras[0].ps){const lg=folhaLogoInst(ctx,prod);if(lg){pages.push(lg);if(tags)tags.push('INSTALAÇÃO')}}
+  if(prod.tipo==='letra'&&prod.circ&&prod.circ.lista&&prod.circ.lista.length&&prod.letras&&prod.letras[0].ps){['INSTALAÇÃO','ELÉTRICA'].forEach(st=>{try{const q=folhaLigacao(ctx,prod,st);if(q){pages.push(q);if(tags)tags.push(st)}}catch(e){console.error('ligação',e)}})}
   folhasExpedicao(ctx,prod).forEach(P=>{pages.push(P);if(tags)tags.push('EXPEDIÇÃO')});
   folhasQualidade(ctx,prod).forEach(P=>{pages.push(P);if(tags)tags.push('QUALIDADE')});
   try{const rows=matResolve([...(prod.mat||[]),...needsAncoragem(ancInfo(instLer(),prod))]);if(rows.length){folhasMaterial(ctx,prod,rows).forEach(P=>{pages.push(P);if(tags)tags.push('RM')});matUlt=rows;setTimeout(matCardRender,0)}}catch(e){console.error('lista de material',e)}}catch(e){console.error('paginasFinais',e)}}
@@ -3313,7 +3356,7 @@ function prodLetras(t,ctx,orig,defs,ledInfo,furos,nests){const fixBit=(()=>{try{
   if(temLed&&ledInfo)vols.push({desc:'ELÉTRICA',cont:'Fonte / reator e fiação da iluminação',dims:'—',q:1,kg:0,draw:null});
   const qualExtra=[];(nests||[]).forEach(N=>{const B=N.best;if(!B||N.semQual)return;B.sheets.forEach((sh,k)=>{const polys=[];sh.items.forEach(it=>{const pc=pieceAt(N.pieces[it.i],it);(pc.lines[0]?[pc.lines[0]]:[]).forEach(l=>l.polys.forEach(p=>polys.push(p)))});
     qualExtra.push({desc:`APROVEITAMENTO ${N.nome==='ACRILICO'?'ACRÍLICO':'CHAPA GALV.'} ${k+1}/${B.sheets.length}`,cont:`Chapa ${B.w} x ${B.h} mm — ${sh.items.length} peças`,q:1,draw:{rects:[{x0:0,y0:0,x1:B.w,y1:B.h,cor:'#f8f9fa'}],polys,fill:N.nome==='ACRILICO'?'#ffc9de':'#dee2e6'}})})});
-  return{tipo:'letra',circ:ledInfo&&ledInfo.circ,mat:matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L),anc:{peca:temPVC?'FUNDO DE PVC':'FUNDO DA LETRA',auto:temPVC?nb:L.length*3,onde:temPVC?'nos furos do PVC (molde kraft)':'3 por letra (estimado)'},qualExtra,nome:ctx.descItem||t.nome,W:b.w,H:b.h,D:cx,un:1,letras:L.map((g,k)=>({h:g.bb.h,w:g.bb.w,bb:g.bb,ps:g.ps,broc:temPVC?(brocL[k]||0):null,pan:panL[k]})),fixBit,
+  return{tipo:'letra',circ:ledInfo&&ledInfo.circ,mat:matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L),anc:{peca:temPVC?'FUNDO DE PVC':'FUNDO DA LETRA',auto:temPVC?nb:L.length*3,onde:temPVC?'nos furos do PVC (molde kraft)':'3 por letra (estimado)'},qualExtra,nome:ctx.descItem||t.nome,W:b.w,H:b.h,D:cx,un:1,ledN:(()=>{try{return ledInfo&&ledInfo.letters?ordenaPecas(ledInfo.letters).map(g=>g.n):null}catch(e){return null}})(),ledWm:ledInfo&&ledInfo.P&&ledInfo.P.watts||null,letras:L.map((g,k)=>({h:g.bb.h,w:g.bb.w,bb:g.bb,ps:g.ps,broc:temPVC?(brocL[k]||0):null,pan:panL[k]})),fixBit,
     metodo:[...(temPVC?[`Fixar o molde kraft na parede, furar pelos furos e fixar o FUNDO DE PVC com ${fixBit} (${nb} no total).`]:[]),`Encaixar a frente da letra${temPVC?' sobre o PVC':''} e fixar pela LATERAL com ${PANELA} — um a cada 200 mm (${np} no total).`,'Os parafusos da lateral vão pintados na cor da letra.'],contorno:orig,volumes:vols,
     checks:['MEDIDAS','ACABAMENTO / PINTURA',`PARAFUSOS CABEÇA PANELA PINTADOS (${np})`,...(temLed?['LED ACENDE']:[]),...(temPVC?['FUROS PVC']:[])]}}
 function prodTesteira(M,o,ctx){const comp=M.comp;const vols=[];const b3=bbox3(M.acm?M.boxes.concat(M.acm.boxes):M.boxes.filter(b=>!b.fix));
