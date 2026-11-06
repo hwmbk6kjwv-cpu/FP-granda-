@@ -229,7 +229,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
     </div>
     <div class="card"><h2>3. Tipo de letra caixa</h2><div class="types" id="typePick"></div><div id="chapaBox" hidden><label class="f" style="margin-top:14px">Linha interna da chapa galvanizada</label><div class="leds" id="chapaPick"></div></div>
       <label class="f" style="margin-top:14px">Profundidade da caixa (espessura da letra)</label><div class="leds" id="caixaPick"></div></div>
-    <div class="card"><h2>4. LED</h2><div class="leds" id="ledPick"></div>
+    <div class="card"><h2>4. LED</h2><div class="leds" id="ledPick"></div><label class="f">Potência do módulo</label><div class="row" id="ledWPick" style="gap:6px"></div>
       <div class="g2"><div><label class="f">Distância centro a centro (mm) <span class="badge">opcional</span></label><input type="number" step="1" id="ledGap" placeholder="Padrão do tipo: 80" inputmode="decimal"></div>
       <div><label class="f">Borda até a 1ª fileira (mm) <span class="badge">opcional</span></label><input type="number" step="1" id="ledMarg" placeholder="Padrão do tipo: 45" inputmode="decimal"></div></div>
       <p class="note" style="margin:6px 0 0">Use para diminuir o espaçamento só neste pedido. O mínimo é o comprimento do módulo + 2 mm (77 mm).</p></div>
@@ -612,7 +612,7 @@ async function deleteType(id){
 async function saveEmpresa(){if(local){lsSet('granda_empresa',empresa);renderLogo();return}await db.doc('config/empresa').set(empresa)}
 
 /* ---------- UI: tipos ---------- */
-let selType=null,selLed=6500;
+let selType=null,selLed=6500,selLedW=null;
 function typeCard(t,sel){
   const leds=(t.leds||[]).map(l=>`<span class="chip led">${l.toLocaleString('pt-BR')} K</span>`).join('');
   const pgs=pagesOf(t);
@@ -663,7 +663,7 @@ function renderChapa(){
   $('#chapaPick').innerHTML=C.opcoes.map(o=>`<button data-c="${o}" class="${o===selChapa?'sel':''}"><b>${fmt(o).replace(',0','')} mm</b></button>`).join('');
 }
 $('#chapaPick').onclick=e=>{const b=e.target.closest('button');if(!b)return;selChapa=+b.dataset.c;renderChapa();resetOut()};
-function renderLeds(){renderChapa();renderCaixa();
+function renderLeds(){setTimeout(renderLedW,0);renderChapa();renderCaixa();
   const t=types.find(x=>x.id===selType);
   const lp=t&&pagesOf(t).find(p=>p.tipo==='led');const L={...LED_DEF,...(lp&&lp.led||{})};
   $('#ledGap').placeholder='Padrão do tipo: '+f0(L.gap);$('#ledMarg').placeholder='Padrão do tipo: '+f0(L.margem);
@@ -674,6 +674,9 @@ function renderLeds(){renderChapa();renderCaixa();
 }
 function renderLogo(){const lg=empresa.logo||GRANDA_LOGO;const p=$('#logoPrev');p.style.backgroundImage=`url('${lg}')`;p.textContent='';const h=$('#hdrLogo');if(h)h.src=lg}
 $('#typePick').onclick=e=>{const b=e.target.closest('.type');if(!b)return;selType=b.dataset.id;renderTypes();resetOut()};
+function renderLedW(){const t=types.find(x=>x.id===selType);const pg=t&&t.paginas.find(p=>p.tipo==='led');const box=$('#ledWPick');if(!box)return;if(!pg){box.innerHTML='<span class="note">Este tipo não tem LED.</span>';return}const def=(pg.led&&pg.led.watts)||1.2;const v=selLedW||def;
+  box.innerHTML=[0.72,1.2].map(w=>`<button class="chip${Math.abs(w-v)<1e-6?' on':''}" data-lw="${w}" type="button" style="padding:9px 14px">${String(w).replace('.',',')} W${Math.abs(w-def)<1e-6?' (padrão)':''}</button>`).join('')}
+$('#ledWPick').onclick=e=>{const b=e.target.closest('[data-lw]');if(!b)return;selLedW=+b.dataset.lw;renderLedW();resetOut()};
 $('#ledPick').onclick=e=>{const b=e.target.closest('button');if(!b)return;selLed=+b.dataset.led;renderLeds();updateBtn();resetOut()};
 $('#typeList').onclick=e=>{const b=e.target.closest('.type');if(b)openModal(types.find(t=>t.id===b.dataset.id))};
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
@@ -1335,11 +1338,12 @@ function chapaFilete(cp,t,trava,fator){
 }
 
 // circuitos: quais letras vão ligadas juntas em cada fonte. Letras grandes (> 350 mm de altura) só usam fontes de 100 ou 150 W
+const LED_FOLGA=1.25; // potência = qtd. de LEDs x potência do módulo + 25%
 const CIRC_COR=['#e8590c','#1971c2','#2f9e44','#ae3ec9','#c92a2a','#0c8599','#f08c00','#5c940d'];
 function ledCircuitos(R){const Ls=ordenaPecas(R.letters||[]);if(!Ls.length)return null;const wm=(R.P&&R.P.watts)||1.2;
   const grande=Ls.some(g=>g.bb.h>350);const caps=grande?[100,150]:[60,100,150];const MAX=150;const out=[];let cur=null;
-  Ls.forEach((g,k)=>{const w=g.n*wm;if(w*1.2>MAX){const n=Math.ceil(w*1.2/MAX);for(let j=0;j<n;j++)out.push({letras:[k+1],w:w/n,parte:`${j+1}/${n}`});cur=null;return}if(!cur||(cur.w+w)*1.2>MAX){cur={letras:[],w:0};out.push(cur)}cur.letras.push(k+1);cur.w+=w});
-  out.forEach((c,i)=>{c.fonte=caps.find(v=>v>=c.w*1.2)||MAX;c.n=i+1;c.cor=CIRC_COR[i%CIRC_COR.length]});
+  Ls.forEach((g,k)=>{const w=g.n*wm;if(w*LED_FOLGA>MAX){const n=Math.ceil(w*LED_FOLGA/MAX);for(let j=0;j<n;j++)out.push({letras:[k+1],w:w/n,parte:`${j+1}/${n}`});cur=null;return}if(!cur||(cur.w+w)*LED_FOLGA>MAX){cur={letras:[],w:0};out.push(cur)}cur.letras.push(k+1);cur.w+=w});
+  out.forEach((c,i)=>{c.fonte=caps.find(v=>v>=c.w*LED_FOLGA)||MAX;c.n=i+1;c.cor=CIRC_COR[i%CIRC_COR.length]});
   return{grande,caps,lista:out,porLetra:Ls.map((g,k)=>out.find(c=>c.letras.includes(k+1)).n)}}
 const circTxt=c=>`FONTE ${c.n} (${c.fonte} W): LETRA${c.letras.length>1?'S':''} ${c.letras.length>2&&c.letras[c.letras.length-1]-c.letras[0]===c.letras.length-1?c.letras[0]+' A '+c.letras[c.letras.length-1]:c.letras.join(', ')} ${c.parte?' (PARTE '+c.parte+' DOS LEDS)':''} — ${String(Math.round(c.w*10)/10).replace('.',',')} W`;
 
@@ -1590,7 +1594,7 @@ function buildDoc(){
       pages.push(P);info.push({pg,lines:[],vec:[{color:RC['CORTE EXTERNO'],polys:R.outer},{color:RC['CORTE INTERNO'],polys:R.inner}]});return;
     }
     if(pg.tipo==='led'){
-      const ov={};const gq=num($('#ledGap').value),mq=num($('#ledMarg').value);if(gq>0)ov.gap=gq<30?gq*10:gq;if(mq>0)ov.margem=mq<20?mq*10:mq;
+      const ov={};if(selLedW)ov.watts=selLedW;const gq=num($('#ledGap').value),mq=num($('#ledMarg').value);if(gq>0)ov.gap=gq<30?gq*10:gq;if(mq>0)ov.margem=mq<20?mq*10:mq;
       const R=distributeLED(cp,{...(pg.led||{}),...ov,ajuste:ledAdj});R.circ=ledCircuitos(R);ledInfo=R;
       const P=[];frame(P,ctx,pg);
       P.push({t:'text',x:PW/2,y:30,s:pg.titulo||'DISTRIBUIÇÃO DE LED',size:4.2,color:'#000000',anchor:'middle'});
@@ -1618,7 +1622,7 @@ function buildDoc(){
       P.push({t:'text',x:284,y:25,s:escTxt,size:2.4,bold:true,color:'#2f6fa8',anchor:'end'});
       const Pp=R.P;const w=R.watts;
       if(R.circ&&R.circ.lista.length){const L=R.circ.lista;let yy=167-Math.min(L.length,6)*4.2-4;P.push({t:'text',x:98,y:yy,s:'LIGAÇÃO ELÉTRICA — LETRAS LIGADAS JUNTAS',size:2.5,bold:true,color:'#c2255c'});yy+=4.2;L.slice(0,6).forEach(c=>{P.push({t:'circle',x:99.6,y:yy-1,r:1.3,fill:c.cor,stroke:c.cor,lw:0.1},{t:'text',x:102.5,y:yy,s:fit(circTxt(c),95,2.4),size:2.4,bold:true,color:'#000000'});yy+=4.2});if(L.length>6)P.push({t:'text',x:102.5,y:yy,s:`+ ${L.length-6} fonte(s) — ver instalação`,size:2.2,color:'#555555'})}
-      matTable(P,pg,[['ILUMINAÇÃO:',`LED ${f0(Pp.larg)} x ${f0(Pp.alt)} MM`],['TEMPERATURA:',ctx.led],['QTD. MÓDULOS:',`${R.mods.length} un`],['CONSUMO:',`${w.toLocaleString('pt-BR',{maximumFractionDigits:1})} W  (+20% = ${(w*1.2).toLocaleString('pt-BR',{maximumFractionDigits:1})} W)`],['FONTES:',R.circ?(()=>{const c={};R.circ.lista.forEach(x=>c[x.fonte]=(c[x.fonte]||0)+1);return Object.entries(c).map(([w2,n])=>`${n}x ${w2} W`).join(' + ')+(R.circ.grande?' (LETRA > 350 MM)':'')})():reatorTxt(w*1.2)],['ESPAÇAMENTO:',`${fmt(Pp.gap/10)} CM CENTRO A CENTRO`],['QTD. REAL:',' ']]);
+      matTable(P,pg,[['ILUMINAÇÃO:',`LED ${f0(Pp.larg)} x ${f0(Pp.alt)} MM`],['TEMPERATURA:',ctx.led],['QTD. MÓDULOS:',`${R.mods.length} un`],['CONSUMO:',`${w.toLocaleString('pt-BR',{maximumFractionDigits:1})} W  (+25% = ${(w*LED_FOLGA).toLocaleString('pt-BR',{maximumFractionDigits:1})} W)`],['FONTES:',R.circ?(()=>{const c={};R.circ.lista.forEach(x=>c[x.fonte]=(c[x.fonte]||0)+1);return Object.entries(c).map(([w2,n])=>`${n}x ${w2} W`).join(' + ')+(R.circ.grande?' (LETRA > 350 MM)':'')})():reatorTxt(w*LED_FOLGA)],['ESPAÇAMENTO:',`${fmt(Pp.gap/10)} CM CENTRO A CENTRO`],['QTD. REAL:',' ']]);
       legend(P,pg,[{cor:'#e03131',legenda:`Contorno base`,offset:Pp.base,polys:R.boundary},{cor:'#000000',legenda:`Módulo LED ${f0(Pp.larg)}x${f0(Pp.alt)} mm — ${Pp.watts}W`,offset:0,polys:[1],noOff:true},{cor:'#7a7a7a',legenda:'Fio entre módulos (zig-zag)',offset:0,polys:[1],noOff:true},{cor:'#1c7ed6',legenda:'Linha base (centro do traço)',offset:0,polys:[1],noOff:true}]);
       pages.push(P);info.push({pg,lines:[],vec:[{color:'#e03131',polys:R.boundary},{color:'#000000',polys:R.mods.map(m=>m.rect)}]});return;
     }
@@ -1903,7 +1907,7 @@ $('#gerar').onclick=()=>{
     lPrevRender();
     lastName=`OS ${d.ctx.os||'sem número'} - ${d.ctx.cliente||src.name.replace(/\.pdf$/i,'')} - item ${d.ctx.item}.pdf`.replace(/[\\/:*?"<>|]/g,'-');
     const thin=d.info.flatMap(i=>i.lines.filter(l=>!l.polys.length).map(l=>l.legenda));
-    $('#outMsg').innerHTML=`<div class="msg ok">${d.pages.length} página(s) gerada(s). Original: ${fmt(d.W)} × ${fmt(d.H)} mm. FP em A4; arquivos de produção em tamanho real.${d.ledInfo?` LED: ${d.ledInfo.mods.length} módulos, ${d.ledInfo.watts.toLocaleString('pt-BR',{maximumFractionDigits:1})} W → reator ${reatorTxt(d.ledInfo.watts*1.2)}.`:''}</div>`+(d.W+20>5080||d.H+20>5080?'<div class="msg warn">A peça passa de 5,08 m: alguns leitores de PDF cortam páginas desse tamanho. Abra os arquivos de produção no Corel ou Illustrator.</div>':'')+(thin.length?`<div class="msg warn">Linhas que sumiram (letra fina demais para a medida): ${esc(thin.join(', '))}</div>`:'')+(pagesOf(types.find(x=>x.id===selType)).length?'':'<div class="msg warn">Esse tipo ainda não tem páginas configuradas — gerei só o original. Configure em "Cadastros".</div>');
+    $('#outMsg').innerHTML=`<div class="msg ok">${d.pages.length} página(s) gerada(s). Original: ${fmt(d.W)} × ${fmt(d.H)} mm. FP em A4; arquivos de produção em tamanho real.${d.ledInfo?` LED: ${d.ledInfo.mods.length} módulos, ${d.ledInfo.watts.toLocaleString('pt-BR',{maximumFractionDigits:1})} W (+25% = ${(d.ledInfo.watts*LED_FOLGA).toLocaleString('pt-BR',{maximumFractionDigits:1})} W) → ${d.ledInfo.circ?d.ledInfo.circ.lista.map(c=>'F'+c.n+' '+c.fonte+'W').join(', '):reatorTxt(d.ledInfo.watts*LED_FOLGA)}.`:''}</div>`+(d.W+20>5080||d.H+20>5080?'<div class="msg warn">A peça passa de 5,08 m: alguns leitores de PDF cortam páginas desse tamanho. Abra os arquivos de produção no Corel ou Illustrator.</div>':'')+(thin.length?`<div class="msg warn">Linhas que sumiram (letra fina demais para a medida): ${esc(thin.join(', '))}</div>`:'')+(pagesOf(types.find(x=>x.id===selType)).length?'':'<div class="msg warn">Esse tipo ainda não tem páginas configuradas — gerei só o original. Configure em "Cadastros".</div>');
     $('#baixar').hidden=false;$('#gerar').textContent='Atualizar FP';
     // arquivos de produção separados
     const base=`OS ${d.ctx.os||'sem número'} - item ${d.ctx.item}`;prodFiles=[];const cnt={};
@@ -3395,8 +3399,8 @@ function matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L){const N=[];const temLed=
   if(pint||areaGalv>0){const soLat=pint&&pint.partes==='lateral';N.push(...needsTinta(soLat?areaLat:areaGalv+areaLat,soLat?'lateral das letras':'letras (face + lateral)'))}
   if(temLed){const P=ledInfo.P||{};const wt=+P.watts||0.72;const t=String(ctx.led||'').match(/\d{4,5}/);const tk=t?t[0]:'6500';const ws=String(wt).replace('.',',');
     N.push({k:`led|${tk}|${wt}`,desc:`Módulo LED ${tk}K ${ws} W 12 V`,q:ledInfo.mods.length,un:'un',uso:'iluminação (configuração do sistema)',busca:{must:['MODULO LED',`${tk}K`,[`${(+wt).toFixed(2)}W`,`${+wt}W`]],want:['3P','VINILSUL']}});
-    const c={};(ledInfo.circ?ledInfo.circ.lista.map(x=>x.fonte):fontes(ledInfo.watts*1.2)).forEach(w=>c[w]=(c[w]||0)+1);
-    Object.entries(c).forEach(([w,q])=>N.push({k:`fonte|${w}`,desc:`Fonte blindada ${w} W 12 V IP67`,q,un:'un',uso:ledInfo.circ?`${ledInfo.circ.lista.length} circuito(s)${ledInfo.circ.grande?' — letra > 350 mm: só 100/150 W':''}`:`${f1(ledInfo.watts)} W + 20%`,busca:{must:['REATOR',`${w}W`,'IP67']}}));
+    const c={};(ledInfo.circ?ledInfo.circ.lista.map(x=>x.fonte):fontes(ledInfo.watts*LED_FOLGA)).forEach(w=>c[w]=(c[w]||0)+1);
+    Object.entries(c).forEach(([w,q])=>N.push({k:`fonte|${w}`,desc:`Fonte blindada ${w} W 12 V IP67`,q,un:'un',uso:ledInfo.circ?`${ledInfo.circ.lista.length} circuito(s)${ledInfo.circ.grande?' — letra > 350 mm: só 100/150 W':''}`:`${f1(ledInfo.watts)} W + 25%`,busca:{must:['REATOR',`${w}W`,'IP67']}}));
     const larg=(L||[]).reduce((a,g)=>a+g.bb.w,0)/1000*MPP.fioFator;const meio=Math.round(larg/2*100)/100;N.push({k:'fio|1.5|preto',desc:'Cabo flexível 1,5 mm preto',q:meio,un:'m',uso:`metade de largura das letras x ${MPP.fioFator}`,busca:{must:['CABO FLEXIVEL','PRETO','01.50MM']}},{k:'fio|1.5|verm',desc:'Cabo flexível 1,5 mm vermelho',q:meio,un:'m',uso:`metade de largura das letras x ${MPP.fioFator}`,busca:{must:['CABO FLEXIVEL','VERMELHO','01.50MM']}})}
   if(np)N.push({k:'let|panela',desc:'Parafuso cabeça panela (lateral)',q:np,un:'un',uso:'lateral das letras',busca:{must:['CABECA PANELA','2.9X6.5']}});
   return N}
@@ -3969,7 +3973,7 @@ const PICK=['#pPicker'];
 function capturaEstado(tipo){
   const cor={inputs:capInputs(PICK),selEsc};
   if(tipo==='letra'){if(!src||!srcBytes)throw new Error('carregue o PDF da letra antes de salvar');
-    return{estado:{inputs:capInputs(['#tab-novo']),cor,selType,selLed,selChapa,selCaixa,ledAdj,xPages:readPages($('#xPages')),desc:$('#descItem').value},fonte:{nome:src.name,b64:b64(srcBytes)},desc:$('#descItem').value.trim()||'LETRA CAIXA',
+    return{estado:{inputs:capInputs(['#tab-novo']),cor,selType,selLed,selLedW,selChapa,selCaixa,ledAdj,xPages:readPages($('#xPages')),desc:$('#descItem').value},fonte:{nome:src.name,b64:b64(srcBytes)},desc:$('#descItem').value.trim()||'LETRA CAIXA',
       resumo:[(types.find(t=>t.id===selType)||{}).nome,selLed?selLed+' K':''].filter(Boolean).join(' • ')}}
   if(tipo==='testeira')return{estado:{inputs:capInputs(['#tOpts']),cor,tFaces,tPint,fixSel:[...fixSel],tAcm:JSON.parse(JSON.stringify(tAcm))},desc:$('#tDesc').value.trim()||'TESTEIRA',resumo:tFaces.map(f=>f0(f.W)+'x'+f0(f.H)).join(' + ')};
   if(tipo==='estrutura'){if(!dModel)throw new Error('monte o 3D antes de salvar');return{estado:{inputs:capInputs(['#dCard']),cor,dSrc,dModel,dHist,dPint},desc:$('#dDesc').value.trim()||'ESTRUTURA',resumo:dModel.titulo}}
@@ -3990,7 +3994,7 @@ async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHT
 async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)throw new Error('estado do item não encontrado');const F=it.fonteId?await lerJSON(it.fonteId):null;
   itemAtual={id:it.id,tipo:it.tipo,n:it.n};$('#item').value=it.n;refImg=E.refImg||null;fpObsPg={...(E.fpObsPg||{})};matQtd={...(E.matQtd||{})};refRender();instReset();if(E.inst){if(!E.inst.iUnid){['iHv','iVv','iPw','iPh'].forEach(k=>{if(E.inst[k])E.inst[k]=String(Math.round(numBR(E.inst[k])*10))});E.inst.iUnid='mm'}putInputs(E.inst)}instImg=E.instImg||null;ancImg=E.ancImg||null;instRender();
   if(E.cor){selEsc=E.cor.selEsc||selEsc;renderEsc();putInputs(E.cor.inputs)}
-  if(it.tipo==='letra'){limpaTipo('letra');putInputs(E.inputs);selType=E.selType;selLed=E.selLed;selChapa=E.selChapa;selCaixa=E.selCaixa||80;
+  if(it.tipo==='letra'){limpaTipo('letra');putInputs(E.inputs);selType=E.selType;selLed=E.selLed;selLedW=E.selLedW||null;selChapa=E.selChapa;selCaixa=E.selCaixa||80;
     $('#xPages').innerHTML='';(E.xPages||[]).forEach((p,i)=>$('#xPages').insertAdjacentHTML('beforeend',pageBlock(p,i)));renumberIn($('#xPages'));
     renderTypes();renderLeds();selChapa=E.selChapa;selCaixa=E.selCaixa||80;renderChapa();renderCaixa();if(E.cor)putInputs(E.cor.inputs);
     if(F)await carregaLetra(F.nome,unb64(F.b64));ledAdj=E.ledAdj||{};if(E.desc!=null)$('#descItem').value=E.desc;updateBtn();
