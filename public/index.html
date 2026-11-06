@@ -251,7 +251,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
     </div>
     <div class="card">
       <div class="row"><button class="btn pink" id="gerar" disabled>Gerar FP</button><button class="btn ghost" id="baixar" hidden>Baixar FP (PDF)</button></div>
-      <div id="ledAdj" hidden style="margin-top:12px"></div>
+      <div id="ledAdjHome"><div id="ledAdj" hidden style="margin:10px 0 16px;padding:12px;border:1.5px solid #e8a400;border-radius:12px;background:#fffbea"></div></div>
       <div id="prodFiles" hidden style="margin-top:12px"></div>
       <div id="outMsg"></div>
       <div class="prev" id="prev"></div>
@@ -619,7 +619,7 @@ $('#typeList').onclick=e=>{const b=e.target.closest('.type');if(b)openModal(type
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
   const tb=b.dataset.tab;$('#tab-pedidos').hidden=tb!=='pedidos';$('#tab-novo').hidden=tb!=='novo';$('#tab-tipos').hidden=tb!=='tipos';$('#tab-testeiras').hidden=tb!=='testeiras';$('#tab-modelo').hidden=tb!=='modelo';if(tb==='modelo')setTimeout(()=>m3Draw(),30);
-  $('#osSec').hidden=tb==='tipos'||(tb==='pedidos'&&!pedAtual);$('#instSec').hidden=!['novo','modelo','testeiras'].includes(tb);pedBarRender();if(tb==='testeiras')setTimeout(tRender,30);pickerCasa();$('#itemBox').hidden=false;$('#descBox').hidden=tb==='testeiras';
+  $('#osSec').hidden=tb==='tipos'||(tb==='pedidos'&&!pedAtual);$('#instSec').hidden=!['novo','modelo','testeiras'].includes(tb);instColoca(tb);pedBarRender();if(tb==='testeiras')setTimeout(tRender,30);pickerCasa();$('#itemBox').hidden=false;$('#descBox').hidden=tb==='testeiras';
 });
 async function shrinkImage(f,max,type){
   const img=new Image();img.src=URL.createObjectURL(f);await img.decode();
@@ -1347,6 +1347,10 @@ function refCarrega(blob){if(!blob||!/^image\//.test(blob.type))return;const url
     refImg={src:c.toDataURL('image/jpeg',0.85),w:c.width,h:c.height};if(typeof pedSujo!=='undefined')pedSujo=true;refRender();refRefaz()};
   im.onerror=()=>{URL.revokeObjectURL(url);$('#refPrev').innerHTML='<div class="msg err">Não consegui ler essa imagem.</div>'};im.src=url}
 function refRender(){$('#refPrev').innerHTML=refImg?`<div class="row" style="gap:10px;align-items:center"><img src="${refImg.src}" style="width:140px;height:100px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff"><button class="btn ghost sm" id="refDel">Remover imagem</button></div>`:''}
+// o cadastro da instalação fica por último, logo antes das folhas (FP) de cada aba
+function instColoca(tb){const s=$('#instSec');const alvo=tb==='novo'?$('#gerar').closest('.card'):tb==='testeiras'?$('#t3d').closest('.card'):tb==='modelo'?$('#mResCard'):null;
+  if(alvo&&alvo.parentNode&&alvo.previousElementSibling!==s)alvo.parentNode.insertBefore(s,alvo)}
+function prevSet(html){$('#ledAdjHome').appendChild($('#ledAdj'));$('#prev').innerHTML=html}
 function refRefaz(){try{
   if(!$('#tab-testeiras').hidden){if(tModo==='desenho'){if(dModel&&typeof dAtualizar==='function')dAtualizar()}else tAtualizar()}
   else if(!$('#tab-novo').hidden&&lastPdf)$('#gerar').click();
@@ -1449,10 +1453,11 @@ function buildDoc(){
       const P=[];frame(P,ctx,pg);const CI=corInfo();const cor=(CI.code?`${CI.esc} ${CI.code}`:`${CI.esc} A DEFINIR`)+(CI.nome?` — ${CI.nome}`:'');const sw=CI.hex||'#1a1a1a';const acab=$('#pAcab').value;const tinta=$('#pTinta').value.trim();
       const partes=pg.partes||'lateral';const txt={frente_lateral:'PINTAR A FRENTE E A LATERAL DA LETRA',lateral:'PINTAR SOMENTE A LATERAL DA LETRA',frente:'PINTAR SOMENTE A FRENTE DA LETRA'}[partes];
       P.push({t:'text',x:PW/2,y:30,s:pg.titulo||'PINTURA DA LETRA',size:4.2,color:'#000000',anchor:'middle'});
-      P.push({t:'rect',x:30,y:34,w:237,h:17,r:2,fill:'#fff4e6',stroke:'#e8590c',lw:0.4});
+      P.push({t:'rect',x:30,y:34,w:237,h:22,r:2,fill:'#fff4e6',stroke:'#e8590c',lw:0.4});
       P.push({t:'text',x:PW/2,y:40.6,s:txt+(partes==='lateral'?' — NÃO PINTAR A FRENTE':''),size:4.6,bold:true,color:'#c2410c',anchor:'middle'});
       P.push({t:'text',x:PW/2,y:48,s:'PINTAR O INTERNO DA LETRA DE BRANCO COM PISTOLA',size:4.2,bold:true,color:'#1c7ed6',anchor:'middle'});
-      const bb=bbox(orig);const BX=30,BY=57,BW=254,BH=54;const s=Math.min(BW/bb.w,BH/bb.h);const dx=BX+(BW-bb.w*s)/2,dy=BY+(BH-bb.h*s)/2;
+      {const np=regionsOf(toC(orig)).reduce((a,r)=>a+panelaPorLetra(fromC(r)),0);P.push({t:'text',x:PW/2,y:53.6,s:`PINTAR TAMBÉM ${np} PARAFUSOS CABEÇA PANELA PHILLIPS 5,5x25 (FIXAÇÃO DA LATERAL, 1 A CADA 20 CM) NA COR DA LETRA`,size:3,bold:true,color:'#c2410c',anchor:'middle'})}
+      const bb=bbox(orig);const BX=30,BY=66,BW=254,BH=46;const s=Math.min(BW/bb.w,BH/bb.h);const dx=BX+(BW-bb.w*s)/2,dy=BY+(BH-bb.h*s)/2;
       const map=p=>p.map(([x,y])=>[dx+(x-bb.x0)*s,dy+(bb.y1-y)*s]);
       // filetada: só a borda (contorno original até a linha interna escolhida)
       const temChapa=pagesOf(t).some(x=>x.tipo==='chapa');const tBorda=temChapa?(selChapa||7):0;
@@ -1654,7 +1659,7 @@ function buildDoc(){
    matTable(P,{},[['MATERIAL:','PAPEL KRAFT'],['MOLDE:',`${fmt(RW)} x ${fmt(RH)} MM`],['ARTE:',`${fmt(bb.w)} x ${fmt(bb.h)} MM`],['MARGEM:','50 MM EM CADA LADO'],...(furosDoc?[['FUROS:',`${furosDoc.length} Ø${FURO_D} = PVC (MARCAR/FURAR)`]]:[]),['ESCALA:','1:1 (TAMANHO REAL)']]);
    P.push({t:'text',x:284,y:25,s:`ESCALA DA FOLHA 1:${Math.round(1/s)} — ARQUIVO DO MOLDE EM 1:1`,size:2.4,bold:true,color:'#2f6fa8',anchor:'end'});
    pages.splice(1,0,P);}
-  paginasFinais(pages,null,ctx,prodLetras(t,ctx,orig,defs,ledInfo,furosDoc));
+  paginasFinais(pages,null,ctx,prodLetras(t,ctx,orig,defs,ledInfo,furosDoc,nests));
   if(!FOOT_SKIP)pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length));
   pages.forEach((P,i)=>{pages[i]=scaleP(P,K)});
   return {pages,info,ctx,W:b.w,H:b.h,escala,ledInfo,K,nests,orig,furos:furosDoc};
@@ -1718,7 +1723,7 @@ function toPDF(pages){
 /* ---------- Fluxo ---------- */
 let lastPdf=null,lastName='';
 function updateBtn(){$('#gerar').disabled=!(src&&src.polys.length&&selType&&selLed)}
-let ledAdj={},lastLed=null;
+let ledAdj={},lastLed=null,ledFoco=false;
 function renderLedAdj(R){const box=$('#ledAdj');if(!R||!R.letters||!R.letters.length){box.hidden=true;return}box.hidden=false;
   R.letters.forEach(g=>{if(g.alvo&&g.n<g.alvo)ledAdj[g.key]=g.n-(g.alvo-g.aj)});
   const Ls=ordenaPecas(R.letters);const tem=Object.values(ledAdj).some(v=>v);
@@ -1727,12 +1732,12 @@ function renderLedAdj(R){const box=$('#ledAdj');if(!R||!R.letters||!R.letters.le
     <span style="background:#e8a400;color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">${k+1}</span>
     <button class="btn ghost sm" data-la="${g.key}" data-d="-1" style="padding:4px 10px" ${g.n<=1?'disabled':''}>−</button><b style="min-width:52px;text-align:center">${g.n} LED${g.n===1?'':'S'}${g.alvo&&g.n<g.alvo?'<span class="note" style="display:block;font-weight:400;font-size:11px">não cabe mais</span>':''}</b><button class="btn ghost sm" data-la="${g.key}" data-d="1" style="padding:4px 10px" ${g.alvo&&g.n<g.alvo?'disabled':''}>+</button></div>`).join('')}</div>
   <p class="note" style="margin:6px 0 0">A FP é refeita na hora. Letras ajustadas ficam em azul e com * na folha de elétrica.</p>`}
-$('#ledAdj').onclick=e=>{const z=e.target.closest('#ledAdjZero');if(z){ledAdj={};$('#gerar').click();return}
+$('#ledAdj').onclick=e=>{const z=e.target.closest('#ledAdjZero');if(z){ledAdj={};ledFoco=true;$('#gerar').click();return}
   const b=e.target.closest('[data-la]');if(!b)return;const k=b.dataset.la;const g=(lastLed&&lastLed.letters||[]).find(x=>x.key===k);
   ledAdj[k]=(ledAdj[k]||0)+(+b.dataset.d);
   // o ajuste é relativo ao automático: se pediu menos e já está no mínimo, não passa de 1
   if(g&&g.n+(+b.dataset.d)<1)ledAdj[k]-=(+b.dataset.d);
-  document.querySelectorAll('#ledAdj button').forEach(x=>x.disabled=true);setTimeout(()=>$('#gerar').click(),20)};
+  document.querySelectorAll('#ledAdj button').forEach(x=>x.disabled=true);ledFoco=true;setTimeout(()=>$('#gerar').click(),20)};
 function resetOut(){lastPdf=null;$('#ledAdj').hidden=true;$('#baixar').hidden=true;$('#prodFiles').hidden=true;prodFiles=[]}
 let srcBytes=null;
 $('#pdfIn').onchange=async e=>{const f=e.target.files[0];if(!f)return;await carregaLetra(f.name,new Uint8Array(await f.arrayBuffer()));e.target.value=''};
@@ -1767,8 +1772,10 @@ async function salvar(name,data){const dl=window.claude&&claude.use?await claude
 $('#gerar').onclick=()=>{
   try{
     const d=buildDoc();
-    $('#prev').innerHTML=d.pages.map(P=>`<div class="pg">${toSVG(P)}</div>`).join('');
+    prevSet(d.pages.map(P=>`<div class="pg">${toSVG(P)}</div>`).join(''));
     lastPdf=toPDF(d.pages);lastLed=d.ledInfo;renderLedAdj(d.ledInfo);
+    {const li=d.pages.findIndex(P=>P.some(p=>p.t==='text'&&/DISTRIBUIÇÃO DE LED/.test(p.s||'')));const pgs=$('#prev').querySelectorAll('.pg');
+     if(li>=0&&pgs[li]&&!$('#ledAdj').hidden){pgs[li].after($('#ledAdj'));if(ledFoco){ledFoco=false;pgs[li].scrollIntoView({block:'start'})}}}
     lastName=`OS ${d.ctx.os||'sem número'} - ${d.ctx.cliente||src.name.replace(/\.pdf$/i,'')} - item ${d.ctx.item}.pdf`.replace(/[\\/:*?"<>|]/g,'-');
     const thin=d.info.flatMap(i=>i.lines.filter(l=>!l.polys.length).map(l=>l.legenda));
     $('#outMsg').innerHTML=`<div class="msg ok">${d.pages.length} página(s) gerada(s). Original: ${fmt(d.W)} × ${fmt(d.H)} mm. FP em A4; arquivos de produção em tamanho real.${d.ledInfo?` LED: ${d.ledInfo.mods.length} módulos, ${d.ledInfo.watts.toLocaleString('pt-BR',{maximumFractionDigits:1})} W → reator ${reatorTxt(d.ledInfo.watts*1.2)}.`:''}</div>`+(d.W+20>5080||d.H+20>5080?'<div class="msg warn">A peça passa de 5,08 m: alguns leitores de PDF cortam páginas desse tamanho. Abra os arquivos de produção no Corel ou Illustrator.</div>':'')+(thin.length?`<div class="msg warn">Linhas que sumiram (letra fina demais para a medida): ${esc(thin.join(', '))}</div>`:'')+(pagesOf(types.find(x=>x.id===selType)).length?'':'<div class="msg warn">Esse tipo ainda não tem páginas configuradas — gerei só o original. Configure em "Cadastros".</div>');
@@ -2757,9 +2764,12 @@ function miniDesenho(P,d,bx,by,bw,bh){if(!d)return;const ps=d.polys||[];const rs
   rs.forEach(r=>{const [x0,y1]=M([r.x0,r.y1]);P.push({t:'rect',x:x0,y:y1,w:Math.max(0.2,(r.x1-r.x0)*s),h:Math.max(0.2,(r.y1-r.y0)*s),fill:r.cor||'#dee2e6',stroke:'#495057',lw:0.06})});
   if(ps.length)P.push({t:'pathfill',polys:ps.map(p=>p.map(M)),fill:d.fill||'#e9ecef'});ps.forEach(p=>P.push({t:'poly',pts:p.map(M),color:d.cor||'#212529',w:0.15}))}
 
+const PANELA='parafuso auto-atarraxante cabeça panela Phillips (DIN 7981, 5,5 x 25 mm)';
+// parafusos cabeça panela na lateral: um a cada 20 cm do contorno externo de cada letra
+function panelaPorLetra(ps){const per=chainLen(ps[0].concat([ps[0][0]]));return Math.max(2,Math.ceil(per/200-1e-9))}
 /* ---------- PROJETO DE INSTALAÇÃO ---------- */
 function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'});const I=instLer();
-  const temF=!!instImg;const FX=20,FY=26,FW=98,FH=70;   // foto 40% maior que a de referência (7x5 → 9,8x7 cm), a 2 cm da margem
+  const temF=!!instImg;const FX=20,FY=26,FW=138,FH=98;   // foto grande (≈ 2x a área de 9,8x7 cm), a 2 cm da margem
   if(temF){const k=Math.min(FW/instImg.w,(FH-4)/instImg.h),w=instImg.w*k,h=instImg.h*k;
     P.push({t:'rect',x:FX,y:FY,w:FW,h:FH,fill:'#ffffff',stroke:'#868e96',lw:0.25},{t:'img',x:FX+(FW-w)/2,y:FY+4+(FH-4-h)/2,w,h,src:instImg.src,fmt:'JPEG'},{t:'text',x:FX+1.5,y:FY+3,s:'FOTO DE INSTALAÇÃO',size:2.2,bold:true,color:'#868e96'})}
   const IX=temF?FX+FW+8:20;let y=31;
@@ -2770,12 +2780,14 @@ function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'}
   if(prod.un>1)lin('QUANTIDADE:',`${prod.un} UN.`);
   lin('POSIÇÃO:',instPosTxt(I),'#d6336c');
   if(I.pw&&I.ph)lin('PAREDE:',`${f0(I.pw/10)} cm (L) x ${f0(I.ph/10)} cm (A)`);else if(I.pw)lin('PAREDE:',`${f0(I.pw/10)} cm (L)`);else if(I.ph)lin('PAREDE:',`${f0(I.ph/10)} cm (A)`);
-  if(prod.letras&&prod.letras.length){P.push({t:'text',x:IX,y:y+1,s:'ALTURA DE CADA LETRA',size:2.6,bold:true,color:'#c2255c'});y+=3;
-    const per=temF?4:8,cw=temF?27:30;prod.letras.forEach((l,k)=>{const c=Math.floor(k/per),r=k%per;const x=IX+c*(cw+2),yy=y+r*4.4;if(x+cw>286)return;
-      P.push({t:'rect',x,y:yy,w:cw,h:4.4,fill:r%2?'#ffffff':'#fff0f6',stroke:'#adb5bd',lw:0.1},{t:'text',x:x+1.5,y:yy+3.1,s:`${k+1}. ${l.nome?l.nome+' ':''}${f0(l.h)} mm`,size:2.4,bold:true,color:'#000000'})});
+  if(prod.metodo&&prod.metodo.length){P.push({t:'text',x:IX,y:y+1,s:'MÉTODO DE INSTALAÇÃO',size:2.6,bold:true,color:'#c2255c'});y+=4.5;
+    prod.metodo.forEach(t=>{P.push({t:'text',x:IX,y,s:fit('• '+t,286-IX,2.4),size:2.4,color:'#000000'});y+=3.8});y+=1}
+  if(prod.letras&&prod.letras.length){const det=prod.letras[0].pan!=null;P.push({t:'text',x:IX,y:y+1,s:det?'POR LETRA: ALTURA • BROCANTES NO PVC • PANELA NA LATERAL':'ALTURA DE CADA LETRA',size:2.6,bold:true,color:'#c2255c'});y+=3;
+    const per=temF?4:6,cw=det?(temF?52:56):(temF?27:30);prod.letras.forEach((l,k)=>{const c=Math.floor(k/per),r=k%per;const x=IX+c*(cw+2),yy=y+r*4.4;if(x+cw>286)return;
+      P.push({t:'rect',x,y:yy,w:cw,h:4.4,fill:r%2?'#ffffff':'#fff0f6',stroke:'#adb5bd',lw:0.1},{t:'text',x:x+1.5,y:yy+3.1,s:`${k+1}. ${f0(l.h)} mm${det?`  •  ${l.broc!=null?l.broc+' broc.':''}  •  ${l.pan} panela`:''}`,size:2.3,bold:true,color:'#000000'})});
     y+=Math.min(per,prod.letras.length)*4.4+2}
   // desenho da parede com a peça e as medidas de saída
-  const top=Math.max(temF?FY+FH+6:y+4,y+2);const R={x:22,y:top+4,w:262,h:166-top-6};
+  let R;if(temF&&166-(y+4)>=48)R={x:IX-4,y:y+2,w:288-IX,h:166-y-2};else{const top=Math.max(temF?FY+FH+4:y+4,y+2);R={x:22,y:top+2,w:262,h:166-top-4}}
   const W=prod.W,H=prod.H;const mg=Math.max(250,0.35*Math.max(W,H));
   const L0=I.hm==='esquerda'?I.hv:I.hm==='direita'?(I.pw?I.pw-W-I.hv:mg):(I.pw?(I.pw-W)/2:mg);
   const PWm=I.pw||(I.hm==='direita'?L0+W+I.hv:L0+W+mg);
@@ -2803,7 +2815,7 @@ function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'}
   else if(I.vm==='baixo')cotaV(P,X(L0+W/2),Y(B0),Y(0),null,`${f0(I.vv/10)} cm`,fs,CR);
   else cotaV(P,X(L0+W/2),Y(PHm),Y(B0+H),null,`${f0(I.vv/10)} cm`,fs,CR);
   // saída vertical pequena: escreve ao lado
-  if(I.vm!=='centro'&&I.vv*s<8){const yy=I.vm==='cima'?(Y(PHm)+Y(B0+H))/2:(Y(B0)+Y(0))/2;P.push({t:'line',x1:X(L0+W)+12,y1:yy,x2:X(L0+W)+18,y2:yy,color:CR,w:0.2},{t:'text',x:X(L0+W)+19,y:yy+1,s:`${f0(I.vv/10)} cm ${I.vm==='cima'?'DO TETO / TOPO':'DO PISO / BASE'}`,size:2.6,bold:true,color:CR})}
+  if(I.vm!=='centro'&&I.vv*s<8){const yy=I.vm==='cima'?(Y(PHm)+Y(B0+H))/2:(Y(B0)+Y(0))/2;const tx=`${f0(I.vv/10)} cm ${I.vm==='cima'?'DO TETO / TOPO':'DO PISO / BASE'}`;const dir=X(L0+W)+19+tx.length*1.4<286;P.push(dir?{t:'line',x1:X(L0+W)+12,y1:yy,x2:X(L0+W)+18,y2:yy,color:CR,w:0.2}:{t:'line',x1:X(L0)-6,y1:yy,x2:X(L0)-1,y2:yy,color:CR,w:0.2},{t:'text',x:dir?X(L0+W)+19:X(L0)-7,y:yy+1,s:tx,size:2.6,bold:true,color:CR,anchor:dir?'start':'end'})}
   if(I.hm!=='centro'&&I.hv*s<8){const xx=I.hm==='esquerda'?X(0):X(PWm);P.push({t:'text',x:xx,y:Y(B0+H)-6,s:`${f0(I.hv/10)} cm ${I.hm==='esquerda'?'DA ESQUERDA':'DA DIREITA'}`,size:2.6,bold:true,color:CR,anchor:I.hm==='esquerda'?'start':'end'})}
   if(I.pw)cotaH(P,X(0),X(PWm),Y(0)+(I.vm==='baixo'||I.ph?6:4),Y(0),`PAREDE ${f0(I.pw/10)} cm`,2.4);
   if(I.ph)cotaV(P,X(0)-6,Y(PHm),Y(0),X(0),`${f0(I.ph/10)} cm`,2.4);
@@ -2834,41 +2846,50 @@ function folhasExpedicao(ctx,prod){const pages=[];const V=prod.volumes||[];const
   last.push({t:'text',x:12,y:yy+6,s:'Carregado por: ______________________________   Data: ____/____/______   Veículo / placa: _______________',size:2.8,color:'#000000'});
   return pages}
 
-/* ---------- CONFERÊNCIA DA QUALIDADE ---------- */
-function folhaQualidade(ctx,prod){const P=[];frame(P,ctx,{setor:'QUALIDADE'});const V=prod.volumes||[];const ch=prod.checks||['MEDIDAS','ACABAMENTO'];
-  P.push({t:'text',x:PW/2,y:30,s:'CONFERÊNCIA DE QUALIDADE',size:4.4,bold:true,color:'#000000',anchor:'middle'});
-  P.push({t:'text',x:PW/2,y:35.5,s:`ITEM ${ctx.item} — ${fit(prod.nome,140,3)} — marque com V cada item conferido`,size:3,color:'#555555',anchor:'middle'});
-  const cw=Math.min(28,150/(ch.length+1));const cols=[['PEÇA / VOLUME',84],['QTD.',12],...ch.map(c=>[c,cw]),['CONFERIDO',cw]];
-  let y=41,x=12;const H=7.2;cols.forEach(([h,w])=>{P.push({t:'rect',x,y,w,h:6,fill:'#0ca678',stroke:'#000000',lw:0.15},{t:'text',x:x+w/2,y:y+4,s:fit(h,w-1,2.1),size:2.1,bold:true,color:'#ffffff',anchor:'middle'});x+=w});y+=6;
-  const lin=V.slice(0,Math.floor((150-y)/H));
-  lin.forEach((v,i)=>{x=12;cols.forEach(([h,w],k)=>{P.push({t:'rect',x,y,w,h:H,fill:i%2?'#ffffff':'#f1f8f5',stroke:'#000000',lw:0.12});
-      if(k===0)P.push({t:'text',x:x+1.5,y:y+4.8,s:fit(v.desc,w-2,2.6),size:2.6,bold:true,color:'#000000'});
-      else if(k===1)P.push({t:'text',x:x+w/2,y:y+4.8,s:String(v.q||1),size:2.6,bold:true,color:'#000000',anchor:'middle'});
+/* ---------- CONFERÊNCIA DA QUALIDADE (com o desenho de cada peça e os aproveitamentos) ---------- */
+function folhasQualidade(ctx,prod){const pages=[];const V=(prod.volumes||[]).concat(prod.qualExtra||[]);const ch=prod.checks||['MEDIDAS','ACABAMENTO'];
+  const cw=Math.min(24,120/(ch.length+1));const cols=[['PEÇA / VOLUME',66],['QTD.',11],['DESENHO',48],...ch.map(c=>[c,cw]),['CONFERIDO',cw]];
+  const H=13.5,per=8;let P=null,y=0;
+  const novo=()=>{P=[];frame(P,ctx,{setor:'QUALIDADE'});pages.push(P);
+    P.push({t:'text',x:PW/2,y:30,s:'CONFERÊNCIA DE QUALIDADE',size:4.4,bold:true,color:'#000000',anchor:'middle'});
+    P.push({t:'text',x:PW/2,y:35.5,s:`ITEM ${ctx.item} — ${fit(prod.nome,140,3)} — marque com V cada item conferido`,size:3,color:'#555555',anchor:'middle'});
+    y=40;let x=12;cols.forEach(([h,w])=>{P.push({t:'rect',x,y,w,h:6,fill:'#0ca678',stroke:'#000000',lw:0.15},{t:'text',x:x+w/2,y:y+4,s:fit(h,w-1,2.1),size:2.1,bold:true,color:'#ffffff',anchor:'middle'});x+=w});y+=6};
+  V.forEach((v,i)=>{if(i%per===0)novo();let x=12;cols.forEach(([h,w],k)=>{P.push({t:'rect',x,y,w,h:H,fill:i%2?'#ffffff':'#f1f8f5',stroke:'#000000',lw:0.12});
+      if(k===0){P.push({t:'text',x:x+1.5,y:y+H/2-(v.cont?0.6:-1),s:fit(v.desc,w-2,2.6),size:2.6,bold:true,color:'#000000'});if(v.cont)P.push({t:'text',x:x+1.5,y:y+H/2+3,s:fit(v.cont,w-2,2),size:2,color:'#555555'})}
+      else if(k===1)P.push({t:'text',x:x+w/2,y:y+H/2+1,s:String(v.q||1),size:2.6,bold:true,color:'#000000',anchor:'middle'});
+      else if(k===2)miniDesenho(P,v.draw,x+1.5,y+1.2,w-3,H-2.4);
       else caixaCheck(P,x+w/2-2.4,y+H/2-2.4,4.8);x+=w});y+=H});
-  if(V.length>lin.length)P.push({t:'text',x:12,y:y+4,s:`+ ${V.length-lin.length} volume(s) — ver lista da expedição`,size:2.4,color:'#555555'});
-  y=Math.max(y+8,150);P.push({t:'text',x:12,y,s:'Observações da conferência: ________________________________________________________________________________',size:2.8,color:'#000000'});
-  P.push({t:'text',x:12,y:y+8,s:'Conferido por: ______________________________   Data: ____/____/______   Assinatura: ______________________',size:2.8,color:'#000000'});
-  return P}
+  if(!V.length)novo();
+  const last=pages[pages.length-1];const yy=Math.max(Math.min(y+8,156),150);
+  last.push({t:'text',x:12,y:yy,s:'Observações da conferência: ________________________________________________________________________________',size:2.8,color:'#000000'});
+  last.push({t:'text',x:12,y:yy+8,s:'Conferido por: ______________________________   Data: ____/____/______   Assinatura: ______________________',size:2.8,color:'#000000'});
+  return pages}
 
 function paginasFinais(pages,tags,ctx,prod){try{
   const a=folhaInstalacao(ctx,prod);pages.push(a);if(tags)tags.push('INSTALAÇÃO');
   folhasExpedicao(ctx,prod).forEach(P=>{pages.push(P);if(tags)tags.push('EXPEDIÇÃO')});
-  pages.push(folhaQualidade(ctx,prod));if(tags)tags.push('QUALIDADE')}catch(e){console.error('paginasFinais',e)}}
+  folhasQualidade(ctx,prod).forEach(P=>{pages.push(P);if(tags)tags.push('QUALIDADE')})}catch(e){console.error('paginasFinais',e)}}
 
 /* ---------- produtos ---------- */
-function prodLetras(t,ctx,orig,defs,ledInfo,furos){const regs=regionsOf(toC(orig)).map(r=>{const ps=fromC(r);return{ps,bb:bbox(ps)}});const L=ordenaPecas(regs);
+function prodLetras(t,ctx,orig,defs,ledInfo,furos,nests){const regs=regionsOf(toC(orig)).map(r=>{const ps=fromC(r);return{ps,bb:bbox(ps)}});const L=ordenaPecas(regs);
   const ar=p=>{let a=0;for(let i=0,j=p.length-1;i<p.length;j=i++)a+=(p[j][0]+p[i][0])*(p[j][1]-p[i][1]);return a/2};
   const temPVC=defs.some(p=>/PVC/i.test(p.material||'')),temAcr=defs.some(p=>/ACR/i.test((p.material||'')+' '+(p.titulo||''))),temLed=defs.some(p=>p.tipo==='led');
-  const cx=ctx.caixa||80;const vols=[];
+  const cx=ctx.caixa||80;const vols=[];const brocL=[],panL=[];
   L.forEach((g,k)=>{const area=Math.abs(g.ps.reduce((s,p)=>s+ar(p),0))/1e6;const per=g.ps.reduce((s,p)=>s+chainLen(p.concat([p[0]])),0)/1000;
     const kf=(temAcr?area*KG.acr4:area*KG.galv26)+per*cx/1000*KG.galv26;
     vols.push({desc:`LETRA ${k+1} — FRENTE`,cont:`Frente da letra (letra caixa${temAcr?', acrílico':''}, lateral galvanizada${temLed?', LEDs':''})`,dims:`${f0(g.bb.w)} x ${f0(g.bb.h)} x ${cx}`,q:1,kg:kf,draw:{polys:g.ps,fill:'#ffc9de'}});
     if(temPVC){const nf=(furos||[]).filter(f=>f.c[0]>=g.bb.x0-5&&f.c[0]<=g.bb.x1+5&&f.c[1]>=g.bb.y0-5&&f.c[1]<=g.bb.y1+5).length;
+      brocL[k]=nf;
       vols.push({desc:`LETRA ${k+1} — FUNDO PVC`,cont:`Fundo em PVC 10 mm${nf?` (${nf} furos Ø3)`:''}`,dims:`${f0(g.bb.w)} x ${f0(g.bb.h)} x 10`,q:1,kg:area*KG.pvc10,draw:{polys:g.ps,fill:'#e9ecef'}})}});
+  L.forEach((g,k)=>panL[k]=panelaPorLetra(g.ps));const nb=brocL.reduce((a,v)=>a+(v||0),0),np=panL.reduce((a,v)=>a+v,0);
   const b=bbox(orig);
+  vols.push({desc:'PARAFUSOS',cont:`${temPVC?nb+' brocantes Phillips (PVC na parede) + ':''}${np} cabeça panela Phillips 5,5x25 (lateral, pintados)`,dims:'—',q:1,kg:0,draw:null});
   vols.push({desc:'MOLDE KRAFT',cont:`Molde em papel kraft (enrolado)${furos?' com a furação':''}`,dims:`${f0(b.w+100)} x ${f0(b.h+100)}`,q:1,kg:(b.w+100)*(b.h+100)/1e6*0.1,draw:{rects:[{x0:0,y0:0,x1:b.w+100,y1:b.h+100,cor:'#f4e3c3'}]}});
   if(temLed&&ledInfo)vols.push({desc:'ELÉTRICA',cont:'Fonte / reator e fiação da iluminação',dims:'—',q:1,kg:0,draw:null});
-  return{tipo:'letra',nome:ctx.descItem||t.nome,W:b.w,H:b.h,D:cx,un:1,letras:L.map(g=>({h:g.bb.h})),contorno:orig,volumes:vols,
+  const qualExtra=[];(nests||[]).forEach(N=>{const B=N.best;if(!B)return;B.sheets.forEach((sh,k)=>{const polys=[];sh.items.forEach(it=>{const pc=pieceAt(N.pieces[it.i],it);(pc.lines[0]?[pc.lines[0]]:[]).forEach(l=>l.polys.forEach(p=>polys.push(p)))});
+    qualExtra.push({desc:`APROVEITAMENTO ${N.nome==='ACRILICO'?'ACRÍLICO':'CHAPA GALV.'} ${k+1}/${B.sheets.length}`,cont:`Chapa ${B.w} x ${B.h} mm — ${sh.items.length} peças`,q:1,draw:{rects:[{x0:0,y0:0,x1:B.w,y1:B.h,cor:'#f8f9fa'}],polys,fill:N.nome==='ACRILICO'?'#ffc9de':'#dee2e6'}})})});
+  return{tipo:'letra',qualExtra,nome:ctx.descItem||t.nome,W:b.w,H:b.h,D:cx,un:1,letras:L.map((g,k)=>({h:g.bb.h,broc:temPVC?(brocL[k]||0):null,pan:panL[k]})),
+    metodo:[...(temPVC?[`Fixar o molde kraft na parede, furar pelos furos e parafusar o FUNDO DE PVC com parafuso BROCANTE PHILLIPS (${nb} no total).`]:[]),`Encaixar a frente da letra${temPVC?' sobre o PVC':''} e fixar pela LATERAL com ${PANELA} — um a cada 20 cm (${np} no total).`,'Os parafusos da lateral vão pintados na cor da letra.'],contorno:orig,volumes:vols,
     checks:['MEDIDAS','ACABAMENTO / PINTURA',...(temLed?['LED ACENDE']:[]),...(temPVC?['FUROS PVC']:[])]}}
 function prodTesteira(M,o,ctx){const comp=M.comp;const vols=[];const b3=bbox3(M.acm?M.boxes.concat(M.acm.boxes):M.boxes.filter(b=>!b.fix));
   comp.forEach(c=>{const F=c.F;let kg=0;F.mem.forEach(m=>{const pp=PERFIS[m.perfil];if(!pp)return;kg+=(m.len+(m.ext||0))/1000*tuboKgM(pp.f,pp.p,numBR(m.parede||o.parede))});
@@ -2879,7 +2900,9 @@ function prodTesteira(M,o,ctx){const comp=M.comp;const vols=[];const b3=bbox3(M.
   const nc=comp.reduce((s,c)=>s+(c.F.nCant||0),0),nj=comp.reduce((s,c)=>s+(c.F.nJan||0),0);const fx=[];if(nj||comp.some(c=>c.F.nTravCad))fx.push('cadeirinhas');if(nc)fx.push(`${nc} cantoneiras AJR 003`);
   if(M.acm&&M.acm.paraf)fx.push(`${M.acm.paraf} brocantes`);if(M.acm)fx.push(`fita ${ACM_FITA[M.acm.fitaTipo]} ${f1(M.acm.fitaTot)} m`);
   if(fx.length)vols.push({desc:'FIXAÇÕES / ACESSÓRIOS',cont:fx.join(', '),dims:'—',q:1,kg:0,draw:null});
-  return{tipo:'testeira',nome:ctx.descItem,W:b3.x1-b3.x0,H:b3.y1-b3.y0,D:b3.z1-b3.z0,un:o.un,volumes:vols,
+  const qualExtra=[];if(M.acm){const E=M.acm.esc;E.bins.forEach((b,k)=>{const polys=b.pcs.map(pc=>{const it=pc.it;return it.pts.map(q=>{const r=pc.rot?[q[1],it.bw-q[0]]:q;return[pc.x+r[0],pc.y+r[1]]})});
+    qualExtra.push({desc:`APROVEITAMENTO ACM ${k+1}/${E.bins.length}`,cont:`Chapa ${f1(E.SW/1000)} x 5,00 m — ${b.pcs.length} peça(s)`,q:1,draw:{rects:[{x0:0,y0:0,x1:ACM_LEN,y1:E.SW,cor:'#f8f9fa'}],polys,fill:M.acm.hex}})})}
+  return{tipo:'testeira',qualExtra,nome:ctx.descItem,W:b3.x1-b3.x0,H:b3.y1-b3.y0,D:b3.z1-b3.z0,un:o.un,volumes:vols,
     contornoRects:M.boxes.filter(b=>!b.fix).map(b=>({x0:b.x0,y0:b.y0,x1:b.x1,y1:b.y1,cor:b.cor})).concat(M.acm?[]:[]),contorno:[[[b3.x0,b3.y0],[b3.x1,b3.y0],[b3.x1,b3.y1],[b3.x0,b3.y1]]],
     checks:['MEDIDAS','SOLDAS',...(tPint!=='nao'?['PINTURA']:[]),...(M.acm?['ACM']:[])]}}
 function prodEstrutura(bs,L,un,ctx,titulo){const b3=bbox3(bs);let kg=0;
@@ -3339,7 +3362,7 @@ function proximoN(){return Math.max(0,...(pedAtual.itens||[]).map(i=>+i.n||0))+1
 document.querySelectorAll('[data-novo]').forEach(b=>b.onclick=()=>{const tipo=b.dataset.novo;itemAtual={id:'i'+Date.now().toString(36),tipo,n:proximoN(),novo:true};
   limpaTipo(tipo);$('#item').value=itemAtual.n;irAba(TIPO_ABA[tipo]);if(tipo==='testeira')setModo('padrao');if(tipo==='estrutura')setModo('desenho');pedSujo=true;pedBarRender();window.scrollTo(0,0)});
 function limpaTipo(tipo){refImg=null;refRender();instReset();
-  if(tipo==='letra'){src=null;srcBytes=null;ledAdj={};resetOut();$('#prev').innerHTML='';$('#outMsg').innerHTML='';$('#fileInfo').innerHTML='';$('#drop').classList.remove('has');$('#dropTxt').textContent='Toque para escolher o PDF';$('#xPages').innerHTML='';$('#obs').value='';updateBtn()}
+  if(tipo==='letra'){src=null;srcBytes=null;ledAdj={};resetOut();prevSet('');$('#outMsg').innerHTML='';$('#fileInfo').innerHTML='';$('#drop').classList.remove('has');$('#dropTxt').textContent='Toque para escolher o PDF';$('#xPages').innerHTML='';$('#obs').value='';updateBtn()}
   if(tipo==='testeira'){tFaces=[{W:1000,H:1000,prof:0,junta:'linha'}];tAcm={on:false,esp:3,inst:'rente',fita:'vhb',chapa:'auto',marca:'',cor:null,jt:false,jmm:5,je:false,envT:'ext'};acmUI();renderFaces();v3Fit=true}
   if(tipo==='estrutura'){dSrc=null;dModel=null;dHist=[];dPrevModels=[];$('#dTxt').value='';$('#dAlt').value='';$('#dInfo').innerHTML='';$('#dDraw').innerHTML='';$('#dPecas').innerHTML='';$('#dDropTxt').textContent='Toque para escolher o PDF';$('#dAltBox').hidden=true;$('#dResCard').hidden=true;dBotao()}
   if(tipo==='modelo3d'){mSrc=null;mBytes=null;mPecas=[];$('#mInfo').innerHTML='';$('#mDropTxt').textContent='Toque para escolher o arquivo 3D (.stl ou .obj)';$('#mResCard').hidden=true}}
