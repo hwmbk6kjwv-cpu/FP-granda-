@@ -1831,7 +1831,7 @@ function nestNaFolha(P,job,best,opts,gap,mg){const f0=P._f0||0;const cont=P.slic
 function scaleP(P,K){const m=v=>v*K;const out=P.map(p=>{const q={...p};
   if(q.pts)q.pts=q.pts.map(([x,y])=>[x*K,y*K]);if(q.polys&&p.t==='pathfill')q.polys=q.polys.map(pp=>pp.map(([x,y])=>[x*K,y*K]));
   ['x','y','w','h','x1','y1','x2','y2','size','r'].forEach(k=>{if(typeof q[k]==='number'&&!((p.t==='poly'||p.t==='path')&&k==='w'))q[k]=m(q[k])});
-  if(p.t!=='poly'&&typeof q.lw==='number')q.lw*=K;if(p.t==='line')q.w=p.w*K;return q});out.K=K;['_f0','_ref','_refOk','_setor'].forEach(k=>{if(P[k]!==undefined)out[k]=P[k]});if(P._setorT){const i=P.indexOf(P._setorT);if(i>=0)out._setorT=out[i]}return out}
+  if(p.t!=='poly'&&typeof q.lw==='number')q.lw*=K;if(p.t==='line')q.w=p.w*K;return q});out.K=K;['_f0','_ref','_refOk','_setor','_n','_obs'].forEach(k=>{if(P[k]!==undefined)out[k]=P[k]});if(P._setorT){const i=P.indexOf(P._setorT);if(i>=0)out._setorT=out[i]}return out}
 function toSVG(P){const K=P.K||1;
   const r=n=>+(+n).toFixed(3);const o=[];
   for(const p of P){
