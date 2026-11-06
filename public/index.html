@@ -3420,7 +3420,7 @@ function fpObsPopup(n,prevId){let M=$('#fpObsModal');if(M)M.remove();M=document.
     <div class="row" style="gap:8px;margin-top:10px;justify-content:flex-end"><button class="btn ghost sm" type="button" data-x="limpar">Remover</button><button class="btn ghost sm" type="button" data-x="cancelar">Cancelar</button><button class="btn pink sm" type="button" data-x="ok">Atualizar FP</button></div></div>`;
   document.body.appendChild(M);const ta=M.querySelector('#fpObsTxt');ta.value=fpObsPg[n]||'';setTimeout(()=>ta.focus(),50);
   M.onclick=e=>{const b=e.target.closest('[data-x]');if(e.target===M||(b&&b.dataset.x==='cancelar')){M.remove();return}if(!b)return;
-    const v=b.dataset.x==='limpar'?'':ta.value.trim();if(v)fpObsPg[n]=v;else delete fpObsPg[n];M.remove();try{(FPOBS_RUN[prevId]||(()=>{}))()}catch(err){console.error(err)}}}
+    const v=b.dataset.x==='limpar'?'':ta.value.trim();if(v)fpObsPg[n]=v;else delete fpObsPg[n];if(typeof pedSujo!=='undefined'){pedSujo=true;try{pedBarRender()}catch(e){}}M.remove();try{(FPOBS_RUN[prevId]||(()=>{}))()}catch(err){console.error(err)}}}
 const FPOBS_RUN={prev:()=>{if(!$('#gerar').disabled)$('#gerar').click()},mPrev:()=>mFolhasRender(),dPrev:()=>dRender3D(),tPrev:()=>tRender()};
 ['prev','mPrev','dPrev','tPrev'].forEach(id=>{const el=$('#'+id);if(!el)return;
   new MutationObserver(()=>{el.querySelectorAll('.pg').forEach(pg=>{const nx=pg.nextElementSibling;if((!nx||!nx.classList.contains('fpObsRow'))&&pg.querySelector('svg[data-pg]'))fpObsLinha(pg)})}).observe(el,{childList:true})});
@@ -4111,7 +4111,7 @@ async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)th
   if(it.tipo==='letra'){putInputs(E.inputs);selType=E.selType;selLed=E.selLed;selLedW=E.selLedW||null;ledFonte={...(E.ledFonte||{})};ledFonteW={...(E.ledFonteW||{})};selChapa=E.selChapa;selCaixa=E.selCaixa||80;
     $('#xPages').innerHTML='';(E.xPages||[]).forEach((p,i)=>$('#xPages').insertAdjacentHTML('beforeend',pageBlock(p,i)));renumberIn($('#xPages'));
     renderTypes();renderLeds();selChapa=E.selChapa;selCaixa=E.selCaixa||80;renderChapa();renderCaixa();if(E.cor)putInputs(E.cor.inputs);
-    if(F)await carregaLetra(F.nome,unb64(F.b64));ledAdj=E.ledAdj||{};if(E.desc!=null)$('#descItem').value=E.desc;updateBtn();
+    if(F)await carregaLetra(F.nome,unb64(F.b64));ledAdj=E.ledAdj||{};ledFonte={...(E.ledFonte||{})};ledFonteW={...(E.ledFonteW||{})};if(E.desc!=null)$('#descItem').value=E.desc;updateBtn();
     if(mostrar){irAba('novo');setTimeout(()=>$('#gerar').click(),50)}}
   if(it.tipo==='testeira'){putInputs(E.inputs);tFaces=E.tFaces;tPint=E.tPint||'nao';tAcm=E.tAcm?{apl:aplDef(),...E.tAcm}:{on:false,esp:3,inst:'rente',fita:'vhb',chapa:'auto',marca:'',cor:null,jt:false,jmm:5,je:false,envT:'ext',apl:aplDef()};acmUI();adesMarca="";acmAplUI();fixSel.clear();(E.fixSel||[]).forEach(x=>fixSel.add(x));
     document.querySelectorAll('#tPintModo button').forEach(x=>x.classList.toggle('sel',x.dataset.m===tPint));$('#tPintSlot').hidden=tPint!=='toda';$('#tH40box').hidden=!$('#t40').checked;
