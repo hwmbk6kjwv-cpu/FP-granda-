@@ -1686,13 +1686,15 @@ function buildDoc(){
    const map=p=>p.map(([x,y])=>[dx+(x-bb.x0)*s,dy+(bb.y1-y)*s]);
    orig.forEach(p=>P.push({t:'poly',pts:map(p),color:'#000000',w:0.2}));
    L.forEach((g,k)=>{const cx=dx+((g.bb.x0+g.bb.x1)/2-bb.x0)*s,cy=dy+(bb.y1-g.bb.y0)*s+4;P.push({t:'circle',x:cx,y:cy,r:2.4,fill:'#c2255c',stroke:'#c2255c',lw:0.2},{t:'text',x:cx,y:cy+1,s:String(k+1),size:2.6,bold:true,color:'#ffffff',anchor:'middle'})});
-   // tabela por letra (até 3 colunas)
-   const rows=Math.max(1,Math.min(10,L.length)),cw=[12,30,30,36];const tw=cw.reduce((a,b)=>a+b,0);const ty=114,rh=4.6;
-   const nCol=Math.ceil(L.length/rows);
-   for(let c=0;c<nCol;c++){const tx=12+c*(tw+6);let x=tx;['Nº','LARGURA','ALTURA','PERÍMETRO'].forEach((h,k)=>{P.push({t:'rect',x,y:ty,w:cw[k],h:rh,fill:'#c2255c',stroke:'#000000',lw:0.2},{t:'text',x:x+cw[k]/2,y:ty+3.3,s:h,size:2.4,bold:true,color:'#ffffff',anchor:'middle'});x+=cw[k]});
-     L.slice(c*rows,(c+1)*rows).forEach((g,i)=>{const y=ty+rh*(i+1);let x=tx;const vals=[String(c*rows+i+1),`${Math.round(g.bb.w)} mm`,`${Math.round(g.bb.h)} mm`,`${(g.per/1000).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})} m`];
-       vals.forEach((v,k)=>{P.push({t:'rect',x,y,w:cw[k],h:rh,fill:i%2?'#ffffff':'#f8f0f4',stroke:'#000000',lw:0.15},{t:'text',x:x+cw[k]/2,y:y+3.3,s:v,size:2.6,bold:k===3||k===2,color:'#000000',anchor:'middle'});x+=cw[k]})})}
-   P.push({t:'text',x:12,y:ty+rh*(rows+1)+5,s:'Perímetro = contorno completo de cada letra (inclui os miolos), base para o filete/lateral.',size:2.4,color:'#555555'});
+   // tabela por letra com o desenho de cada peça (1 a 3 colunas)
+   const ty=114;const nCol=L.length<=5?1:L.length<=14?2:3;const rows=Math.max(1,Math.ceil(L.length/nCol));
+   const cw=nCol===3?[8,17,17,19,24]:[10,24,24,26,36];const tw=cw.reduce((a,b)=>a+b,0);const rh=Math.max(4.6,Math.min(11,(163-ty)/(rows+1)));const hh=4.6;
+   for(let c=0;c<nCol;c++){const tx=12+c*(tw+6);let x=tx;['Nº','LARGURA','ALTURA','PERÍMETRO','DESENHO'].forEach((h,k)=>{P.push({t:'rect',x,y:ty,w:cw[k],h:hh,fill:'#c2255c',stroke:'#000000',lw:0.2},{t:'text',x:x+cw[k]/2,y:ty+3.3,s:h,size:2.3,bold:true,color:'#ffffff',anchor:'middle'});x+=cw[k]});
+     L.slice(c*rows,(c+1)*rows).forEach((g,i)=>{const y=ty+hh+rh*i;let x=tx;const vals=[String(c*rows+i+1),`${Math.round(g.bb.w)} mm`,`${Math.round(g.bb.h)} mm`,`${(g.per/1000).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})} m`,''];
+       vals.forEach((v,k)=>{P.push({t:'rect',x,y,w:cw[k],h:rh,fill:i%2?'#ffffff':'#f8f0f4',stroke:'#000000',lw:0.15});if(v)P.push({t:'text',x:x+cw[k]/2,y:y+rh/2+1,s:v,size:2.5,bold:k===3||k===2,color:'#000000',anchor:'middle'});
+         if(k===4){const q=bbox(g.ps);const W=cw[k]-2,H=rh-1.2,sc=Math.min(W/q.w,H/q.h);const ox=x+(cw[k]-q.w*sc)/2,oy=y+(rh-q.h*sc)/2;g.ps.forEach(p=>P.push({t:'poly',pts:p.map(([px,py])=>[ox+(px-q.x0)*sc,oy+(q.y1-py)*sc]),color:'#000000',w:0.12}))}
+         x+=cw[k]})})}
+   P.push({t:'text',x:12,y:Math.min(166,ty+hh+rh*rows+4),s:'Perímetro = contorno completo de cada letra (inclui os miolos), base para o filete/lateral.',size:2.4,color:'#555555'});
    {const cpg=defs.find(x=>x.tipo==='chapa'||/GALVAN/i.test(x.material||''));const latG=/galvaniz/i.test(t.nome||'')&&/lateral/i.test(t.nome||'');
    if(!cpg&&latG){P.push({t:'rect',x:12,y:105.5,w:273,h:6.5,r:1.5,fill:'#fff0f6',stroke:'#c2255c',lw:0.4});
      P.push({t:'text',x:148.5,y:110,s:`LATERAIS: CHAPA 26 GALVANIZADA (altura ${ctx.caixa} mm)`,size:3.4,bold:true,color:'#000000',anchor:'middle'})}
@@ -3316,6 +3318,7 @@ function mpChapaM2(nome){const n=mpNorm(nome);let m=n.match(/(\d{3,4})\s*X\s*(\d
 // volume da lata pelo nome (0,9L, 3,6L, 600ML, 18L) em litros
 function mpLitros(nome){const n=mpNorm(nome);let m=n.match(/(\d+(?:\.\d+)?)\s*ML\b/);if(m)return +m[1]/1000;m=n.match(/(\d+(?:\.\d+)?)\s*(?:L|LT|LTS|LITRO)\b/);return m?+m[1]:0}
 let mpMapa={};try{mpMapa=JSON.parse(localStorage.getItem('granda_mpmap')||'{}')}catch(e){}
+let matQtd={};// quantidades trocadas à mão (por item do pedido)
 let mpPreco={};try{mpPreco=JSON.parse(localStorage.getItem('granda_mpprecos')||'{}')}catch(e){}
 function mpSalvaPreco(){try{localStorage.setItem('granda_mpprecos',JSON.stringify(mpPreco))}catch(e){}}
 function mpSalvaMapa(){try{localStorage.setItem('granda_mpmap',JSON.stringify(mpMapa))}catch(e){}}
@@ -3391,13 +3394,14 @@ function matEstrutura(L,un){const g={};(L||[]).forEach(r=>{if(!/tubo|metalon|bar
   return Object.entries(g).map(([k,lens])=>{const [p,w]=k.split('|');return needMetalon(p,w,mpBarras(lens),'estrutura')})}
 // resolve códigos e valores
 function matResolve(N){return N.filter(n=>n.q>0||n.m2>0||n.litros>0).map(n=>{const r=mpItem(n.k,n.busca);
-    if(r&&r.cust){const c=r.cust;const q=n.q||0;return{...n,q,cod:'MANUAL',nome:c.nome,unMP:c.un||n.un,vu:c.valor||0,tot:(c.valor||0)*q,data:c.data||'',manual:true}}
+    if(r&&r.cust){const c=r.cust;const q=matQtd[n.k]!=null?matQtd[n.k]:(n.q||0);return{...n,q,cod:'MANUAL',nome:c.nome,unMP:c.un||n.un,vu:c.valor||0,tot:(c.valor||0)*q,data:c.data||'',manual:true}}
     const m=r?MP[r.i]:null;let q=n.q,extra='';
     if(m&&n.m2>0){const A=mpChapaM2(m[1]);if(A>0){q=Math.round(n.m2*(1+MPP.chapaPerda/100)/A*100)/100;extra=` (${f2(n.m2)} m² de ${f2(A)} m² da chapa)`}}
     if(m&&n.litros>0){const V=mpLitros(m[1]);if(V>0){q=Math.round(n.litros/V*100)/100;extra=` (${f2(n.litros)} L de ${String(V).replace('.',',')} L)`}}
     if(!m&&(n.m2>0||n.litros>0)&&!q)q=n.m2>0?Math.round(n.m2*100)/100:Math.round(n.litros*100)/100;
     let vu=m?+m[3]||0:0,data=m?m[5]||'':'',semPreco=false;if(m&&!(vu>0)){const pp=mpPreco[m[0]];if(pp&&pp.valor>0){vu=pp.valor;data=pp.data+' (manual)'}else semPreco=true}
-    return{...n,q,uso:(n.uso||'')+extra,cod:m?m[0]:null,nome:m?m[1]:null,unMP:m?m[2]:n.un,vu,tot:vu*q,data,semPreco,manual:r&&r.manual}})}
+    const qm=matQtd[n.k]!=null;if(qm)q=matQtd[n.k];
+    return{...n,q,qtdManual:qm,uso:(n.uso||'')+(qm?' • qtd. manual':extra),cod:m?m[0]:null,nome:m?m[1]:null,unMP:m?m[2]:n.un,vu,tot:vu*q,data,semPreco,manual:r&&r.manual}})}
 const mpData=d=>{const m=String(d||'').match(/(\d{2})\/(\d{2})\/(\d{4})/);return m?+(m[3]+m[2]+m[1]):0};
 // cor (hex) de cada tinta do cadastro, pela referência escrita no nome: Pantone, RAL, Oracal ou nome da cor
 const TINTA_COR=[['AZUL MARINHO','#1b2a5c'],['AZUL CLARO','#5aa9e6'],['VERDE LIMAO','#9bcb3b'],['VERDE ESCURO','#0b4a2e'],['CINZA CLARO','#c3c5c4'],['CINZA ESCURO','#4f5254'],['BRANCO','#f4f5f2'],['PRETO','#141414'],['GRAFITE','#3a3d40'],['CINZA','#8a8e8f'],['PRATA','#b0b4b8'],['ALUMINIO','#a9adb1'],['AMARELO','#f5c400'],['LARANJA','#f07800'],['VERMELHO','#c8102e'],['VINHO','#6b0f1f'],['BORDO','#6b0f1f'],['ROSA','#e88fb4'],['PINK','#e0407e'],['MAGENTA','#c2186b'],['ROXO','#5d2c68'],['LILAS','#b893bc'],['VIOLETA','#5d2c68'],['AZUL','#0050a0'],['TURQUESA','#00a19a'],['VERDE','#00843d'],['MARROM','#5c3a21'],['BEGE','#d8c7a0'],['CREME','#efe0b4'],['DOURADO','#c9a43b'],['OURO','#b8963e'],['COBRE','#9a5a2e'],['BRONZE','#8c6a3f']];
@@ -3462,24 +3466,26 @@ function folhasMaterial(ctx,prod,rows){const pages=[];const tot=rows.reduce((s,r
 // ---------- tela: conferir / trocar o código de cada material ----------
 let matUlt=null;
 function matCardRender(){const html=matUlt&&matUlt.length?`<div style="margin-top:14px;padding:12px;border:1.5px solid #495057;border-radius:12px;background:#f8f9fa"><div class="row" style="justify-content:space-between"><b>Relação de material (RM)</b><span class="note">total ${matUlt.reduce((s,r)=>s+r.tot,0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</span></div>
-  ${matUlt.map((r,i)=>`<div class="row" style="gap:8px;align-items:center;border-top:1px solid var(--line);padding:6px 0;font-size:13px"><div style="flex:1;min-width:0"><div style="font-weight:600;${r.cod==null||r.semPreco?'color:#c92a2a':''}">${r.cod==null?'SEM CÓDIGO — '+esc(r.desc):esc(r.cod+' — '+r.nome)+(r.semPreco?' (SEM PREÇO)':'')}</div><div class="note" style="font-size:11px">${esc(r.desc)} • ${String(r.q).replace('.',',')} ${esc(r.unMP)} x ${r.vu.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}${r.data?' (valor de '+esc(r.data)+')':''}${r.manual?' • escolhido manualmente':''}</div></div><button class="btn ghost sm" type="button" data-mpk="${i}">Trocar</button></div>`).join('')}${matUlt.some(r=>r.semPreco)?`<div style="margin-top:10px;padding:10px;border:1.5px solid #e03131;border-radius:10px;background:#fff5f5"><b style="color:#c92a2a">Sem preço no cadastro — informe o valor</b>${matUlt.filter(r=>r.semPreco).map(r=>`<div class="row" style="gap:6px;align-items:center;margin-top:6px;flex-wrap:nowrap"><span style="flex:1;min-width:0;font-size:12.5px">${esc(r.cod+' — '+r.nome)}</span><input type="text" inputmode="decimal" placeholder="R$ un." data-mppr="${r.cod}" style="max-width:96px"></div>`).join('')}<button class="btn pink sm" type="button" data-mpprok="1" style="margin-top:8px">Salvar valores e atualizar</button></div>`:''}</div>`:'';
+  ${matUlt.map((r,i)=>`<div class="row" style="gap:8px;align-items:center;border-top:1px solid var(--line);padding:6px 0;font-size:13px"><div style="flex:1;min-width:0"><div style="font-weight:600;${r.cod==null||r.semPreco?'color:#c92a2a':''}">${r.cod==null?'SEM CÓDIGO — '+esc(r.desc):esc(r.cod+' — '+r.nome)+(r.semPreco?' (SEM PREÇO)':'')}</div><div class="note" style="font-size:11px">${esc(r.desc)} • ${String(r.q).replace('.',',')} ${esc(r.unMP)} x ${r.vu.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}${r.data?' (valor de '+esc(r.data)+')':''}${r.manual?' • produto escolhido à mão':''}${r.qtdManual?' • quantidade à mão':''}</div></div><button class="btn ghost sm" type="button" data-mpk="${i}">Trocar</button></div>`).join('')}${matUlt.some(r=>r.semPreco)?`<div style="margin-top:10px;padding:10px;border:1.5px solid #e03131;border-radius:10px;background:#fff5f5"><b style="color:#c92a2a">Sem preço no cadastro — informe o valor</b>${matUlt.filter(r=>r.semPreco).map(r=>`<div class="row" style="gap:6px;align-items:center;margin-top:6px;flex-wrap:nowrap"><span style="flex:1;min-width:0;font-size:12.5px">${esc(r.cod+' — '+r.nome)}</span><input type="text" inputmode="decimal" placeholder="R$ un." data-mppr="${r.cod}" style="max-width:96px"></div>`).join('')}<button class="btn pink sm" type="button" data-mpprok="1" style="margin-top:8px">Salvar valores e atualizar</button></div>`:''}</div>`:'';
   document.querySelectorAll('.matBox').forEach(b=>b.innerHTML=html)}
 function matRodar(prevId){try{const t=typeof abaAtual==='function'?abaAtual():'';if(t==='novo')FPOBS_RUN.prev();else if(t==='testeiras'){if(tModo==='desenho')dRender3D();else tRender()}else if(t==='modelo')mFolhasRender();else (FPOBS_RUN[prevId]||(()=>{}))()}catch(e){console.error(e)}}
 function matPopup(i,prevId){const r=matUlt[i];let M=$('#mpModal');if(M)M.remove();M=document.createElement('div');M.id='mpModal';
   M.style.cssText='position:fixed;inset:0;background:#0007;z-index:9999;display:flex;align-items:center;justify-content:center;padding:12px';
   M.innerHTML=`<div style="background:#fff;border-radius:14px;padding:14px;width:100%;max-width:520px;max-height:86vh;display:flex;flex-direction:column;gap:8px"><b>Matéria-prima para: ${esc(r.desc)}</b>
-    <input type="text" id="mpBusca" placeholder="Buscar (ex.: metalon 20x20, ACM branco 1500)" value=""><div id="mpRes" style="overflow:auto;flex:1"></div>
+    <div class="row" style="gap:6px;align-items:center;flex-wrap:nowrap"><label class="f" style="margin:0;white-space:nowrap">Quantidade (${esc(r.unMP||r.un)})</label><input type="text" id="mpQtd" inputmode="decimal" value="${String(r.q).replace('.',',')}" style="max-width:110px"><button class="btn pink sm" type="button" data-x="qtd">Aplicar quantidade</button></div>
+    <label class="f" style="margin:4px 0 0">Trocar o produto (lista de matérias-primas)</label><input type="text" id="mpBusca" placeholder="Buscar (ex.: metalon 20x20, ACM branco 1500)" value=""><div id="mpRes" style="overflow:auto;flex:1"></div>
     <details style="border-top:1px solid var(--line);padding-top:6px"><summary style="cursor:pointer;font-size:13px;font-weight:600">Não está na lista? Cadastrar item com valor</summary><div class="row" style="gap:6px;margin-top:6px;flex-wrap:nowrap"><input type="text" id="mpCNome" placeholder="Nome do material" style="flex:2"><input type="text" id="mpCUn" placeholder="un" value="un" style="max-width:56px"><input type="text" id="mpCVal" placeholder="R$ un." inputmode="decimal" style="max-width:90px"><button class="btn pink sm" data-x="custom" type="button">Usar</button></div></details>
-    <div class="row" style="gap:8px;justify-content:flex-end"><button class="btn ghost sm" data-x="auto" type="button">Voltar ao automático</button><button class="btn ghost sm" data-x="cancelar" type="button">Cancelar</button></div></div>`;
+    <div class="row" style="gap:8px;justify-content:flex-end"><button class="btn ghost sm" data-x="auto" type="button">Voltar ao automático (produto e quantidade)</button><button class="btn ghost sm" data-x="cancelar" type="button">Cancelar</button></div></div>`;
   document.body.appendChild(M);const inp=M.querySelector('#mpBusca');
   const lista=()=>{const ws=mpNorm(inp.value).split(' ').filter(Boolean);const res=[];for(let j=0;j<MP.length&&res.length<60;j++)if(ws.every(w=>MPN[j].includes(w)))res.push(j);
     M.querySelector('#mpRes').innerHTML=res.map(j=>`<div data-mp="${MP[j][0]}" style="padding:8px;border-bottom:1px solid var(--line);cursor:pointer;font-size:13px${MP[j][0]===r.cod?';background:#e7f5ff':''}"><b>${MP[j][0]}</b> ${esc(MP[j][1])}<div class="note" style="font-size:11px">${MP[j][2]} • ${MP[j][3].toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</div></div>`).join('')||'<p class="note">Nada encontrado.</p>'};
   inp.value=r.desc.replace(/—.*$/,'').replace(/[()"]/g,'').split(' ').filter(w=>w.length>2&&!/^(mm|de|com|para)$/i.test(w)).slice(0,2).join(' ');lista();inp.addEventListener('input',lista);setTimeout(()=>inp.focus(),50);
   const run=()=>matRodar(prevId);
   M.onclick=e=>{const b=e.target.closest('[data-x]'),it=e.target.closest('[data-mp]');if(e.target===M||(b&&b.dataset.x==='cancelar')){M.remove();return}
-    if(b&&b.dataset.x==='auto'){delete mpMapa[r.k];mpSalvaMapa();M.remove();run();return}
+    if(b&&b.dataset.x==='qtd'){const v=numBR(M.querySelector('#mpQtd').value);if(v>=0){matQtd[r.k]=v;if(typeof pedSujo!=='undefined')pedSujo=true}M.remove();run();return}
+    if(b&&b.dataset.x==='auto'){delete mpMapa[r.k];mpSalvaMapa();delete matQtd[r.k];M.remove();run();return}
     if(b&&b.dataset.x==='custom'){const nome=M.querySelector('#mpCNome').value.trim();const valor=numBR(M.querySelector('#mpCVal').value);if(!nome||!(valor>0))return;mpMapa[r.k]={nome:nome.toUpperCase(),un:M.querySelector('#mpCUn').value.trim()||'un',valor,data:new Date().toLocaleDateString('pt-BR')};mpSalvaMapa();M.remove();run();return}
-    if(it){mpMapa[r.k]=+it.dataset.mp;mpSalvaMapa();M.remove();run()}}}
+    if(it){mpMapa[r.k]=+it.dataset.mp;mpSalvaMapa();const v=numBR(M.querySelector('#mpQtd').value);if(v>=0&&Math.abs(v-r.q)>1e-9)matQtd[r.k]=v;M.remove();run()}}}
 document.addEventListener('click',e=>{const ok=e.target.closest('[data-mpprok]');if(ok){const box=ok.closest('.matBox');box.querySelectorAll('[data-mppr]').forEach(i=>{const v=numBR(i.value);if(v>0)mpPreco[+i.dataset.mppr]={valor:v,data:new Date().toLocaleDateString('pt-BR')}});mpSalvaPreco();matRodar(box&&box.dataset.prev);return}
   const b=e.target.closest('[data-mpk]');if(!b)return;const box=b.closest('.matBox');matPopup(+b.dataset.mpk,box&&box.dataset.prev)});
 
@@ -3928,7 +3934,7 @@ function irAba(tab){const b=document.querySelector(`nav button[data-tab="${tab}"
 function proximoN(){return Math.max(0,...(pedAtual.itens||[]).map(i=>+i.n||0))+1}
 document.querySelectorAll('[data-novo]').forEach(b=>b.onclick=()=>{const tipo=b.dataset.novo;itemAtual={id:'i'+Date.now().toString(36),tipo,n:proximoN(),novo:true};
   limpaTipo(tipo);$('#item').value=itemAtual.n;irAba(TIPO_ABA[tipo]);if(tipo==='testeira')setModo('padrao');if(tipo==='estrutura')setModo('desenho');pedSujo=true;pedBarRender();window.scrollTo(0,0)});
-function limpaTipo(tipo){refImg=null;fpObsPg={};refRender();instReset();
+function limpaTipo(tipo){refImg=null;fpObsPg={};matQtd={};refRender();instReset();
   if(tipo==='letra'){src=null;srcBytes=null;ledAdj={};resetOut();lDoc=null;lPrevRender();prevSet('');$('#outMsg').innerHTML='';$('#fileInfo').innerHTML='';$('#drop').classList.remove('has');$('#dropTxt').textContent='Toque para escolher o PDF';$('#xPages').innerHTML='';$('#obs').value='';selLed=6500;selCaixa=80;renderLeds();renderCaixa();updateBtn()}
   if(tipo==='testeira'){tFaces=[{W:1000,H:1000,prof:0,junta:'linha'}];tAcm={on:false,esp:3,inst:'rente',fita:'vhb',chapa:'auto',marca:'',cor:null,jt:false,jmm:5,je:false,envT:'ext',apl:aplDef()};acmUI();adesMarca="";acmAplUI();renderFaces();v3Fit=true}
   if(tipo==='estrutura'){dSrc=null;dModel=null;dHist=[];dPrevModels=[];$('#dTxt').value='';$('#dAlt').value='';$('#dInfo').innerHTML='';$('#dDraw').innerHTML='';$('#dPecas').innerHTML='';$('#dDropTxt').textContent='Toque para escolher o PDF';$('#dAltBox').hidden=true;$('#dResCard').hidden=true;dBotao()}
@@ -3961,7 +3967,7 @@ function capturaEstado(tipo){
 async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHTML=t;document.querySelectorAll('.isbMsg').forEach(e=>e.innerHTML=t.replace(/#b2f2bb/,'#2b8a3e').replace(/#ffc9c9/,'#c92a2a'))};
   try{const n=Math.max(1,Math.round(num($('#item').value))||1);
     const outro=(pedAtual.itens||[]).find(i=>+i.n===n&&(!itemAtual||i.id!==itemAtual.id));if(outro)throw new Error(`já existe o item ${n} neste pedido (${TIPO_NOME[outro.tipo]}). Mude o número do item.`);
-    msg('Salvando…');const C=capturaEstado(tipo);C.estado.refImg=refImg;C.estado.fpObsPg=fpObsPg;C.estado.inst=capInputs(['#instBox']);C.estado.instImg=instImg;C.estado.ancImg=ancImg;
+    msg('Salvando…');const C=capturaEstado(tipo);C.estado.refImg=refImg;C.estado.fpObsPg=fpObsPg;C.estado.matQtd=matQtd;C.estado.inst=capInputs(['#instBox']);C.estado.instImg=instImg;C.estado.ancImg=ancImg;
     let it=itemAtual&&itemAtual.tipo===tipo?pedAtual.itens.find(i=>i.id===itemAtual.id):null;const velho=it?{e:it.estadoId,f:it.fonteId}:null;
     const estadoId=await guardaJSON(C.estado);const fonteId=C.fonte?(it&&it.fonteNome===C.fonte.nome&&it.fonteTam===C.fonte.b64.length?it.fonteId:await guardaJSON(C.fonte)):null;
     const reg={id:it?it.id:(itemAtual&&itemAtual.id)||'i'+Date.now().toString(36),n,tipo,desc:C.desc,resumo:C.resumo,estadoId,fonteId,fonteNome:C.fonte?C.fonte.nome:'',fonteTam:C.fonte?C.fonte.b64.length:0,atualizado:Date.now()};
@@ -3972,7 +3978,7 @@ async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHT
   catch(e){console.error(e);msg(`<span style="color:#ffc9c9">Não salvou: ${esc(e.message)}</span>`)}}
 // abre um item: restaura tudo; se "mostrar", vai para a aba dele e gera
 async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)throw new Error('estado do item não encontrado');const F=it.fonteId?await lerJSON(it.fonteId):null;
-  itemAtual={id:it.id,tipo:it.tipo,n:it.n};$('#item').value=it.n;refImg=E.refImg||null;fpObsPg={...(E.fpObsPg||{})};refRender();instReset();if(E.inst){if(!E.inst.iUnid){['iHv','iVv','iPw','iPh'].forEach(k=>{if(E.inst[k])E.inst[k]=String(Math.round(numBR(E.inst[k])*10))});E.inst.iUnid='mm'}putInputs(E.inst)}instImg=E.instImg||null;ancImg=E.ancImg||null;instRender();
+  itemAtual={id:it.id,tipo:it.tipo,n:it.n};$('#item').value=it.n;refImg=E.refImg||null;fpObsPg={...(E.fpObsPg||{})};matQtd={...(E.matQtd||{})};refRender();instReset();if(E.inst){if(!E.inst.iUnid){['iHv','iVv','iPw','iPh'].forEach(k=>{if(E.inst[k])E.inst[k]=String(Math.round(numBR(E.inst[k])*10))});E.inst.iUnid='mm'}putInputs(E.inst)}instImg=E.instImg||null;ancImg=E.ancImg||null;instRender();
   if(E.cor){selEsc=E.cor.selEsc||selEsc;renderEsc();putInputs(E.cor.inputs)}
   if(it.tipo==='letra'){limpaTipo('letra');putInputs(E.inputs);selType=E.selType;selLed=E.selLed;selChapa=E.selChapa;selCaixa=E.selCaixa||80;
     $('#xPages').innerHTML='';(E.xPages||[]).forEach((p,i)=>$('#xPages').insertAdjacentHTML('beforeend',pageBlock(p,i)));renumberIn($('#xPages'));
