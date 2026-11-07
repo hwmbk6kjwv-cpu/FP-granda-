@@ -3819,7 +3819,7 @@ function dFolhas(){const un=Math.max(1,Math.round(num($('#dUn').value))||1);cons
       y+=4}}}
   if(dPint==='toda'){const P=[];frame(P,ctx,{setor:'PINTURA'});const A=dArea();
     folhaPinturaG(P,{boxes:bs,pts:dSoldas(),lin:A.lin*un/1000,area:A.area*un/1e6,un,toda:dPint==='toda',titulo:'PINTURA DA ESTRUTURA'});pages.push(P);tags.push('PINTURA')}
-  paginasFinais(pages,tags,ctx,prodEstrutura(bs,L,un,ctx,dModel.titulo));
+  {const pr=prodEstrutura(bs,L,un,ctx,dModel.titulo);if(dPint==='toda'){try{const A=dArea();pr.mat.push(...needsTinta(A.area*un/1e6,'estrutura'))}catch(err){console.error('tinta',err)}}paginasFinais(pages,tags,ctx,pr)}
   if(!FOOT_SKIP){numeraSetores(pages);pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length))}
   return {pages,tags,ctx}}
 $('#dBaixar').onclick=async()=>{if(!dBuild)return;const pdf=toPDF(dBuild.pages);const name=`OS ${dBuild.ctx.os||'sem número'} - estrutura - item ${dBuild.ctx.item}.pdf`.replace(/[\\/:*?"<>|]/g,'-');
