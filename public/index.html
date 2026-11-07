@@ -1412,10 +1412,11 @@ function obsBox(P,ctx){
 }
 // observação geral da FP: canto inferior direito, em vermelho, em todas as folhas
 let fpObsPg={};
-function obsFPDraw(P,n){P._n=n;const s=(P._obs!==undefined?P._obs:fpObsPg[n]||'').replace(/\s+/g,' ').trim();if(!s)return;const maxc=44;const ws=('OBS.: '+s).split(' ');const ls=[];let c='';
-  ws.forEach(w=>{if((c+' '+w).trim().length>maxc){ls.push(c);c=w}else c=(c+' '+w).trim()});if(c)ls.push(c);const L=ls.slice(0,4);if(ls.length>4)L[3]=L[3].slice(0,maxc-1)+'…';
-  const lh=3.3,x1=PW-9,w=Math.max(...L.map(l=>l.length))*1.66+4,h=L.length*lh+2.4,y0=169.6-h;P.push({t:'rect',x:x1-w,y:y0,w,h,fill:'#ffffff',stroke:'#e03131',lw:0.3});
-  L.forEach((l,i)=>P.push({t:'text',x:x1-2,y:y0+3.3+i*lh,s:l,size:2.7,bold:true,color:'#e03131',anchor:'end'}))}
+function obsFPDraw(P,n){P._n=n;const s=(P._obs!==undefined?P._obs:fpObsPg[n]||'').replace(/\s+/g,' ').trim();if(!s)return;const maxc=50;const ws=s.toUpperCase().split(' ');const ls=[];let c='';
+  ws.forEach(w=>{if((c+' '+w).trim().length>maxc){ls.push(c);c=w}else c=(c+' '+w).trim()});if(c)ls.push(c);const L=ls.slice(0,5);if(ls.length>5)L[4]=L[4].slice(0,maxc-1)+'…';
+  const lh=4.2,x1=PW-9,w=Math.max(30,Math.max(...L.map(l=>l.length))*1.95+8),h=L.length*lh+8.4,y0=169.4-h;
+  P.push({t:'rect',x:x1-w,y:y0,w,h,r:2,fill:'#d3f9d8',stroke:'#2b8a3e',lw:0.6},{t:'text',x:x1-w+3,y:y0+4.2,s:'OBSERVAÇÃO',size:2.7,bold:true,color:'#2b8a3e'});
+  L.forEach((l,i)=>P.push({t:'text',x:x1-w+3,y:y0+8.6+i*lh,s:l,size:3.2,bold:true,color:'#000000'}))}
 function footer(P,ctx,n,total){if(P._ref&&!P._refOk)refAplica(P);obsBox(P,ctx);obsFPDraw(P,n);
   const y0=171;P.push({t:'line',x1:8,y1:y0,x2:PW-8,y2:y0,color:'#000000',w:0.3});
   const LG=empresa.logo&&empresa.lw?empresa:{logo:GRANDA_LOGO,lw:375,lh:134};
