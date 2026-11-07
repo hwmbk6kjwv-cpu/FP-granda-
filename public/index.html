@@ -1348,8 +1348,13 @@ let ledFonte={};let ledFonteW={}; // potência escolhida à mão por fonte: {nº
  // fonte escolhida à mão por letra: {nºletra: nºfonte}
 function ledCircuitos(R){const Ls=ordenaPecas(R.letters||[]);if(!Ls.length)return null;const wm=(R.P&&R.P.watts)||1.2;
   const grande=Ls.some(g=>g.bb.h>350);const caps=grande?[100,150]:[60,100,150];const MAX=150;let out=[];let cur=null;
-  // automático: agrupa da esquerda para a direita até a fonte de 150 W
-  Ls.forEach((g,k)=>{const w=g.n*wm;if(w*LED_FOLGA>MAX){const n=Math.ceil(w*LED_FOLGA/MAX);for(let j=0;j<n;j++)out.push({letras:[k+1],w:w/n,parte:`${j+1}/${n}`});cur=null;return}if(!cur||(cur.w+w)*LED_FOLGA>MAX){cur={letras:[],w:0};out.push(cur)}cur.letras.push(k+1);cur.w+=w});
+  // automático: divide as letras no meio (metade num reator, metade no outro); se uma metade passar de 150 W, divide em mais partes iguais
+  const nL=Ls.length,ws=Ls.map(g=>g.n*wm),big=ws.map(w=>w*LED_FOLGA>MAX);
+  const parte=(k)=>{const ch=[];let i=0;for(let c=0;c<k;c++){const q=Math.ceil((nL-i)/(k-c));ch.push([...Array(q)].map((_,j)=>i+j));i+=q}return ch};
+  let ch=null;for(let k=Math.min(2,nL);k<=nL;k++){const c=parte(k);if(c.every(g=>g.filter(i=>!big[i]).reduce((a,i)=>a+ws[i],0)*LED_FOLGA<=MAX+1e-6)){ch=c;break}}
+  if(!ch)ch=parte(nL);
+  ch.forEach(g=>{const nor=g.filter(i=>!big[i]);if(nor.length)out.push({letras:nor.map(i=>i+1),w:nor.reduce((a,i)=>a+ws[i],0)});
+    g.filter(i=>big[i]).forEach(i=>{const n=Math.ceil(ws[i]*LED_FOLGA/MAX);for(let j=0;j<n;j++)out.push({letras:[i+1],w:ws[i]/n,parte:`${j+1}/${n}`})})});
   out.forEach((c,i)=>c.n=i+1);
   // escolha manual: reagrupa pelas fontes escolhidas em cada letra
   const man=Object.keys(ledFonte||{}).filter(k=>+k<=Ls.length);
