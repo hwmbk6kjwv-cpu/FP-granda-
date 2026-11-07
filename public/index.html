@@ -2244,8 +2244,8 @@ function cotaV(P,x,y1,y2,xObj,txt,fs,cor){const c=cor||COR_DIM,ym=(y1+y2)/2,tw=t
   if(y2-y1>tw+4){P.push({t:'line',x1:x,y1,x2:x,y2:ym-tw/2-1,color:c,w:0.15},{t:'line',x1:x,y1:ym+tw/2+1,x2:x,y2,color:c,w:0.15});P.push({t:'text',x:x+fs*0.36,y:ym,s:txt,size:fs,color:c,anchor:'middle',angle:90})}
   else{P.push({t:'line',x1:x,y1,x2:x,y2,color:c,w:0.15});P.push({t:'text',x:x-0.8,y:ym,s:txt,size:fs*0.8,color:c,anchor:'middle',angle:90})}}
 const COR_DIM='#2a6f97';
-function legendaSerr(P,lx,ly,lw,usados){const nz=s=>String(s||'').toUpperCase().replace(/\s+/g,'').replace(/,/g,'.');let itens=LEG_SERR.concat(Object.entries(perfisCustom).sort().map(([k,c])=>[k.toUpperCase(),c]));
-  if(usados){const U=new Set(usados.map(nz).filter(Boolean));itens=itens.filter(([k])=>U.has(nz(k)));const vist=new Set();itens=itens.filter(([k])=>{const z=nz(k);if(vist.has(z))return false;vist.add(z);return true});if(!itens.length)return}
+function legendaSerr(P,lx,ly,lw,usados){const nz=s=>normPerfil(s);let itens=LEG_SERR.concat(Object.entries(perfisCustom).sort().map(([k,c])=>[k.toUpperCase(),c]));
+  if(usados){const U=[...new Set(usados.map(nz).filter(z=>/\d/.test(z)))];itens=U.map(z=>[z.toUpperCase(),STD_PERF[z]||perfisCustom[z]||corPerfil(z)]);if(!itens.length)return}
   const rows=Math.ceil(itens.length/2);const h=rows*4.6+1.6;ly-=Math.max(0,h-20);
   P.push({t:'rect',x:lx,y:ly,w:lw,h:4.5,fill:'#5fd35f',stroke:'#000000',lw:0.2},{t:'text',x:lx+lw/2,y:ly+3.2,s:'LEGENDA PADRÃO - SERRALHERIA',size:2.3,bold:true,color:'#000000',anchor:'middle'});
   P.push({t:'rect',x:lx,y:ly+4.5,w:lw,h:Math.max(20,h),stroke:'#000000',lw:0.2,fill:'#ffffff'});
