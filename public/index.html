@@ -1483,9 +1483,10 @@ function refRender(){$('#refPrev').innerHTML=refImg?`<div class="row" style="gap
 // o cadastro da instalação fica por último, logo antes das folhas (FP) de cada aba
 let c3Next=null;
 function tOrdem(){const c3=$('#t3d')&&$('#t3d').closest('.card');if(!c3)return;if(!c3Next)c3Next=c3.nextElementSibling;const s=$('#instSec');
-  if(typeof tModo!=='undefined'&&tModo==='desenho'){$('#dCard').after(c3);c3.after(s)}else{c3Next.before(c3);c3.before(s)}}
+  const xf=$('#xfT').closest('.card');
+  if(typeof tModo!=='undefined'&&tModo==='desenho'){$('#dCard').after(c3);c3.after(s);$('#dResCard').before(xf)}else{c3Next.before(c3);c3.before(s);$('#tPrev').closest('.card').before(xf)}}
 function instColoca(tb){const s=$('#instSec');if(tb==='testeiras'){tOrdem();return}const alvo=tb==='novo'?$('#gerar').closest('.card'):tb==='modelo'?$('#mResCard'):null;
-  if(alvo&&alvo.parentNode&&alvo.previousElementSibling!==s)alvo.parentNode.insertBefore(s,alvo)}
+  if(alvo&&alvo.parentNode&&alvo.previousElementSibling!==s)alvo.parentNode.insertBefore(s,alvo);if(tb==='modelo'){const xf=$('#xfM').closest('.card');$('#mResCard').before(xf)}}
 let lSel='',lDoc=null;
 const lSetNome=s=>({RM:'Relação de material (RM)',MONTAGEM:'Montagem ACM','LETRA CAIXA':'Letra caixa',ROUTER:'Router',P1:'P1',PINTURA:'Pintura','ELÉTRICA':'Elétrica',ACABAMENTO:'Acabamento','INSTALAÇÃO':'Instalação','EXPEDIÇÃO':'Expedição',QUALIDADE:'Qualidade',SERRALHERIA:'Serralheria',OUTRAS:'Outras'}[s]||s);
 // fichas de produção separadas por setor (botões)
