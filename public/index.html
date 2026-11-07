@@ -725,6 +725,7 @@ function pageBlock(p,i){
   <div class="g2"><div><label class="f">Setor</label><select class="ps">${opts}</select></div><div><label class="f">Título da folha</label><input type="text" class="pt" value="${esc(p.titulo)}"></div></div>
   <div class="g2"><div><label class="f">Material</label><input type="text" class="pm" value="${esc(p.material)}"></div><div><label class="f">Espessura</label><input type="text" class="pe" value="${esc(p.espessura)}"></div>
   <div><label class="f">Cor e marca</label><input type="text" class="pc" value="${esc(p.cor)}"></div><div><label class="f">Textura</label><input type="text" class="px" value="${esc(p.textura)}"></div></div>
+  <label class="f">Foto grande centralizada (opcional — a folha mostra só a foto)</label><div class="row xfoto" style="gap:8px;align-items:center" data-img="${p.img?esc(JSON.stringify(p.img)):''}"><label class="btn ghost sm" style="cursor:pointer">${p.img?'Trocar foto':'Enviar foto'}<input type="file" accept="image/*" class="xfIn" hidden></label>${p.img?`<img src="${p.img.src}" style="width:90px;height:64px;object-fit:contain;border:1px solid var(--line);border-radius:6px;background:#fff"><button class="btn ghost sm xfDel">Remover foto</button>`:''}</div>
   <label class="f">Linhas</label><div class="lines-ed">${(p.linhas||[]).map(lineRow).join('')}</div><button class="btn ghost sm addl">+ Linha</button></div>`;
 }
 function renumber(){document.querySelectorAll('#mPages .pgedit .hd span').forEach((s,i)=>s.textContent='Página '+(i+1))}
@@ -758,7 +759,13 @@ function readPages(box){return [...box.querySelectorAll('.pgedit')].map(b=>b.dat
     led:Object.fromEntries([...b.querySelectorAll('.lf')].map(i=>[i.dataset.k,parseFloat(String(i.value).replace(',','.'))||0]))}):({
     setor:b.querySelector('.ps').value,titulo:b.querySelector('.pt').value.trim(),material:b.querySelector('.pm').value.trim(),
     espessura:b.querySelector('.pe').value.trim(),cor:b.querySelector('.pc').value.trim(),textura:b.querySelector('.px').value.trim(),
-    linhas:[...b.querySelectorAll('.ln')].map(r=>({offset:num(r.querySelector('.lo').value),legenda:r.querySelector('.ll').value.trim(),cor:r.querySelector('.lc').value}))}))}
+    linhas:[...b.querySelectorAll('.ln')].map(r=>({offset:num(r.querySelector('.lo').value),legenda:r.querySelector('.ll').value.trim(),cor:r.querySelector('.lc').value})),
+    img:(()=>{const d=b.querySelector('.xfoto');try{return d&&d.dataset.img?JSON.parse(d.dataset.img):null}catch(e){return null}})()}))}
+// foto grande na página extra
+function xFotoSet(box,img){box.dataset.img=img?JSON.stringify(img):'';box.innerHTML=`<label class="btn ghost sm" style="cursor:pointer">${img?'Trocar foto':'Enviar foto'}<input type="file" accept="image/*" class="xfIn" hidden></label>${img?`<img src="${img.src}" style="width:90px;height:64px;object-fit:contain;border:1px solid var(--line);border-radius:6px;background:#fff"><button class="btn ghost sm xfDel">Remover foto</button>`:''}`;if(typeof pedSujo!=='undefined')pedSujo=true;resetOut()}
+document.addEventListener('change',e=>{const i=e.target.closest&&e.target.closest('.xfIn');if(!i||!i.files[0])return;const box=i.closest('.xfoto');const f=i.files[0];const url=URL.createObjectURL(f);const im=new Image();
+  im.onload=()=>{const Mx=1800,k=Math.min(1,Mx/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);xFotoSet(box,{src:c.toDataURL('image/jpeg',0.88),w:c.width,h:c.height})};im.src=url});
+document.addEventListener('click',e=>{const d=e.target.closest&&e.target.closest('.xfDel');if(d)xFotoSet(d.closest('.xfoto'),null)});
 $('#mCancel').onclick=()=>$('#modal').classList.remove('on');
 $('#mFotoDel').onclick=()=>{editing.foto='';showFoto()};
 $('#mFotoIn').onchange=async e=>{const f=e.target.files[0];if(!f)return;editing.foto=(await shrinkImage(f,500,'image/jpeg')).url;showFoto();e.target.value=''};
@@ -1574,6 +1581,9 @@ function buildDoc(){
   defs=defs.map(pg=>/ACR/i.test(pg.material||'')&&!/\d\s*mm/i.test(pg.titulo||'')?{...pg,titulo:(pg.titulo||'FRENTE LETRA - ACRÍLICO')+' '+((pg.espessura&&pg.espessura!=='----')?pg.espessura:'4MM'),espessura:(pg.espessura&&pg.espessura!=='----')?pg.espessura:'4MM'}:pg);
   defs=defs.map(pg=>/PVC/i.test(pg.material||'')&&(!pg.espessura||pg.espessura==='----')?{...pg,espessura:'10MM',titulo:/10\s*mm/i.test(pg.titulo||'')?pg.titulo:(pg.titulo||'FUNDO LETRA - PVC')+' 10mm'}:pg);
   defs.forEach(pg=>{
+    if(pg.img&&pg.img.src){const P=[];frame(P,ctx,pg);let top=26;if(pg.titulo){P.push({t:'text',x:PW/2,y:30.5,s:pg.titulo,size:4.4,bold:true,color:'#000000',anchor:'middle'});top=34}
+      const BW=PW-24,BH=167-top;const k=Math.min(BW/pg.img.w,BH/pg.img.h),w=pg.img.w*k,h=pg.img.h*k;
+      P.push({t:'img',x:(PW-w)/2,y:top+(BH-h)/2,w,h,src:pg.img.src,fmt:'JPEG'});pages.push(P);info.push({pg,lines:[]});return}
     if(pg.tipo==='pintura'){
       const P=[];frame(P,ctx,pg);const CI=corInfo();const cor=(CI.code?`${CI.esc} ${CI.code}`:`${CI.esc} A DEFINIR`)+(CI.nome?` — ${CI.nome}`:'');const sw=CI.hex||'#1a1a1a';const acab=$('#pAcab').value;const tinta=$('#pTinta').value.trim();
       const partes=pg.partes||'lateral';const txt={frente_lateral:'PINTAR A FRENTE E A LATERAL DA LETRA',lateral:'PINTAR SOMENTE A LATERAL DA LETRA',frente:'PINTAR SOMENTE A FRENTE DA LETRA'}[partes];
@@ -3070,7 +3080,7 @@ if($('#aApl')){
   acmAplUI()}
 
 /* ================= Instalação, Expedição e Qualidade (todas as FPs) ================= */
-let instImg=null;
+let instImg=null,instImg2=null;
 const KG={acr4:4.76,galv26:3.6,pvc10:5.5,acm:{3:4.5,4:5.6}}; // kg/m² aproximados
 const tuboKgM=(f,p,t)=>Math.max(0,(2*(f+p)-4*t)*t*0.00785);   // kg por metro de tubo
 const numBR=v=>parseFloat(String(v||'').replace(',','.'))||0;
@@ -3169,8 +3179,9 @@ function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'}
   lin('POSIÇÃO:',instPosTxt(I),'#d6336c');
   {const A=ancInfo(I,prod);if(A)lin('ANCORAGEM:',`${A.nome} — ${A.q} UN.`,'#d6336c')}
   if(I.pw&&I.ph)lin('PAREDE:',`${f0(I.pw)} mm (L) x ${f0(I.ph)} mm (A)`);else if(I.pw)lin('PAREDE:',`${f0(I.pw)} mm (L)`);else if(I.ph)lin('PAREDE:',`${f0(I.ph)} mm (A)`);
-  if(temF){const FW=XR-IX,FH=40;const k=Math.min((FW-2)/instImg.w,(FH-5)/instImg.h),w=instImg.w*k,h=instImg.h*k;
-    P.push({t:'rect',x:IX,y,w:FW,h:FH,fill:'#ffffff',stroke:'#868e96',lw:0.25},{t:'img',x:IX+(FW-w)/2,y:y+4+(FH-5-h)/2,w,h,src:instImg.src,fmt:'JPEG'},{t:'text',x:IX+1.5,y:y+3,s:'FOTO DE INSTALAÇÃO',size:2,bold:true,color:'#868e96'});y+=FH+5}
+  if(temF){const fs=[instImg,instImg2].filter(Boolean),FH=40,G=3,FW=((XR-IX)-G*(fs.length-1))/fs.length;
+    fs.forEach((im,i)=>{const x0=IX+i*(FW+G);const k=Math.min((FW-2)/im.w,(FH-5)/im.h),w=im.w*k,h=im.h*k;
+      P.push({t:'rect',x:x0,y,w:FW,h:FH,fill:'#ffffff',stroke:'#868e96',lw:0.25},{t:'img',x:x0+(FW-w)/2,y:y+4+(FH-5-h)/2,w,h,src:im.src,fmt:'JPEG'},{t:'text',x:x0+1.5,y:y+3,s:fs.length>1?`FOTO ${i+1}`:'FOTO DE INSTALAÇÃO',size:2,bold:true,color:'#868e96'})});y+=FH+5}
   if(prod.metodo&&prod.metodo.length){const img=prod.tipo==='letra'&&typeof PANELA_IMG==='string'&&PANELA_IMG.startsWith('data:');const y0=y;P.push({t:'text',x:IX,y:y+1,s:'MÉTODO DE INSTALAÇÃO',size:2.6,bold:true,color:'#c2255c'});y+=4.5;
     const wl=XR-IX-(img?27:0),mc=Math.floor(wl/1.15);prod.metodo.forEach(t=>{const ws=('• '+t).split(' ');let c='';const ls=[];ws.forEach(w=>{if((c+' '+w).trim().length>mc){ls.push(c);c='  '+w}else c=(c+' '+w).trim()});if(c)ls.push(c);ls.forEach(s=>{P.push({t:'text',x:IX,y,s,size:2.4,color:'#000000'});y+=3.4});y+=0.6});
     if(img){P.push({t:'rect',x:XR-25,y:y0-1,w:25,h:27,r:1.5,fill:'#ffffff',stroke:'#c2255c',lw:0.2},{t:'img',x:XR-24,y:y0-0.4,w:23,h:23.6,src:PANELA_IMG,fmt:'JPEG'},{t:'text',x:XR-12.5,y:y0+25.2,s:'CABEÇA PANELA — LATERAL',size:1.6,bold:true,color:'#c2255c',anchor:'middle'},{t:'text',x:XR-12.5,y:y0+27.4,s:'FIXA A LETRA NO PVC',size:1.6,bold:true,color:'#c2255c',anchor:'middle'});y=Math.max(y,y0+29)}y+=1}
@@ -3387,12 +3398,14 @@ function prodEstrutura(bs,L,un,ctx,titulo){const b3=bbox3(bs);let kg=0;
     contornoRects:bs.map(b=>({x0:b.x0,y0:b.y0,x1:b.x1,y1:b.y1,cor:b.cor})),contorno:[[[b3.x0,b3.y0],[b3.x1,b3.y0],[b3.x1,b3.y1],[b3.x0,b3.y1]]],checks:['MEDIDAS','SOLDAS','ACABAMENTO']}}
 
 /* ---------- interface: foto de instalação e posição ---------- */
+let instSlot=null;
 function instCarrega(blob){if(!blob||!/^image\//.test(blob.type))return;const url=URL.createObjectURL(blob);const im=new Image();
   im.onload=()=>{const Mx=1400,k=Math.min(1,Mx/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
     const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);
-    instImg={src:c.toDataURL('image/jpeg',0.85),w:c.width,h:c.height};if(typeof pedSujo!=='undefined')pedSujo=true;instRender();refRefaz()};
+    const f={src:c.toDataURL('image/jpeg',0.85),w:c.width,h:c.height};if(instSlot===2||(instSlot==null&&instImg&&!instImg2))instImg2=f;else instImg=f;instSlot=null;if(typeof pedSujo!=='undefined')pedSujo=true;instRender();refRefaz()};
   im.onerror=()=>URL.revokeObjectURL(url);im.src=url}
-function instRender(){const b=$('#instPrev');if(!b)return;b.innerHTML=instImg?`<div class="row" style="gap:10px;align-items:center"><img src="${instImg.src}" style="width:140px;height:100px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff"><button class="btn ghost sm" id="instDel">Remover foto</button></div>`:'';
+function instRender(){const b=$('#instPrev');if(!b)return;const cel=(im,n)=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start"><img src="${im.src}" style="width:140px;height:100px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff"><button class="btn ghost sm" data-idel="${n}">Remover foto ${n}</button></div>`;
+  b.innerHTML=instImg||instImg2?`<div class="row" style="gap:12px;align-items:flex-start;flex-wrap:wrap">${instImg?cel(instImg,1):''}${instImg2?cel(instImg2,2):''}${instImg&&!instImg2?`<label class="btn ghost sm" style="cursor:pointer;align-self:center">+ Adicionar outra foto<input type="file" accept="image/*" id="instIn2" hidden></label>`:''}</div>`:'';
   $('#iHv').disabled=$('#iHm').value==='centro';$('#iVv').disabled=$('#iVm').value==='centro';
   if($('#ancPrev')){$('#ancPrev').innerHTML=ancImg?`<div class="row" style="gap:10px;align-items:center"><img src="${ancImg.src}" style="width:90px;height:70px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff"><button class="btn ghost sm" id="ancDel">Remover foto</button></div>`:'';if(!$('#iAncT').value||ANC_ANTIGO[$('#iAncT').value])$('#iAncT').value=ANC_ANTIGO[$('#iAncT').value]||'alvenaria';const t=$('#iAncT').value;const A=ANC[t];if($('#iAncInfo'))$('#iAncInfo').textContent=A?'Fixação: '+A.bit:'';$('#ancBox').hidden=!A;if(A)$('#iAncB').placeholder=A.bit}}
 let ancImg=null;
@@ -3400,12 +3413,13 @@ function ancCarrega(blob){if(!blob||!/^image\//.test(blob.type))return;const url
   im.onload=()=>{const Mx=1000,k=Math.min(1,Mx/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
     const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);
     ancImg={src:c.toDataURL('image/jpeg',0.85),w:c.width,h:c.height};if(typeof pedSujo!=='undefined')pedSujo=true;instRender();refRefaz()};im.onerror=()=>URL.revokeObjectURL(url);im.src=url}
-function instReset(){instImg=null;ancImg=null;if($('#iAncT')){$('#iAncT').value='alvenaria';$('#iAncB').value='';$('#iAncQ').value=''}['iPw','iPh','iHv','iVv'].forEach(i=>{if($('#'+i))$('#'+i).value=''});if($('#iHm')){$('#iHm').value='centro';$('#iVm').value='centro'}instRender()}
+function instReset(){instImg=null;instImg2=null;ancImg=null;if($('#iAncT')){$('#iAncT').value='alvenaria';$('#iAncB').value='';$('#iAncQ').value=''}['iPw','iPh','iHv','iVv'].forEach(i=>{if($('#'+i))$('#'+i).value=''});if($('#iHm')){$('#iHm').value='centro';$('#iVm').value='centro'}instRender()}
 if($('#instIn')){
   $('#instIn').onchange=e=>{instCarrega(e.target.files[0]);e.target.value=''};
   $('#ancIn').onchange=e=>{ancCarrega(e.target.files[0]);e.target.value=''};
   $('#ancPrev').onclick=e=>{if(e.target.id==='ancDel'){ancImg=null;if(typeof pedSujo!=='undefined')pedSujo=true;instRender();refRefaz()}};
-  $('#instPrev').onclick=e=>{if(e.target.id==='instDel'){instImg=null;if(typeof pedSujo!=='undefined')pedSujo=true;instRender();refRefaz()}};
+  $('#instPrev').onclick=e=>{const d=e.target.closest('[data-idel]');if(d){if(d.dataset.idel==='2')instImg2=null;else{instImg=instImg2;instImg2=null}if(typeof pedSujo!=='undefined')pedSujo=true;instRender();refRefaz()}};
+  $('#instPrev').addEventListener('change',e=>{if(e.target.id==='instIn2'&&e.target.files[0]){instSlot=2;instCarrega(e.target.files[0])}});
   const Z='Colar foto aqui (toque e segure → Colar)';
   $('#instZone').addEventListener('paste',e=>{e.preventDefault();const it=[...((e.clipboardData||{}).items||[])].find(i=>i.type.startsWith('image/'));if(it)instCarrega(it.getAsFile());$('#instZone').textContent=Z});
   $('#instZone').addEventListener('input',()=>{$('#instZone').textContent=Z});
@@ -4100,7 +4114,7 @@ function capturaEstado(tipo){
 async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHTML=t;document.querySelectorAll('.isbMsg').forEach(e=>e.innerHTML=t.replace(/#b2f2bb/,'#2b8a3e').replace(/#ffc9c9/,'#c92a2a'))};
   try{const n=Math.max(1,Math.round(num($('#item').value))||1);
     const outro=(pedAtual.itens||[]).find(i=>+i.n===n&&(!itemAtual||i.id!==itemAtual.id));if(outro)throw new Error(`já existe o item ${n} neste pedido (${TIPO_NOME[outro.tipo]}). Mude o número do item.`);
-    msg('Salvando…');const C=capturaEstado(tipo);C.estado.refImg=refImg;C.estado.fpObsPg=fpObsPg;C.estado.matQtd=matQtd;C.estado.inst=capInputs(['#instBox']);C.estado.instImg=instImg;C.estado.ancImg=ancImg;
+    msg('Salvando…');const C=capturaEstado(tipo);C.estado.refImg=refImg;C.estado.fpObsPg=fpObsPg;C.estado.matQtd=matQtd;C.estado.inst=capInputs(['#instBox']);C.estado.instImg=instImg;C.estado.instImg2=instImg2;C.estado.ancImg=ancImg;
     let it=itemAtual&&itemAtual.tipo===tipo?pedAtual.itens.find(i=>i.id===itemAtual.id):null;const velho=it?{e:it.estadoId,f:it.fonteId}:null;
     const estadoId=await guardaJSON(C.estado);const fonteId=C.fonte?(it&&it.fonteNome===C.fonte.nome&&it.fonteTam===C.fonte.b64.length?it.fonteId:await guardaJSON(C.fonte)):null;
     const reg={id:it?it.id:(itemAtual&&itemAtual.id)||'i'+Date.now().toString(36),n,tipo,desc:C.desc,resumo:C.resumo,estadoId,fonteId,fonteNome:C.fonte?C.fonte.nome:'',fonteTam:C.fonte?C.fonte.b64.length:0,atualizado:Date.now()};
@@ -4111,7 +4125,7 @@ async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHT
   catch(e){console.error(e);msg(`<span style="color:#ffc9c9">Não salvou: ${esc(e.message)}</span>`)}}
 // abre um item: restaura tudo; se "mostrar", vai para a aba dele e gera
 async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)throw new Error('estado do item não encontrado');const F=it.fonteId?await lerJSON(it.fonteId):null;
-  itemAtual={id:it.id,tipo:it.tipo,n:it.n};$('#item').value=it.n;if(it.tipo==='letra')limpaTipo('letra');refImg=E.refImg||null;fpObsPg={...(E.fpObsPg||{})};matQtd={...(E.matQtd||{})};refRender();instReset();if(E.inst){if(E.inst.iAncT&&ANC_ANTIGO[E.inst.iAncT])E.inst.iAncT=ANC_ANTIGO[E.inst.iAncT];if(!E.inst.iUnid){['iHv','iVv','iPw','iPh'].forEach(k=>{if(E.inst[k])E.inst[k]=String(Math.round(numBR(E.inst[k])*10))});E.inst.iUnid='mm'}putInputs(E.inst)}instImg=E.instImg||null;ancImg=E.ancImg||null;instRender();
+  itemAtual={id:it.id,tipo:it.tipo,n:it.n};$('#item').value=it.n;if(it.tipo==='letra')limpaTipo('letra');refImg=E.refImg||null;fpObsPg={...(E.fpObsPg||{})};matQtd={...(E.matQtd||{})};refRender();instReset();if(E.inst){if(E.inst.iAncT&&ANC_ANTIGO[E.inst.iAncT])E.inst.iAncT=ANC_ANTIGO[E.inst.iAncT];if(!E.inst.iUnid){['iHv','iVv','iPw','iPh'].forEach(k=>{if(E.inst[k])E.inst[k]=String(Math.round(numBR(E.inst[k])*10))});E.inst.iUnid='mm'}putInputs(E.inst)}instImg=E.instImg||null;instImg2=E.instImg2||null;ancImg=E.ancImg||null;instRender();
   if(E.cor){selEsc=E.cor.selEsc||selEsc;renderEsc();putInputs(E.cor.inputs)}
   if(it.tipo==='letra'){putInputs(E.inputs);selType=E.selType;selLed=E.selLed;selLedW=E.selLedW||null;ledFonte={...(E.ledFonte||{})};ledFonteW={...(E.ledFonteW||{})};selChapa=E.selChapa;selCaixa=E.selCaixa||80;
     $('#xPages').innerHTML='';(E.xPages||[]).forEach((p,i)=>$('#xPages').insertAdjacentHTML('beforeend',pageBlock(p,i)));renumberIn($('#xPages'));
