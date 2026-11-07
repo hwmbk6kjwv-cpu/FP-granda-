@@ -492,7 +492,6 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
         <div id="ancTipoBox" class="g2" style="margin-top:6px" hidden>
           <div><label class="f">Posição da ancoragem</label><select id="iAncPos"><option value="superior">Superior (em cima da peça)</option><option value="inferior">Inferior (embaixo da peça)</option></select></div>
           <div><label class="f">Quantidade (vazio = 1 a cada 1,5 m, mínimo 2)</label><input type="text" id="iAncTQ" inputmode="numeric" placeholder="automático"></div>
-          <div><label class="f">Custo por ancoragem (R$ — cadastro)</label><input type="text" id="ancTipoCusto" inputmode="decimal" placeholder="0,00"></div>
         </div>
         <div id="ancTipoImg" class="row" style="gap:8px;align-items:center;margin-top:6px"></div>
         <label class="f">Foto de instalação</label>
@@ -517,8 +516,8 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div id="logoMsg"></div>
     </div>
     <div class="card">
-      <div class="row" style="justify-content:space-between"><h2 style="margin:0">Fixações (testeiras)</h2><button class="btn acc" id="fxNova">+ Nova fixação</button></div>
-      <p class="note">Tipos de fixação da estrutura (cantoneiras, mãos-francesas…). Os marcados na testeira aparecem no 3D, nas folhas e na lista de corte.</p>
+      <div class="row" style="justify-content:space-between"><h2 style="margin:0">Fixações e ancoragens</h2><button class="btn acc" id="fxNova">+ Nova fixação / ancoragem</button></div>
+      <p class="note">Fica salvo sempre. Usado na testeira (3D, folhas e lista de corte) e no Projeto de instalação de todos os itens (tipo de ancoragem, foto e custo na RM).</p>
       <div class="types" id="fixList"></div>
     </div>
   </section>
@@ -536,7 +535,10 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
   <div class="g3">
     <div><label class="f">Comprimento (mm)</label><input type="number" id="fxComp" value="250" inputmode="numeric"></div>
     <div><label class="f">Aba (mm)</label><input type="number" id="fxAba" value="50" inputmode="numeric"></div>
+    <div><label class="f">Custo por unidade (R$)</label><input type="text" id="fxCusto" inputmode="decimal" placeholder="0,00"></div>
   </div>
+  <label class="f">Foto (vai no projeto de instalação)</label>
+  <div class="row" style="gap:8px;align-items:center"><label class="btn ghost sm" style="cursor:pointer">Enviar foto<input type="file" accept="image/*" id="fxFoto" hidden></label><div id="fxZone" contenteditable="true" style="flex:1;border:1.5px dashed var(--line);border-radius:10px;padding:8px;font-size:13px;color:#868e96;outline:none">Colar foto aqui</div></div><div id="fxPrev" style="margin-top:6px"></div>
   <div class="row" style="margin-top:18px;justify-content:space-between">
     <button class="btn danger" id="fxDel">Excluir</button>
     <div class="row"><button class="btn ghost" id="fxCancel">Cancelar</button><button class="btn acc" id="fxSave">Salvar</button></div>
@@ -2498,9 +2500,9 @@ function renderFaces(){
     ${f.modo==='pers'?vaosHTML(f):''}
     </div>`).join('');
 }
-function renderFixPick(){const b=$('#tFixBox');if(!b)return;
+function renderFixPick(){try{ancTiposRender()}catch(e){}const b=$('#tFixBox');if(!b)return;
   b.innerHTML=fixacoes.length?fixacoes.map(f=>`<label class="chip" style="display:inline-flex;gap:6px;align-items:center;padding:8px 11px;font-size:13px"><input type="checkbox" data-fx="${esc(f.id)}"${fixSel.has(f.id)?' checked':''}><span class="sw" style="background:${f.cor||'#ff6633'};width:12px;height:12px;border-radius:3px;display:inline-block"></span>${esc(f.nome)}</label>`).join(''):'<p class="note" style="margin:0">Nenhuma fixação cadastrada ainda. Cadastre em <b>Cadastros › Fixações</b> e ela aparece aqui para escolher.</p>';
-  const l=$('#fixList');if(l)l.innerHTML=fixacoes.length?fixacoes.map(f=>`<button class="type" data-fxe="${esc(f.id)}" style="grid-template-columns:auto 1fr"><span style="width:22px;height:22px;border-radius:5px;background:${f.cor||'#ff6633'}"></span><div><b>${esc(f.nome)}</b><div class="d">${esc(FIX_POS[f.pos]||'')} • ${f.qtd||1} por posição • ${f.comp||0} mm, aba ${f.aba||0} mm${f.desc?' • '+esc(f.desc):''}</div></div></button>`).join(''):'<p class="note">Nenhuma fixação cadastrada.</p>'}
+  const l=$('#fixList');if(l)l.innerHTML=fixacoes.length?fixacoes.map(f=>`<button class="type" data-fxe="${esc(f.id)}" style="grid-template-columns:auto 1fr">${f.img?`<img src="${f.img.src}" style="width:44px;height:34px;object-fit:contain;border-radius:5px;background:#fff;border:2px solid ${f.cor||'#ff6633'}">`:`<span style="width:22px;height:22px;border-radius:5px;background:${f.cor||'#ff6633'}"></span>`}<div><b>${esc(f.nome)}</b><div class="d">${esc(FIX_POS[f.pos]||'')} • ${f.qtd||1} por posição • ${f.comp||0} mm, aba ${f.aba||0} mm${f.custo?' • R$ '+String(f.custo.toFixed(2)).replace('.',',')+'/un.':' • sem custo'}${f.desc?' • '+esc(f.desc):''}</div></div></button>`).join(''):'<p class="note">Nenhuma fixação cadastrada.</p>'}
 function autoCont(f){try{const F=calcFace(f,lerOpcoes());return{nV:F.nb-1,nH:F.rows.length}}catch(e){return{nV:0,nH:0}}}
 function syncAuto(){document.querySelectorAll('#tFaces .fcard').forEach(c=>{const f=tFaces[+c.dataset.i];if(!f)return;const a=autoCont(f);
   ['nV','nH'].forEach(k=>{const inp=c.querySelector(`[data-k=${k}]`);if(inp&&f[k]==null&&f.modo!=='pers'&&document.activeElement!==inp)inp.value=a[k]});['vaosV','vaosH'].forEach(k=>{const r=c.querySelector(`[data-rest=${k}]`);if(r&&f[k])r.value=f1((k==='vaosV'?f.W:f.H)-f[k].reduce((s,v)=>s+v,0))})})}
@@ -2572,15 +2574,20 @@ async function fixSalvar(f){if(local||!db){const i=fixacoes.findIndex(x=>x.id===
   const {id,...body}=f;await db.collection('fixacoes').doc(id).set(body)}
 async function fixExcluir(id){if(local||!db){fixacoes=fixacoes.filter(f=>f.id!==id);lsSet('granda_fix',fixacoes);renderFixPick();return}await db.collection('fixacoes').doc(id).delete()}
 let fxEdit=null;
-function fxAbrir(f){fxEdit=f||{id:'fx'+Date.now().toString(36),nome:'',pos:'topo',qtd:1,comp:250,aba:50,cor:'#ff6633',desc:''};
+let fxImg=null,fxDepois=null;
+function fxPrevRender(){$('#fxPrev').innerHTML=fxImg?`<div class="row" style="gap:8px;align-items:center"><img src="${fxImg.src}" style="max-width:160px;max-height:110px;border:1px solid var(--line);border-radius:8px"><button class="btn ghost sm" type="button" id="fxFotoDel">Remover foto</button></div>`:''}
+function fxAbrir(f){fxEdit=f||{id:'fx'+Date.now().toString(36),nome:'',pos:'topo',qtd:1,comp:250,aba:50,cor:'#ff6633',desc:''};fxImg=fxEdit.img||null;fxPrevRender();$('#fxCusto').value=fxEdit.custo?String(fxEdit.custo).replace('.',','):'';
   $('#fxNome').value=fxEdit.nome;$('#fxPos').value=fxEdit.pos;$('#fxQtd').value=fxEdit.qtd;$('#fxComp').value=fxEdit.comp;$('#fxAba').value=fxEdit.aba;$('#fxCor').value=fxEdit.cor;$('#fxDesc').value=fxEdit.desc||'';
   $('#fxDel').hidden=!f;$('#fxMsg').innerHTML='';$('#fxModal').classList.add('on')}
 $('#fxNova').onclick=()=>fxAbrir(null);
 $('#fixList').onclick=e=>{const b=e.target.closest('[data-fxe]');if(b)fxAbrir(fixacoes.find(f=>f.id===b.dataset.fxe))};
-$('#fxCancel').onclick=()=>$('#fxModal').classList.remove('on');
-$('#fxSave').onclick=async()=>{const f={...fxEdit,nome:$('#fxNome').value.trim(),pos:$('#fxPos').value,qtd:Math.max(1,Math.round(num($('#fxQtd').value))||1),comp:num($('#fxComp').value)||0,aba:num($('#fxAba').value)||0,cor:$('#fxCor').value,desc:$('#fxDesc').value.trim()};
+$('#fxCancel').onclick=()=>{fxDepois=null;$('#fxModal').classList.remove('on')};
+$('#fxFoto').onchange=e=>ancTipoImgLe(e.target.files[0],i=>{fxImg=i;fxPrevRender()});
+$('#fxZone').addEventListener('paste',e=>{e.preventDefault();const it=[...((e.clipboardData||{}).items||[])].find(i=>i.type.startsWith('image/'));if(it)ancTipoImgLe(it.getAsFile(),i=>{fxImg=i;fxPrevRender()});$('#fxZone').textContent='Colar foto aqui'});
+$('#fxPrev').addEventListener('click',e=>{if(e.target.id==='fxFotoDel'){fxImg=null;fxPrevRender()}});
+$('#fxSave').onclick=async()=>{const f={...fxEdit,img:fxImg,custo:numBR($('#fxCusto').value)||0,data:new Date().toLocaleDateString('pt-BR'),nome:$('#fxNome').value.trim(),pos:$('#fxPos').value,qtd:Math.max(1,Math.round(num($('#fxQtd').value))||1),comp:num($('#fxComp').value)||0,aba:num($('#fxAba').value)||0,cor:$('#fxCor').value,desc:$('#fxDesc').value.trim()};
   if(!f.nome){$('#fxMsg').innerHTML='<div class="msg err">Informe o nome.</div>';return}
-  try{await fixSalvar(f);$('#fxModal').classList.remove('on');tAtualizar()}catch(e){$('#fxMsg').innerHTML=`<div class="msg err">Não foi possível salvar (${esc(e.message)}).</div>`}};
+  try{await fixSalvar(f);$('#fxModal').classList.remove('on');tAtualizar();if(fxDepois){const cb=fxDepois;fxDepois=null;cb(f)}try{ancTiposRender()}catch(e){}}catch(e){$('#fxMsg').innerHTML=`<div class="msg err">Não foi possível salvar (${esc(e.message)}).</div>`}};
 $('#fxDel').onclick=async()=>{if(!fxEdit)return;try{await fixExcluir(fxEdit.id);fixSel.delete(fxEdit.id);$('#fxModal').classList.remove('on');tAtualizar()}catch(e){$('#fxMsg').innerHTML=`<div class="msg err">${esc(e.message)}</div>`}};
 renderFaces();renderFixPick();
 
@@ -3448,7 +3455,7 @@ function prodTesteira(M,o,ctx){const comp=M.comp;const vols=[];const b3=bbox3(M.
   const qualExtra=[];if(M.acm){const E=M.acm.esc;E.bins.forEach((b,k)=>{const polys=b.pcs.map(pc=>{const it=pc.it;return it.pts.map(q=>{const r=pc.rot?[q[1],it.bw-q[0]]:q;return[pc.x+r[0],pc.y+r[1]]})});
     qualExtra.push({desc:`APROVEITAMENTO ACM ${k+1}/${E.bins.length}`,cont:`Chapa ${f1(E.SW/1000)} x 5,00 m — ${b.pcs.length} peça(s)`,q:1,draw:{rects:[{x0:0,y0:0,x1:ACM_LEN,y1:E.SW,cor:'#f8f9fa'}],polys,fill:M.acm.hex}})})}
   const nCad=comp.reduce((s,c)=>s+(c.F.nJan||0)+(c.F.nTravCad||0),0);const ancAuto=nCad*2+nc||Math.max(4,2*Math.ceil((b3.x1-b3.x0)/600));
-  return{tipo:'testeira',mat:matTesteira(M,o),anc:{peca:nCad?'CADEIRINHA':nc?'CANTONEIRA AJR 003':'TUBO DA ESTRUTURA',auto:ancAuto,onde:nCad?`2 por cadeirinha (${nCad})${nc?` + 1 por cantoneira (${nc})`:''}`:nc?`1 por cantoneira (${nc})`:'a cada 600 mm no tubo (estimado)'},qualExtra,nome:ctx.descItem,W:b3.x1-b3.x0,H:b3.y1-b3.y0,D:b3.z1-b3.z0,un:o.un,volumes:vols,
+  return{tipo:'testeira',fixRM:fixacoes.filter(f=>fixSel.has(f.id)).map(f=>({f,q:fixQtd(M.comp,f)})),mat:matTesteira(M,o),anc:{peca:nCad?'CADEIRINHA':nc?'CANTONEIRA AJR 003':'TUBO DA ESTRUTURA',auto:ancAuto,onde:nCad?`2 por cadeirinha (${nCad})${nc?` + 1 por cantoneira (${nc})`:''}`:nc?`1 por cantoneira (${nc})`:'a cada 600 mm no tubo (estimado)'},qualExtra,nome:ctx.descItem,W:b3.x1-b3.x0,H:b3.y1-b3.y0,D:b3.z1-b3.z0,un:o.un,volumes:vols,
     contornoRects:M.boxes.filter(b=>!b.fix).map(b=>({x0:b.x0,y0:b.y0,x1:b.x1,y1:b.y1,cor:b.cor})).concat(M.acm?[]:[]),contorno:[[[b3.x0,b3.y0],[b3.x1,b3.y0],[b3.x1,b3.y1],[b3.x0,b3.y1]]],
     checks:['MEDIDAS','SOLDAS',...(tPint!=='nao'?['PINTURA']:[]),...(M.acm?['ACM']:[])]}}
 function prodEstrutura(bs,L,un,ctx,titulo){const b3=bbox3(bs);let kg=0;
@@ -3507,34 +3514,30 @@ const FPOBS_RUN={prev:()=>{if(!$('#gerar').disabled)$('#gerar').click()},mPrev:(
   new MutationObserver(()=>{el.querySelectorAll('.pg').forEach(pg=>{const nx=pg.nextElementSibling;if((!nx||!nx.classList.contains('fpObsRow'))&&pg.querySelector('svg[data-pg]'))fpObsLinha(pg)})}).observe(el,{childList:true})});
 $('#lPgPick').onclick=e=>{const b=e.target.closest('[data-lpg]');if(!b)return;lSel=b.dataset.lpg;lPrevRender()};
 
-/* ---------- catálogo de tipos de ancoragem (nome + foto), cadastrado pelo usuário ---------- */
-let ancTipos=[{id:'lsup',nome:'L superior invertido',img:null,pos:'superior'}];
+/* ---------- tipos de ancoragem = cadastro de Fixações (Cadastros › Fixações e ancoragens) ---------- */
 function ancTipoQtd(I,prod){if(I.ancTQ>0)return Math.round(I.ancTQ);const W=(prod&&prod.W)||0;return Math.max(2,Math.ceil(W/1500))}
-function ancTipoRows(prod){try{const I=instLer();if(I.ancT==='perso')return[];const T=ancTipoDe(I.ancTipo);if(!T)return[];const q=ancTipoQtd(I,prod);const vu=T.custo||0;
-  return[{k:'anctipo|'+T.id,desc:`Ancoragem ${T.nome}`,q,un:'un',uso:`ancoragem ${I.ancPos==='inferior'?'inferior':'superior'} (1 a cada 1,5 m)`,cod:'CADASTRO',nome:`ANCORAGEM ${T.nome.toUpperCase()}${vu>0?'':' (SEM CUSTO — CADASTRAR)'}`,unMP:'un',vu,tot:vu*q,data:T.data||'',manual:true}]}catch(e){return[]}}
-function ancTipoDe(id){return id?(ancTipos||[]).find(a=>a.id===id)||null:null}
-async function ancTiposSalvar(){if(local||!db){lsSet('granda_anctipos',ancTipos);return}try{await db.doc('config/ancoragens').set({lista:ancTipos})}catch(e){}}
-function ancTiposLocal(){const v=lsGet('granda_anctipos');if(v&&v.length)ancTipos=v;ancTiposRender()}
-function ancTiposListen(db){db.doc('config/ancoragens').onSnapshot(s=>{if(s.exists){const l=(s.data()||{}).lista;if(l&&l.length)ancTipos=l}ancTiposRender()},()=>{});ancTiposRender()}
-function ancTiposRender(){const s=$('#iAncTipo');if(!s)return;const v=s.value||s.dataset.v||'';s.innerHTML='<option value="">— nenhum —</option>'+ancTipos.map(a=>`<option value="${esc(a.id)}">${esc(a.nome)}</option>`).join('');if([...s.options].some(o=>o.value===v))s.value=v;
-  const T=ancTipoDe(s.value);if($('#ancTipoBox'))$('#ancTipoBox').hidden=!T;if(T&&$('#ancTipoCusto')&&document.activeElement!==$('#ancTipoCusto'))$('#ancTipoCusto').value=T.custo?String(T.custo).replace('.',','):'';const b=$('#ancTipoImg');if(!b)return;
-  b.innerHTML=T?`${T.img?`<img src="${T.img.src}" style="width:110px;height:80px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff">`:'<span class="note">sem foto</span>'}<label class="btn ghost sm" style="cursor:pointer">${T.img?'Trocar foto':'Adicionar foto'}<input type="file" accept="image/*" id="ancTipoFoto" hidden></label><button class="btn ghost sm" type="button" id="ancTipoDel" style="color:#c92a2a">Excluir</button>`:''}
+function ancTipoRows(prod){const out=[];const lin=(f,q,uso)=>{const vu=f.custo||0;out.push({k:'fix|'+f.id,desc:`Fixação ${f.nome}`,q,un:'un',uso,cod:'CADASTRO',nome:`${f.nome.toUpperCase()}${vu>0?'':' (SEM CUSTO — CADASTRAR)'}`,unMP:'un',vu,tot:vu*q,data:f.data||'',manual:true})};
+  const ja=new Set();(prod.fixRM||[]).forEach(x=>{if(x.f.custo>0||true){lin(x.f,x.q,'fixação da testeira');ja.add(x.f.id)}});
+  try{const I=instLer();if(I.ancT!=='perso'){const T=ancTipoDe(I.ancTipo);if(T&&!ja.has(T.id))lin(T,ancTipoQtd(I,prod),`ancoragem ${I.ancPos==='inferior'?'inferior':'superior'} (1 a cada 1,5 m)`)}}catch(e){}
+  return out}
+function ancTipoDe(id){return id&&typeof fixacoes!=='undefined'?fixacoes.find(a=>a.id===id)||null:null}
+function ancTiposSalvar(){}
+function ancTiposLocal(){ancMigra()}
+function ancTiposListen(db){setTimeout(ancMigra,4000)}
+// leva o cadastro antigo de ancoragens (se houver) para as Fixações, uma vez
+function ancMigra(){try{if(lsGet('granda_anc_migr'))return;const old=lsGet('granda_anctipos')||[{id:'lsup',nome:'L superior invertido',img:null,pos:'superior'}];
+  old.forEach(a=>{if(fixacoes.some(f=>f.nome.toLowerCase()===String(a.nome).toLowerCase()))return;fixSalvar({id:'fx'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),nome:a.nome,pos:a.pos==='inferior'?'base':'topo',qtd:1,comp:250,aba:50,cor:'#e8590c',desc:'',custo:a.custo||0,img:a.img||null,data:a.data||''}).catch(()=>{})});
+  lsSet('granda_anc_migr',1)}catch(e){}}
+function ancTiposRender(){const s=$('#iAncTipo');if(!s)return;const v=s.value||s.dataset.v||'';s.innerHTML='<option value="">— nenhum —</option>'+(typeof fixacoes!=='undefined'?fixacoes:[]).map(a=>`<option value="${esc(a.id)}">${esc(a.nome)}</option>`).join('');if([...s.options].some(o=>o.value===v))s.value=v;
+  const T=ancTipoDe(s.value);if($('#ancTipoBox'))$('#ancTipoBox').hidden=!T;const b=$('#ancTipoImg');if(!b)return;
+  b.innerHTML=T?`${T.img?`<img src="${T.img.src}" style="width:110px;height:80px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff">`:'<span class="note">sem foto</span>'}<span class="note">${T.custo?'R$ '+T.custo.toFixed(2).replace('.',',')+' por un.':'sem custo cadastrado'}</span><button class="btn ghost sm" type="button" id="ancTipoEdit">Editar no cadastro (foto, custo)</button>`:''}
 function ancTipoImgLe(f,cb){if(!f||!/^image\//.test(f.type))return;const url=URL.createObjectURL(f);const im=new Image();im.onload=()=>{const Mx=700,k=Math.min(1,Mx/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);cb({src:c.toDataURL('image/jpeg',0.85),w:c.width,h:c.height})};im.src=url}
-function ancTipoNovoPopup(){let M=$('#ancTipoModal');if(M)M.remove();M=document.createElement('div');M.id='ancTipoModal';M.style.cssText='position:fixed;inset:0;background:#0007;z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
-  M.innerHTML=`<div style="background:#fff;border-radius:14px;padding:16px;width:100%;max-width:440px;display:flex;flex-direction:column;gap:8px"><b>Adicionar ancoragem</b><label class="f" style="margin:0">Nome</label><input type="text" id="atNome" placeholder="Ex.: L superior invertido">
-    <label class="f" style="margin:0">Custo por unidade (R$)</label><input type="text" id="atCusto" inputmode="decimal" placeholder="0,00"><label class="f" style="margin:0">Posição padrão</label><select id="atPos"><option value="superior">Superior</option><option value="inferior">Inferior</option></select><label class="f" style="margin:0">Foto</label><div class="row" style="gap:8px;align-items:center"><label class="btn ghost sm" style="cursor:pointer">Enviar foto<input type="file" accept="image/*" id="atFoto" hidden></label><div id="atZone" contenteditable="true" style="flex:1;border:1.5px dashed var(--line);border-radius:10px;padding:8px;font-size:13px;color:#868e96;outline:none">Colar foto aqui</div></div><div id="atPrev"></div>
-    <div class="row" style="gap:8px;justify-content:flex-end"><button class="btn ghost sm" data-x="c" type="button">Cancelar</button><button class="btn pink sm" data-x="ok" type="button">Salvar</button></div></div>`;
-  document.body.appendChild(M);let img=null;const mostra=i=>{img=i;M.querySelector('#atPrev').innerHTML=`<img src="${i.src}" style="max-width:100%;max-height:160px;border:1px solid var(--line);border-radius:8px">`};
-  M.querySelector('#atFoto').onchange=e=>ancTipoImgLe(e.target.files[0],mostra);
-  M.querySelector('#atZone').addEventListener('paste',e=>{e.preventDefault();const it=[...((e.clipboardData||{}).items||[])].find(i=>i.type.startsWith('image/'));if(it)ancTipoImgLe(it.getAsFile(),mostra)});
-  M.onclick=e=>{const b=e.target.closest('[data-x]');if(e.target===M||(b&&b.dataset.x==='c')){M.remove();return}
-    if(b&&b.dataset.x==='ok'){const nome=M.querySelector('#atNome').value.trim();if(!nome)return;const id='a'+Date.now().toString(36);const pos=M.querySelector('#atPos').value;const custo=numBR(M.querySelector('#atCusto').value)||0;ancTipos.push({id,nome,img,pos,custo,data:new Date().toLocaleDateString('pt-BR')});ancTiposSalvar();M.remove();ancTiposRender();$('#iAncTipo').value=id;$('#iAncPos').value=pos;ancTiposRender();if(typeof pedSujo!=='undefined')pedSujo=true;refRefaz()}}}
-if($('#ancTipoNovo')){$('#ancTipoNovo').onclick=ancTipoNovoPopup;
-  $('#ancTipoCusto').addEventListener('change',e=>{const T=ancTipoDe($('#iAncTipo').value);if(!T)return;T.custo=numBR(e.target.value)||0;T.data=new Date().toLocaleDateString('pt-BR');ancTiposSalvar();refRefaz()});
-  $('#iAncTipo').addEventListener('change',()=>{const T=ancTipoDe($('#iAncTipo').value);if(T)$('#iAncPos').value=T.pos||(/inferior/i.test(T.nome)?'inferior':'superior');ancTiposRender()});
-  $('#ancTipoImg').addEventListener('change',e=>{if(e.target.id!=='ancTipoFoto')return;const T=ancTipoDe($('#iAncTipo').value);if(!T)return;ancTipoImgLe(e.target.files[0],i=>{T.img=i;ancTiposSalvar();ancTiposRender();refRefaz()})});
-  $('#ancTipoImg').addEventListener('click',e=>{if(e.target.id!=='ancTipoDel')return;const T=ancTipoDe($('#iAncTipo').value);if(!T)return;if(e.target.dataset.c!=='1'){e.target.dataset.c='1';e.target.textContent='Confirmar exclusão';return}ancTipos=ancTipos.filter(a=>a!==T);ancTiposSalvar();$('#iAncTipo').value='';ancTiposRender();refRefaz()});
+if($('#ancTipoNovo')){
+  $('#ancTipoNovo').onclick=()=>{fxDepois=f=>{$('#iAncTipo').value=f.id;$('#iAncPos').value=f.pos==='base'?'inferior':'superior';ancTiposRender();if(typeof pedSujo!=='undefined')pedSujo=true;refRefaz()};fxAbrir(null)};
+  $('#iAncTipo').addEventListener('change',()=>{const T=ancTipoDe($('#iAncTipo').value);if(T)$('#iAncPos').value=T.pos==='base'?'inferior':'superior';ancTiposRender()});
+  $('#ancTipoImg').addEventListener('click',e=>{if(e.target.id!=='ancTipoEdit')return;const T=ancTipoDe($('#iAncTipo').value);if(T){fxDepois=()=>{ancTiposRender();refRefaz()};fxAbrir(T)}});
   ancTiposRender()}
+
 
 /* ================= LISTA DE MATERIAL (matérias-primas da Granda) ================= */
 // catálogo: [código, nome, unidade, valor, conta] — planilha de matérias-primas de 06/11/2026
