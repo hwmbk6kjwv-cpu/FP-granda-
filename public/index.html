@@ -726,6 +726,7 @@ function pageBlock(p,i){
   <div class="g2"><div><label class="f">Material</label><input type="text" class="pm" value="${esc(p.material)}"></div><div><label class="f">Espessura</label><input type="text" class="pe" value="${esc(p.espessura)}"></div>
   <div><label class="f">Cor e marca</label><input type="text" class="pc" value="${esc(p.cor)}"></div><div><label class="f">Textura</label><input type="text" class="px" value="${esc(p.textura)}"></div></div>
   <label class="f">Foto grande centralizada (opcional — a folha mostra só a foto)</label><div class="row xfoto" style="gap:8px;align-items:center" data-img="${p.img?esc(JSON.stringify(p.img)):''}"><label class="btn ghost sm" style="cursor:pointer">${p.img?'Trocar foto':'Enviar foto'}<input type="file" accept="image/*" class="xfIn" hidden></label><div class="xfZone" contenteditable="true" style="flex:1;min-width:150px;border:1.5px dashed var(--line);border-radius:10px;padding:8px 10px;font-size:13px;color:#868e96;outline:none">Colar foto aqui (toque e segure → Colar)</div>${p.img?`<img src="${p.img.src}" style="width:90px;height:64px;object-fit:contain;border:1px solid var(--line);border-radius:6px;background:#fff"><button class="btn ghost sm xfDel">Remover foto</button>`:''}</div>
+  <label class="f">Observação em destaque (box verde embaixo da foto)</label><textarea class="xobs" rows="2" placeholder="Ex.: conferir alinhamento com o módulo central antes de furar" style="width:100%">${esc(p.obs||'')}</textarea>
   <label class="f">Linhas</label><div class="lines-ed">${(p.linhas||[]).map(lineRow).join('')}</div><button class="btn ghost sm addl">+ Linha</button></div>`;
 }
 function renumber(){document.querySelectorAll('#mPages .pgedit .hd span').forEach((s,i)=>s.textContent='Página '+(i+1))}
@@ -760,6 +761,7 @@ function readPages(box){return [...box.querySelectorAll('.pgedit')].map(b=>b.dat
     setor:b.querySelector('.ps').value,titulo:b.querySelector('.pt').value.trim(),material:b.querySelector('.pm').value.trim(),
     espessura:b.querySelector('.pe').value.trim(),cor:b.querySelector('.pc').value.trim(),textura:b.querySelector('.px').value.trim(),
     linhas:[...b.querySelectorAll('.ln')].map(r=>({offset:num(r.querySelector('.lo').value),legenda:r.querySelector('.ll').value.trim(),cor:r.querySelector('.lc').value})),
+    obs:((b.querySelector('.xobs')||{}).value||'').trim(),
     img:(()=>{const d=b.querySelector('.xfoto');try{return d&&d.dataset.img?JSON.parse(d.dataset.img):null}catch(e){return null}})()}))}
 // foto grande na página extra
 function xFotoSet(box,img){box.dataset.img=img?JSON.stringify(img):'';box.innerHTML=`<label class="btn ghost sm" style="cursor:pointer">${img?'Trocar foto':'Enviar foto'}<input type="file" accept="image/*" class="xfIn" hidden></label><div class="xfZone" contenteditable="true" style="flex:1;min-width:150px;border:1.5px dashed var(--line);border-radius:10px;padding:8px 10px;font-size:13px;color:#868e96;outline:none">Colar foto aqui (toque e segure → Colar)</div>${img?`<img src="${img.src}" style="width:90px;height:64px;object-fit:contain;border:1px solid var(--line);border-radius:6px;background:#fff"><button class="btn ghost sm xfDel">Remover foto</button>`:''}`;if(typeof pedSujo!=='undefined')pedSujo=true;resetOut()}
@@ -1585,8 +1587,10 @@ function buildDoc(){
   defs=defs.map(pg=>/PVC/i.test(pg.material||'')&&(!pg.espessura||pg.espessura==='----')?{...pg,espessura:'10MM',titulo:/10\s*mm/i.test(pg.titulo||'')?pg.titulo:(pg.titulo||'FUNDO LETRA - PVC')+' 10mm'}:pg);
   defs.forEach(pg=>{
     if(pg.img&&pg.img.src){const P=[];frame(P,ctx,pg);let top=26;if(pg.titulo){P.push({t:'text',x:PW/2,y:30.5,s:pg.titulo,size:4.4,bold:true,color:'#000000',anchor:'middle'});top=34}
-      const BW=PW-24,BH=167-top;const k=Math.min(BW/pg.img.w,BH/pg.img.h),w=pg.img.w*k,h=pg.img.h*k;
-      P.push({t:'img',x:(PW-w)/2,y:top+(BH-h)/2,w,h,src:pg.img.src,fmt:'JPEG'});pages.push(P);info.push({pg,lines:[]});return}
+      const ob=(pg.obs||'').toUpperCase();let ls=[];if(ob){const W=PW-40;ob.split(/\n/).forEach(par=>{let cur='';par.split(/\s+/).forEach(wd=>{const tt=cur?cur+' '+wd:wd;if(tt.length*3.4*0.56>W&&cur){ls.push(cur);cur=wd}else cur=tt});if(cur)ls.push(cur)});ls=ls.slice(0,5)}
+      const OH=ob?ls.length*5+6:0;const BW=PW-24,BH=167-top-(ob?OH+4:0);const k=Math.min(BW/pg.img.w,BH/pg.img.h),w=pg.img.w*k,h=pg.img.h*k;
+      P.push({t:'img',x:(PW-w)/2,y:top+(BH-h)/2,w,h,src:pg.img.src,fmt:'JPEG'});
+      if(ob){const y0=167-OH;P.push({t:'rect',x:14,y:y0,w:PW-28,h:OH,r:2,fill:'#d3f9d8',stroke:'#2b8a3e',lw:0.5},{t:'text',x:18,y:y0+4.6,s:'OBSERVAÇÃO:',size:2.6,bold:true,color:'#2b8a3e'});ls.forEach((s,i)=>P.push({t:'text',x:PW/2,y:y0+6.2+i*5+2.2,s,size:3.4,bold:true,color:'#000000',anchor:'middle'}))}pages.push(P);info.push({pg,lines:[]});return}
     if(pg.tipo==='pintura'){
       const P=[];frame(P,ctx,pg);const CI=corInfo();const cor=(CI.code?`${CI.esc} ${CI.code}`:`${CI.esc} A DEFINIR`)+(CI.nome?` — ${CI.nome}`:'');const sw=CI.hex||'#1a1a1a';const acab=$('#pAcab').value;const tinta=$('#pTinta').value.trim();
       const partes=pg.partes||'lateral';const txt={frente_lateral:'PINTAR A FRENTE E A LATERAL DA LETRA',lateral:'PINTAR SOMENTE A LATERAL DA LETRA',frente:'PINTAR SOMENTE A FRENTE DA LETRA'}[partes];
