@@ -488,8 +488,13 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
           <div style="grid-column:1/-1"><label class="btn ghost sm" style="display:inline-flex;align-items:center">Foto da ancoragem (opcional)<input type="file" id="ancIn" accept="image/*" hidden></label><div id="ancPrev" style="margin-top:6px"></div></div>
         </div>
         <label class="f">Tipo de ancoragem (como a peça fica presa)</label>
-        <div class="row" style="gap:10px;align-items:center;flex-wrap:wrap"><select id="iAncTipo" style="flex:1;min-width:200px"></select><div id="ancTipoImg" class="row" style="gap:8px;align-items:center"></div></div>
-        <button class="btn ghost sm" id="ancTipoNovo" type="button" style="margin-top:6px">+ Cadastrar ancoragem</button>
+        <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap"><select id="iAncTipo" style="flex:1;min-width:200px"></select><button class="btn pink sm" id="ancTipoNovo" type="button">+ Adicionar ancoragem</button></div>
+        <div id="ancTipoBox" class="g2" style="margin-top:6px" hidden>
+          <div><label class="f">Posição da ancoragem</label><select id="iAncPos"><option value="superior">Superior (em cima da peça)</option><option value="inferior">Inferior (embaixo da peça)</option></select></div>
+          <div><label class="f">Quantidade (vazio = 1 a cada 1,5 m, mínimo 2)</label><input type="text" id="iAncTQ" inputmode="numeric" placeholder="automático"></div>
+          <div><label class="f">Custo por ancoragem (R$ — cadastro)</label><input type="text" id="ancTipoCusto" inputmode="decimal" placeholder="0,00"></div>
+        </div>
+        <div id="ancTipoImg" class="row" style="gap:8px;align-items:center;margin-top:6px"></div>
         <label class="f">Foto de instalação</label>
         <div class="row" style="gap:8px;align-items:stretch">
           <label class="btn ghost sm" style="display:inline-flex;align-items:center">Enviar foto<input type="file" id="instIn" accept="image/*" hidden></label>
@@ -3119,7 +3124,7 @@ const tuboKgM=(f,p,t)=>Math.max(0,(2*(f+p)-4*t)*t*0.00785);   // kg por metro de
 const numBR=v=>parseFloat(String(v||'').replace(',','.'))||0;
 const kgTxt=v=>v>0&&v<0.1?'< 0,1 kg':v>0?`${v<10?v.toLocaleString('pt-BR',{maximumFractionDigits:1}):Math.round(v).toLocaleString('pt-BR')} kg`:'—';
 function instLer(){const g=id=>$('#'+id);if(!g('iHm'))return{hm:'centro',vm:'centro'};
-  return{hm:g('iHm').value,hv:numBR(g('iHv').value),vm:g('iVm').value,vv:numBR(g('iVv').value),pw:numBR(g('iPw').value),ph:numBR(g('iPh').value),ancT:g('iAncT')?g('iAncT').value:'alvenaria',ancB:g('iAncB')?g('iAncB').value.trim():'',ancQ:g('iAncQ')?numBR(g('iAncQ').value):0,ancTipo:g('iAncTipo')?g('iAncTipo').value:'',ancObs:g('iAncObs')?g('iAncObs').value.trim():''}}
+  return{hm:g('iHm').value,hv:numBR(g('iHv').value),vm:g('iVm').value,vv:numBR(g('iVv').value),pw:numBR(g('iPw').value),ph:numBR(g('iPh').value),ancT:g('iAncT')?g('iAncT').value:'alvenaria',ancB:g('iAncB')?g('iAncB').value.trim():'',ancQ:g('iAncQ')?numBR(g('iAncQ').value):0,ancTipo:g('iAncTipo')?g('iAncTipo').value:'',ancPos:g('iAncPos')?g('iAncPos').value:'superior',ancTQ:g('iAncTQ')?numBR(g('iAncTQ').value):0,ancObs:g('iAncObs')?g('iAncObs').value.trim():''}}
 const ANC={alvenaria:{nome:'BUCHA 8 + PARAFUSO SEXTAVADO ROSCA SOBERBA 1/4 x 70 MM',base:'PAREDE DE ALVENARIA',bit:'Bucha 8 mm + parafuso sext. rosca soberba 1/4 x 70 mm',broca:'Broca 8 mm (vídea)',draw:'bucha',
     passos:['Marcar os furos com o molde/gabarito e conferir o nível.','Furar com broca 8 mm (vídea) e limpar o pó.','Colocar a bucha 8 rente à parede.','Posicionar a peça e apertar o parafuso sextavado 1/4 x 70 mm.']},
   drywall:{nome:'BUCHA DE DRYWALL TIPO SFORBOLT C/ PARAFUSO 1/4',base:'PAREDE DE DRYWALL (BASE OCA)',bit:'Bucha Sforbolt p/ bases ocas c/ parafuso 1/4',broca:'Broca conforme a bucha',draw:'bucha',
@@ -3213,15 +3218,15 @@ function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'}
   if(prod.un>1)lin('QUANTIDADE:',`${prod.un} UN.`);
   lin('POSIÇÃO:',instPosTxt(I),'#d6336c');
   const perso=I.ancT==='perso';
-  {const A=perso?null:ancInfo(I,prod);if(A)lin('ANCORAGEM:',A.semQtd?A.nome:`${A.nome} — ${A.q} UN.`,'#d6336c');{const T=ancTipoDe(I.ancTipo);if(T)lin('TIPO DE ANCORAGEM:',T.nome.toUpperCase(),'#d6336c')}if(perso)lin('ANCORAGEM:','PERSONALIZADA — VER OBSERVAÇÃO','#2b8a3e')}
+  {const A=perso?null:ancInfo(I,prod);if(A)lin('ANCORAGEM:',A.semQtd?A.nome:`${A.nome} — ${A.q} UN.`,'#d6336c');{const T=ancTipoDe(I.ancTipo);if(T){const q=ancTipoQtd(I,prod);lin('TIPO DE ANCORAGEM:',`${T.nome.toUpperCase()} — ${q} UN. ${I.ancPos==='inferior'?'INFERIOR':'SUPERIOR'}`,'#d6336c')}}if(perso)lin('ANCORAGEM:','PERSONALIZADA — VER OBSERVAÇÃO','#2b8a3e')}
   if(I.pw&&I.ph)lin('PAREDE:',`${f0(I.pw)} mm (L) x ${f0(I.ph)} mm (A)`);else if(I.pw)lin('PAREDE:',`${f0(I.pw)} mm (L)`);else if(I.ph)lin('PAREDE:',`${f0(I.ph)} mm (A)`);
   const TA=ancTipoDe(I.ancTipo);
-  if(temF){const fp=[instImg,instImg2].filter(Boolean);const fs=fp.map((im,i)=>({im,lb:fp.length>1?`FOTO ${i+1}`:'FOTO DE INSTALAÇÃO',c:'#868e96'}));if(TA&&TA.img)fs.push({im:TA.img,lb:fit('ANCORAGEM: '+TA.nome.toUpperCase(),40,2),c:'#d6336c'});const FH=40,G=3,FW=((XR-IX)-G*(fs.length-1))/fs.length;
+  if(temF){const fp=[instImg,instImg2].filter(Boolean);const fs=fp.map((im,i)=>({im,lb:fp.length>1?`FOTO ${i+1}`:'FOTO DE INSTALAÇÃO',c:'#868e96'}));if(TA&&TA.img)fs.push({im:TA.img,lb:fit(`ANCORAGEM ${I.ancPos==='inferior'?'INFERIOR':'SUPERIOR'}: ${TA.nome.toUpperCase()} (${ancTipoQtd(I,prod)} UN.)`,48,2),c:'#d6336c'});const FH=40,G=3,FW=((XR-IX)-G*(fs.length-1))/fs.length;
     fs.forEach((o,i)=>{const im=o.im;const x0=IX+i*(FW+G);const k=Math.min((FW-2)/im.w,(FH-5)/im.h),w=im.w*k,h=im.h*k;
       P.push({t:'rect',x:x0,y,w:FW,h:FH,fill:'#ffffff',stroke:o.c,lw:0.25},{t:'img',x:x0+(FW-w)/2,y:y+4+(FH-5-h)/2,w,h,src:im.src,fmt:'JPEG'},{t:'text',x:x0+1.5,y:y+3,s:o.lb,size:2,bold:true,color:o.c})});y+=FH+5}
   {const T=temF?null:TA;if(T&&T.img){const FW=XR-IX,FH=30;const k=Math.min((FW*0.55-2)/T.img.w,(FH-5)/T.img.h),w=T.img.w*k,h=T.img.h*k;
     P.push({t:'rect',x:IX,y,w:FW,h:FH,fill:'#ffffff',stroke:'#d6336c',lw:0.3},{t:'img',x:IX+1.5,y:y+4+(FH-5-h)/2,w,h,src:T.img.src,fmt:'JPEG'},{t:'text',x:IX+1.5,y:y+3,s:'ANCORAGEM',size:2,bold:true,color:'#d6336c'},
-      {t:'text',x:IX+w+5,y:y+FH/2,s:fit(T.nome.toUpperCase(),FW-w-8,3),size:3,bold:true,color:'#000000'});y+=FH+5}}
+      {t:'text',x:IX+w+5,y:y+FH/2-2,s:fit(T.nome.toUpperCase(),FW-w-8,3),size:3,bold:true,color:'#000000'},{t:'text',x:IX+w+5,y:y+FH/2+3,s:`${ancTipoQtd(I,prod)} UN. • ${I.ancPos==='inferior'?'INFERIOR':'SUPERIOR'}`,size:2.8,bold:true,color:'#d6336c'});y+=FH+5}}
   if(perso){const ob=(I.ancObs||'SEM OBSERVAÇÃO').toUpperCase();const mc=Math.floor((XR-IX-6)/1.75);const ls=[];ob.split(/\n/).forEach(par=>{let c='';par.split(/\s+/).forEach(w=>{if((c+' '+w).trim().length>mc&&c){ls.push(c);c=w}else c=(c+' '+w).trim()});if(c)ls.push(c)});
     const L=ls.slice(0,12),h=L.length*4.4+9;P.push({t:'rect',x:IX,y,w:XR-IX,h,r:2,fill:'#d3f9d8',stroke:'#2b8a3e',lw:0.6},{t:'text',x:IX+3,y:y+4.6,s:'OBSERVAÇÃO DA INSTALAÇÃO',size:2.8,bold:true,color:'#2b8a3e'});
     L.forEach((s,i)=>P.push({t:'text',x:IX+3,y:y+9.4+i*4.4,s,size:3.1,bold:true,color:'#000000'}));y+=h+5}
@@ -3252,8 +3257,16 @@ function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'}
   else{P.push({t:'pathfill',polys:pc.map(p=>p.map(PM)),fill:'#ffc9de'});pc.forEach(p=>P.push({t:'poly',pts:p.map(PM),color:'#212529',w:0.15}))}
   const CR='#d6336c',fs=3.2;
   cotaH(P,X(L0),X(L0+W),Y(B0+H)-5,Y(B0+H),`${f0(W)} mm`,fs);cotaV(P,X(L0+W)+6,Y(B0+H),Y(B0),X(L0+W),`${f0(H)} mm`,fs);
+  // ancoragens: 20 cm de cada lateral, o resto distribuído igual; superior ou inferior
+  {const TA2=ancTipoDe(I.ancTipo);if(TA2&&!perso){const n=ancTipoQtd(I,prod),sup=I.ancPos!=='inferior';const m0=Math.min(200,W*0.1);const xs=n===1?[W/2]:[...Array(n)].map((_,i)=>m0+i*(W-2*m0)/(n-1));
+    const yA=sup?B0+H:B0;const AC='#e8590c';
+    xs.forEach(x=>{const cx=X(L0+x),cy=Y(yA),d=Math.max(1.6,Math.min(3.2,W*s/60));
+      P.push({t:'rect',x:cx-d/2,y:sup?cy-d*0.9:cy-d*0.1,w:d,h:d,fill:AC,stroke:'#ffffff',lw:0.2})});
+    const yc=sup?Y(B0+H)-11:Y(B0)+11;const pts=[0,...xs,W];
+    for(let i=0;i+1<pts.length;i++){if(pts[i+1]-pts[i]<1)continue;cotaH(P,X(L0+pts[i]),X(L0+pts[i+1]),yc,null,`${f0(pts[i+1]-pts[i])}`,2.4,AC)}
+    P.push({t:'text',x:X(L0),y:sup?yc-3.4:yc+5.2,s:`${n} ANCORAGENS ${sup?'SUPERIORES':'INFERIORES'} — ${TA2.nome.toUpperCase()} (1ª e última a ${f0(m0)} mm das laterais)`,size:2.4,bold:true,color:AC})}}
   // saídas
-  if(I.hm==='centro'){P.push({t:'line',x1:X(PWm/2),y1:Y(PHm)+5,x2:X(PWm/2),y2:Y(0)-1,color:CR,w:0.2});P.push({t:'text',x:X(PWm/2)+1,y:Y(PHm)+3.8,s:'EIXO — CENTRALIZADO',size:2.3,bold:true,color:CR});
+  if(I.hm==='centro'){P.push({t:'line',x1:X(PWm/2),y1:Y(PHm)+5,x2:X(PWm/2),y2:Y(0)-1,color:CR,w:0.2});P.push({t:'text',x:X(PWm/2)+1,y:(ancTipoDe(I.ancTipo)&&I.ancPos!=='inferior')?Y(0)-2:Y(PHm)+3.8,s:'EIXO — CENTRALIZADO',size:2.3,bold:true,color:CR});
     if(I.pw){cotaH(P,X(0),X(L0),Y(B0)+4,null,`${f0(L0)} mm`,fs,CR);cotaH(P,X(L0+W),X(PWm),Y(B0)+4,null,`${f0((PWm-L0-W))} mm`,fs,CR)}}
   else if(I.hm==='esquerda')cotaH(P,X(0),X(L0),Y(B0)+4,null,`${f0(I.hv)} mm`,fs,CR);
   else cotaH(P,X(L0+W),X(PWm),Y(B0)+4,null,`${f0(I.hv)} mm`,fs,CR);
@@ -3398,7 +3411,7 @@ function paginasFinais(pages,tags,ctx,prod){try{
   if(prod.tipo==='letra'&&prod.circ&&prod.circ.lista&&prod.circ.lista.length&&prod.letras&&prod.letras[0].ps){['INSTALAÇÃO','ELÉTRICA'].forEach(st=>{try{const q=folhaLigacao(ctx,prod,st);if(q){pages.push(q);if(tags)tags.push(st)}}catch(e){console.error('ligação',e)}})}
   folhasExpedicao(ctx,prod).forEach(P=>{pages.push(P);if(tags)tags.push('EXPEDIÇÃO')});
   folhasQualidade(ctx,prod).forEach(P=>{pages.push(P);if(tags)tags.push('QUALIDADE')});
-  try{const rows=matResolve([...(prod.mat||[]),...(prod.semAnc?[]:needsAncoragem(ancInfo(instLer(),prod)))]).concat(matAddRows());if(rows.length){folhasMaterial(ctx,prod,rows).forEach(P=>{pages.push(P);if(tags)tags.push('RM')});matUlt=rows;setTimeout(matCardRender,0)}}catch(e){console.error('lista de material',e)}}catch(e){console.error('paginasFinais',e)}}
+  try{const rows=matResolve([...(prod.mat||[]),...(prod.semAnc?[]:needsAncoragem(ancInfo(instLer(),prod)))]).concat(ancTipoRows(prod),matAddRows());if(rows.length){folhasMaterial(ctx,prod,rows).forEach(P=>{pages.push(P);if(tags)tags.push('RM')});matUlt=rows;setTimeout(matCardRender,0)}}catch(e){console.error('lista de material',e)}}catch(e){console.error('paginasFinais',e)}}
 
 /* ---------- produtos ---------- */
 function prodLetras(t,ctx,orig,defs,ledInfo,furos,nests){const fixBit=(()=>{try{const I=instLer();const k=ANC_ANTIGO[I.ancT]||I.ancT;return ANC[k]?(I.ancB||ANC[k].bit).toLowerCase():'parafuso'}catch(e){return 'parafuso'}})();const regs=regionsOf(toC(orig)).map(r=>{const ps=fromC(r);return{ps,bb:bbox(ps)}});const L=ordenaPecas(regs);
@@ -3460,7 +3473,7 @@ function ancCarrega(blob){if(!blob||!/^image\//.test(blob.type))return;const url
   im.onload=()=>{const Mx=1000,k=Math.min(1,Mx/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
     const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);
     ancImg={src:c.toDataURL('image/jpeg',0.85),w:c.width,h:c.height};if(typeof pedSujo!=='undefined')pedSujo=true;instRender();refRefaz()};im.onerror=()=>URL.revokeObjectURL(url);im.src=url}
-function instReset(){instImg=null;instImg2=null;ancImg=null;if($('#iAncTipo')){$('#iAncTipo').dataset.v='';$('#iAncTipo').value='';try{ancTiposRender()}catch(e){}}if($('#iAncT')){$('#iAncT').value='alvenaria';$('#iAncB').value='';$('#iAncQ').value='';if($('#iAncObs'))$('#iAncObs').value=''}['iPw','iPh','iHv','iVv'].forEach(i=>{if($('#'+i))$('#'+i).value=''});if($('#iHm')){$('#iHm').value='centro';$('#iVm').value='centro'}instRender()}
+function instReset(){instImg=null;instImg2=null;ancImg=null;if($('#iAncTipo')){$('#iAncTipo').dataset.v='';$('#iAncTipo').value='';if($('#iAncPos'))$('#iAncPos').value='superior';if($('#iAncTQ'))$('#iAncTQ').value='';try{ancTiposRender()}catch(e){}}if($('#iAncT')){$('#iAncT').value='alvenaria';$('#iAncB').value='';$('#iAncQ').value='';if($('#iAncObs'))$('#iAncObs').value=''}['iPw','iPh','iHv','iVv'].forEach(i=>{if($('#'+i))$('#'+i).value=''});if($('#iHm')){$('#iHm').value='centro';$('#iVm').value='centro'}instRender()}
 if($('#instIn')){
   $('#instIn').onchange=e=>{instCarrega(e.target.files[0]);e.target.value=''};
   $('#ancIn').onchange=e=>{ancCarrega(e.target.files[0]);e.target.value=''};
@@ -3495,26 +3508,30 @@ const FPOBS_RUN={prev:()=>{if(!$('#gerar').disabled)$('#gerar').click()},mPrev:(
 $('#lPgPick').onclick=e=>{const b=e.target.closest('[data-lpg]');if(!b)return;lSel=b.dataset.lpg;lPrevRender()};
 
 /* ---------- catálogo de tipos de ancoragem (nome + foto), cadastrado pelo usuário ---------- */
-let ancTipos=[{id:'lsup',nome:'L superior invertido',img:null}];
+let ancTipos=[{id:'lsup',nome:'L superior invertido',img:null,pos:'superior'}];
+function ancTipoQtd(I,prod){if(I.ancTQ>0)return Math.round(I.ancTQ);const W=(prod&&prod.W)||0;return Math.max(2,Math.ceil(W/1500))}
+function ancTipoRows(prod){try{const I=instLer();if(I.ancT==='perso')return[];const T=ancTipoDe(I.ancTipo);if(!T)return[];const q=ancTipoQtd(I,prod);const vu=T.custo||0;
+  return[{k:'anctipo|'+T.id,desc:`Ancoragem ${T.nome}`,q,un:'un',uso:`ancoragem ${I.ancPos==='inferior'?'inferior':'superior'} (1 a cada 1,5 m)`,cod:'CADASTRO',nome:`ANCORAGEM ${T.nome.toUpperCase()}${vu>0?'':' (SEM CUSTO — CADASTRAR)'}`,unMP:'un',vu,tot:vu*q,data:T.data||'',manual:true}]}catch(e){return[]}}
 function ancTipoDe(id){return id?(ancTipos||[]).find(a=>a.id===id)||null:null}
 async function ancTiposSalvar(){if(local||!db){lsSet('granda_anctipos',ancTipos);return}try{await db.doc('config/ancoragens').set({lista:ancTipos})}catch(e){}}
 function ancTiposLocal(){const v=lsGet('granda_anctipos');if(v&&v.length)ancTipos=v;ancTiposRender()}
 function ancTiposListen(db){db.doc('config/ancoragens').onSnapshot(s=>{if(s.exists){const l=(s.data()||{}).lista;if(l&&l.length)ancTipos=l}ancTiposRender()},()=>{});ancTiposRender()}
 function ancTiposRender(){const s=$('#iAncTipo');if(!s)return;const v=s.value||s.dataset.v||'';s.innerHTML='<option value="">— nenhum —</option>'+ancTipos.map(a=>`<option value="${esc(a.id)}">${esc(a.nome)}</option>`).join('');if([...s.options].some(o=>o.value===v))s.value=v;
-  const T=ancTipoDe(s.value);const b=$('#ancTipoImg');if(!b)return;
+  const T=ancTipoDe(s.value);if($('#ancTipoBox'))$('#ancTipoBox').hidden=!T;if(T&&$('#ancTipoCusto')&&document.activeElement!==$('#ancTipoCusto'))$('#ancTipoCusto').value=T.custo?String(T.custo).replace('.',','):'';const b=$('#ancTipoImg');if(!b)return;
   b.innerHTML=T?`${T.img?`<img src="${T.img.src}" style="width:110px;height:80px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff">`:'<span class="note">sem foto</span>'}<label class="btn ghost sm" style="cursor:pointer">${T.img?'Trocar foto':'Adicionar foto'}<input type="file" accept="image/*" id="ancTipoFoto" hidden></label><button class="btn ghost sm" type="button" id="ancTipoDel" style="color:#c92a2a">Excluir</button>`:''}
 function ancTipoImgLe(f,cb){if(!f||!/^image\//.test(f.type))return;const url=URL.createObjectURL(f);const im=new Image();im.onload=()=>{const Mx=700,k=Math.min(1,Mx/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);cb({src:c.toDataURL('image/jpeg',0.85),w:c.width,h:c.height})};im.src=url}
 function ancTipoNovoPopup(){let M=$('#ancTipoModal');if(M)M.remove();M=document.createElement('div');M.id='ancTipoModal';M.style.cssText='position:fixed;inset:0;background:#0007;z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
-  M.innerHTML=`<div style="background:#fff;border-radius:14px;padding:16px;width:100%;max-width:440px;display:flex;flex-direction:column;gap:8px"><b>Cadastrar ancoragem</b><label class="f" style="margin:0">Nome</label><input type="text" id="atNome" placeholder="Ex.: L superior invertido">
-    <label class="f" style="margin:0">Foto</label><div class="row" style="gap:8px;align-items:center"><label class="btn ghost sm" style="cursor:pointer">Enviar foto<input type="file" accept="image/*" id="atFoto" hidden></label><div id="atZone" contenteditable="true" style="flex:1;border:1.5px dashed var(--line);border-radius:10px;padding:8px;font-size:13px;color:#868e96;outline:none">Colar foto aqui</div></div><div id="atPrev"></div>
+  M.innerHTML=`<div style="background:#fff;border-radius:14px;padding:16px;width:100%;max-width:440px;display:flex;flex-direction:column;gap:8px"><b>Adicionar ancoragem</b><label class="f" style="margin:0">Nome</label><input type="text" id="atNome" placeholder="Ex.: L superior invertido">
+    <label class="f" style="margin:0">Custo por unidade (R$)</label><input type="text" id="atCusto" inputmode="decimal" placeholder="0,00"><label class="f" style="margin:0">Posição padrão</label><select id="atPos"><option value="superior">Superior</option><option value="inferior">Inferior</option></select><label class="f" style="margin:0">Foto</label><div class="row" style="gap:8px;align-items:center"><label class="btn ghost sm" style="cursor:pointer">Enviar foto<input type="file" accept="image/*" id="atFoto" hidden></label><div id="atZone" contenteditable="true" style="flex:1;border:1.5px dashed var(--line);border-radius:10px;padding:8px;font-size:13px;color:#868e96;outline:none">Colar foto aqui</div></div><div id="atPrev"></div>
     <div class="row" style="gap:8px;justify-content:flex-end"><button class="btn ghost sm" data-x="c" type="button">Cancelar</button><button class="btn pink sm" data-x="ok" type="button">Salvar</button></div></div>`;
   document.body.appendChild(M);let img=null;const mostra=i=>{img=i;M.querySelector('#atPrev').innerHTML=`<img src="${i.src}" style="max-width:100%;max-height:160px;border:1px solid var(--line);border-radius:8px">`};
   M.querySelector('#atFoto').onchange=e=>ancTipoImgLe(e.target.files[0],mostra);
   M.querySelector('#atZone').addEventListener('paste',e=>{e.preventDefault();const it=[...((e.clipboardData||{}).items||[])].find(i=>i.type.startsWith('image/'));if(it)ancTipoImgLe(it.getAsFile(),mostra)});
   M.onclick=e=>{const b=e.target.closest('[data-x]');if(e.target===M||(b&&b.dataset.x==='c')){M.remove();return}
-    if(b&&b.dataset.x==='ok'){const nome=M.querySelector('#atNome').value.trim();if(!nome)return;const id='a'+Date.now().toString(36);ancTipos.push({id,nome,img});ancTiposSalvar();M.remove();ancTiposRender();$('#iAncTipo').value=id;ancTiposRender();if(typeof pedSujo!=='undefined')pedSujo=true;refRefaz()}}}
+    if(b&&b.dataset.x==='ok'){const nome=M.querySelector('#atNome').value.trim();if(!nome)return;const id='a'+Date.now().toString(36);const pos=M.querySelector('#atPos').value;const custo=numBR(M.querySelector('#atCusto').value)||0;ancTipos.push({id,nome,img,pos,custo,data:new Date().toLocaleDateString('pt-BR')});ancTiposSalvar();M.remove();ancTiposRender();$('#iAncTipo').value=id;$('#iAncPos').value=pos;ancTiposRender();if(typeof pedSujo!=='undefined')pedSujo=true;refRefaz()}}}
 if($('#ancTipoNovo')){$('#ancTipoNovo').onclick=ancTipoNovoPopup;
-  $('#iAncTipo').addEventListener('change',()=>ancTiposRender());
+  $('#ancTipoCusto').addEventListener('change',e=>{const T=ancTipoDe($('#iAncTipo').value);if(!T)return;T.custo=numBR(e.target.value)||0;T.data=new Date().toLocaleDateString('pt-BR');ancTiposSalvar();refRefaz()});
+  $('#iAncTipo').addEventListener('change',()=>{const T=ancTipoDe($('#iAncTipo').value);if(T)$('#iAncPos').value=T.pos||(/inferior/i.test(T.nome)?'inferior':'superior');ancTiposRender()});
   $('#ancTipoImg').addEventListener('change',e=>{if(e.target.id!=='ancTipoFoto')return;const T=ancTipoDe($('#iAncTipo').value);if(!T)return;ancTipoImgLe(e.target.files[0],i=>{T.img=i;ancTiposSalvar();ancTiposRender();refRefaz()})});
   $('#ancTipoImg').addEventListener('click',e=>{if(e.target.id!=='ancTipoDel')return;const T=ancTipoDe($('#iAncTipo').value);if(!T)return;if(e.target.dataset.c!=='1'){e.target.dataset.c='1';e.target.textContent='Confirmar exclusão';return}ancTipos=ancTipos.filter(a=>a!==T);ancTiposSalvar();$('#iAncTipo').value='';ancTiposRender();refRefaz()});
   ancTiposRender()}
