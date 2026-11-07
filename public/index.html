@@ -251,7 +251,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
         <div><label class="f">Amostra</label><input type="color" id="pSw" value="#1a1a1a" style="width:100%;height:42px;border:1px solid var(--line);border-radius:8px;padding:2px;background:#fff"></div>
       </div>
       <div class="g2"><div><label class="f">Acabamento</label><select id="pAcab"><option>FOSCO</option><option>SEMIBRILHO</option><option>BRILHO</option><option>TEXTURIZADO</option></select></div>
-      <div><label class="f">Tipo de tinta</label><select id="pTinta"><option value="TINTA PU">Tinta PU</option><option value="TINTA DUCO">Tinta Duco</option><option value="GALVIMAX">Galvimax</option></select></div></div>
+      <div><label class="f">Tipo de tinta</label><select id="pTinta"><option value="TINTA PU">Tinta PU</option><option value="TINTA DUCO">Tinta Duco</option><option value="GALVIMAX">Galvimax</option><option value="TINTA EPOXI">Tinta Epóxi</option></select></div></div>
       </div>
     </div>
     <div class="card">
@@ -3612,8 +3612,8 @@ let TINTA_HEX=null;
 function corAlvo(CI){if(CI.esc==='PANTONE'&&CI.code){const h=corPantone(CI.code,false);if(h)return h}if(CI.esc==='RAL'&&CI.code){const h=corRAL(CI.code);if(h)return h}
   if(CI.rgb)return CI.hex;if(CI.nome){const w=TINTA_COR.find(([k])=>mpNorm(' '+CI.nome).includes(' '+k));if(w)return w[1]}
   if(CI.code){const h=CI.esc==='RAL'?corRAL(CI.code):corPantone(CI.code,true);if(h)return h}if(CI.hex&&CI.hex.toLowerCase()!=='#1a1a1a')return CI.hex;return null}
-// escolhe a tinta do cadastro: tipo (PU / Duco / Galvimax) + a cor mais próxima; mesmo código/cliente ganha prioridade; empate → preço mais recente
-function mpTinta(tipo,CI,cliente,acab){const pre=tipo==='GALVIMAX'?/^TINTA GALVIMAX/:tipo==='TINTA DUCO'?/^TINTA DUCO/:/^TINTA PU/;
+// escolhe a tinta do cadastro: tipo (PU / Duco / Galvimax / Epóxi) + a cor mais próxima; mesmo código/cliente ganha prioridade; empate → preço mais recente
+function mpTinta(tipo,CI,cliente,acab){const pre=tipo==='GALVIMAX'?/^TINTA GALVIMAX/:tipo==='TINTA DUCO'?/^TINTA DUCO/:tipo==='TINTA EPOXI'?/^TINTA EPOX/:/^TINTA PU/;
   if(!TINTA_HEX)TINTA_HEX=MP.map(r=>/^TINTA/i.test(r[1])?tintaHex(r[1]):null);
   const cand=MP.map((r,i)=>i).filter(i=>pre.test(mpNorm(MP[i][1])));if(!cand.length)return -1;
   const alvo=corAlvo(CI);const code=mpNorm(CI.code||'').replace(/\s+/g,'');const cli=mpNorm(cliente||'').split(/[^A-Z0-9]+/).filter(w=>w.length>2);
@@ -3623,12 +3623,13 @@ function mpTinta(tipo,CI,cliente,acab){const pre=tipo==='GALVIMAX'?/^TINTA GALVI
     const d=mpData(MP[i][5]);if(s<bs-0.5||(Math.abs(s-bs)<=0.5&&d>bd)){best=i;bs=s;bd=d}});return bs<400?best:-1}
 // tinta pela área pintada (+ catalisador e wash primer quando for PU)
 function needsTinta(area,quem){const out=[];if(!(area>0))return out;const CI=typeof corInfo==='function'?corInfo():{};const ref=[CI.code?`${CI.esc} ${CI.code}`:'',CI.nome||''].filter(Boolean).join(' — ')||'cor a definir';
-  const tipo=($('#pTinta')&&$('#pTinta').value)||'TINTA PU';const pu=tipo==='TINTA PU';const nomeT={'TINTA PU':'PU','TINTA DUCO':'Duco','GALVIMAX':'Galvimax'}[tipo]||tipo;
+  const tipo=($('#pTinta')&&$('#pTinta').value)||'TINTA PU';const pu=tipo==='TINTA PU';const nomeT={'TINTA PU':'PU','TINTA DUCO':'Duco','GALVIMAX':'Galvimax','TINTA EPOXI':'Epóxi'}[tipo]||tipo;
   const cli=($('#cliente')&&$('#cliente').value)||'';const acab=$('#pAcab')?$('#pAcab').value:'';const it=mpTinta(tipo,CI,cli,acab);
   const L=area*MPP.demaos/MPP.tintaRend;
   out.push({k:`tinta|${tipo}|${ref}`,desc:`Tinta ${nomeT} — cor ref.: ${ref}`,litros:L,un:'un',uso:`${quem}: ${f2(area)} m² x ${MPP.demaos} demãos`,busca:it>=0?{must:[MP[it][1]]}:{must:['TINTA ZZZ-SEM-COR']}});
   if(pu){out.push({k:'tinta|catpu',desc:'Catalisador PU',litros:L*MPP.puCatMl/1000,un:'un',uso:`${MPP.puCatMl} ml por litro de tinta`,busca:{must:['CATALISADOR','PU']}});
     const Wl=area/MPP.washRend;out.push({k:'tinta|wash',desc:'Wash primer',litros:Wl,un:'un',uso:`fundo: ${f2(area)} m² ÷ ${MPP.washRend} m²/L`,busca:{must:['WASH PRIMER'],want:['600ML']}},{k:'tinta|washcat',desc:'Catalisador do wash primer',litros:Wl*MPP.washCat,un:'un',uso:`${String(MPP.washCat).replace('.',',')} L por litro de wash`,busca:{must:['CATALISADOR','WASH']}})}
+  if(tipo==='TINTA EPOXI')out.push({k:'tinta|catepox',desc:'Catalisador epóxi',litros:L/4,un:'un',uso:'relação 4:1 (4 de tinta para 1 de catalisador)',busca:{must:['CATALISADOR','EPOX']}});
   return out}
 // fontes blindadas (IP67): prioriza 60, 100 e 150 W
 function fontes(need){const out=[];let n=need;while(n>0.01){const w=n<=60?60:n<=100?100:150;out.push(w);n-=w}return out}
