@@ -480,13 +480,16 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
           <div><label class="f">Altura da parede (mm, opcional)</label><input type="text" id="iPh" inputmode="decimal"></div>
         </div>
         <label class="f">Tipo de superfície onde vai instalada</label>
-        <select id="iAncT"><option value="alvenaria">Parede de alvenaria</option><option value="drywall">Parede de drywall</option><option value="aco">Tubo de aço ou ACM</option><option value="parabolt">Concreto</option><option value="quimico">Bloco vazado / tijolo furado</option><option value="nenhuma">Sem fixação na parede</option><option value="perso">Personalizado (escrever observação)</option></select><div class="note" id="iAncInfo" style="margin-top:4px"></div>
+        <select id="iAncT"><option value="alvenaria">Parede de alvenaria</option><option value="drywall">Parede de drywall</option><option value="aco">Testeira em ACM</option><option value="solda">Solda em estrutura existente</option><option value="parabolt">Concreto</option><option value="quimico">Bloco vazado / tijolo furado</option><option value="nenhuma">Sem fixação na parede</option><option value="perso">Personalizado (escrever observação)</option></select><div class="note" id="iAncInfo" style="margin-top:4px"></div>
         <div id="ancPersoBox" hidden style="margin-top:6px"><label class="f">Observação da instalação (sai num box verde na folha de instalação)</label><textarea id="iAncObs" rows="3" style="width:100%;background:#ebfbee;border-color:#2b8a3e" placeholder="Ex.: fixar com fita VHB + silicone no vidro; não furar"></textarea></div>
         <div id="ancBox" class="g2" style="margin-top:6px">
           <div><label class="f">Bitola / material</label><input type="text" id="iAncB"></div>
           <div><label class="f">Quantidade (vazio = automático)</label><input type="text" id="iAncQ" inputmode="numeric"></div>
           <div style="grid-column:1/-1"><label class="btn ghost sm" style="display:inline-flex;align-items:center">Foto da ancoragem (opcional)<input type="file" id="ancIn" accept="image/*" hidden></label><div id="ancPrev" style="margin-top:6px"></div></div>
         </div>
+        <label class="f">Tipo de ancoragem (como a peça fica presa)</label>
+        <div class="row" style="gap:10px;align-items:center;flex-wrap:wrap"><select id="iAncTipo" style="flex:1;min-width:200px"></select><div id="ancTipoImg" class="row" style="gap:8px;align-items:center"></div></div>
+        <button class="btn ghost sm" id="ancTipoNovo" type="button" style="margin-top:6px">+ Cadastrar ancoragem</button>
         <label class="f">Foto de instalação</label>
         <div class="row" style="gap:8px;align-items:stretch">
           <label class="btn ghost sm" style="display:inline-flex;align-items:center">Enviar foto<input type="file" id="instIn" accept="image/*" hidden></label>
@@ -594,7 +597,7 @@ let types=[];let db=null;let local=false;let empresa={logo:GRANDA_LOGO,lw:375,lh
 function lsGet(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 function setTypes(list){types=list.slice().sort((a,b)=>(a.ordem||99)-(b.ordem||99)||a.nome.localeCompare(b.nome));renderTypes()}
-function startLocal(){local=true;fixLocal();perfisLocal();acmLocal();pedLocal();setTypes(lsGet('granda_tipos2')||DEFAULT_TYPES);empresa=lsGet('granda_empresa')||empresa;renderLogo();$('#storeNote').textContent='Modo local: os cadastros ficam salvos só neste aparelho.'}
+function startLocal(){local=true;fixLocal();perfisLocal();ancTiposLocal();acmLocal();pedLocal();setTypes(lsGet('granda_tipos2')||DEFAULT_TYPES);empresa=lsGet('granda_empresa')||empresa;renderLogo();$('#storeNote').textContent='Modo local: os cadastros ficam salvos só neste aparelho.'}
 async function initStore(){
   const timer=setTimeout(()=>{if(!types.length)startLocal()},10000);
   try{if(window.claude&&claude.use)db=await claude.use('db')}catch(e){db=null}
@@ -604,7 +607,7 @@ async function initStore(){
     if(!snap.docs.length&&!window.__seedTipos){window.__seedTipos=1;DEFAULT_TYPES.forEach(t=>{const {id,...body}=t;db.collection('tipos').doc(id).set(JSON.parse(JSON.stringify(body))).catch(()=>{})});setTypes(DEFAULT_TYPES);return}
     setTypes(snap.docs.map(d=>({id:d.id,...d.data()})));
   },()=>{clearTimeout(timer);if(!types.length)startLocal()});
-  fixListen(db);perfisListen(db);acmListen(db);pedListen(db);
+  fixListen(db);perfisListen(db);ancTiposListen(db);acmListen(db);pedListen(db);
   db.doc('config/empresa').onSnapshot(s=>{if(s.exists){empresa={logo:GRANDA_LOGO,lw:375,lh:134,...s.data()};if(!empresa.logo){empresa.logo=GRANDA_LOGO;empresa.lw=375;empresa.lh=134}renderLogo()}},()=>{});
 }
 async function saveType(t){
@@ -3116,13 +3119,15 @@ const tuboKgM=(f,p,t)=>Math.max(0,(2*(f+p)-4*t)*t*0.00785);   // kg por metro de
 const numBR=v=>parseFloat(String(v||'').replace(',','.'))||0;
 const kgTxt=v=>v>0&&v<0.1?'< 0,1 kg':v>0?`${v<10?v.toLocaleString('pt-BR',{maximumFractionDigits:1}):Math.round(v).toLocaleString('pt-BR')} kg`:'—';
 function instLer(){const g=id=>$('#'+id);if(!g('iHm'))return{hm:'centro',vm:'centro'};
-  return{hm:g('iHm').value,hv:numBR(g('iHv').value),vm:g('iVm').value,vv:numBR(g('iVv').value),pw:numBR(g('iPw').value),ph:numBR(g('iPh').value),ancT:g('iAncT')?g('iAncT').value:'alvenaria',ancB:g('iAncB')?g('iAncB').value.trim():'',ancQ:g('iAncQ')?numBR(g('iAncQ').value):0,ancObs:g('iAncObs')?g('iAncObs').value.trim():''}}
+  return{hm:g('iHm').value,hv:numBR(g('iHv').value),vm:g('iVm').value,vv:numBR(g('iVv').value),pw:numBR(g('iPw').value),ph:numBR(g('iPh').value),ancT:g('iAncT')?g('iAncT').value:'alvenaria',ancB:g('iAncB')?g('iAncB').value.trim():'',ancQ:g('iAncQ')?numBR(g('iAncQ').value):0,ancTipo:g('iAncTipo')?g('iAncTipo').value:'',ancObs:g('iAncObs')?g('iAncObs').value.trim():''}}
 const ANC={alvenaria:{nome:'BUCHA 8 + PARAFUSO SEXTAVADO ROSCA SOBERBA 1/4 x 70 MM',base:'PAREDE DE ALVENARIA',bit:'Bucha 8 mm + parafuso sext. rosca soberba 1/4 x 70 mm',broca:'Broca 8 mm (vídea)',draw:'bucha',
     passos:['Marcar os furos com o molde/gabarito e conferir o nível.','Furar com broca 8 mm (vídea) e limpar o pó.','Colocar a bucha 8 rente à parede.','Posicionar a peça e apertar o parafuso sextavado 1/4 x 70 mm.']},
   drywall:{nome:'BUCHA DE DRYWALL TIPO SFORBOLT C/ PARAFUSO 1/4',base:'PAREDE DE DRYWALL (BASE OCA)',bit:'Bucha Sforbolt p/ bases ocas c/ parafuso 1/4',broca:'Broca conforme a bucha',draw:'bucha',
     passos:['Marcar os furos e conferir se não há perfil/montante atrás.','Furar o drywall na medida da bucha.','Colocar a bucha Sforbolt e apertar até abrir atrás da placa.','Posicionar a peça e apertar o parafuso 1/4.']},
-  aco:{nome:'PARAFUSO BROCANTE SEXTAVADO 5,5 x 2" + PARAFUSO FIXER 4,5 x 45',base:'TUBO DE AÇO OU ACM',bit:'Sext. flang. c/ arruela broc. (12x2) 5,5 x 2" + fixer cab. chata Philips 4,5 x 45',broca:'sem pré-furo (ponta broca)',draw:'brocante',
-    passos:['Posicionar a peça sobre o tubo de aço ou o ACM.','Parafusar com o brocante sextavado 5,5 x 2" (a ponta broca fura o metal).','Usar o fixer 4,5 x 45 onde for indicado (ACM/peças finas).','Não exagerar no torque para não espanar.']},
+  aco:{nome:'PARAFUSO BROCANTE SEXTAVADO 5,5 x 2" + PARAFUSO FIXER 4,5 x 45',base:'TESTEIRA EM ACM',bit:'Sext. flang. c/ arruela broc. (12x2) 5,5 x 2" + fixer cab. chata Philips 4,5 x 45',broca:'sem pré-furo (ponta broca)',draw:'brocante',
+    passos:['Posicionar a peça sobre a testeira em ACM.','Parafusar com o brocante sextavado 5,5 x 2" (a ponta broca fura o metal).','Usar o fixer 4,5 x 45 onde for indicado (ACM/peças finas).','Não exagerar no torque para não espanar.']},
+  solda:{nome:'SOLDA NA ESTRUTURA EXISTENTE',base:'ESTRUTURA METÁLICA EXISTENTE',bit:'Solda (eletrodo / MIG) na estrutura existente',broca:'—',draw:'solda',semQtd:true,
+    passos:['Conferir posição e nível da peça na estrutura existente.','Ponteiar a peça na estrutura e conferir de novo.','Soldar os pontos definitivos.','Limpar a escória e aplicar proteção (zarcão/galvanizado a frio) nas soldas.']},
   parabolt:{nome:'PARABOLT (CHUMBADOR MECÂNICO)',base:'CONCRETO',bit:'Parabolt 3/8" x 3"',broca:'Broca 3/8" (10 mm)',draw:'parabolt'},
   quimico:{nome:'CHUMBADOR QUÍMICO',base:'TIJOLO / BLOCO VAZADO',bit:'Barra roscada 3/8" + bucha telada + resina',broca:'Broca 12 mm',draw:'quimico'}};
 const ANC_ANTIGO={bucha:'alvenaria',brocante:'aco',madeira:'alvenaria'};
@@ -3208,11 +3213,15 @@ function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'}
   if(prod.un>1)lin('QUANTIDADE:',`${prod.un} UN.`);
   lin('POSIÇÃO:',instPosTxt(I),'#d6336c');
   const perso=I.ancT==='perso';
-  {const A=perso?null:ancInfo(I,prod);if(A)lin('ANCORAGEM:',`${A.nome} — ${A.q} UN.`,'#d6336c');if(perso)lin('ANCORAGEM:','PERSONALIZADA — VER OBSERVAÇÃO','#2b8a3e')}
+  {const A=perso?null:ancInfo(I,prod);if(A)lin('ANCORAGEM:',A.semQtd?A.nome:`${A.nome} — ${A.q} UN.`,'#d6336c');{const T=ancTipoDe(I.ancTipo);if(T)lin('TIPO DE ANCORAGEM:',T.nome.toUpperCase(),'#d6336c')}if(perso)lin('ANCORAGEM:','PERSONALIZADA — VER OBSERVAÇÃO','#2b8a3e')}
   if(I.pw&&I.ph)lin('PAREDE:',`${f0(I.pw)} mm (L) x ${f0(I.ph)} mm (A)`);else if(I.pw)lin('PAREDE:',`${f0(I.pw)} mm (L)`);else if(I.ph)lin('PAREDE:',`${f0(I.ph)} mm (A)`);
-  if(temF){const fs=[instImg,instImg2].filter(Boolean),FH=40,G=3,FW=((XR-IX)-G*(fs.length-1))/fs.length;
-    fs.forEach((im,i)=>{const x0=IX+i*(FW+G);const k=Math.min((FW-2)/im.w,(FH-5)/im.h),w=im.w*k,h=im.h*k;
-      P.push({t:'rect',x:x0,y,w:FW,h:FH,fill:'#ffffff',stroke:'#868e96',lw:0.25},{t:'img',x:x0+(FW-w)/2,y:y+4+(FH-5-h)/2,w,h,src:im.src,fmt:'JPEG'},{t:'text',x:x0+1.5,y:y+3,s:fs.length>1?`FOTO ${i+1}`:'FOTO DE INSTALAÇÃO',size:2,bold:true,color:'#868e96'})});y+=FH+5}
+  const TA=ancTipoDe(I.ancTipo);
+  if(temF){const fp=[instImg,instImg2].filter(Boolean);const fs=fp.map((im,i)=>({im,lb:fp.length>1?`FOTO ${i+1}`:'FOTO DE INSTALAÇÃO',c:'#868e96'}));if(TA&&TA.img)fs.push({im:TA.img,lb:fit('ANCORAGEM: '+TA.nome.toUpperCase(),40,2),c:'#d6336c'});const FH=40,G=3,FW=((XR-IX)-G*(fs.length-1))/fs.length;
+    fs.forEach((o,i)=>{const im=o.im;const x0=IX+i*(FW+G);const k=Math.min((FW-2)/im.w,(FH-5)/im.h),w=im.w*k,h=im.h*k;
+      P.push({t:'rect',x:x0,y,w:FW,h:FH,fill:'#ffffff',stroke:o.c,lw:0.25},{t:'img',x:x0+(FW-w)/2,y:y+4+(FH-5-h)/2,w,h,src:im.src,fmt:'JPEG'},{t:'text',x:x0+1.5,y:y+3,s:o.lb,size:2,bold:true,color:o.c})});y+=FH+5}
+  {const T=temF?null:TA;if(T&&T.img){const FW=XR-IX,FH=30;const k=Math.min((FW*0.55-2)/T.img.w,(FH-5)/T.img.h),w=T.img.w*k,h=T.img.h*k;
+    P.push({t:'rect',x:IX,y,w:FW,h:FH,fill:'#ffffff',stroke:'#d6336c',lw:0.3},{t:'img',x:IX+1.5,y:y+4+(FH-5-h)/2,w,h,src:T.img.src,fmt:'JPEG'},{t:'text',x:IX+1.5,y:y+3,s:'ANCORAGEM',size:2,bold:true,color:'#d6336c'},
+      {t:'text',x:IX+w+5,y:y+FH/2,s:fit(T.nome.toUpperCase(),FW-w-8,3),size:3,bold:true,color:'#000000'});y+=FH+5}}
   if(perso){const ob=(I.ancObs||'SEM OBSERVAÇÃO').toUpperCase();const mc=Math.floor((XR-IX-6)/1.75);const ls=[];ob.split(/\n/).forEach(par=>{let c='';par.split(/\s+/).forEach(w=>{if((c+' '+w).trim().length>mc&&c){ls.push(c);c=w}else c=(c+' '+w).trim()});if(c)ls.push(c)});
     const L=ls.slice(0,12),h=L.length*4.4+9;P.push({t:'rect',x:IX,y,w:XR-IX,h,r:2,fill:'#d3f9d8',stroke:'#2b8a3e',lw:0.6},{t:'text',x:IX+3,y:y+4.6,s:'OBSERVAÇÃO DA INSTALAÇÃO',size:2.8,bold:true,color:'#2b8a3e'});
     L.forEach((s,i)=>P.push({t:'text',x:IX+3,y:y+9.4+i*4.4,s,size:3.1,bold:true,color:'#000000'}));y+=h+5}
@@ -3451,7 +3460,7 @@ function ancCarrega(blob){if(!blob||!/^image\//.test(blob.type))return;const url
   im.onload=()=>{const Mx=1000,k=Math.min(1,Mx/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
     const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);
     ancImg={src:c.toDataURL('image/jpeg',0.85),w:c.width,h:c.height};if(typeof pedSujo!=='undefined')pedSujo=true;instRender();refRefaz()};im.onerror=()=>URL.revokeObjectURL(url);im.src=url}
-function instReset(){instImg=null;instImg2=null;ancImg=null;if($('#iAncT')){$('#iAncT').value='alvenaria';$('#iAncB').value='';$('#iAncQ').value='';if($('#iAncObs'))$('#iAncObs').value=''}['iPw','iPh','iHv','iVv'].forEach(i=>{if($('#'+i))$('#'+i).value=''});if($('#iHm')){$('#iHm').value='centro';$('#iVm').value='centro'}instRender()}
+function instReset(){instImg=null;instImg2=null;ancImg=null;if($('#iAncTipo')){$('#iAncTipo').dataset.v='';$('#iAncTipo').value='';try{ancTiposRender()}catch(e){}}if($('#iAncT')){$('#iAncT').value='alvenaria';$('#iAncB').value='';$('#iAncQ').value='';if($('#iAncObs'))$('#iAncObs').value=''}['iPw','iPh','iHv','iVv'].forEach(i=>{if($('#'+i))$('#'+i).value=''});if($('#iHm')){$('#iHm').value='centro';$('#iVm').value='centro'}instRender()}
 if($('#instIn')){
   $('#instIn').onchange=e=>{instCarrega(e.target.files[0]);e.target.value=''};
   $('#ancIn').onchange=e=>{ancCarrega(e.target.files[0]);e.target.value=''};
@@ -3484,6 +3493,31 @@ const FPOBS_RUN={prev:()=>{if(!$('#gerar').disabled)$('#gerar').click()},mPrev:(
 ['prev','mPrev','dPrev','tPrev'].forEach(id=>{const el=$('#'+id);if(!el)return;
   new MutationObserver(()=>{el.querySelectorAll('.pg').forEach(pg=>{const nx=pg.nextElementSibling;if((!nx||!nx.classList.contains('fpObsRow'))&&pg.querySelector('svg[data-pg]'))fpObsLinha(pg)})}).observe(el,{childList:true})});
 $('#lPgPick').onclick=e=>{const b=e.target.closest('[data-lpg]');if(!b)return;lSel=b.dataset.lpg;lPrevRender()};
+
+/* ---------- catálogo de tipos de ancoragem (nome + foto), cadastrado pelo usuário ---------- */
+let ancTipos=[{id:'lsup',nome:'L superior invertido',img:null}];
+function ancTipoDe(id){return id?(ancTipos||[]).find(a=>a.id===id)||null:null}
+async function ancTiposSalvar(){if(local||!db){lsSet('granda_anctipos',ancTipos);return}try{await db.doc('config/ancoragens').set({lista:ancTipos})}catch(e){}}
+function ancTiposLocal(){const v=lsGet('granda_anctipos');if(v&&v.length)ancTipos=v;ancTiposRender()}
+function ancTiposListen(db){db.doc('config/ancoragens').onSnapshot(s=>{if(s.exists){const l=(s.data()||{}).lista;if(l&&l.length)ancTipos=l}ancTiposRender()},()=>{});ancTiposRender()}
+function ancTiposRender(){const s=$('#iAncTipo');if(!s)return;const v=s.value||s.dataset.v||'';s.innerHTML='<option value="">— nenhum —</option>'+ancTipos.map(a=>`<option value="${esc(a.id)}">${esc(a.nome)}</option>`).join('');if([...s.options].some(o=>o.value===v))s.value=v;
+  const T=ancTipoDe(s.value);const b=$('#ancTipoImg');if(!b)return;
+  b.innerHTML=T?`${T.img?`<img src="${T.img.src}" style="width:110px;height:80px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff">`:'<span class="note">sem foto</span>'}<label class="btn ghost sm" style="cursor:pointer">${T.img?'Trocar foto':'Adicionar foto'}<input type="file" accept="image/*" id="ancTipoFoto" hidden></label><button class="btn ghost sm" type="button" id="ancTipoDel" style="color:#c92a2a">Excluir</button>`:''}
+function ancTipoImgLe(f,cb){if(!f||!/^image\//.test(f.type))return;const url=URL.createObjectURL(f);const im=new Image();im.onload=()=>{const Mx=700,k=Math.min(1,Mx/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);cb({src:c.toDataURL('image/jpeg',0.85),w:c.width,h:c.height})};im.src=url}
+function ancTipoNovoPopup(){let M=$('#ancTipoModal');if(M)M.remove();M=document.createElement('div');M.id='ancTipoModal';M.style.cssText='position:fixed;inset:0;background:#0007;z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+  M.innerHTML=`<div style="background:#fff;border-radius:14px;padding:16px;width:100%;max-width:440px;display:flex;flex-direction:column;gap:8px"><b>Cadastrar ancoragem</b><label class="f" style="margin:0">Nome</label><input type="text" id="atNome" placeholder="Ex.: L superior invertido">
+    <label class="f" style="margin:0">Foto</label><div class="row" style="gap:8px;align-items:center"><label class="btn ghost sm" style="cursor:pointer">Enviar foto<input type="file" accept="image/*" id="atFoto" hidden></label><div id="atZone" contenteditable="true" style="flex:1;border:1.5px dashed var(--line);border-radius:10px;padding:8px;font-size:13px;color:#868e96;outline:none">Colar foto aqui</div></div><div id="atPrev"></div>
+    <div class="row" style="gap:8px;justify-content:flex-end"><button class="btn ghost sm" data-x="c" type="button">Cancelar</button><button class="btn pink sm" data-x="ok" type="button">Salvar</button></div></div>`;
+  document.body.appendChild(M);let img=null;const mostra=i=>{img=i;M.querySelector('#atPrev').innerHTML=`<img src="${i.src}" style="max-width:100%;max-height:160px;border:1px solid var(--line);border-radius:8px">`};
+  M.querySelector('#atFoto').onchange=e=>ancTipoImgLe(e.target.files[0],mostra);
+  M.querySelector('#atZone').addEventListener('paste',e=>{e.preventDefault();const it=[...((e.clipboardData||{}).items||[])].find(i=>i.type.startsWith('image/'));if(it)ancTipoImgLe(it.getAsFile(),mostra)});
+  M.onclick=e=>{const b=e.target.closest('[data-x]');if(e.target===M||(b&&b.dataset.x==='c')){M.remove();return}
+    if(b&&b.dataset.x==='ok'){const nome=M.querySelector('#atNome').value.trim();if(!nome)return;const id='a'+Date.now().toString(36);ancTipos.push({id,nome,img});ancTiposSalvar();M.remove();ancTiposRender();$('#iAncTipo').value=id;ancTiposRender();if(typeof pedSujo!=='undefined')pedSujo=true;refRefaz()}}}
+if($('#ancTipoNovo')){$('#ancTipoNovo').onclick=ancTipoNovoPopup;
+  $('#iAncTipo').addEventListener('change',()=>ancTiposRender());
+  $('#ancTipoImg').addEventListener('change',e=>{if(e.target.id!=='ancTipoFoto')return;const T=ancTipoDe($('#iAncTipo').value);if(!T)return;ancTipoImgLe(e.target.files[0],i=>{T.img=i;ancTiposSalvar();ancTiposRender();refRefaz()})});
+  $('#ancTipoImg').addEventListener('click',e=>{if(e.target.id!=='ancTipoDel')return;const T=ancTipoDe($('#iAncTipo').value);if(!T)return;if(e.target.dataset.c!=='1'){e.target.dataset.c='1';e.target.textContent='Confirmar exclusão';return}ancTipos=ancTipos.filter(a=>a!==T);ancTiposSalvar();$('#iAncTipo').value='';ancTiposRender();refRefaz()});
+  ancTiposRender()}
 
 /* ================= LISTA DE MATERIAL (matérias-primas da Granda) ================= */
 // catálogo: [código, nome, unidade, valor, conta] — planilha de matérias-primas de 06/11/2026
@@ -3525,7 +3559,7 @@ function needMetalon(perfil,parede,nBarras,uso){const d=mpDim(perfil);const p=St
 function needsAncoragem(A){if(!A||!A.q)return[];const q=A.q;const k=A.key||A.tipo;
   if(k==='alvenaria')return[{k:'anc|bucha8',desc:'Bucha 8 mm nylon',q,un:'un',uso:'fixação na parede (alvenaria)',busca:{must:['BUCHA','8MM']}},{k:'anc|sext14x70',desc:'Parafuso sext. rosca soberba 1/4 x 70 mm',q,un:'un',uso:'fixação na parede (alvenaria)',busca:{must:['SEXT','SOBERBA','1/4 X 70']}}];
   if(k==='drywall')return[{k:'anc|sforbolt',desc:'Bucha drywall Sforbolt c/ parafuso 1/4',q,un:'un',uso:'fixação na parede (drywall)',busca:{must:['SFORBOLT']}}];
-  if(k==='aco')return[{k:'anc|brocsext',desc:'Parafuso sext. flang. c/ arruela broc. (12x2) 5,5 x 2"',q,un:'un',uso:'fixação em tubo de aço / ACM',busca:{must:['BROC','5.5 X 2']}},{k:'anc|fixer45',desc:'Parafuso fixer cab. chata Philips 4,5 x 45',q,un:'un',uso:'fixação em tubo de aço / ACM',busca:{must:['FIXER','4.5X45']}}];
+  if(k==='aco')return[{k:'anc|brocsext',desc:'Parafuso sext. flang. c/ arruela broc. (12x2) 5,5 x 2"',q,un:'un',uso:'fixação na testeira de ACM',busca:{must:['BROC','5.5 X 2']}},{k:'anc|fixer45',desc:'Parafuso fixer cab. chata Philips 4,5 x 45',q,un:'un',uso:'fixação na testeira de ACM',busca:{must:['FIXER','4.5X45']}}];
   if(k==='parabolt')return[{k:'anc|parabolt38',desc:'Parabolt 3/8" x 3"',q,un:'un',uso:'ancoragem',busca:{must:['PARABOLT','3/8'],want:['X 3 ']}}];
   if(k==='quimico')return[{k:'anc|quim-resina',desc:'Chumbador químico (frasco)',q:Math.max(1,Math.ceil(q/10)),un:'un',uso:'ancoragem (~10 furos por frasco)',busca:{must:['CHUMBADOR QUIMICO'],want:['FRASCO']}},
     {k:'anc|quim-camisa',desc:'Camisa telada p/ chumbador químico',q,un:'un',uso:'ancoragem',busca:{must:['CAMISA','CHUMBADOR']}},
@@ -4195,7 +4229,7 @@ async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHT
   catch(e){console.error(e);msg(`<span style="color:#ffc9c9">Não salvou: ${esc(e.message)}</span>`)}}
 // abre um item: restaura tudo; se "mostrar", vai para a aba dele e gera
 async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)throw new Error('estado do item não encontrado');const F=it.fonteId?await lerJSON(it.fonteId):null;
-  itemAtual={id:it.id,tipo:it.tipo,n:it.n};$('#item').value=it.n;if(it.tipo==='letra')limpaTipo('letra');refImg=E.refImg||null;fpObsPg={...(E.fpObsPg||{})};matQtd={...(E.matQtd||{})};matAdd=(E.matAdd||[]).map(x=>({...x}));refRender();instReset();if(E.inst){if(E.inst.iAncT&&ANC_ANTIGO[E.inst.iAncT])E.inst.iAncT=ANC_ANTIGO[E.inst.iAncT];if(!E.inst.iUnid){['iHv','iVv','iPw','iPh'].forEach(k=>{if(E.inst[k])E.inst[k]=String(Math.round(numBR(E.inst[k])*10))});E.inst.iUnid='mm'}putInputs(E.inst)}instImg=E.instImg||null;instImg2=E.instImg2||null;ancImg=E.ancImg||null;instRender();
+  itemAtual={id:it.id,tipo:it.tipo,n:it.n};$('#item').value=it.n;if(it.tipo==='letra')limpaTipo('letra');refImg=E.refImg||null;fpObsPg={...(E.fpObsPg||{})};matQtd={...(E.matQtd||{})};matAdd=(E.matAdd||[]).map(x=>({...x}));refRender();instReset();if(E.inst){if(E.inst.iAncT&&ANC_ANTIGO[E.inst.iAncT])E.inst.iAncT=ANC_ANTIGO[E.inst.iAncT];if(!E.inst.iUnid){['iHv','iVv','iPw','iPh'].forEach(k=>{if(E.inst[k])E.inst[k]=String(Math.round(numBR(E.inst[k])*10))});E.inst.iUnid='mm'}putInputs(E.inst);if($('#iAncTipo')){$('#iAncTipo').dataset.v=E.inst.iAncTipo||'';ancTiposRender()}}instImg=E.instImg||null;instImg2=E.instImg2||null;ancImg=E.ancImg||null;instRender();
   if(E.cor){selEsc=E.cor.selEsc||selEsc;renderEsc();putInputs(E.cor.inputs)}
   if(it.tipo==='testeira'||it.tipo==='estrutura')xfPut('#xfT',E.xf||[]);if(it.tipo==='modelo3d')xfPut('#xfM',E.xf||[]);
   if(it.tipo==='letra'){putInputs(E.inputs);selType=E.selType;selLed=E.selLed;selLedW=E.selLedW||null;ledFonte={...(E.ledFonte||{})};ledFonteW={...(E.ledFonteW||{})};selChapa=E.selChapa;selCaixa=E.selCaixa||80;
