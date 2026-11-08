@@ -370,13 +370,15 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;margin-top:12px;font-size:13px"><input type="checkbox" id="t40"> Travessa 20x40 de reforço</label>
       <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;margin-top:8px;font-size:13px"><input type="checkbox" id="tMeia"> Cantos em meia esquadria (45°)</label>
       <div id="tH40box" hidden><label class="f">Altura do centro da travessa 20x40 a partir da base (mm)</label><input type="number" id="tH40" value="150" inputmode="numeric"></div>
-      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">3. Fixação</h2>
-      
+      <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;margin-top:8px;font-size:13px"><input type="checkbox" id="tJan"> Janelas 150 x 150 mm nos cantos — cadeirinha angulada</label>
+      <p class="note" style="margin:4px 0 0">Ancoragem / fixação na parede: escolha no <b>Projeto de instalação</b> (Tipo de ancoragem).</p>
+      <div hidden>
       <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;font-size:13px"><input type="checkbox" id="tCad"> Cadeirinha</label>
-      <select id="tCadModo" style="margin-top:8px"><option value="janela">Janelas 150 x 150 mm nos cantos (e no centro se passar de 1.500 mm)</option><option value="trava">Travas horizontais a 150 mm do topo e da base</option></select>
+      <select id="tCadModo" style="margin-top:8px"><option value="janela">Janelas 150 x 150 mm nos cantos (cadeirinha angulada)</option><option value="trava">Travas horizontais a 150 mm do topo e da base</option></select>
       <p class="note" style="margin:4px 0 8px">Tubo 10 mm mais fino que o contorno, faceado pelo fundo; 150 mm de vão livre entre as faces internas. Leva 2 cantoneiras internas AJR 003 embaixo para travar.</p>
       <div class="row" id="tFixBox" style="gap:6px"></div>
-      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">4. ACM</h2>
+      </div>
+      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">3. ACM</h2>
       <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;font-size:13px"><input type="checkbox" id="aOn"> Revestir a testeira com ACM</label>
       <div id="aBox" hidden>
         <label class="f">Espessura</label>
@@ -439,10 +441,10 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
         </div>
         <p class="note" style="margin:6px 0 0">Cores dos catálogos Bold, Day Brasil (Tecbond), Geoplast, ProjetoAlumínio e Alucomaxx; a cor na tela é aproximada — confirme na cartela física. A cor manual fica salva em "Minhas cores".</p>
       </div>
-      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">5. Pintura da estrutura</h2>
+      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">4. Pintura da estrutura</h2>
       <div class="leds" id="tPintModo"><button data-m="nao" class="sel"><b>Sem pintura</b></button><button data-m="toda"><b>Pintar toda a estrutura</b></button><button data-m="soldas"><b>Só proteção nas soldas</b><span class="note" style="display:block">sem pintura, sem cor</span></button></div>
       <div id="tPintSlot" hidden></div>
-      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">6. Observações</h2>
+      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">5. Observações</h2>
       <p class="note" style="margin:0">Saem na folha.</p><textarea id="tObs"></textarea>
     </div>
     <div class="card tm-pad">
@@ -2193,6 +2195,9 @@ function paraMundo(c,b){const ox=c.ox||0,oy=c.oy||0;const X=(x,z)=>c.O[0]+(x+ox)
 /* ---------- fixações cadastradas ---------- */
 const FIX_POS={topo:'Topo de cada vertical',base:'Base de cada vertical',lateral:'Laterais (pontas da estrutura)',avulsa:'Quantidade fixa (só na lista)'};
 let fixacoes=[];const fixSel=new Set();
+// a fixação da testeira vem do Tipo de ancoragem do Projeto de instalação; janelas = cadeirinha angulada
+function fixSelSync(){const s=$('#iAncTipo');fixSel.clear();if(s&&s.value&&fixacoes.some(f=>f.id===s.value))fixSel.add(s.value);
+  const j=$('#tJan');if(j){$('#tCad').checked=j.checked;if(j.checked)$('#tCadModo').value='janela'}}
 function fixBoxes(c,fx,isFirst,isLast){const F=c.F,e=3,L=fx.comp||250,ab=fx.aba||50,q=Math.max(1,fx.qtd||1);const out=[];const cor=fx.cor||'#ff6633';
   const B=b=>out.push({...b,cor,fix:true});
   if(fx.pos==='topo'||fx.pos==='base')F.vcs.forEach(cx=>{const top=fx.pos==='topo';
@@ -2373,7 +2378,7 @@ function lerOpcoes(){const n=k=>num($('#'+k).value);
   return {un:Math.max(1,Math.round(n('tUn'))||1),perfil:$('#tPerfil').value,perfilInt:$('#tPerfilInt').value,parede:$('#tParede').value||'1,25',paredeInt:$('#tParedeInt').value||$('#tParede').value||'1,25',vaoV:n('tVaoV')||1400,vaoH:n('tVaoH')||1000,trav40:$('#t40').checked,meia:$('#tMeia').checked,cad:$('#tCad').checked,cadModo:$('#tCadModo').value,perfilV:(tAcm.on&&tAcm.jt)?'30x20':null,h40:n('tH40')||150,barra:n('tBarra')||6000,serra:n('tSerra')||3}}
 function montar(){const o=lerOpcoes();
   tFaces.forEach((f,i)=>{if(!(f.W>100&&f.H>100))throw new Error(`Face ${i+1}: informe largura e altura (mm).`)});
-  const fixs=fixacoes.filter(f=>fixSel.has(f.id));const comp=compor(acmFaces(tFaces,o),o);
+  fixSelSync();const fixs=fixacoes.filter(f=>fixSel.has(f.id));const comp=compor(acmFaces(tFaces,o),o);
   const M={o,comp,fixs,lista:listaCorte(comp,o,fixs),boxes:boxesMundo(comp,fixs)};M.acm=acmCalc(comp,o);if(M.acm)M.acm._faixa=faixaTiras(M,o);return M}
 
 function buildTesteira(){
@@ -3515,7 +3520,7 @@ const FPOBS_RUN={prev:()=>{if(!$('#gerar').disabled)$('#gerar').click()},mPrev:(
 $('#lPgPick').onclick=e=>{const b=e.target.closest('[data-lpg]');if(!b)return;lSel=b.dataset.lpg;lPrevRender()};
 
 /* ---------- tipos de ancoragem = cadastro de Fixações (Cadastros › Fixações e ancoragens) ---------- */
-function ancTipoQtd(I,prod){if(I.ancTQ>0)return Math.round(I.ancTQ);const W=(prod&&prod.W)||0;return Math.max(2,Math.ceil(W/1500))}
+function ancTipoQtd(I,prod){if(I.ancTQ>0)return Math.round(I.ancTQ);if(prod&&prod.fixRM){const x=prod.fixRM.find(x=>x.f.id===I.ancTipo);if(x)return x.q}const W=(prod&&prod.W)||0;return Math.max(2,Math.ceil(W/1500))}
 function ancTipoRows(prod){const out=[];const lin=(f,q,uso)=>{const vu=f.custo||0;out.push({k:'fix|'+f.id,desc:`Fixação ${f.nome}`,q,un:'un',uso,cod:'CADASTRO',nome:`${f.nome.toUpperCase()}${vu>0?'':' (SEM CUSTO — CADASTRAR)'}`,unMP:'un',vu,tot:vu*q,data:f.data||'',manual:true})};
   const ja=new Set();(prod.fixRM||[]).forEach(x=>{if(x.f.custo>0||true){lin(x.f,x.q,'fixação da testeira');ja.add(x.f.id)}});
   try{const I=instLer();if(I.ancT!=='perso'){const T=ancTipoDe(I.ancTipo);if(T&&!ja.has(T.id))lin(T,ancTipoQtd(I,prod),`ancoragem ${I.ancPos==='inferior'?'inferior':'superior'} (1 a cada 1,5 m)`)}}catch(e){}
@@ -4257,7 +4262,7 @@ async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)th
     renderTypes();renderLeds();selChapa=E.selChapa;selCaixa=E.selCaixa||80;renderChapa();renderCaixa();if(E.cor)putInputs(E.cor.inputs);
     if(F)await carregaLetra(F.nome,unb64(F.b64));ledAdj=E.ledAdj||{};ledFonte={...(E.ledFonte||{})};ledFonteW={...(E.ledFonteW||{})};if(E.desc!=null)$('#descItem').value=E.desc;updateBtn();
     if(mostrar){irAba('novo');setTimeout(()=>$('#gerar').click(),50)}}
-  if(it.tipo==='testeira'){putInputs(E.inputs);tFaces=E.tFaces;tPint=E.tPint||'nao';tAcm=E.tAcm?{apl:aplDef(),...E.tAcm}:{on:false,esp:3,inst:'rente',fita:'vhb',chapa:'auto',marca:'',cor:null,jt:false,jmm:5,je:false,envT:'ext',apl:aplDef()};acmUI();adesMarca="";acmAplUI();fixSel.clear();(E.fixSel||[]).forEach(x=>fixSel.add(x));
+  if(it.tipo==='testeira'){putInputs(E.inputs);tFaces=E.tFaces;tPint=E.tPint||'nao';tAcm=E.tAcm?{apl:aplDef(),...E.tAcm}:{on:false,esp:3,inst:'rente',fita:'vhb',chapa:'auto',marca:'',cor:null,jt:false,jmm:5,je:false,envT:'ext',apl:aplDef()};acmUI();adesMarca="";acmAplUI();fixSel.clear();(E.fixSel||[]).forEach(x=>fixSel.add(x));if($('#tJan')&&E.inputs&&E.inputs.tJan==null)$('#tJan').checked=!!(E.inputs.tCad&&(E.inputs.tCadModo||'janela')==='janela');if($('#iAncTipo')&&!$('#iAncTipo').value&&(E.fixSel||[]).length){$('#iAncTipo').dataset.v=E.fixSel[0];ancTiposRender()}
     document.querySelectorAll('#tPintModo button').forEach(x=>x.classList.toggle('sel',x.dataset.m===tPint));$('#tPintSlot').hidden=tPint!=='toda';$('#tH40box').hidden=!$('#t40').checked;
     renderFaces();renderFixPick();if(mostrar){irAba('testeiras');setModo('padrao');v3Fit=true;tRender()}}
   if(it.tipo==='estrutura'){putInputs(E.inputs);dSrc=E.dSrc;dModel=E.dModel;dHist=E.dHist||[];dPrevModels=[];dPint=E.dPint||'nao';
