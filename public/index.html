@@ -3149,7 +3149,9 @@ const ANC={alvenaria:{nome:'BUCHA 8 + PARAFUSO SEXTAVADO ROSCA SOBERBA 1/4 x 70 
   parabolt:{nome:'PARABOLT (CHUMBADOR MECÂNICO)',base:'CONCRETO',bit:'Parabolt 3/8" x 3"',broca:'Broca 3/8" (10 mm)',draw:'parabolt'},
   quimico:{nome:'CHUMBADOR QUÍMICO',base:'TIJOLO / BLOCO VAZADO',bit:'Barra roscada 3/8" + bucha telada + resina',broca:'Broca 12 mm',draw:'quimico'}};
 const ANC_ANTIGO={bucha:'alvenaria',brocante:'aco',madeira:'alvenaria'};
-function ancInfo(I,prod){const key=ANC_ANTIGO[I.ancT]||I.ancT;if(!key||key==='nenhuma'||!ANC[key])return null;const A={...ANC[key],key,tipo:ANC[key].draw};const a=prod.anc||{};const auto=(a.auto||0)*(prod.tipo==='letra'?1:1);
+function ancInfo(I,prod){const key=ANC_ANTIGO[I.ancT]||I.ancT;if(!key||key==='nenhuma'||!ANC[key])return null;
+  // com tipo de ancoragem escolhido a peça vai presa pela ancoragem: sem bucha/parafuso na parede (a não ser que a quantidade seja informada)
+  if(I.ancTipo&&typeof ancTipoDe==='function'&&ancTipoDe(I.ancTipo)&&!(I.ancQ>0))return null;const A={...ANC[key],key,tipo:ANC[key].draw};const a=prod.anc||{};const auto=(a.auto||0)*(prod.tipo==='letra'?1:1);
   return{...A,bit:I.ancB||A.bit,q:I.ancQ>0?Math.round(I.ancQ):auto,manual:I.ancQ>0,peca:a.peca||'PEÇA',onde:I.ancQ>0?'quantidade informada':a.onde||''}}
 // vista explodida da ancoragem (corte lateral): parede → bucha/chumbador → peça → parafuso/porca
 function ancExplodida(P,R,A){const cy=R.y+R.h*0.46,s=Math.min(R.h/42,R.w/150);const L=(x1,y1,x2,y2,c,w,d)=>P.push({t:'line',x1,y1,x2,y2,color:c||'#212529',w:w||0.3,...(d?{dash:d}:{})});
@@ -3536,7 +3538,7 @@ function ancMigra(){try{if(lsGet('granda_anc_migr'))return;const old=lsGet('gran
   lsSet('granda_anc_migr',1)}catch(e){}}
 function ancTiposRender(){const s=$('#iAncTipo');if(!s)return;const v=s.value||s.dataset.v||'';s.innerHTML='<option value="">— nenhum —</option>'+(typeof fixacoes!=='undefined'?fixacoes:[]).map(a=>`<option value="${esc(a.id)}">${esc(a.nome)}</option>`).join('');if([...s.options].some(o=>o.value===v))s.value=v;
   const T=ancTipoDe(s.value);if($('#ancTipoBox'))$('#ancTipoBox').hidden=!T;const b=$('#ancTipoImg');if(!b)return;
-  b.innerHTML=T?`${T.img?`<img src="${T.img.src}" style="width:110px;height:80px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff">`:'<span class="note">sem foto</span>'}<span class="note">${T.custo?'R$ '+T.custo.toFixed(2).replace('.',',')+' por un.':'sem custo cadastrado'}</span><button class="btn ghost sm" type="button" id="ancTipoEdit">Editar no cadastro (foto, custo)</button>`:''}
+  b.innerHTML=T?`${T.img?`<img src="${T.img.src}" style="width:110px;height:80px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff">`:'<span class="note">sem foto</span>'}<span class="note">${T.custo?'R$ '+T.custo.toFixed(2).replace('.',',')+' por un.':'sem custo cadastrado'}</span><button class="btn ghost sm" type="button" id="ancTipoEdit">Editar no cadastro (foto, custo)</button><div class="note" style="width:100%">Com ancoragem escolhida, não entra bucha/parafuso da superfície na RM. Se também for fixada na parede, preencha a quantidade em Bitola/Quantidade acima.</div>`:''}
 function ancTipoImgLe(f,cb){if(!f||!/^image\//.test(f.type))return;const url=URL.createObjectURL(f);const im=new Image();im.onload=()=>{const Mx=700,k=Math.min(1,Mx/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);cb({src:c.toDataURL('image/jpeg',0.85),w:c.width,h:c.height})};im.src=url}
 if($('#ancTipoNovo')){
   $('#ancTipoNovo').onclick=()=>{fxDepois=f=>{$('#iAncTipo').value=f.id;$('#iAncPos').value=f.pos==='base'?'inferior':'superior';ancTiposRender();if(typeof pedSujo!=='undefined')pedSujo=true;refRefaz()};fxAbrir(null)};
