@@ -2195,8 +2195,9 @@ function paraMundo(c,b){const ox=c.ox||0,oy=c.oy||0;const X=(x,z)=>c.O[0]+(x+ox)
 /* ---------- fixações cadastradas ---------- */
 const FIX_POS={topo:'Topo de cada vertical',base:'Base de cada vertical',lateral:'Laterais (pontas da estrutura)',avulsa:'Quantidade fixa (só na lista)'};
 let fixacoes=[];const fixSel=new Set();
-// a fixação da testeira vem do Tipo de ancoragem do Projeto de instalação; janelas = cadeirinha angulada
-function fixSelSync(){const s=$('#iAncTipo');fixSel.clear();if(s&&s.value&&fixacoes.some(f=>f.id===s.value))fixSel.add(s.value);
+// janelas = cadeirinha angulada; a ancoragem é escolhida no Projeto de instalação
+function fixSelSync(){fixSel.clear(); // a ancoragem só aparece na FP de instalação (não no 3D nem na serralheria)
+
   const j=$('#tJan');if(j){$('#tCad').checked=j.checked;if(j.checked)$('#tCadModo').value='janela'}}
 function fixBoxes(c,fx,isFirst,isLast){const F=c.F,e=3,L=fx.comp||250,ab=fx.aba||50,q=Math.max(1,fx.qtd||1);const out=[];const cor=fx.cor||'#ff6633';
   const B=b=>out.push({...b,cor,fix:true});
