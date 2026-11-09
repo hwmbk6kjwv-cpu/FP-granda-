@@ -220,7 +220,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <p class="note" style="margin:6px 0 0">Os dados da OS (número, cliente, entrega…) ficam no quadro acima e valem para todos os itens. Tudo é salvo sozinho.</p>
       <label class="f" style="margin-top:14px">Itens do pedido</label>
       <div id="pedItens"></div>
-      <div class="row" style="gap:6px;margin-top:10px"><span class="note" style="align-self:center">Novo item:</span><button class="btn ghost sm" data-novo="letra">+ Letra caixa</button><button class="btn ghost sm" data-novo="testeira">+ Testeira</button><button class="btn ghost sm" data-novo="estrutura">+ Estrutura por desenho</button><button class="btn ghost sm" data-novo="modelo3d">+ Modelo 3D</button><button class="btn ghost sm" data-novo="bobs">+ Bobs (requadro)</button></div>
+      <div class="row" style="gap:6px;margin-top:10px"><span class="note" style="align-self:center">Novo item:</span><button class="btn ghost sm" data-novo="letra">+ Letra caixa</button><button class="btn ghost sm" data-novo="testeira">+ Testeira</button><button class="btn ghost sm" data-novo="estrutura">+ Estrutura por desenho</button><button class="btn ghost sm" data-novo="modelo3d">+ Modelo 3D</button><button class="btn ghost sm" data-novo="bobs">+ Bobs requadro</button><button class="btn ghost sm" data-novo="bobscomp">+ Bobs complemento 30x30</button><button class="btn ghost sm" data-novo="bobscant">+ Bobs cantoneira iluminada</button></div>
       <div class="row" style="gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)"><button class="btn pink" id="pedGerar">Gerar FP completa do pedido</button><button class="btn ghost" id="pedBaixar" hidden>Baixar FP completa (PDF)</button><button class="btn ghost sm" id="pedExport">Exportar pedido (arquivo)</button><button class="btn danger sm" id="pedExcluir" style="margin-left:auto">Excluir pedido</button></div><div id="pedExpMsg" class="note" style="margin-top:6px"></div>
       <div id="pedMsg"></div>
       <div class="prev" id="pedPrev"></div>
@@ -279,14 +279,15 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div id="xPages"></div>
       <div class="row"><button class="btn ghost sm" id="xAdd">+ Página extra</button><button class="btn ghost sm" id="xAcm">+ ACM (borda +100 mm)</button></div>
     </div>
+    <div class="card" id="l3dCard" hidden><h2 style="margin:0 0 6px">Letra 3D — visualização <span class="note" style="font-weight:400">— arraste para girar, role ou pince para zoom</span></h2>
+        <div class="v3wrap"><canvas id="l3dCv" style="display:block;width:100%;height:420px;touch-action:none;cursor:grab"></canvas><div class="v3bar"><button data-l3v="iso">3D</button><button data-l3v="frente">Frente</button><button data-l3v="tras">Fundo</button><button data-l3v="topo">Topo</button><button data-l3v="corte">Corte</button><button data-l3v="acr">Acrílico: sim</button></div></div>
+        <div class="note" id="l3dInfo" style="margin-top:6px"></div></div>
     <div class="card">
       <div class="row"><button class="btn pink" id="gerar" disabled>Gerar FP</button><button class="btn ghost" id="baixar" hidden>Baixar FP (PDF)</button></div>
       <div id="ledAdjHome" style="display:none"><div id="ledAdj" hidden style="margin:8px 0 14px;padding:8px 10px;border:1.5px solid #e8a400;border-radius:10px;background:#fffbea"></div></div>
       <div id="prodFiles" hidden style="margin-top:12px"></div>
       <div id="outMsg"></div>
-      <div id="l3dCard" hidden style="margin-top:14px"><h2 style="margin:0 0 6px">Letra 3D — visualização <span class="note" style="font-weight:400">— arraste para girar, role ou pince para zoom</span></h2>
-        <div class="v3wrap"><canvas id="l3dCv" style="display:block;width:100%;height:420px;touch-action:none;cursor:grab"></canvas><div class="v3bar"><button data-l3v="iso">3D</button><button data-l3v="frente">Frente</button><button data-l3v="tras">Fundo</button><button data-l3v="topo">Topo</button><button data-l3v="corte">Corte</button><button data-l3v="acr">Acrílico: sim</button></div></div>
-        <div class="note" id="l3dInfo" style="margin-top:6px"></div></div>
+
       <h2 id="lFichasT" hidden style="margin:16px 0 0">Fichas de produção</h2>
       <div class="row" id="lPgPick" style="gap:6px;margin-top:10px;flex-wrap:wrap"></div>
       <div class="prev" id="prev"></div><div class="matBox" data-prev="prev"></div>
@@ -323,7 +324,8 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
     <div class="card isbCard"><button class="btn pink isbBtn" type="button" style="width:100%;padding:14px;font-size:16px">Salvar item</button><div class="note isbMsg" style="margin-top:6px"></div></div>
   </section>
   <section id="tab-bobs" hidden>
-    <div class="card" id="bCard">
+    <div class="leds" id="bModo" style="margin-bottom:14px"><button data-bm="req" class="sel"><b>Requadro do balcão</b><span class="note" style="display:block">estrutura + ripado / ACM</span></button><button data-bm="comp"><b>Complemento 30x30</b><span class="note" style="display:block">tubo avulso pintado</span></button><button data-bm="cant"><b>Cantoneira com iluminação</b><span class="note" style="display:block">25x25 + LED COB 3000K — soma tudo</span></button></div>
+    <div class="card bm-req" id="bCard">
       <h2>Bobs — requadro do balcão</h2>
       <div class="g3">
         <div><label class="f">Quantidade (un.)</label><input type="number" id="bUn" value="1" inputmode="numeric"></div>
@@ -334,7 +336,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div id="bPecas"></div>
       <button class="btn ghost sm" id="bAddL" style="margin-top:10px">+ Peça em L</button>
     </div>
-    <div class="bGrid">
+    <div class="bGrid bm-req">
     <div class="card" style="margin:0">
       <h2>Medidas da peça <span class="note" style="font-weight:400">— toque numa medida para mudar ou arraste a divisão / trava</span></h2>
       <div class="row" id="bEdPick" style="gap:6px;margin-bottom:8px"></div>
@@ -347,27 +349,41 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div id="b3dInfo" class="note" style="margin-top:6px"></div>
     </div>
     </div>
-    <div class="card" id="bCard2">
-      <h2 style="margin-top:0">2. Complementos 30x30</h2>
-      <p class="note" style="margin:0">Tubo 30x30 avulso, cortado na medida e pintado de preto (entra na medida do LED).</p>
-      <div id="bComp"></div><button class="btn ghost sm" id="bAddComp" style="margin-top:8px">+ Complemento 30x30</button>
-      <h2 style="margin-top:18px;padding-top:12px;border-top:1px solid var(--line)">3. Cores e LED</h2>
+    <div class="card bm-req" id="bCard2">
+      <h2 style="margin-top:0">2. Cores</h2>
       <div class="g4">
         <div><label class="f">Ripado — cor (PU semi brilho)</label><input type="text" id="bCorRip" value="LARANJA BOBS"></div>
         <div><label class="f">Ripado — RAL</label><input type="text" id="bRalRip" placeholder="ex.: 2004"></div>
         <div><label class="f">ACM quadriculado — cor</label><input type="text" id="bCorAcm" value="ROXO BOBS"></div>
         <div><label class="f">ACM quadriculado — RAL</label><input type="text" id="bRalAcm" placeholder="ex.: 4005"></div>
       </div>
-      <label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-size:14px"><input type="checkbox" id="bLed" checked> Cantoneira 25x25 com LED COB 3000K embaixo (largura de todas as peças + complementos)</label>
-      <div class="row" style="margin-top:14px;gap:8px"><button class="btn pink" id="bGerar">Gerar FP</button></div><div id="bMsg" style="margin-top:8px"></div>
     </div>
-    <div class="card" id="bResCard" hidden>
-      <div class="row" style="justify-content:space-between"><h2 style="margin:0">Fichas de produção</h2><button class="btn pink" id="bBaixar">Baixar PDF</button></div>
+    <div class="card bm-comp" id="bCompCard" hidden>
+      <h2>Bobs — complemento 30x30</h2>
+      <div class="g3">
+        <div><label class="f">Quantidade (un.)</label><input type="number" id="bcUn" value="1" inputmode="numeric"></div>
+        <div><label class="f">Descrição</label><input type="text" id="bcDesc" value="COMPLEMENTO 30X30 BOBS"></div>
+      </div>
+      <p class="note" style="margin:6px 0 0">Tubo metalon 30x30 avulso, cortado na medida e pintado de preto (pó, terceirizado). Entra na soma da cantoneira com iluminação.</p>
+      <div id="bComp"></div><button class="btn ghost sm" id="bAddComp" style="margin-top:8px">+ Tubo 30x30</button>
+    </div>
+    <div class="card bm-cant" id="bCantCard" hidden>
+      <h2>Bobs — cantoneira com iluminação</h2>
+      <div class="g3">
+        <div><label class="f">Descrição</label><input type="text" id="bkDesc" value="CANTONEIRA COM ILUMINAÇÃO BOBS"></div>
+      </div>
+      <p class="note" style="margin:6px 0 0">Cantoneira de alumínio 25x25 preta com LED COB 3000K embaixo. Gere depois de cadastrar todos os requadros e complementos do pedido: a medida é a soma das larguras deles.</p>
+      <div id="bCantLista" style="margin-top:10px"></div>
+      <button class="btn ghost sm" id="bCantAdd" style="margin-top:8px">+ Trecho avulso</button>
+    </div>
+    <div class="card"><h2>Páginas extras</h2><p class="note" style="margin:0 0 6px">Folha com foto grande centralizada e observação em destaque (box verde).</p><div class="xfList" id="xfB"></div><button class="btn ghost sm xfAdd" type="button" data-box="xfB">+ Página extra</button></div>
+    <div class="card" id="bResCard">
+      <div class="row" style="gap:8px"><button class="btn pink" id="bGerar">Gerar FP</button><button class="btn ghost" id="bBaixar" hidden>Baixar FP (PDF)</button></div><div id="bMsg" style="margin-top:8px"></div>
       <div id="bFiles" style="margin-top:10px"></div>
+      <h2 id="bFichasT" hidden style="margin:16px 0 0">Fichas de produção</h2>
       <div class="row" id="bPgPick" style="gap:6px;margin-top:10px"></div>
       <div class="prev" id="bPrev"></div><div class="matBox" data-prev="bPrev"></div>
     </div>
-    <div class="card"><h2>Páginas extras</h2><p class="note" style="margin:0 0 6px">Folha com foto grande centralizada e observação em destaque (box verde).</p><div class="xfList" id="xfB"></div><button class="btn ghost sm xfAdd" type="button" data-box="xfB">+ Página extra</button></div>
     <div class="card isbCard"><button class="btn pink isbBtn" type="button" style="width:100%;padding:14px;font-size:16px">Salvar item</button><div class="note isbMsg" style="margin-top:6px"></div></div>
   </section>
   <section id="tab-testeiras" hidden>
@@ -1501,7 +1517,7 @@ function l3dDiff(A,B){const c=new ClipperLib.Clipper();c.AddPaths(A,ClipperLib.P
   const out=[];const walk=n=>{for(const ch of n.Childs()){if(!ch.IsHole()){out.push([ch.Contour(),...ch.Childs().map(h=>h.Contour())]);ch.Childs().forEach(h=>walk(h))}}};walk(tree);return out}
 const l3dArea=regs=>regs.reduce((s,r)=>s+r.reduce((a,p)=>a+ClipperLib.Clipper.Area(p),0),0)/(S*S);
 // geometria de uma letra (região Clipper: contorno + furos) na profundidade H
-function l3dLetra(reg,H){const acr=toC(offset(reg,-L3D.parede));           // cavidade = contorno do acrílico (mesma compensação da router)
+function l3dLetra(reg,H){const acr=toC(offset(reg,-L3D.parede));           // cavidade = contorno do acrílico: 2,5 mm para dentro, com os cantos internos arredondados no raio da fresa (Ø3 → R1,5), igual ao corte da router
   const apo=toC(offset(reg,-(L3D.parede+L3D.apoio),'centro'));
   const fz=l3dFundo()?L3D.fundo:0;const zA=H-L3D.face;
   const parede=l3dDiff(reg,acr),comApoio=l3dDiff(reg,apo);
@@ -1624,6 +1640,19 @@ document.querySelectorAll('[data-l3v]').forEach(b=>b.onclick=()=>{const k=b.data
   if(k==='acr'){L3V.acr=!L3V.acr;b.textContent='Acrílico: '+(L3V.acr?'sim':'não');l3vMonta();return}
   if(k==='corte'){L3V.corte=!L3V.corte;b.classList.toggle('sel',L3V.corte);l3vMonta();return}
   const v={iso:[-0.55,1.3],frente:[0,Math.PI/2],tras:[Math.PI,Math.PI/2],topo:[0,0.08]}[k];if(v){L3V.th=v[0];L3V.ph=v[1];l3vDraw()}});
+
+// prévia 3D antes de gerar a FP (atualiza ao trocar arquivo, medida, caixa, cor ou fundo)
+let l3dPrevT=null;
+function l3dPrevAgenda(){clearTimeout(l3dPrevT);l3dPrevT=setTimeout(l3dPrevia,350)}
+function l3dPrevia(){const card=$('#l3dCard');if(!card)return;try{
+  const t=typeof types!=='undefined'&&types.find(x=>x.id===selType);const is3d=t&&pagesOf(t).some(p=>p.tipo==='imp3d');
+  if(!is3d||!src||!src.polys||!src.polys.length){card.hidden=true;return}
+  let b=bbox(src.polys);const lr=num($('#largReal').value);const esc=lr>0&&b.w>0?lr/b.w:1;
+  const polys=src.paths?flattenPaths(src.paths,esc,0.05):src.polys.map(p=>p.map(([x,y])=>[x*esc,y*esc]));
+  const fr=Math.max(0,num($('#fresaD').value)/2);FRESA_R=fr;const cp=unionEO(polys);
+  const R=l3dCalc(cp,+selCaixa||80);card.hidden=false;l3vUlt=R;if(!l3vInit()){$('#l3dInfo').textContent='Visualizador 3D indisponível neste aparelho.';return}l3vMonta();
+  $('#l3dInfo').textContent+=' • prévia (antes de gerar a FP)'}catch(e){console.error('prévia 3D',e)}}
+['#l3dCor','#l3dFundo','#largReal','#fresaD'].forEach(sel=>{const el=document.querySelector(sel);if(el)el.addEventListener('change',l3dPrevAgenda)});
 
 
 /* ---------- Folha padrão Granda (A4 deitada, mm) ---------- */
@@ -1821,7 +1850,9 @@ function buildDoc(){
   const lr=num($('#largReal').value);let escala=1;if(lr>0&&b.w>0)escala=lr/b.w;
   // curvas do PDF achatadas já no tamanho final (erro de corda 0,01 mm)
   let polys=src.paths?flattenPaths(src.paths,escala,0.01):src.polys.map(p=>p.map(([x,y])=>[x*escala,y*escala]));b=bbox(polys);
-  const fresaR=Math.max(0,num($('#fresaD').value)/2);FRESA_R=fresaR;const cpRaw=unionEO(polys);const cp=fechaInternos(cpRaw,fresaR);const orig=fromC(cp);
+  const fresaR=Math.max(0,num($('#fresaD').value)/2);FRESA_R=fresaR;const cpRaw=unionEO(polys);const is3d=pagesOf(t).some(p=>p.tipo==='imp3d');
+  // letra 3D: o contorno externo é impresso (fica como o arquivo); o arredondamento da fresa vale para a parte INTERNA (acrílico e cavidade, 2,5 mm para dentro)
+  const cp=is3d?cpRaw:fechaInternos(cpRaw,fresaR);const orig=fromC(cp);
   const d=$('#entrega').value;
   const ctx={os:$('#os').value.trim(),item:$('#item').value||'1',descItem:$('#descItem').value.trim()||'LETRA CAIXA',cliente:$('#cliente').value.trim(),vendedor:$('#vendedor').value.trim(),projetista:$('#projetista').value.trim(),endereco:$('#endereco').value.trim(),entrega:d?d.split('-').reverse().join('/'):'',tipo:t.nome,led:selLed.toLocaleString('pt-BR')+' K',caixa:selCaixa,obs:$('#obs').value.trim()};
   let defs=pagesOf(t).concat(readPages($('#xPages')));
@@ -2201,7 +2232,7 @@ function toPDF(pages){
 
 /* ---------- Fluxo ---------- */
 let lastPdf=null,lastName='';
-function updateBtn(){$('#gerar').disabled=!(src&&src.polys.length&&selType&&selLed)}
+function updateBtn(){$('#gerar').disabled=!(src&&src.polys.length&&selType&&selLed);if(typeof l3dPrevAgenda==='function')l3dPrevAgenda()}
 let ledAdj={},lastLed=null,ledFoco=false;
 let ledPend=false;
 function renderLedAdj(R){const box=$('#ledAdj');if(!R||!R.letters||!R.letters.length){box.hidden=true;return}box.hidden=false;ledPend=false;
@@ -2220,7 +2251,7 @@ $('#ledAdj').addEventListener('change',e=>{const q=e.target.closest('[data-lq]')
   if(q){const k=q.dataset.lq;const g=(lastLed&&lastLed.letters||[]).find(x=>x.key===k);const v=Math.max(1,Math.round(+q.value||1));if(g){const base=g.n-(ledAdj[k]||0);ledAdj[k]=v-base}}
   else if(f){ledFonte[+f.dataset.lf]=+f.value}else if(fw){ledFonteW[+fw.dataset.fw]=+fw.value}else return;
   ledPend=true;const b=$('#ledAtu');if(b){b.disabled=false;b.textContent='Atualizar FP'}});
-function resetOut(){lastPdf=null;lDoc=null;if($('#lPgPick')){$('#lPgPick').innerHTML='';$('#lFichasT').hidden=true}$('#gerar').textContent='Gerar FP';$('#ledAdj').hidden=true;$('#baixar').hidden=true;$('#prodFiles').hidden=true;prodFiles=[]}
+function resetOut(){if(typeof l3dPrevAgenda==='function')l3dPrevAgenda();lastPdf=null;lDoc=null;if($('#lPgPick')){$('#lPgPick').innerHTML='';$('#lFichasT').hidden=true}$('#gerar').textContent='Gerar FP';$('#ledAdj').hidden=true;$('#baixar').hidden=true;$('#prodFiles').hidden=true;prodFiles=[]}
 let srcBytes=null;
 $('#pdfIn').onchange=async e=>{const f=e.target.files[0];if(!f)return;await carregaLetra(f.name,new Uint8Array(await f.arrayBuffer()));e.target.value=''};
 async function carregaLetra(nome,bytes){resetOut();const f={name:nome};
@@ -3698,7 +3729,7 @@ function paginasFinais(pages,tags,ctx,prod){try{
   folhasQualidade(ctx,prod).forEach(P=>{pages.push(P);if(tags)tags.push('QUALIDADE')});
   try{const anc=prod.semAnc?[]:needsAncoragem(ancInfo(instLer(),prod));const X=piPrep(prod,[...(prod.mat||[]),...anc]);
     const rows=matResolve(X.needs).concat(ancTipoRows(prod),matAddRows());
-    if(rows.length){folhasMaterial(ctx,prod,rows).forEach(P=>{pages.push(P);if(tags)tags.push('RM')});matUlt=rows;setTimeout(matCardRender,0)}
+    if(rows.length){folhasMaterial(ctx,prod,rows).forEach(P=>{pages.push(P);if(tags)tags.push('RM')});matUlt=rows;setTimeout(matCardRender,0);if(typeof custoAuto==='function')custoAuto()}
     try{const pi=piLista(rows,X.tinta);folhasPI(ctx,prod,pi).forEach(P=>{pages.push(P);if(tags)tags.push('PI')})}catch(e){console.error('PI',e)}}catch(e){console.error('lista de material',e)}}catch(e){console.error('paginasFinais',e)}}
 /* ---------- PI — PRODUTOS DE INSTALAÇÃO (tudo que está aqui também entra na RM) ---------- */
 function piLargura(prod){const L=prod.letras||[];if(!L.length||!L[0].bb)return 0;return Math.max(...L.map(g=>g.bb.x1))-Math.min(...L.map(g=>g.bb.x0))}
@@ -4490,7 +4521,7 @@ const BOBS_TIPOS={ripado:'Ripado metalon 15x15',quad:'ACM quadriculado',acm:'ACM
 const BOBS_COR={ripado:'#f76707',quad:'#862e9c',acm:'#adb5bd'};
 function bobsModelo(m){return m==='m2'?{modelo:'m2',W:1710,H:870,cols:[{w:297,tipo:'quad'},{w:861,tipo:'acm'},{tipo:'ripado'}]}
   :{modelo:'m1',W:1740,H:866,cols:[{w:794,tipo:'quad',trava:{h:395,cima:'ripado'}},{tipo:'acm'}]}}
-let bobs={pecas:[bobsModelo('m1')],comp:[],led:true};
+let bobs={pecas:[bobsModelo('m1')]};let bComp=[{len:1000,q:1}];let bCantExtra=[];let bModo='req';
 let bobsBuild=null,bobsSel='',bobsFiles=[];
 // ---------- geometria ----------
 function bobsEspacos(p){const M=BOBS.mold,n=p.cols.length;const util=p.W-2*M-(n-1)*M;let soma=0;
@@ -4534,7 +4565,7 @@ function bobsDesenha(P,p,R,o={}){const s=Math.min(R.w/p.W,R.h/p.H);const ox=R.x+
     if(o.num)P.push({t:'circle',x:X(el.x+el.w/2),y:Y(el.y+el.h/2)-(el.tipo==='acm'?4:0),r:2,fill:'#ffffff',stroke:'#000000',lw:0.25},{t:'text',x:X(el.x+el.w/2),y:Y(el.y+el.h/2)-(el.tipo==='acm'?4:0)+0.8,s:o.num(el),size:2,bold:true,color:'#000000',anchor:'middle'})});
   return{s,X,Y,ox,oy}}
 // ---------- folhas ----------
-function bobsFolhas(){const B=bobs;const un=Math.max(1,Math.round(num($('#bUn').value))||1);const d=$('#entrega').value;
+function bobsFolhas(){if(bModo==='comp')return bobsCompFolhas();if(bModo==='cant')return bobsCantFolhas();const B={pecas:bobs.pecas,comp:[],led:false};const un=Math.max(1,Math.round(num($('#bUn').value))||1);const d=$('#entrega').value;
   const ctx={obsBelow:true,os:$('#os').value.trim(),item:$('#item').value||'1',descItem:$('#bDesc').value.trim()||'REQUADRO DO BALCÃO BOBS',cliente:$('#cliente').value.trim(),vendedor:$('#vendedor').value.trim(),projetista:$('#projetista').value.trim(),endereco:$('#endereco').value.trim(),entrega:d?d.split('-').reverse().join('/'):''};
   const C=bobsCalc(B);const pages=[],tags=[];const corRip=($('#bCorRip').value.trim()||'LARANJA BOBS').toUpperCase(),corAcm=($('#bCorAcm').value.trim()||'ROXO BOBS').toUpperCase();
   const add=(P,t)=>{pages.push(P);tags.push(t)};const nm=v=>String(v).replace('.',',');const vid=(el)=>`${el.pi+1}.${el.k+1}`;
@@ -4674,7 +4705,7 @@ function bobsProd(C,un,ctx,X){const N=[];const nm=v=>String(v).replace('.',',');
   if(X.led)vols.push({desc:'CANTONEIRAS 25x25 COM LED + REATORES',cont:`${String(X.led.m.toFixed(2)).replace('.',',')} m de cantoneira com LED COB 3000K e ${X.led.fs.length} reator(es)`,dims:'—',q:1,kg:0,draw:null});
   return{tipo:'estrutura',mat:N,anc:{peca:'REQUADRO',auto:4*C.pecas.length*un,onde:'fixação no balcão (estimado)'},nome:ctx.descItem,W,H,D:30,un,volumes:vols,contornoRects:rects,contorno:[[[0,0],[W,0],[W,H],[0,H]]],checks:['MEDIDAS','PINTURA','MONTAGEM','LED ACENDE']}}
 // ---------- interface ----------
-function bobsUI(){bobsUI0();try{bobsEditor()}catch(e){console.error(e)}try{if(!$('#tab-bobs').hidden)bobs3D()}catch(e){console.error(e)}}
+function bobsUI(){bobsUI0();if(bModo==='cant')try{bobsCantUI()}catch(e){console.error(e)}try{bobsEditor()}catch(e){console.error(e)}try{if(!$('#tab-bobs').hidden)bobs3D()}catch(e){console.error(e)}}
 function bobsUI0(){const B=bobs;
   $('#bPecas').innerHTML=B.pecas.map((p,pi)=>{const G=bobsEspacos(p);return`<div class="fcard" data-p="${pi}">
     <div class="row" style="justify-content:space-between"><b>PEÇA ${pi+1}${pi?` <span class="note">(em L com a peça ${pi})</span>`:' (início)'}</b>${pi?`<button class="btn danger sm" data-bdel="${pi}">Remover</button>`:''}</div>
@@ -4689,10 +4720,10 @@ function bobsUI0(){const B=bobs;
       ${c.trava?`<div class="g4"><div></div><div><label class="f">Elemento de baixo</label><select data-bc="${ci}" data-ck="tipo">${Object.entries(BOBS_TIPOS).map(([k,v])=>`<option value="${k}"${c.tipo===k?' selected':''}>${v}</option>`).join('')}</select></div><div class="note" style="align-self:end">vão de cima: ${Math.round(p.H-2*BOBS.mold-BOBS.mold-c.trava.h)} mm</div><div></div></div>`:''}</div>`).join('')}
     <button class="btn ghost sm" data-bcadd="1" style="margin-top:8px">+ coluna</button>
 </div>`}).join('');
-  $('#bComp').innerHTML=(B.comp.length?B.comp.map((c,i)=>`<div class="row" style="gap:6px;align-items:center;margin-top:6px"><span class="note" style="min-width:24px">${i+1}.</span><input type="number" inputmode="decimal" data-cmp="${i}" data-ck="len" value="${c.len}" placeholder="comprimento (mm)" style="max-width:150px"><span class="note">mm ×</span><input type="number" inputmode="numeric" data-cmp="${i}" data-ck="q" value="${c.q||1}" style="max-width:70px"><button class="btn danger sm" data-cmpdel="${i}">Remover</button></div>`).join(''):'<p class="note" style="margin:4px 0">Nenhum complemento.</p>')}
+  $('#bComp').innerHTML=(bComp.length?bComp.map((c,i)=>`<div class="row" style="gap:6px;align-items:center;margin-top:6px"><span class="note" style="min-width:24px">${i+1}.</span><input type="number" inputmode="decimal" data-cmp="${i}" data-ck="len" value="${c.len}" placeholder="comprimento (mm)" style="max-width:150px"><span class="note">mm ×</span><input type="number" inputmode="numeric" data-cmp="${i}" data-ck="q" value="${c.q||1}" style="max-width:70px"><button class="btn danger sm" data-cmpdel="${i}">Remover</button></div>`).join(''):'<p class="note" style="margin:4px 0">Nenhum complemento.</p>')}
 function bobsMini(p){try{const C=bobsCalc({pecas:[p],comp:[]});const q=C.pecas[0];const P=[];bobsDesenha(P,q,{x:0,y:0,w:200,h:80},{simples:true});
   return `<svg viewBox="0 0 200 80" style="width:100%;max-width:420px;height:auto;background:#fff;border:1px solid var(--line);border-radius:8px">${P.map(o=>o.t==='rect'?`<rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" fill="${o.fill==='none'?'none':o.fill}" stroke="${o.stroke&&o.stroke!=='none'?o.stroke:'none'}" stroke-width="${o.lw||0}"/>`:o.t==='text'?`<text x="${o.x}" y="${o.y}" font-size="${o.size}" text-anchor="middle" font-weight="700" fill="${o.color}">${esc(o.s)}</text>`:'').join('')}</svg>`}catch(e){return ''}}
-function bobsSujo(){bobsBuild=null;$('#bResCard').hidden=true;$('#bGerar').textContent='Gerar FP';if(typeof pedSujo!=='undefined')pedSujo=true}
+function bobsSujo(){bobsBuild=null;$('#bPrev').innerHTML='';$('#bPgPick').innerHTML='';$('#bFiles').innerHTML='';$('#bBaixar').hidden=true;$('#bFichasT').hidden=true;$('#bMsg').innerHTML='';$('#bGerar').textContent='Gerar FP';if(typeof pedSujo!=='undefined')pedSujo=true}
 $('#bPecas').addEventListener('change',e=>{const c=e.target.closest('[data-p]');if(!c)return;const p=bobs.pecas[+c.dataset.p];const k=e.target.dataset.bk;
   if(k==='modelo'){if(e.target.value==='pers')p.modelo='pers';else{const m=bobsModelo(e.target.value);const sx=(p.W-90)/(m.W-90);Object.assign(p,m,{W:p.W,H:p.H});if(m.cols.length)p.cols.forEach(c2=>{if(c2.w)c2.w=Math.round(c2.w*((p.W-2*BOBS.mold-(p.cols.length-1)*BOBS.mold)/(m.W-2*BOBS.mold-(m.cols.length-1)*BOBS.mold)));if(c2.trava)c2.trava.h=Math.round(c2.trava.h*(p.H-90)/(m.H-90))})}}
   else if(k==='W'||k==='H'){const v=num(e.target.value);if(v>100){const o=p[k];p[k]=v;if(k==='W'){const n=p.cols.length,f=(v-2*BOBS.mold-(n-1)*BOBS.mold)/(o-2*BOBS.mold-(n-1)*BOBS.mold);p.cols.forEach((c2,i)=>{if(i<n-1&&c2.w)c2.w=Math.round(c2.w*f)})}else p.cols.forEach(c2=>{if(c2.trava)c2.trava.h=Math.round(c2.trava.h*(v-90)/(o-90))})}}
@@ -4704,12 +4735,12 @@ $('#bPecas').addEventListener('click',e=>{const c=e.target.closest('[data-p]');i
   if(e.target.dataset.bcdel!=null){p.cols.splice(+e.target.dataset.bcdel,1);p.modelo='pers';bobsUI();bobsSujo();return}
   if(e.target.dataset.bcadd){const G=bobsEspacos(p);const last=p.cols[p.cols.length-1];last.w=Math.round(G.ws[G.ws.length-1]/2-15);p.cols.push({tipo:'acm'});p.modelo='pers';bobsUI();bobsSujo()}});
 $('#bAddL').onclick=()=>{B3.fit=true;bobs.pecas.push({...bobsModelo('m2'),W:600,H:(bobs.pecas[0]||{}).H||866,cols:[{tipo:'ripado'}],modelo:'pers'});bobsUI();bobsSujo()};
-$('#bAddComp').onclick=()=>{bobs.comp.push({len:1000,q:1});bobsUI();bobsSujo()};
-$('#bComp').addEventListener('change',e=>{const i=e.target.dataset.cmp;if(i==null)return;bobs.comp[+i][e.target.dataset.ck]=num(e.target.value);bobsSujo()});
-$('#bComp').addEventListener('click',e=>{const i=e.target.dataset.cmpdel;if(i==null)return;bobs.comp.splice(+i,1);bobsUI();bobsSujo()});
-['#bLed','#bUn','#bDesc','#bCorRip','#bRalRip','#bCorAcm','#bRalAcm'].forEach(s=>$(s).addEventListener('change',()=>{bobs.led=$('#bLed').checked;bobsSujo()}));
+$('#bAddComp').onclick=()=>{bComp.push({len:1000,q:1});bobsUI();bobsSujo()};
+$('#bComp').addEventListener('change',e=>{const i=e.target.dataset.cmp;if(i==null)return;bComp[+i][e.target.dataset.ck]=num(e.target.value);bobsSujo()});
+$('#bComp').addEventListener('click',e=>{const i=e.target.dataset.cmpdel;if(i==null)return;bComp.splice(+i,1);bobsUI();bobsSujo()});
+['#bUn','#bDesc','#bCorRip','#bRalRip','#bCorAcm','#bRalAcm','#bcUn','#bcDesc','#bkDesc'].forEach(s=>$(s).addEventListener('change',()=>bobsSujo()));
 function bobsRender(){try{bobsBuild=bobsFolhas();const C=setorChips(bobsBuild.pages,bobsSel,'data-bpg');bobsSel=C.sel;$('#bPgPick').innerHTML=C.html;$('#bPrev').innerHTML=C.shown.map(P=>`<div class="pg">${toSVG(P)}</div>`).join('');
-    $('#bResCard').hidden=false;$('#bGerar').textContent='Atualizar FP';$('#bMsg').innerHTML=`<div class="msg ok">${bobsBuild.pages.length} página(s). LED COB: ${String((bobsBuild.C.ledM).toFixed(2)).replace('.',',')} m por unidade.</div>`;
+    $('#bBaixar').hidden=false;$('#bFichasT').hidden=false;$('#bGerar').textContent='Atualizar FP';$('#bMsg').innerHTML=`<div class="msg ok">${bobsBuild.pages.length} página(s).${bobsBuild.resumo?' '+bobsBuild.resumo:''}</div>`;
     $('#bFiles').innerHTML=bobsFiles.length?`<label class="f">Arquivos da router (1:1, só vetor)</label>`+bobsFiles.map((f,i)=>`<div class="row" style="justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:6px"><b style="font-size:14px">${esc(f.label)}</b><button class="btn ghost sm" data-bf="${i}">Baixar</button></div>`).join('')+(bobsFiles.length>1&&window.JSZip?`<button class="btn acc sm" data-bf="zip">Baixar todos (ZIP)</button>`:''):'';
     if(typeof fpObsUI==='function')try{fpObsUI('bPrev')}catch(e){}}
   catch(e){console.error(e);$('#bMsg').innerHTML=`<div class="msg err">Erro: ${esc(e.message)}</div>`}}
@@ -4797,8 +4828,8 @@ function bobsCaixas(q,led){const M=BOBS.mold,out=[],F=BOBS.folga/2,e=BOBS.bc.e,K
   if(led){bx(0,-25,0,q.W,0,25,'#1a1a1a');bx(0,-26.5,2,q.W,-25,23,'#ffd43b')}
   return out}
 function bobs3D(){if(!b3Init()){$('#b3dInfo').textContent='Visualizador 3D indisponível neste aparelho.';return}
-  const C=bobsCalc(bobs);const all=[];let xEnd=0;
-  C.pecas.forEach((q,i)=>{const cx=bobsCaixas(q,bobs.led);
+  const C=bobsCalc({pecas:bobs.pecas,comp:[]});const all=[];let xEnd=0;
+  C.pecas.forEach((q,i)=>{const cx=bobsCaixas(q,false);
     if(i===0){cx.forEach(b=>all.push(b));xEnd=q.W}
     else{ // em L: vai para trás, encostada no fim da peça anterior (frente virada para a direita)
       const zOff=C.pecas.slice(1,i).reduce((a,p)=>a+p.W,0);cx.forEach(b=>all.push({x0:xEnd-b.z1,x1:xEnd-b.z0,y0:b.y0,y1:b.y1,z0:zOff+b.x0,z1:zOff+b.x1,cor:b.cor}))}});
@@ -4811,14 +4842,85 @@ function bobs3D(){if(!b3Init()){$('#b3dInfo').textContent='Visualizador 3D indis
   const bb=bbox3(all);const span=Math.max(bb.x1-bb.x0,bb.y1-bb.y0,bb.z1-bb.z0);
   const grid=new THREE.GridHelper(span*1.6,16,0xc9ced6,0xdfe2e8);grid.position.set((bb.x0+bb.x1)/2,bb.y0-2,-(bb.z0+bb.z1)/2);g.add(grid);
   B3.scene.add(B3.grp=g);B3.tg=[(bb.x0+bb.x1)/2,(bb.y0+bb.y1)/2,-(bb.z0+bb.z1)/2];if(B3.fit){B3.R=span*2.1;B3.fit=false}b3Draw();
-  $('#b3dInfo').textContent=`${C.pecas.length} peça(s)${C.comp.length?` + ${C.comp.reduce((a,c)=>a+(c.q||1),0)} complemento(s) 30x30`:''} • LED ${String(C.ledM.toFixed(2)).replace('.',',')} m`}
+  $('#b3dInfo').textContent=`${C.pecas.length} peça(s) • largura total ${f0(C.pecas.reduce((a,p)=>a+p.W,0))} mm`}
 document.querySelectorAll('[data-b3]').forEach(b=>b.onclick=()=>{const v={iso:[-0.65,1.12],frente:[0,Math.PI/2],lado:[Math.PI/2,Math.PI/2],topo:[0,0.06],tras:[Math.PI,Math.PI/2]}[b.dataset.b3];B3.th=v[0];B3.ph=v[1];b3Draw()});
+
+/* ---------- modos: requadro / complemento 30x30 / cantoneira com iluminação ---------- */
+function setBModo(m){bModo=m;document.querySelectorAll('#bModo [data-bm]').forEach(b=>b.classList.toggle('sel',b.dataset.bm===m));
+  ['req','comp','cant'].forEach(k=>document.querySelectorAll('#tab-bobs .bm-'+k).forEach(e=>e.hidden=k!==m));
+  bobsSujo();bobsUI();if(typeof pedBarRender==='function')try{pedBarRender()}catch(e){}}
+$('#bModo').onclick=e=>{const b=e.target.closest('[data-bm]');if(!b)return;setBModo(b.dataset.bm)};
+const bobsDesc=()=>({req:$('#bDesc').value.trim()||'REQUADRO DO BALCÃO BOBS',comp:$('#bcDesc').value.trim()||'COMPLEMENTO 30X30 BOBS',cant:$('#bkDesc').value.trim()||'CANTONEIRA COM ILUMINAÇÃO BOBS'}[bModo]);
+function bobsCtx(desc){const d=$('#entrega').value;return{obsBelow:true,os:$('#os').value.trim(),item:$('#item').value||'1',descItem:desc,cliente:$('#cliente').value.trim(),vendedor:$('#vendedor').value.trim(),projetista:$('#projetista').value.trim(),endereco:$('#endereco').value.trim(),entrega:d?d.split('-').reverse().join('/'):''}}
+// medidas que entram na cantoneira (gravadas no item do pedido ao salvar)
+function bobsLens(tipo){if(tipo==='bobs'){const un=Math.max(1,Math.round(num($('#bUn').value))||1);return bobs.pecas.flatMap(p=>Array(un).fill(p.W))}
+  if(tipo==='bobscomp'){const un=Math.max(1,Math.round(num($('#bcUn').value))||1);return bComp.filter(c=>c.len>0).flatMap(c=>Array((c.q||1)*un).fill(c.len))}return null}
+function bobsTrechos(){const out=[];const its=(typeof pedAtual!=='undefined'&&pedAtual&&pedAtual.itens)||[];
+  its.slice().sort((a,b)=>a.n-b.n).forEach(it=>{if(!it.bobsLens||!it.bobsLens.length)return;if(typeof itemAtual!=='undefined'&&itemAtual&&it.id===itemAtual.id)return;
+    out.push({nome:`Item ${it.n} — ${it.desc||TIPO_NOME[it.tipo]}`,lens:it.bobsLens,auto:true})});
+  bCantExtra.filter(x=>x.len>0).forEach(x=>out.push({nome:x.nome||'Trecho avulso',lens:Array(Math.max(1,x.q||1)).fill(x.len),extra:true}));return out}
+function bobsCantUI(){const T=bobsTrechos();const tot=T.reduce((a,t)=>a+t.lens.reduce((s2,v)=>s2+v,0),0);
+  $('#bCantLista').innerHTML=`<label class="f">Trechos (largura de cada requadro / complemento do pedido)</label>`+(T.filter(t=>t.auto).length?T.filter(t=>t.auto).map(t=>`<div class="row" style="justify-content:space-between;border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin-top:4px;font-size:13px"><span>${esc(t.nome)}</span><b>${t.lens.map(v=>f0(v)).join(' + ')} mm</b></div>`).join(''):`<p class="note">${typeof pedAtual!=='undefined'&&pedAtual?'Nenhum requadro / complemento salvo neste pedido ainda. Salve os itens Bobs antes e volte aqui.':'Abra o pedido para somar os requadros e complementos salvos.'}</p>`)
+    +bCantExtra.map((x,i)=>`<div class="row" style="gap:6px;align-items:center;margin-top:6px"><input type="text" data-ce="${i}" data-ck="nome" value="${esc(x.nome||'')}" placeholder="descrição" style="max-width:200px"><input type="number" inputmode="decimal" data-ce="${i}" data-ck="len" value="${x.len||''}" placeholder="mm" style="max-width:110px"><span class="note">mm ×</span><input type="number" data-ce="${i}" data-ck="q" value="${x.q||1}" style="max-width:60px"><button class="btn danger sm" data-cedel="${i}">Remover</button></div>`).join('')
+    +`<div class="msg ok" style="margin-top:8px">TOTAL: <b>${String((tot/1000).toFixed(2)).replace('.',',')} m</b> de cantoneira 25x25 com LED COB 3000K • ${String((tot/1000*BOBS.cobW).toFixed(1)).replace('.',',')} W</div>`}
+$('#bCantAdd').onclick=()=>{bCantExtra.push({nome:'',len:0,q:1});bobsCantUI();bobsSujo()};
+$('#bCantLista').addEventListener('change',e=>{const i=e.target.dataset.ce;if(i==null)return;const k=e.target.dataset.ck;bCantExtra[+i][k]=k==='nome'?e.target.value:num(e.target.value);bobsCantUI();bobsSujo()});
+$('#bCantLista').addEventListener('click',e=>{const i=e.target.dataset.cedel;if(i==null)return;bCantExtra.splice(+i,1);bobsCantUI();bobsSujo()});
+const bobsTit=(P,s,sub)=>{P.push({t:'text',x:PW/2,y:30,s,size:4.2,bold:true,color:'#000000',anchor:'middle'});if(sub)P.push({t:'text',x:PW/2,y:35,s:sub,size:2.7,bold:true,color:'#495057',anchor:'middle'})};
+function bobsPlano(P0,ctx,pages,tags,grupos,titulo){let P=null,y=0;const novo=()=>{P=[];frame(P,ctx,{setor:'SERRALHERIA'});bobsTit(P,titulo,'');pages.push(P);tags.push('PLANO');y=40};novo();const out={};
+  for(const [nomeG,pcs,cor,barra] of grupos){if(!pcs.length)continue;const bs=bobsBarras(pcs,barra);out[nomeG]=bs.length;if(y>150)novo();
+    P.push({t:'text',x:14,y:y+3,s:`${nomeG} — ${bs.length} BARRA${bs.length>1?'S':''} DE ${f0(barra)} MM`,size:3,bold:true,color:'#000000'});y+=6;const sc=230/6000;
+    for(const b of bs){if(y>160)novo();P.push({t:'rect',x:40,y,w:barra*sc,h:5.4,fill:'#f1f3f5',stroke:'#000000',lw:0.2});let xx=40;
+      b.pcs.forEach(pc=>{const w=Math.min(pc.len,barra)*sc;P.push({t:'rect',x:xx,y,w,h:5.4,fill:cor,stroke:'#000000',lw:0.2},{t:'text',x:xx+w/2,y:y+3.8,s:w>14?`${f1(pc.len)}`:'',size:w>22?2.2:1.7,color:'#ffffff',anchor:'middle'});xx+=w+BOBS.serra*sc});
+      if(b.emenda)P.push({t:'text',x:283,y:y+3.8,s:'EMENDAR',size:2.2,bold:true,color:'#c92a2a',anchor:'end'});y+=7.6}y+=3}return out}
+// ===== COMPLEMENTO 30x30 =====
+function bobsCompFolhas(){const un=Math.max(1,Math.round(num($('#bcUn').value))||1);const ctx=bobsCtx(bobsDesc());const pages=[],tags=[];const L=bComp.filter(c=>c.len>0);
+  if(!L.length)throw new Error('informe ao menos um tubo 30x30');
+  {const P=[];frame(P,ctx,{setor:'SERRALHERIA'});P.push({t:'text',x:18,y:31,s:`${un}X`,size:7,bold:true,italic:true,color:'#000000'});bobsTit(P,'COMPLEMENTO 30x30','METALON 30x30 #1,55 GALVANIZADO • CORTAR NA MEDIDA • PINTURA PRETA A PÓ (TERCEIRIZADA)');
+   const mx=Math.max(...L.map(c=>c.len));const s=Math.min(220/mx,1);let y=48;
+   L.forEach((c,i)=>{if(y>130)return;const w=c.len*s;P.push({t:'rect',x:40,y,w,h:8,fill:'#2b2b2b',stroke:'#000000',lw:0.2},{t:'text',x:14,y:y+5.6,s:`TUBO ${i+1}`,size:2.8,bold:true,color:'#000000'});cotaH(P,40,40+w,y-2.5,y,`${f0(c.len)} mm`,2.4);P.push({t:'text',x:44+w,y:y+5.6,s:`x ${c.q||1}${un>1?` (total ${(c.q||1)*un})`:''}`,size:3,bold:true,color:'#c2255c'});y+=18});
+   const rows=L.map((c,i)=>[`Tubo ${i+1}`,'30x30 #1,55',f0(c.len),String(c.q||1),String((c.q||1)*un),f0(c.len*(c.q||1)*un)]);
+   let x=12;const cols=[['PEÇA',50],['PERFIL',26],['COMPR. (MM)',24],['QTD.',14],[`TOTAL (${un} UN.)`,22],['TOTAL MM',22]];const y0=Math.max(y,120);cols.forEach(([h,w])=>{P.push({t:'rect',x,y:y0,w,h:4.6,fill:'#495057',stroke:'#000000',lw:0.15},{t:'text',x:x+w/2,y:y0+3.3,s:h,size:2.1,bold:true,color:'#ffffff',anchor:'middle'});x+=w});
+   rows.forEach((r,i)=>{let x2=12;cols.forEach(([h,w],k)=>{P.push({t:'rect',x:x2,y:y0+4.6*(i+1),w,h:4.6,fill:'#ffffff',stroke:'#000000',lw:0.1},{t:'text',x:x2+w/2,y:y0+4.6*(i+1)+3.3,s:r[k],size:2.3,bold:k===2,color:'#000000',anchor:'middle'});x2+=w})});
+   P.push({t:'text',x:200,y:y0+3,s:'Fechar as pontas com TAMPA PLÁSTICA 30x30 (opcional).',size:2.4,color:'#555555'});pages.push(P);tags.push('COMPLEMENTO')}
+  const bars=bobsPlano(null,ctx,pages,tags,[['METALON 30x30 #1,55',bobsExp(L,un),'#2b2b2b',BOBS.barra]],'PLANO DE CORTE — COMPLEMENTO 30x30');
+  const area=L.reduce((a,c)=>a+c.len*(c.q||1),0)/1000*0.12*un;
+  {const P=[];frame(P,ctx,{setor:'PINTURA'});bobsTit(P,'PINTURA — COMPLEMENTO 30x30','');P.push({t:'rect',x:14,y:44,w:270,h:30,r:2,fill:'#f1f3f5',stroke:'#212529',lw:0.6},{t:'rect',x:18,y:49,w:18,h:20,r:1.5,fill:'#212529'},{t:'text',x:41,y:52,s:'PRETO — PINTURA A PÓ (TERCEIRIZADA)',size:3.4,bold:true,color:'#000000'},{t:'text',x:41,y:58,s:`${L.reduce((a,c)=>a+(c.q||1),0)*un} tubo(s) 30x30 — área aprox. ${f2(area)} m²`,size:2.8,color:'#000000'},{t:'text',x:41,y:64,s:'Mandar os tubos cortados e limpos para a pintura eletrostática.',size:2.5,color:'#555555'});pages.push(P);tags.push('PINTURA')}
+  xfPaginas(ctx,'#xfB',pages,tags);
+  const N=[];if(bars['METALON 30x30 #1,55'])N.push({k:'bobs|m30',desc:'Metalon galvanizado 30x30 #1,55 — barra 6 m',q:bars['METALON 30x30 #1,55'],un:'un',uso:'complemento 30x30 (plano de corte)',busca:{must:['METALON GALVANIZADO 30X30']}});
+  N.push({k:'bobs|po',desc:'Pintura eletrostática a pó PRETA (terceirizada)',q:Math.round(area*100)/100,un:'m²',uso:'complemento 30x30 — informar o valor do serviço',busca:{must:['PINTURA ELETROSTATICA']}});
+  const tot=L.reduce((a,c)=>a+c.len*(c.q||1),0)*un;const mx=Math.max(...L.map(c=>c.len));
+  const prod={tipo:'estrutura',mat:N,anc:{peca:'COMPLEMENTO',auto:2*L.reduce((a,c)=>a+(c.q||1),0)*un,onde:'fixação do tubo (estimado)'},nome:ctx.descItem,W:mx,H:30,D:30,un:1,volumes:[{desc:'COMPLEMENTOS 30x30',cont:L.map(c=>`${c.q||1} x ${f0(c.len)} mm`).join(', ')+' — pintados de preto',dims:`${f0(mx)} x 30 x 30`,q:un,kg:tot/1000*tuboKgM(30,30,1.55)/un,draw:{rects:[{x0:0,y0:0,x1:mx,y1:30,cor:'#2b2b2b'}]}}],contornoRects:[{x0:0,y0:0,x1:mx,y1:30,cor:'#2b2b2b'}],contorno:[[[0,0],[mx,0],[mx,30],[0,30]]],checks:['MEDIDAS','PINTURA']};
+  paginasFinais(pages,tags,ctx,prod);if(!FOOT_SKIP){numeraSetores(pages);pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length))}bobsFiles=[];
+  return{pages,tags,ctx,resumo:`${L.reduce((a,c)=>a+(c.q||1),0)*un} tubo(s), ${String((tot/1000).toFixed(2)).replace('.',',')} m no total.`}}
+// ===== CANTONEIRA COM ILUMINAÇÃO =====
+function bobsCantFolhas(){const ctx=bobsCtx(bobsDesc());const pages=[],tags=[];const T=bobsTrechos();const lens=T.flatMap(t=>t.lens);
+  if(!lens.length)throw new Error('nenhum trecho: salve os requadros e complementos do pedido antes (ou adicione um trecho avulso)');
+  const m=Math.round(lens.reduce((a,v)=>a+v,0)/10)/100;const W=m*BOBS.cobW;const fs=fontes(W*LED_FOLGA);const c={};fs.forEach(w=>c[w]=(c[w]||0)+1);const nm=v=>String(v).replace('.',',');
+  {const P=[];frame(P,ctx,{setor:'ELÉTRICA'});bobsTit(P,'CANTONEIRA COM ILUMINAÇÃO — LED COB 3000K',`FITA LED COB 12 V ${BOBS.cobW} W/m • 3000K (BRANCO QUENTE) • COLADA EMBAIXO DA CANTONEIRA DE ALUMÍNIO 25x25 PRETA`);
+   let y=44,x=14;const cols=[['TRECHO',90],['MEDIDAS (MM)',50],['LED',22]];cols.forEach(([h,w])=>{P.push({t:'rect',x,y,w,h:4.6,fill:'#495057',stroke:'#000000',lw:0.15},{t:'text',x:x+w/2,y:y+3.3,s:h,size:2.1,bold:true,color:'#ffffff',anchor:'middle'});x+=w});
+   T.forEach((t,i)=>{if(y>150)return;y+=4.6;let x2=14;const v=[t.nome,t.lens.map(f0).join(' + '),nm((t.lens.reduce((a,b)=>a+b,0)/1000).toFixed(2))+' m'];cols.forEach(([h,w],k)=>{P.push({t:'rect',x:x2,y,w,h:4.6,fill:i%2?'#ffffff':'#f8f9fa',stroke:'#000000',lw:0.1},{t:'text',x:k?x2+w/2:x2+1.2,y:y+3.3,s:fit(v[k],w-2,2.2),size:2.2,bold:k===2,color:'#000000',anchor:k?'middle':undefined});x2+=w})});
+   [['TOTAL DE LED COB',`${nm(m.toFixed(2))} m`],['POTÊNCIA',`${nm(W.toFixed(1))} W (+25% = ${nm((W*LED_FOLGA).toFixed(1))} W)`],['REATORES 12 V',Object.entries(c).map(([w,q])=>`${q} x ${w} W`).join(' + ')],['CANTONEIRA 25x25 PRETA',`${nm(m.toFixed(2))} m (${lens.length} peça(s))`]]
+     .forEach(([a,b],i)=>P.push({t:'rect',x:184,y:44+i*13,w:100,h:11,r:1.5,fill:i===2?'#fff4e6':'#f8f9fa',stroke:i===2?'#e8590c':'#adb5bd',lw:0.4},{t:'text',x:188,y:48.6+i*13,s:a,size:2.4,bold:true,color:'#495057'},{t:'text',x:188,y:53.2+i*13,s:b,size:3.2,bold:true,color:'#000000'}));
+   P.push({t:'text',x:14,y:160,s:'Uma peça de cantoneira por requadro / complemento, na largura dele. Fita LED colada embaixo da cantoneira. Trechos de no máx. 5 m por alimentação.',size:2.5,color:'#000000'},{t:'text',x:14,y:165,s:'Reator escolhido pela potência + 25% (60 / 100 / 150 W). Vermelho (+) e preto (−) no lado 12 V do reator.',size:2.5,color:'#000000'});
+   pages.push(P);tags.push('ELÉTRICA')}
+  const bars=bobsPlano(null,ctx,pages,tags,[['CANTONEIRA ALUMÍNIO 25x25 PRETA',lens.map(len=>({len})),'#1a1a1a',BOBS.cantBarra]],'PLANO DE CORTE — CANTONEIRA 25x25');
+  xfPaginas(ctx,'#xfB',pages,tags);
+  const N=[{k:'bobs|cant25',desc:'Cantoneira de alumínio 25x25 x 1,00 preta — barra 3 m',q:bars['CANTONEIRA ALUMÍNIO 25x25 PRETA']||Math.ceil(m/3),un:'un',uso:`${nm(m.toFixed(2))} m em ${lens.length} peça(s)`,busca:{must:['CANTONEIRA DE ALUMINIO 25X25','1,00MM','PRETA']}},
+    {k:'bobs|cob',desc:'Fita LED COB 12 V 12 W/m 3000K',q:m,un:'m',uso:`embaixo da cantoneira — ${nm(W.toFixed(1))} W`,busca:{must:['FITA LED','COB','3000K']}},
+    ...Object.entries(c).map(([w,q])=>({k:`fonte|${w}`,desc:`Fonte blindada ${w} W 12 V IP67`,q,un:'un',uso:`LED COB ${nm(W.toFixed(1))} W + 25%`,busca:{must:['REATOR',`${w}W`,'IP67']}})),
+    {k:'fio|1.5|preto',desc:'Cabo flexível 1,5 mm preto',q:m,un:'m',uso:'alimentação do LED',busca:{must:['CABO FLEXIVEL','PRETO','01.50MM']}},{k:'fio|1.5|verm',desc:'Cabo flexível 1,5 mm vermelho',q:m,un:'m',uso:'alimentação do LED',busca:{must:['CABO FLEXIVEL','VERMELHO','01.50MM']}}];
+  const mx=Math.max(...lens);const prod={tipo:'estrutura',mat:N,anc:{peca:'CANTONEIRA',auto:0,onde:'colada / parafusada embaixo dos requadros'},semAnc:true,nome:ctx.descItem,W:mx,H:25,D:25,un:1,
+    volumes:[{desc:'CANTONEIRAS 25x25 COM LED',cont:`${lens.length} peça(s) — ${nm(m.toFixed(2))} m com LED COB 3000K`,dims:`${f0(mx)} x 25 x 25`,q:1,kg:m*0.13,draw:{rects:[{x0:0,y0:0,x1:mx,y1:25,cor:'#1a1a1a'}]}},{desc:'REATORES',cont:Object.entries(c).map(([w,q])=>`${q} x ${w} W`).join(' + '),dims:'—',q:1,kg:0,draw:null}],
+    contornoRects:[{x0:0,y0:0,x1:mx,y1:25,cor:'#1a1a1a'}],contorno:[[[0,0],[mx,0],[mx,25],[0,25]]],checks:['MEDIDAS','LED ACENDE']};
+  paginasFinais(pages,tags,ctx,prod);if(!FOOT_SKIP){numeraSetores(pages);pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length))}bobsFiles=[];
+  return{pages,tags,ctx,resumo:`${nm(m.toFixed(2))} m de cantoneira com LED • ${Object.entries(c).map(([w,q])=>`${q} x ${w} W`).join(' + ')}.`}}
 bobsUI();
 
 /* ================= PEDIDOS: uma OS com vários itens (letras, testeiras, estruturas, modelos 3D), tudo salvo ================= */
 let pedidos=[],pedAtual=null,itemAtual=null,pedPdf=null,pedSujo=false;
-const TIPO_NOME={letra:'Letra caixa',testeira:'Testeira',estrutura:'Estrutura por desenho',modelo3d:'Modelo 3D',bobs:'Bobs — requadro do balcão'};
-const TIPO_ABA={letra:'novo',testeira:'testeiras',estrutura:'testeiras',modelo3d:'modelo',bobs:'bobs'};
+const TIPO_NOME={letra:'Letra caixa',testeira:'Testeira',estrutura:'Estrutura por desenho',modelo3d:'Modelo 3D',bobs:'Bobs — requadro do balcão',bobscomp:'Bobs — complemento 30x30',bobscant:'Bobs — cantoneira com iluminação'};
+const TIPO_ABA={letra:'novo',testeira:'testeiras',estrutura:'testeiras',modelo3d:'modelo',bobs:'bobs',bobscomp:'bobs',bobscant:'bobs'};
 const OS_IDS=['os','entrega','cliente','vendedor','projetista','endereco'];
 // ---------- armazenamento ----------
 function pedLocal(){pedidos=lsGet('granda_pedidos')||[];pedListaRender()}
@@ -4864,7 +4966,7 @@ function pedAbrir(p){pedAtual=JSON.parse(JSON.stringify(p));itemAtual=null;pedPd
   $('#pedListaCard').hidden=true;$('#pedCard').hidden=false;$('#osSec').hidden=false;$('#pedPrev').innerHTML='';$('#pedMsg').innerHTML='';$('#pedBaixar').hidden=true;$('#pedGerar').textContent='Gerar FP completa do pedido';pedAbertoRender();pedBarRender()}
 function pedAbertoRender(){if(!pedAtual)return;$('#pedTitulo').innerHTML=`Pedido ${esc(pedAtual.os||'(sem número)')}${pedAtual.nome?' — '+esc(pedAtual.nome):''}<div style="font-size:13px;font-weight:400;margin-top:4px"><b>Cliente:</b> ${esc(pedAtual.cliente||'—')} &nbsp;•&nbsp; <b>Projetista:</b> ${esc(pedAtual.projetista||'—')}</div>`;
   const its=(pedAtual.itens||[]).slice().sort((a,b)=>a.n-b.n);const grupos=[];its.forEach(it=>{let g=grupos.find(g=>g.n===+it.n);if(!g){g={n:+it.n,its:[]};grupos.push(g)}g.its.push(it)});
-  const prod=pedAtual.produtos||{};const tipos=[['letra','Letra caixa'],['testeira','Testeira'],['estrutura','Estrutura por desenho'],['modelo3d','Modelo 3D'],['bobs','Bobs (requadro)']];
+  const prod=pedAtual.produtos||{};const tipos=[['letra','Letra caixa'],['testeira','Testeira'],['estrutura','Estrutura por desenho'],['modelo3d','Modelo 3D'],['bobs','Bobs requadro'],['bobscomp','Bobs complemento 30x30'],['bobscant','Bobs cantoneira iluminada']];
   {const cs=its.map(i=>i.custo),vs=its.map(i=>+i.venda||0);const falta=cs.filter(x=>x==null).length;const c=cs.some(x=>x!=null)?cs.reduce((a,x)=>a+(+x||0),0):null;
    const vc=its.reduce((a,i)=>a+(i.custo!=null?(+i.venda||0):0),0);$('#pedTotal').innerHTML=its.length?margemBox(c,falta&&c!=null?vc:vs.reduce((a,x)=>a+x,0),'TOTAL DO PEDIDO'+(falta?`<br><span style="font-weight:400;color:#c92a2a">${falta} item(ns) sem custo — fora da conta</span>`:'')):''}
   $('#pedItens').innerHTML=grupos.length?grupos.map(g=>{const nome=prod[g.n]||(g.its[0]&&g.its[0].desc)||'';const varios=g.its.length>1;
@@ -4897,11 +4999,13 @@ function limpaTipo(tipo){matUlt=null;if($('#itemVenda'))$('#itemVenda').value=''
   if(tipo==='letra'){src=null;srcBytes=null;ledAdj={};ledFonte={};ledFonteW={};resetOut();lDoc=null;lPrevRender();prevSet('');$('#outMsg').innerHTML='';$('#fileInfo').innerHTML='';$('#drop').classList.remove('has');$('#dropTxt').textContent='Toque para escolher o PDF';$('#xPages').innerHTML='';$('#obs').value='';selLed=6500;selCaixa=80;renderLeds();renderCaixa();updateBtn()}
   if(tipo==='testeira'){tFaces=[{W:1000,H:1000,prof:0,junta:'linha'}];tAcm={on:false,esp:3,inst:'rente',fita:'vhb',chapa:'auto',marca:'',cor:null,jt:false,jmm:5,je:false,envT:'ext',apl:aplDef()};acmUI();adesMarca="";acmAplUI();renderFaces();v3Fit=true}
   if(tipo==='estrutura'){dSrc=null;dModel=null;dHist=[];dPrevModels=[];$('#dTxt').value='';$('#dAlt').value='';$('#dInfo').innerHTML='';$('#dDraw').innerHTML='';$('#dPecas').innerHTML='';$('#dDropTxt').textContent='Toque para escolher o PDF';$('#dAltBox').hidden=true;$('#dResCard').hidden=true;dBotao()}
-  if(tipo==='bobs'){bobs={pecas:[bobsModelo('m1')],comp:[],led:true};xfPut('#xfB',[]);if($('#bLed'))$('#bLed').checked=true;bobsUI();bobsSujo()}
+  if(tipo==='bobs'){bobs={pecas:[bobsModelo('m1')]};xfPut('#xfB',[]);setBModo('req')}
+  if(tipo==='bobscomp'){bComp=[{len:1000,q:1}];xfPut('#xfB',[]);setBModo('comp')}
+  if(tipo==='bobscant'){bCantExtra=[];xfPut('#xfB',[]);setBModo('cant')}
   if(tipo==='modelo3d'){mSrc=null;mBytes=null;mPecas=[];$('#mInfo').innerHTML='';$('#mDropTxt').textContent='Toque para escolher o arquivo 3D (.stl ou .obj)';$('#mResCard').hidden=true}}
 // ---------- barra do pedido (aparece nas abas de trabalho) ----------
 function abaAtual(){const b=document.querySelector('nav button.on');return b?b.dataset.tab:''}
-function tipoDaAba(){const t=abaAtual();return t==='novo'?'letra':t==='testeiras'?(tModo==='desenho'?'estrutura':'testeira'):t==='modelo'?'modelo3d':t==='bobs'?'bobs':null}
+function tipoDaAba(){const t=abaAtual();return t==='novo'?'letra':t==='testeiras'?(tModo==='desenho'?'estrutura':'testeira'):t==='modelo'?'modelo3d':t==='bobs'?(bModo==='comp'?'bobscomp':bModo==='cant'?'bobscant':'bobs'):null}
 function isbRender(){const tipo=tipoDaAba();const it=pedAtual&&itemAtual&&itemAtual.tipo===tipo?itemAtual:null;
   document.querySelectorAll('.isbBtn').forEach(b=>b.textContent=!pedAtual?'Salvar item (cria o pedido com os dados da OS)':it&&!it.novo?`Salvar alterações no item ${$('#item').value||it.n}`:`Salvar como item ${$('#item').value||''}`)}
 document.querySelectorAll('.isbBtn').forEach(b=>b.onclick=()=>{const tipo=tipoDaAba();if(!tipo)return;if(!pedAtual){const p={id:'p'+Date.now().toString(36),nome:'',itens:[],criado:Date.now()};OS_IDS.forEach(k=>p[k]=$('#'+k).value.trim());pedidos.push(p);pedAtual=JSON.parse(JSON.stringify(p));itemAtual={id:'i'+Date.now().toString(36),tipo,n:Math.max(1,Math.round(num($('#item').value))||1),novo:true}}itemSalvar(tipo)});
@@ -4923,7 +5027,9 @@ function capturaEstado(tipo){
       resumo:[(types.find(t=>t.id===selType)||{}).nome,selLed?selLed+' K':''].filter(Boolean).join(' • ')}}
   if(tipo==='testeira')return{estado:{xf:xfLer('#xfT'),inputs:capInputs(['#tOpts']),cor,tFaces,tPint,fixSel:[...fixSel],tAcm:JSON.parse(JSON.stringify(tAcm))},desc:$('#tDesc').value.trim()||'TESTEIRA',resumo:tFaces.map(f=>f0(f.W)+'x'+f0(f.H)).join(' + ')};
   if(tipo==='estrutura'){if(!dModel)throw new Error('monte o 3D antes de salvar');return{estado:{xf:xfLer('#xfT'),inputs:capInputs(['#dCard']),cor,dSrc,dModel,dHist,dPint},desc:$('#dDesc').value.trim()||'ESTRUTURA',resumo:dModel.titulo}}
-  if(tipo==='bobs')return{estado:{bobs:JSON.parse(JSON.stringify(bobs)),inputs:capInputs(['#bCard','#bCard2']),xf:xfLer('#xfB')},desc:$('#bDesc').value.trim()||'REQUADRO DO BALCÃO BOBS',resumo:bobs.pecas.map(p=>f0(p.W)+'x'+f0(p.H)).join(' + ')+(bobs.comp.length?` + ${bobs.comp.length} compl. 30x30`:'')};
+  if(tipo==='bobs')return{estado:{bobs:JSON.parse(JSON.stringify(bobs)),inputs:capInputs(['#bCard','#bCard2']),xf:xfLer('#xfB')},desc:$('#bDesc').value.trim()||'REQUADRO DO BALCÃO BOBS',resumo:bobs.pecas.map(p=>f0(p.W)+'x'+f0(p.H)).join(' + '),lens:bobsLens('bobs')};
+  if(tipo==='bobscomp')return{estado:{bComp:JSON.parse(JSON.stringify(bComp)),inputs:capInputs(['#bCompCard']),xf:xfLer('#xfB')},desc:$('#bcDesc').value.trim()||'COMPLEMENTO 30X30 BOBS',resumo:bComp.filter(c=>c.len>0).map(c=>`${c.q||1}x ${f0(c.len)}`).join(' + ')+' mm',lens:bobsLens('bobscomp')};
+  if(tipo==='bobscant'){const T=bobsTrechos();const tot=T.reduce((a,t)=>a+t.lens.reduce((x,v)=>x+v,0),0);return{estado:{bCantExtra:JSON.parse(JSON.stringify(bCantExtra)),inputs:capInputs(['#bCantCard']),xf:xfLer('#xfB')},desc:$('#bkDesc').value.trim()||'CANTONEIRA COM ILUMINAÇÃO BOBS',resumo:`${String((tot/1000).toFixed(2)).replace('.',',')} m com LED COB 3000K`}}
   if(tipo==='modelo3d'){if(!mSrc||!mBytes)throw new Error('carregue o arquivo 3D antes de salvar');return{estado:{xf:xfLer('#xfM'),inputs:capInputs(['#tab-modelo'])},fonte:{nome:mSrc.name,b64:b64(mBytes)},desc:$('#mDesc').value.trim()||'ESTRUTURA',resumo:`${mPecas.length} peça(s)`}}}
 async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHTML=t;document.querySelectorAll('.isbMsg').forEach(e=>e.innerHTML=t.replace(/#b2f2bb/,'#2b8a3e').replace(/#ffc9c9/,'#c92a2a'))};
   try{const n=Math.max(1,Math.round(num($('#item').value))||1);
@@ -4931,7 +5037,7 @@ async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHT
     msg('Salvando…');const C=capturaEstado(tipo);C.estado.refImg=refImg;C.estado.fpObsPg=fpObsPg;C.estado.matQtd=matQtd;C.estado.matAdd=matAdd;C.estado.inst=capInputs(['#instBox']);C.estado.instImg=instImg;C.estado.instImg2=instImg2;C.estado.instLocal=instLocal;C.estado.ancImg=ancImg;
     let it=itemAtual&&itemAtual.tipo===tipo?pedAtual.itens.find(i=>i.id===itemAtual.id):null;const velho=it?{e:it.estadoId,f:it.fonteId}:null;
     const estadoId=await guardaJSON(C.estado);const fonteId=C.fonte?(it&&it.fonteNome===C.fonte.nome&&it.fonteTam===C.fonte.b64.length?it.fonteId:await guardaJSON(C.fonte)):null;
-    const reg={id:it?it.id:(itemAtual&&itemAtual.id)||'i'+Date.now().toString(36),n,tipo,desc:C.desc,resumo:C.resumo,estadoId,fonteId,fonteNome:C.fonte?C.fonte.nome:'',fonteTam:C.fonte?C.fonte.b64.length:0,atualizado:Date.now(),venda:vendaNum(($('#itemVenda')||{}).value),custo:(typeof matUlt!=='undefined'&&matUlt&&matUlt.length)?Math.round(matUlt.reduce((a,r)=>a+(+r.tot||0),0)*100)/100:(it&&it.custo!=null?it.custo:null)};
+    const reg={id:it?it.id:(itemAtual&&itemAtual.id)||'i'+Date.now().toString(36),n,tipo,desc:C.desc,resumo:C.resumo,estadoId,fonteId,fonteNome:C.fonte?C.fonte.nome:'',fonteTam:C.fonte?C.fonte.b64.length:0,atualizado:Date.now(),...(C.lens?{bobsLens:C.lens}:{}),venda:vendaNum(($('#itemVenda')||{}).value),custo:(typeof matUlt!=='undefined'&&matUlt&&matUlt.length)?Math.round(matUlt.reduce((a,r)=>a+(+r.tot||0),0)*100)/100:(it&&it.custo!=null?it.custo:null)};
     pedAtual.itens=(pedAtual.itens||[]).filter(i=>i.id!==reg.id).concat([reg]);await pedSalvar(pedAtual);
     if(velho){if(velho.e!==estadoId)apagaJSON(velho.e);if(velho.f&&velho.f!==fonteId)apagaJSON(velho.f)}
     itemAtual={id:reg.id,tipo,n};pedSujo=false;pedBarRender();msg(`<span style="color:#b2f2bb">✓ Item ${n} salvo no pedido.</span>`);
@@ -4954,11 +5060,13 @@ async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)th
     document.querySelectorAll('#dPintModo button').forEach(x=>x.classList.toggle('sel',x.dataset.m===dPint));$('#dPintSlot').hidden=dPint!=='toda';
     if(dSrc){dDesenho();$('#dInfo').innerHTML=`<div class="msg ok">${dSrc.pecas.length} peça(s) no desenho — conjunto ${fmt(dSrc.W)} × ${fmt(dSrc.H)} mm</div>`;$('#dDropTxt').textContent=dSrc.name}
     $('#dAltBox').hidden=!dModel;dBotao();if(mostrar){irAba('testeiras');setModo('desenho')}}
-  if(it.tipo==='bobs'){bobs=JSON.parse(JSON.stringify(E.bobs||{pecas:[bobsModelo('m1')],comp:[],led:true}));putInputs(E.inputs);bobs.led=$('#bLed').checked;xfPut('#xfB',E.xf||[]);bobsUI();bobsSujo();if(mostrar){irAba('bobs');bobsRender()}}
+  if(it.tipo==='bobs'){bobs=JSON.parse(JSON.stringify(E.bobs||{pecas:[bobsModelo('m1')]}));if(E.bobs&&E.bobs.comp&&E.bobs.comp.length&&!(E.bComp))bComp=JSON.parse(JSON.stringify(E.bobs.comp));putInputs(E.inputs);xfPut('#xfB',E.xf||[]);setBModo('req');if(mostrar){irAba('bobs');bobsRender()}}
+  if(it.tipo==='bobscomp'){bComp=JSON.parse(JSON.stringify(E.bComp||[{len:1000,q:1}]));putInputs(E.inputs);xfPut('#xfB',E.xf||[]);setBModo('comp');if(mostrar){irAba('bobs');bobsRender()}}
+  if(it.tipo==='bobscant'){bCantExtra=JSON.parse(JSON.stringify(E.bCantExtra||[]));putInputs(E.inputs);xfPut('#xfB',E.xf||[]);setBModo('cant');if(mostrar){irAba('bobs');bobsRender()}}
   if(it.tipo==='modelo3d'){putInputs(E.inputs);if(F)await mCarrega(F.nome,unb64(F.b64).buffer,true);if(mostrar)irAba('modelo')}
   pedSujo=false;pedBarRender()}
 // ---------- FP completa do pedido ----------
-function buildItem(tipo){if(tipo==='letra')return buildDoc();if(tipo==='testeira')return buildTesteira();if(tipo==='estrutura')return dFolhas();if(tipo==='modelo3d')return mFolhas();if(tipo==='bobs')return bobsFolhas()}
+function buildItem(tipo){if(tipo==='letra')return buildDoc();if(tipo==='testeira')return buildTesteira();if(tipo==='estrutura')return dFolhas();if(tipo==='modelo3d')return mFolhas();if(tipo==='bobs'){setBModo('req');return bobsFolhas()}if(tipo==='bobscomp'){setBModo('comp');return bobsFolhas()}if(tipo==='bobscant'){setBModo('cant');return bobsFolhas()}}
 $('#pedGerar').onclick=async()=>{const its=(pedAtual.itens||[]).slice().sort((a,b)=>a.n-b.n);if(!its.length){$('#pedMsg').innerHTML='<div class="msg err">O pedido ainda não tem itens.</div>';return}
   const btn=$('#pedGerar');btn.disabled=true;const todas=[];const salvo={item:$('#item').value,ia:itemAtual};
   try{for(const [k,it] of its.entries()){$('#pedMsg').innerHTML=`<div class="msg ok">Gerando item ${it.n} (${k+1} de ${its.length}) — ${TIPO_NOME[it.tipo]}…</div>`;await new Promise(r=>setTimeout(r,30));
@@ -4989,6 +5097,11 @@ async function pedImportar(f){const msg=$('#pedImpMsg');if(!f)return;msg.textCon
     await pedSalvar(p);msg.innerHTML=`<b style="color:#2b8a3e">Pedido OS ${esc(p.os||'')} — ${esc(p.cliente||'')} importado</b> com ${(p.itens||[]).length} itens.`}catch(e){msg.textContent='Não consegui importar: '+e.message}}
 if($('#pedExport'))$('#pedExport').onclick=pedExportar;
 if($('#pedImport'))$('#pedImport').onchange=e=>{pedImportar(e.target.files[0]);e.target.value=''};
+
+// custo do item: atualiza sozinho quando a FP do item aberto é gerada (sem precisar salvar)
+let custoT=null;
+function custoAuto(){try{if(!pedAtual||!itemAtual||itemAtual.novo||!matUlt||!matUlt.length)return;const it=(pedAtual.itens||[]).find(i=>i.id===itemAtual.id);if(!it)return;
+  const c=Math.round(matUlt.reduce((a,r)=>a+(+r.tot||0),0)*100)/100;let mud=false;if((it.tipo==='bobs'||it.tipo==='bobscomp')&&typeof bobsLens==='function'&&abaAtual()==='bobs'){const L=bobsLens(it.tipo);if(JSON.stringify(L)!==JSON.stringify(it.bobsLens||null)){it.bobsLens=L;mud=true}}if(it.custo===c&&!mud)return;it.custo=c;clearTimeout(custoT);custoT=setTimeout(()=>{pedSalvar(pedAtual).catch(()=>{});try{pedAbertoRender()}catch(e){}},800)}catch(e){}}
 
 renderTypes();renderLogo();initStore();
 
