@@ -233,7 +233,11 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <label class="f">Largura real (mm) <span class="badge">opcional — só se o PDF não estiver 1:1</span></label><input type="number" id="largReal" placeholder="Deixe vazio para usar 1:1" inputmode="decimal">
     </div>
     <div class="card"><h2>3. Tipo de letra caixa</h2><div class="types" id="typePick"></div><div id="chapaBox" hidden><label class="f" style="margin-top:14px">Linha interna da chapa galvanizada</label><div class="leds" id="chapaPick"></div></div>
-      <label class="f" style="margin-top:14px">Profundidade da caixa (espessura da letra)</label><div class="leds" id="caixaPick"></div></div>
+      <label class="f" style="margin-top:14px">Profundidade da caixa (espessura da letra)</label><div class="leds" id="caixaPick"></div>
+      <div id="l3dBox" hidden style="margin-top:12px;padding:10px;border:1.5px solid #b197fc;background:#f3f0ff;border-radius:10px"><b style="color:#5f3dc4">Letra 3D (PETG)</b>
+        <div class="row" style="gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap"><label class="f" style="margin:0">Cor do filamento</label><select id="l3dCor" style="max-width:160px"><option>BRANCO</option><option>PRETO</option><option>CINZA</option><option>AZUL</option><option>VERMELHO</option><option>LARANJA</option></select>
+        <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="l3dFundo" checked> Fundo impresso junto</label></div>
+        <p class="note" style="margin:6px 0 0">Parede 2,5 mm; face com 4 mm para o acrílico encaixar justo; degrau de 1,5 mm abaixo. STL de cada letra sai em "Arquivos de produção".</p></div></div>
     <div class="card"><h2>4. LED</h2><div class="leds" id="ledPick"></div><label class="f" style="margin-top:12px">Potência do módulo de LED</label><div class="leds" id="ledWPick"></div>
       <div class="g2"><div><label class="f">Rabicho do fio por letra (mm)</label><input type="number" id="ledRab" value="3000" step="100" min="0"></div><div><label class="f">Saída do fio na letra</label><select id="ledSaida"><option value="inf">Inferior centralizado</option><option value="sup">Superior centralizado</option></select></div></div>
       <div class="g2"><div><label class="f">Distância centro a centro (mm) <span class="badge">opcional</span></label><input type="number" step="1" id="ledGap" placeholder="Padrão do tipo: 80" inputmode="decimal"></div>
@@ -578,7 +582,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
 const LED_ALL=[10000,6500,3500];
 const LED_COLOR={10000:'#cfe3ff',6500:'#f4f7ff',3500:'#ffd89a'};
 const PANELA_IMG='data:image/jpeg;base64,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';
-const SETORES={'LETRA CAIXA':'#c2255c','ROUTER':'#4338a0','IMPRESSÃO':'#f0a855','ELÉTRICA':'#e8a400','SERRALHERIA':'#5fd35f','PINTURA':'#2f9e44','MONTAGEM':'#1971c2','INSTALAÇÃO':'#d6336c','P1':'#0c8599','ACABAMENTO':'#7048e8','EXPEDIÇÃO':'#495057','QUALIDADE':'#0ca678','TERCEIRIZAÇÃO':'#e8590c','RM':'#495057','PI':'#0b7285','MATERIAL':'#495057'};
+const SETORES={'LETRA CAIXA':'#c2255c','ROUTER':'#4338a0','IMPRESSÃO':'#f0a855','ELÉTRICA':'#e8a400','SERRALHERIA':'#5fd35f','PINTURA':'#2f9e44','MONTAGEM':'#1971c2','INSTALAÇÃO':'#d6336c','P1':'#0c8599','ACABAMENTO':'#7048e8','EXPEDIÇÃO':'#495057','QUALIDADE':'#0ca678','TERCEIRIZAÇÃO':'#e8590c','RM':'#495057','PI':'#0b7285','IMPRESSÃO 3D':'#7048e8','MATERIAL':'#495057'};
 const PG_BLANK={setor:'ROUTER',titulo:'',material:'',espessura:'',cor:'',textura:'',linhas:[]};
 // Usado só se o banco do artefato não estiver disponível (modo local).
 // legenda padrão da router (cores dos arquivos de corte)
@@ -600,7 +604,11 @@ const DEFAULT_TYPES=[
   {setor:'ROUTER',titulo:'FUNDO LETRA - PVC 10mm',material:'PVC',espessura:'10MM',cor:'----',textura:'----',linhas:[
    {offset:-2,legenda:'CORTE EXTERNO',cor:'#ff00c0'}]},
   {tipo:'led',setor:'ELÉTRICA',titulo:'DISTRIBUIÇÃO DE LED - FUNDO PVC',led:{larg:75,alt:15,gap:80,watts:1.2,margem:45,fileiras:70,minDist:45,base:-2}},
-  {tipo:'pintura',setor:'PINTURA',titulo:'PINTURA DA LETRA',partes:'lateral'}]}
+  {tipo:'pintura',setor:'PINTURA',titulo:'PINTURA DA LETRA',partes:'lateral'}]},
+ {id:'letra3d',ordem:5,nome:'Letra caixa em 3D',descricao:'Letra impressa em PETG (parede 2,5 mm, fundo junto) com frente em acrílico 4 mm translúcido encaixado.',leds:LED_ALL,foto:'',paginas:[
+  {tipo:'imp3d',setor:'IMPRESSÃO 3D',titulo:'LETRA CAIXA EM 3D — IMPRESSÃO EM PETG'},
+  {setor:'ROUTER',titulo:'FRENTE LETRA 3D - ACRÍLICO 4mm TRANSLÚCIDO',material:'ACRÍLICO',espessura:'4MM',cor:'TRANSLÚCIDO',textura:'----',linhas:[{offset:-2.5,legenda:'CORTE EXTERNO',cor:'#ff00c0'}]},
+  {tipo:'led',setor:'ELÉTRICA',titulo:'DISTRIBUIÇÃO DE LED - FUNDO DA LETRA 3D',led:{larg:75,alt:15,gap:80,watts:1.2,margem:45,fileiras:70,minDist:45,base:-4,fita:true}}]}
 ];
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -622,6 +630,7 @@ async function initStore(){
   db.collection('tipos').onSnapshot(snap=>{
     clearTimeout(timer);local=false;$('#storeNote').textContent='Os cadastros ficam salvos no sistema e aparecem em todos os aparelhos.';
     if(!snap.docs.length&&!window.__seedTipos){window.__seedTipos=1;DEFAULT_TYPES.forEach(t=>{const {id,...body}=t;db.collection('tipos').doc(id).set(JSON.parse(JSON.stringify(body))).catch(()=>{})});setTypes(DEFAULT_TYPES);return}
+    if(!snap.docs.some(d=>d.id==='letra3d')&&!window.__seed3d){window.__seed3d=1;db.doc('config/seed_letra3d').get().then(g=>{if(g&&g.exists)return;const t=DEFAULT_TYPES.find(x=>x.id==='letra3d');const {id,...body}=t;db.collection('tipos').doc(id).set(JSON.parse(JSON.stringify(body))).catch(()=>{});db.doc('config/seed_letra3d').set({em:Date.now()}).catch(()=>{})}).catch(()=>{})}
     setTypes(snap.docs.map(d=>({id:d.id,...d.data()})));
   },()=>{clearTimeout(timer);if(!types.length)startLocal()});
   fixListen(db);perfisListen(db);ancTiposListen(db);acmListen(db);pedListen(db);
@@ -685,6 +694,7 @@ function renderCaixa(){$('#caixaPick').innerHTML=[40,60,80].map(v=>`<button data
 $('#caixaPick').onclick=e=>{const b=e.target.closest('button');if(!b)return;selCaixa=+b.dataset.cx;renderCaixa();resetOut()};
 function renderChapa(){
   const t=types.find(x=>x.id===selType);const cp=t&&pagesOf(t).find(p=>p.tipo==='chapa');
+  if($('#l3dBox'))$('#l3dBox').hidden=!(t&&pagesOf(t).some(p=>p.tipo==='imp3d'));
   $('#chapaBox').hidden=!cp;if(!cp)return;const C={opcoes:[5,7,10],padrao:7,...cp.chapa};
   if(!C.opcoes.includes(selChapa))selChapa=C.opcoes.includes(C.padrao)?C.padrao:C.opcoes[0];
   $('#chapaPick').innerHTML=C.opcoes.map(o=>`<button data-c="${o}" class="${o===selChapa?'sel':''}"><b>${fmt(o).replace(',0','')} mm</b></button>`).join('');
@@ -1264,7 +1274,7 @@ function distributeLED(cp,Pin){
   const zw=P.larg*Math.sin((P.zig||0)*Math.PI/180)+P.alt; // largura ocupada pelo zig-zag
   P.margem=Math.max(P.margem,zw/2+8);P.fileiras=Math.max(P.fileiras,zw+15);
   const boundary=offset(cp,P.base);const bc=toC(boundary);
-  const mods=[];const groups=[];const baseLines=[];const pitch=Math.max(P.gap,P.larg+2);
+  const mods=[];const groups=[];const baseLines=[];const fitas=[];const pitch=Math.max(P.gap,P.larg+2);
   const ledRegiao=(reg,P,baseLines)=>{
     const check=offF(reg,-2);if(!check.length)return null;
     const placed=[];
@@ -1290,11 +1300,15 @@ function distributeLED(cp,Pin){
     }
     if(!placed.length){ // peça pequena (ex.: pingo do i): um módulo no centro, no sentido mais comprido
       const bb=bbox(fromC(reg));const c=[(bb.x0+bb.x1)/2,(bb.y0+bb.y1)/2];const hz=bb.w>=bb.h;
-      for(const u of [hz?[1,0]:[0,1],hz?[0,1]:[1,0],[0.7071,0.7071],[0.7071,-0.7071]])if(tryPlace(c,u[0],u[1],P,placed,check,0))break}
+      for(const u of [hz?[1,0]:[0,1],hz?[0,1]:[1,0],[0.7071,0.7071],[0.7071,-0.7071]])if(tryPlace(c,u[0],u[1],P,placed,check,0))break;placed.forcado=true}
     return placed};
   for(const reg0 of regionsOf(bc)){
     const reg=ClipperLib.Clipper.CleanPolygons(reg0,0.05*S);const rb=bbox(fromC(reg));const key=ledKey(rb);
-    let bl=[];let placed=ledRegiao(reg,P,bl);if(!placed)continue;let alvoR=null;
+    let bl=[];let placed=ledRegiao(reg,P,bl)||[];let alvoR=null;
+    // letra 3D: onde o módulo não cabe, fita LED zig-zag pela linha interna (linha central do traço)
+    if(P.fita){const ps=fromC(reg);const tl=ps.reduce((a,p)=>a+chainLen(p.concat([p[0]])),0)/2; // linha interna: metade do perímetro ≈ linha central do traço
+      if(tl>0&&(!placed.length||placed.forcado||placed.length*pitch*2.5<tl)){const m=Math.round(tl/1000*1.1*100)/100;fitas.push({bb:rb,key,m,linhas:ps.map(p=>p.concat([p[0]]))});groups.push({bb:rb,n:0,key,aj:0,alvo:null,fm:m,fw:m*FITA_W});continue}}
+    if(!placed.length)continue;
     // ajuste manual (+/-) desta letra: procura o espaçamento que dá a quantidade pedida
     const d=(P.ajuste||{})[key]||0;
     if(d){const alvo=Math.max(1,placed.length+d);alvoR=alvo;let best=placed,bestBL=bl;const minP=P.larg*0.45;
@@ -1308,7 +1322,7 @@ function distributeLED(cp,Pin){
   groups.sort((a,b)=>a.bb.x0-b.bb.x0);const letters=[];
   for(const g of groups){const L=letters[letters.length-1];
     if(false&&L){const ov=Math.min(L.bb.x1,g.bb.x1)-Math.max(L.bb.x0,g.bb.x0);if(ov>0.5*Math.min(L.bb.w,g.bb.w)){L.n+=g.n;L.bb={x0:Math.min(L.bb.x0,g.bb.x0),x1:Math.max(L.bb.x1,g.bb.x1),y0:Math.min(L.bb.y0,g.bb.y0),y1:Math.max(L.bb.y1,g.bb.y1)};L.bb.w=L.bb.x1-L.bb.x0;L.bb.h=L.bb.y1-L.bb.y0;continue}}
-    letters.push({bb:{...g.bb},n:g.n,key:g.key,aj:g.aj,alvo:g.alvo})}
+    letters.push({bb:{...g.bb},n:g.n,key:g.key,aj:g.aj,alvo:g.alvo,fm:g.fm||0,fw:g.fw||0})}
   // fios: cada módulo liga ao vizinho seguinte (lado oposto do zig-zag), pela ponta do mesmo lado
   const wires=[];const used=new Set();
   for(const A of mods){if(!A.t)continue;let B=null,bd=pitch*1.4;
@@ -1322,7 +1336,8 @@ function distributeLED(cp,Pin){
     const mid=[mx+ox/ol*P.alt*0.5,my+oy/ol*P.alt*0.5];
     const pts=[];for(let k=0;k<=8;k++){const t=k/8,u=1-t;pts.push([u*u*a[0]+2*u*t*mid[0]+t*t*b[0],u*u*a[1]+2*u*t*mid[1]+t*t*b[1]])}
     wires.push(pts)}
-  return {boundary,mods,P,watts:mods.length*P.watts,letters,wires,baseLines};
+  const fitaM=fitas.reduce((a,f)=>a+f.m,0);
+  return {boundary,mods,P,watts:mods.length*P.watts+fitaM*FITA_W,letters,wires,baseLines,fitas,fitaM};
 }
 
 /* ---------- Letra filetada: chapa com linha interna e travas ---------- */
@@ -1394,6 +1409,7 @@ function chapaFilete(cp,t,trava,fator){
 }
 
 // circuitos: quais letras vão ligadas juntas em cada fonte. Letras grandes (> 350 mm de altura) só usam fontes de 100 ou 150 W
+const FITA_W=10; // fita LED zig-zag 10 W/m 12 V
 const LED_FOLGA=1.25; // potência = qtd. de LEDs x potência do módulo + 25%
 const CIRC_COR=['#e8590c','#1971c2','#2f9e44','#ae3ec9','#c92a2a','#0c8599','#f08c00','#5c940d'];
 let ledFonte={};let ledFonteW={}; // potência escolhida à mão por fonte: {nºfonte: W}
@@ -1401,7 +1417,7 @@ let ledFonte={};let ledFonteW={}; // potência escolhida à mão por fonte: {nº
 function ledCircuitos(R){const Ls=ordenaPecas(R.letters||[]);if(!Ls.length)return null;const wm=(R.P&&R.P.watts)||1.2;
   const grande=Ls.some(g=>g.bb.h>350);const caps=grande?[100,150]:[60,100,150];const MAX=150;let out=[];let cur=null;
   // automático: 1 reator se couber tudo; senão divide no meio (metade em cada); se ainda passar de 150 W, mais partes iguais
-  const nL=Ls.length,ws=Ls.map(g=>g.n*wm),big=ws.map(w=>w*LED_FOLGA>MAX);
+  const nL=Ls.length,ws=Ls.map(g=>g.n*wm+(g.fw||0)),big=ws.map(w=>w*LED_FOLGA>MAX);
   const parte=(k)=>{const ch=[];let i=0;for(let c=0;c<k;c++){const q=Math.ceil((nL-i)/(k-c));ch.push([...Array(q)].map((_,j)=>i+j));i+=q}return ch};
   let ch=null;for(let k=1;k<=nL;k++){const c=parte(k);if(c.every(g=>g.filter(i=>!big[i]).reduce((a,i)=>a+ws[i],0)*LED_FOLGA<=MAX+1e-6)){ch=c;break}}
   if(!ch)ch=parte(nL);
@@ -1411,11 +1427,100 @@ function ledCircuitos(R){const Ls=ordenaPecas(R.letters||[]);if(!Ls.length)retur
   // escolha manual: reagrupa pelas fontes escolhidas em cada letra
   const man=Object.keys(ledFonte||{}).filter(k=>+k<=Ls.length);
   if(man.length){const auto={};out.forEach(c=>c.letras.forEach(k=>{if(auto[k]==null)auto[k]=c.n}));const div=new Set(out.filter(c=>c.parte).flatMap(c=>c.letras));
-    const grp={};Ls.forEach((g,k)=>{const L1=k+1;if(div.has(L1))return;const f=ledFonte[L1]!=null?+ledFonte[L1]:auto[L1];(grp[f]=grp[f]||{letras:[],w:0});grp[f].letras.push(L1);grp[f].w+=g.n*wm});
+    const grp={};Ls.forEach((g,k)=>{const L1=k+1;if(div.has(L1))return;const f=ledFonte[L1]!=null?+ledFonte[L1]:auto[L1];(grp[f]=grp[f]||{letras:[],w:0});grp[f].letras.push(L1);grp[f].w+=g.n*wm+(g.fw||0)});
     const novos=Object.keys(grp).sort((a,b)=>a-b).map(f=>({...grp[f],manual:true}));out=[...novos,...out.filter(c=>c.parte)];out.forEach((c,i)=>c.n=i+1)}
   out.forEach((c,i)=>{c.fonteAuto=caps.find(v=>v>=c.w*LED_FOLGA)||MAX;const mw=+(ledFonteW||{})[i+1];c.fonte=mw>0?mw:c.fonteAuto;c.manualW=mw>0;c.excede=c.w*LED_FOLGA>c.fonte+1e-6;c.cor=CIRC_COR[i%CIRC_COR.length]});
   return{grande,caps,lista:out,porLetra:Ls.map((g,k)=>(out.find(c=>c.letras.includes(k+1))||{n:0}).n)}}
 const circTxt=c=>`FONTE ${c.n} (${c.fonte} W): LETRA${c.letras.length>1?'S':''} ${c.letras.length>2&&c.letras[c.letras.length-1]-c.letras[0]===c.letras.length-1?c.letras[0]+' A '+c.letras[c.letras.length-1]:c.letras.join(', ')} ${c.parte?' (PARTE '+c.parte+' DOS LEDS)':''} — ${String(Math.round(c.w*10)/10).replace('.',',')} W${c.excede?' — PASSA DE 150 W!':''}`;
+
+/* ================= LETRA CAIXA EM 3D (impressão em PETG) =================
+   Corte da peça (do fundo para a face):
+   - fundo impresso junto (L3D.fundo)
+   - parede de L3D.parede em toda a altura
+   - abaixo da face a parede fica com parede+apoio (degrau de 1,5 mm onde o acrílico apoia), até o fundo
+   - últimos L3D.face mm: só a parede — o acrílico 4 mm entra justo (mesmo contorno do arquivo da router) */
+const L3D={parede:2.5,face:4,apoio:1.5,apoioH:999,fundo:2.5,dens:1.27,perda:1.05,rolo:1000,mesa:[400,400],gm:2.98};
+const l3dFundo=()=>!($('#l3dFundo')&&!$('#l3dFundo').checked);
+const L3D_CORES=[['BRANCO',1841],['PRETO',1844],['CINZA',1842],['AZUL',1840],['VERMELHO',1845],['LARANJA',1843]];
+function l3dDiff(A,B){const c=new ClipperLib.Clipper();c.AddPaths(A,ClipperLib.PolyType.ptSubject,true);if(B&&B.length)c.AddPaths(B,ClipperLib.PolyType.ptClip,true);
+  const tree=new ClipperLib.PolyTree();c.Execute(ClipperLib.ClipType.ctDifference,tree,ClipperLib.PolyFillType.pftNonZero,ClipperLib.PolyFillType.pftNonZero);
+  const out=[];const walk=n=>{for(const ch of n.Childs()){if(!ch.IsHole()){out.push([ch.Contour(),...ch.Childs().map(h=>h.Contour())]);ch.Childs().forEach(h=>walk(h))}}};walk(tree);return out}
+const l3dArea=regs=>regs.reduce((s,r)=>s+r.reduce((a,p)=>a+ClipperLib.Clipper.Area(p),0),0)/(S*S);
+// geometria de uma letra (região Clipper: contorno + furos) na profundidade H
+function l3dLetra(reg,H){const acr=toC(offset(reg,-L3D.parede));           // cavidade = contorno do acrílico (mesma compensação da router)
+  const apo=toC(offset(reg,-(L3D.parede+L3D.apoio),'centro'));
+  const fz=l3dFundo()?L3D.fundo:0;const zA=H-L3D.face;
+  const parede=l3dDiff(reg,acr),comApoio=l3dDiff(reg,apo);
+  // sólidos SOBREPOSTOS (todos partem da mesa): o fatiador une sem faces coincidentes
+  const cheio=l3dDiff(reg,[]);
+  const slabs=[{z0:0,z1:fz,regs:cheio},{z0:0,z1:zA,regs:comApoio},{z0:0,z1:H,regs:parede}].filter(s=>s.z1-s.z0>0.01&&s.regs.length);
+  const vol=l3dArea(cheio)*fz+l3dArea(comApoio)*(zA-fz)+l3dArea(parede)*(H-zA); // mm³ (sem contar a sobreposição)
+  return{slabs,vol,acr:fromC(acr),apo:fromC(apo)}}
+// STL binário de várias camadas (cada camada é um sólido fechado)
+function l3dSTL(slabs,dx=0,dy=0){const tris=[];
+  const P2=p=>p.map(q=>[q.X/S-dx,q.Y/S-dy]);
+  const sa=p=>{let a=0;for(let i=0,j=p.length-1;i<p.length;j=i++)a+=(p[j][0]+p[i][0])*(p[j][1]-p[i][1]);return -a/2}; // >0 = anti-horário
+  for(const sl of slabs)for(const r of sl.regs){
+    let [o,...hs]=r.map(P2);if(o.length<3)continue;if(sa(o)<0)o=o.slice().reverse();hs=hs.filter(h=>h.length>=3).map(h=>sa(h)>0?h.slice().reverse():h);
+    // tampas
+    const V=x=>new THREE.Vector2(x[0],x[1]);const all=o.concat(...hs);
+    const faces=THREE.ShapeUtils.triangulateShape(o.map(V),hs.map(h=>h.map(V)));
+    for(const [a,b,c] of faces){const A=all[a],B=all[b],C=all[c];const cr=(B[0]-A[0])*(C[1]-A[1])-(B[1]-A[1])*(C[0]-A[0]);const [p,q]=cr>0?[B,C]:[C,B];
+      tris.push([[A[0],A[1],sl.z1],[p[0],p[1],sl.z1],[q[0],q[1],sl.z1]],[[A[0],A[1],sl.z0],[q[0],q[1],sl.z0],[p[0],p[1],sl.z0]])}
+    // paredes
+    for(const ring of [o,...hs])for(let i=0;i<ring.length;i++){const a=ring[i],b=ring[(i+1)%ring.length];
+      const a0=[a[0],a[1],sl.z0],b0=[b[0],b[1],sl.z0],a1=[a[0],a[1],sl.z1],b1=[b[0],b[1],sl.z1];tris.push([a0,b0,b1],[a0,b1,a1])}}
+  const buf=new ArrayBuffer(84+tris.length*50),dv=new DataView(buf);const hd='GRANDA LETRA CAIXA 3D';for(let i=0;i<hd.length;i++)dv.setUint8(i,hd.charCodeAt(i));dv.setUint32(80,tris.length,true);
+  let o=84;for(const t of tris){const u=[t[1][0]-t[0][0],t[1][1]-t[0][1],t[1][2]-t[0][2]],v=[t[2][0]-t[0][0],t[2][1]-t[0][1],t[2][2]-t[0][2]];
+    let n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];const l=Math.hypot(...n)||1;n=n.map(x=>x/l);
+    [n,...t].forEach(p=>{dv.setFloat32(o,p[0],true);dv.setFloat32(o+4,p[1],true);dv.setFloat32(o+8,p[2],true);o+=12});dv.setUint16(o,0,true);o+=2}
+  return buf}
+function l3dCor(){const v=($('#l3dCor')&&$('#l3dCor').value)||'BRANCO';return L3D_CORES.find(c=>c[0]===v)||L3D_CORES[0]}
+// tudo da letra 3D: geometria, filamento e arquivos STL (um por letra + o conjunto)
+function l3dCalc(cp,H){const Ls=ordenaPecas(regionsOf(cp).map(r=>{const ps=fromC(r);return{r,ps,bb:bbox(ps)}}));
+  const res=Ls.map((g,k)=>{const G=l3dLetra(g.r,H);const gr=G.vol/1000*L3D.dens;return{...g,...G,k,gr,m:gr/L3D.gm,mesa:Math.max(g.bb.w,g.bb.h)>Math.max(...L3D.mesa)-10||Math.min(g.bb.w,g.bb.h)>Math.min(...L3D.mesa)-10}});
+  const grTot=res.reduce((a,x)=>a+x.gr,0);return{Ls:res,H,grTot,grComPerda:grTot*L3D.perda,mTot:grTot*L3D.perda/L3D.gm}}
+function l3dArquivos(R,base){const out=[];
+  R.Ls.forEach(g=>{out.push({name:nomeArq(`${base} - LETRA 3D ${g.k+1} (${f0(g.bb.w)}x${f0(g.bb.h)}x${R.H}).stl`),label:`STL — letra ${g.k+1} (${f0(g.gr)} g de PETG)${g.mesa?' — PASSA DA MESA':''}`,buf:l3dSTL(g.slabs,g.bb.x0,g.bb.y0),dim:`${f0(g.bb.w)} × ${f0(g.bb.h)} × ${R.H} mm`,mime:'model/stl'})});
+  if(R.Ls.length>1){const b=bbox(R.Ls.flatMap(g=>g.ps));out.push({name:nomeArq(`${base} - LETRAS 3D CONJUNTO.stl`),label:`STL — todas as letras na posição (${f0(R.grTot)} g)`,buf:l3dSTL(R.Ls.flatMap(g=>g.slabs),b.x0,b.y0),dim:`${f0(b.w)} × ${f0(b.h)} × ${R.H} mm`,mime:'model/stl'})}
+  return out}
+// folha da IMPRESSÃO 3D
+function l3dFolha(P,ctx,pg,R,orig){const H=R.H;const cor=l3dCor();
+  P.push({t:'text',x:PW/2,y:30,s:pg.titulo||'LETRA CAIXA EM 3D — IMPRESSÃO EM PETG',size:4.4,bold:true,color:'#000000',anchor:'middle'});
+  P.push({t:'text',x:PW/2,y:35.4,s:`PROFUNDIDADE ${H} MM  •  PAREDE ${String(L3D.parede).replace('.',',')} MM (${String(L3D.parede+L3D.apoio).replace('.',',')} ABAIXO DA FACE)  •  ${l3dFundo()?'FUNDO IMPRESSO JUNTO':'SEM FUNDO'}  •  ACRÍLICO 4 MM TRANSLÚCIDO ENCAIXADO  •  PETG ${cor[0]}`,size:2.8,bold:true,color:'#5f3dc4',anchor:'middle'});
+  // desenho das letras: contorno (preto), acrílico/cavidade (rosa), apoio (verde)
+  const bb=bbox(orig);const BX=14,BY=40,BW=180,BH=56;const s=Math.min(BW/bb.w,BH/bb.h);const dx=BX+(BW-bb.w*s)/2,dy=BY+(BH-bb.h*s)/2;
+  const map=p=>p.map(([x,y])=>[dx+(x-bb.x0)*s,dy+(bb.y1-y)*s]);
+  R.Ls.forEach(g=>{P.push({t:'pathfill',polys:g.ps.map(map),fill:'#e5dbff'});P.push({t:'pathfill',polys:g.acr.map(map),fill:'#ffffff'});
+    g.apo.forEach(p=>P.push({t:'poly',pts:map(p),color:'#2f9e44',w:0.15}));g.acr.forEach(p=>P.push({t:'poly',pts:map(p),color:'#e64980',w:0.18}));g.ps.forEach(p=>P.push({t:'poly',pts:map(p),color:'#000000',w:0.2}));
+    const c=map([[(g.bb.x0+g.bb.x1)/2,(g.bb.y0+g.bb.y1)/2]])[0];P.push({t:'circle',x:c[0],y:c[1],r:2.1,fill:g.mesa?'#c92a2a':'#7048e8',stroke:'#ffffff',lw:0.3},{t:'text',x:c[0],y:c[1]+0.9,s:String(g.k+1),size:2.4,bold:true,color:'#ffffff',anchor:'middle'})});
+  cotas(P,dx,dy,bb.w*s,bb.h*s,Math.round(bb.w),Math.round(bb.h));
+  // corte da parede (esquemático, fora de escala)
+  {const X=206,Y=40,W=80,Hh=74;P.push({t:'rect',x:X,y:Y,w:W,h:Hh,r:1.5,fill:'#f8f9fa',stroke:'#adb5bd',lw:0.25},{t:'text',x:X+W/2,y:Y+4.4,s:'CORTE DA PAREDE (esquema, fora de escala)',size:2.3,bold:true,color:'#495057',anchor:'middle'});
+   const fz=l3dFundo()?L3D.fundo:0;const x0=X+30,xR=X+W-5,yT=Y+12,yb=Y+Hh-9,wP=6,wA=4,hF=10,yF=yT+hF,hFu=fz?4:0;const nm=v=>String(v).replace('.',',');
+   P.push({t:'pathfill',polys:[[[x0,yT],[x0+wP,yT],[x0+wP,yF],[x0+wP+wA,yF],[x0+wP+wA,yb-hFu],[xR,yb-hFu],[xR,yb],[x0,yb]]],fill:'#9775fa'});
+   P.push({t:'rect',x:x0+wP,y:yT,w:xR-x0-wP,h:hF,fill:'#ffe3f0',stroke:'#e64980',lw:0.3},{t:'text',x:(x0+wP+xR)/2+2,y:yT+hF/2+1,s:'ACRÍLICO 4 MM',size:2.2,bold:true,color:'#c2255c',anchor:'middle'});
+   P.push({t:'line',x1:X+4,y1:yb,x2:X+W-4,y2:yb,color:'#495057',w:0.5},{t:'text',x:X+W/2,y:yb+4,s:'MESA DA IMPRESSORA',size:1.9,color:'#495057',anchor:'middle'});
+   // cotas
+   const cv=(x,y1,y2,t,c)=>{P.push({t:'line',x1:x,y1,x2:x,y2,color:c,w:0.2},{t:'line',x1:x-1,y1,x2:x+1,y2:y1,color:c,w:0.2},{t:'line',x1:x-1,y1:y2,x2:x+1,y2,color:c,w:0.2},{t:'text',x:x-1.5,y:(y1+y2)/2+0.8,s:t,size:2.1,bold:true,color:c,anchor:'end'})};
+   cv(x0-3,yT,yb,`${H} MM`,'#000000');cv(x0-14,yT,yF,'FACE 4','#c2255c');
+   P.push({t:'text',x:x0+wP/2,y:yT-1.5,s:`${nm(L3D.parede)}`,size:2.1,bold:true,color:'#5f3dc4',anchor:'middle'},
+     {t:'text',x:x0+wP+wA+1.5,y:yF+4,s:`DEGRAU ${nm(L3D.apoio)} (apoio)`,size:2,bold:true,color:'#2f9e44'},
+     {t:'text',x:x0+(wP+wA)/2,y:yb-hFu-3,s:`${nm(L3D.parede+L3D.apoio)}`,size:2,bold:true,color:'#ffffff',anchor:'middle'},
+     {t:'text',x:xR-1,y:fz?yb-hFu-1.2:yb-1.2,s:fz?`FUNDO ${nm(L3D.fundo)} MM`:'SEM FUNDO (ABERTO)',size:2,bold:true,color:'#5f3dc4',anchor:'end'})}
+  // tabela por letra
+  const cols=[['LETRA',16],['MEDIDAS (mm)',40],['ÁREA ACRÍLICO',30],['PETG (g)',26],['FILAMENTO (m)',28],['IMPRESSÃO',42]];let y=118,x=14;
+  cols.forEach(([h,w])=>{P.push({t:'rect',x,y,w,h:5,fill:'#5f3dc4',stroke:'#000000',lw:0.15},{t:'text',x:x+w/2,y:y+3.5,s:h,size:2.2,bold:true,color:'#ffffff',anchor:'middle'});x+=w});y+=5;
+  const RH=Math.min(5,Math.max(3.4,40/(R.Ls.length+1)));const ar=ps=>Math.abs(ps.reduce((a,p)=>{let s2=0;for(let i=0,j=p.length-1;i<p.length;j=i++)s2+=(p[j][0]+p[i][0])*(p[j][1]-p[i][1]);return a+s2/2},0))/1e6;
+  R.Ls.forEach((g,i)=>{if(y+RH>162)return;x=14;const v=[String(g.k+1),`${f0(g.bb.w)} x ${f0(g.bb.h)} x ${H}`,`${String(ar(g.acr).toFixed(3)).replace('.',',')} m²`,f0(g.gr),String((g.m).toFixed(1)).replace('.',','),g.mesa?'PASSA DA MESA — DIVIDIR':'OK (cabe na mesa)'];
+    cols.forEach(([h,w],c)=>{P.push({t:'rect',x,y,w,h:RH,fill:i%2?'#ffffff':'#f3f0ff',stroke:'#000000',lw:0.1},{t:'text',x:x+w/2,y:y+RH/2+0.9,s:v[c],size:Math.min(2.4,RH*0.6),bold:c===0||c===3||(c===5&&g.mesa),color:c===5&&g.mesa?'#c92a2a':'#000000',anchor:'middle'});x+=w});y+=RH});
+  // totais
+  const X2=200,Y2=118;P.push({t:'rect',x:X2,y:Y2,w:86,h:44,r:2,fill:'#f3f0ff',stroke:'#7048e8',lw:0.35});
+  [[`PETG ${cor[0]} 1,75 MM — cód. ${cor[1]}`,2.6,true],[`Peças: ${f0(R.grTot)} g  (+${Math.round((L3D.perda-1)*100)}% perda = ${f0(R.grComPerda)} g)`,2.5,false],[`Filamento: ${String(R.mTot.toFixed(1)).replace('.',',')} m  •  ${String((R.grComPerda/L3D.rolo).toFixed(2)).replace('.',',')} rolo(s) de 1 kg`,2.5,true],
+   ['Imprimir com o FUNDO na mesa e a face para cima.',2.2,false],[`Parede e fundo 100% sólidos (paredes de ${String(L3D.parede).replace('.',',')} e ${String(L3D.parede+L3D.apoio).replace('.',',')} mm).`,2.2,false],['Acrílico entra JUSTO na face e apoia no degrau.',2.2,false],[`Mesa considerada: ${L3D.mesa[0]} x ${L3D.mesa[1]} mm.`,2.2,false],['Arquivos STL: em "Arquivos de produção" (1 por letra).',2.2,true]]
+   .forEach(([s2,sz,b],i)=>P.push({t:'text',x:X2+3,y:Y2+5+i*5,s:fit(s2,80,sz),size:sz,bold:b,color:b?'#3b2a99':'#000000'}));
+  [['#000000','Contorno externo (parede)'],['#e64980',`Acrílico / cavidade (${String(L3D.parede).replace('.',',')} mm p/ dentro)`],['#2f9e44',`Degrau de apoio (${String(L3D.parede+L3D.apoio).replace('.',',')} mm p/ dentro)`]].forEach(([c,t],i)=>{const xx=14+i*62;P.push({t:'rect',x:xx,y:108.5,w:4,h:2.6,fill:c==='#000000'?'#e5dbff':'#ffffff',stroke:c,lw:0.5},{t:'text',x:xx+5.5,y:110.8,s:t,size:2.2,color:'#000000'})})
+}
 
 
 /* ---------- Folha padrão Granda (A4 deitada, mm) ---------- */
@@ -1508,7 +1613,7 @@ function tOrdem(){const c3=$('#t3d')&&$('#t3d').closest('.card');if(!c3)return;i
 function instColoca(tb){const s=$('#instSec');if(tb==='testeiras'){tOrdem();return}const alvo=tb==='novo'?$('#gerar').closest('.card'):tb==='modelo'?$('#mResCard'):null;
   if(alvo&&alvo.parentNode&&alvo.previousElementSibling!==s)alvo.parentNode.insertBefore(s,alvo);if(tb==='modelo'){const xf=$('#xfM').closest('.card');$('#mResCard').before(xf)}}
 let lSel='',lDoc=null;
-const lSetNome=s=>({RM:'Relação de material (RM)',PI:'PI — Produtos de instalação',MONTAGEM:'Montagem ACM','LETRA CAIXA':'Letra caixa',ROUTER:'Router',P1:'P1',PINTURA:'Pintura','ELÉTRICA':'Elétrica',ACABAMENTO:'Acabamento','INSTALAÇÃO':'Instalação','EXPEDIÇÃO':'Expedição',QUALIDADE:'Qualidade',SERRALHERIA:'Serralheria',OUTRAS:'Outras'}[s]||s);
+const lSetNome=s=>({RM:'Relação de material (RM)','IMPRESSÃO 3D':'Impressão 3D',PI:'PI — Produtos de instalação',MONTAGEM:'Montagem ACM','LETRA CAIXA':'Letra caixa',ROUTER:'Router',P1:'P1',PINTURA:'Pintura','ELÉTRICA':'Elétrica',ACABAMENTO:'Acabamento','INSTALAÇÃO':'Instalação','EXPEDIÇÃO':'Expedição',QUALIDADE:'Qualidade',SERRALHERIA:'Serralheria',OUTRAS:'Outras'}[s]||s);
 // fichas de produção separadas por setor (botões)
 function setorChips(pages,sel,attr){const sk=P=>P._setor||'OUTRAS';const sets=[...new Set(pages.map(sk))];if(!sets.includes(sel))sel=sets[0];
   const html=sets.map(s=>{const n=pages.filter(P=>sk(P)===s).length;return `<button class="chip${s===sel?' on':''}" ${attr}="${esc(s)}">${esc(lSetNome(s))}${n>1?` (${n})`:''}</button>`}).join('');
@@ -1670,6 +1775,10 @@ function buildDoc(){
       if(pg.instrucao)P.push({t:'text',x:150,y:142,s:'OBS.: '+fit(pg.instrucao,120,2.6),size:2.6,bold:true,color:'#c92a2a'});
       pages.push(P);info.push({pg,lines:[]});return;
     }
+    if(pg.tipo==='imp3d'){
+      const R=l3dCalc(cp,+ctx.caixa||80);const P=[];frame(P,ctx,pg);l3dFolha(P,ctx,pg,R,orig);
+      pages.push(P);info.push({pg,lines:[],l3d:R});window.lastL3D=R;return;
+    }
     if(pg.tipo==='chapa'){
       const C={opcoes:[5,7,10],padrao:7,trava:2.5,fator:1.5,...pg.chapa};const tt=selChapa||C.padrao;
       const R=chapaFilete(cp,tt,C.trava,C.fator);
@@ -1700,6 +1809,8 @@ function buildDoc(){
       {const rm=(ctx.rab||0)/1000;P.push({t:'rect',x:12,y:24,w:86,h:13,r:1.5,fill:'#fff4e6',stroke:'#e8590c',lw:0.35},{t:'text',x:55,y:29.6,s:`RABICHO ${String(Math.round(rm*100)/100).replace('.',',')} METRO${rm===1?'':'S'} POR LETRA`,size:3.4,bold:true,color:'#000000',anchor:'middle'},{t:'text',x:55,y:34.4,s:`SAÍDA ${ctx.saida==='sup'?'SUPERIOR':'INFERIOR'} CENTRALIZADA • FIO PRETO + VERMELHO`,size:2.4,bold:true,color:'#c2410c',anchor:'middle'})}
       {const wm=+((R&&R.P&&R.P.watts)||0.72);const ws=String(wm).replace('.',',');const cor=wm>=1?'#c92a2a':'#1971c2';P.push({t:'rect',x:102,y:32.2,w:90,h:8.6,r:1.5,fill:wm>=1?'#fff5f5':'#e7f5ff',stroke:cor,lw:0.6},{t:'text',x:147,y:38,s:`LED ${ws} W POR MÓDULO • ${String(ctx.led||'').toUpperCase()}`,size:3.4,bold:true,color:cor,anchor:'middle'})}
       R.mods.forEach(m=>P.push({t:'poly',pts:map(m.rect),color:'#000000',w:0.1}));
+      (R.fitas||[]).forEach(f=>{P.push({t:'pathfill',polys:f.linhas.map(map),fill:'#ffe8cc'});f.linhas.forEach(l=>P.push({t:'path',pts:map(l),color:'#f08c00',w:0.5}))});
+      if(R.fitaM>0)P.push({t:'rect',x:196,y:32.2,w:88,h:8.6,r:1.5,fill:'#fff4e6',stroke:'#f08c00',lw:0.6},{t:'text',x:240,y:36,s:`FITA LED ZIG-ZAG 10 W/m: ${String(R.fitaM.toFixed(2)).replace('.',',')} m`,size:2.9,bold:true,color:'#d9480f',anchor:'middle'},{t:'text',x:240,y:39.4,s:'onde o módulo não cabe — pela linha interna (em laranja)',size:2,color:'#495057',anchor:'middle'});
       // LEDs por peça: etiquetas numa faixa abaixo do desenho, com linha de chamada até a peça (não ficam em cima das letras)
       {const Ls=ordenaPecas(R.letters);
        const W0=15,G0=2,yTop=dy+bb.h*s+4;const n=Ls.length;const perRow=Math.max(1,Math.floor((BW+20)/(W0+G0)));const rowsN=Math.ceil(n/perRow);
@@ -1711,7 +1822,7 @@ function buildDoc(){
          it.forEach((i,j)=>{const x=xs[j],y=yTop+r*15;const cx=x+W0/2;
            P.push({t:'line',x1:i.px,y1:i.py+0.6,x2:cx,y2:y,color:'#adb5bd',w:0.15});
            {const cc=R.circ&&R.circ.lista.length>1?R.circ.lista[R.circ.porLetra[i.k]-1]:null;const cor=cc?cc.cor:'#e8a400';P.push({t:'circle',x:cx,y:y+1.8,r:1.8,fill:cor,stroke:cor,lw:0.1},{t:'text',x:cx,y:y+2.6,s:String(i.k+1),size:2.1,bold:true,color:'#ffffff',anchor:'middle'});if(cc)P.push({t:'text',x:cx,y:y-0.8,s:'F'+cc.n,size:1.9,bold:true,color:cor,anchor:'middle'})}
-           P.push({t:'text',x:cx,y:y+6.6,s:`${i.g.n} LED${i.g.n===1?'':'S'}${i.g.aj?'*':''}`,size:2.3,bold:true,color:i.g.aj?'#1971c2':'#000000',anchor:'middle'});
+           P.push({t:'text',x:cx,y:y+6.6,s:i.g.fm?`FITA ${String(i.g.fm.toFixed(2)).replace('.',',')} m`:`${i.g.n} LED${i.g.n===1?'':'S'}${i.g.aj?'*':''}`,size:2.3,bold:true,color:i.g.aj?'#1971c2':'#000000',anchor:'middle'});
            P.push({t:'rect',x:x+1,y:y+7.6,w:W0-2,h:5.2,stroke:'#000000',lw:0.2,fill:'#ffffff'})})}}
       cotas(P,dx,dy,bb.w*s,bb.h*s,Math.round(bb.w),Math.round(bb.h));
       P.push({t:'text',x:284,y:25,s:escTxt,size:2.4,bold:true,color:'#2f6fa8',anchor:'end'});
@@ -2056,13 +2167,14 @@ $('#gerar').onclick=()=>{
       const semZip=pg.tipo==='led';let nm=(pg.tipo==='led'?'ELETRICA - posicao dos LEDs':(pg.tipo==='chapa'?'FILETE - '+(pg.material||'chapa'):(pg.material||pg.titulo||'peca')+(pg.espessura&&pg.espessura!=='----'?' '+pg.espessura:'')));
       cnt[nm]=(cnt[nm]||0)+1;if(cnt[nm]>1)nm+=' '+cnt[nm];
       prodFiles.push({name:nomeArq(`${base} - ${nm}.pdf`),label:nm,buf:v.buf,dim:`${fmt(v.w)} × ${fmt(v.h)} mm`,semZip})});
+    d.info.forEach(inf=>{if(inf.l3d)try{prodFiles.push(...l3dArquivos(inf.l3d,base))}catch(er){console.error('STL',er)}});
     for(const N of d.nests){if(N.semQual)continue;const B=N.best;const wm=(B.w/1000).toLocaleString('pt-BR'),hm=(B.h/1000).toLocaleString('pt-BR');
       B.sheets.forEach((sh,k)=>{const vec=[{color:'#adb5bd',polys:[[[0,0],[B.w,0],[B.w,B.h],[0,B.h]]]}];
         sh.items.forEach(it=>{const pc=pieceAt(N.pieces[it.i],it);pc.lines.forEach(l=>vec.push(l))});
         const v=vecPDF(vec);if(v)prodFiles.push({name:nomeArq(`${base} - ${N.nome} CHAPA ${k+1} de ${B.sheets.length} (${B.w}x${B.h}).pdf`),label:`${N.nome==='ACRILICO'?'Acrílico':'Chapa galvanizada'} — chapa ${k+1} de ${B.sheets.length} (${wm}x${hm} m, encaixe pronto)`,buf:v.buf,dim:`${sh.items.length} peças`})});
       $('#outMsg').insertAdjacentHTML('beforeend',`<div class="msg ok"><b>${N.nome==='ACRILICO'?'Acrílico':'Chapa galvanizada'}: ${B.sheets.length} chapa(s) de ${wm}x${hm} m</b> (${(B.util*100).toFixed(1).replace('.',',')}% de aproveitamento).${N.opts.filter(o=>o!==B).map(o=>` Com ${(o.w/1000).toLocaleString('pt-BR')}x${(o.h/1000).toLocaleString('pt-BR')} m seriam ${o.sheets.length} chapa(s), ${(o.util*100).toFixed(1).replace('.',',')}%.`).join('')}${B.naoCabe.length?` ${B.naoCabe.length} peça(s) maiores que a chapa — precisam de emenda.`:''}</div>`)}
     $('#prodFiles').hidden=!prodFiles.length;
-    $('#prodFiles').innerHTML=`<label class="f">Arquivos de produção (tamanho real 1:1, só vetor)</label>`+prodFiles.map((f,i)=>`<div class="row" style="justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:6px"><div><b style="font-size:14px">${esc(f.label)}</b><div class="note">${f.dim}</div></div><button class="btn ghost sm" data-pf="${i}">Baixar</button></div>`).join('')+(prodFiles.length>1&&window.JSZip?`<button class="btn acc sm" id="pfZip">Baixar todos (ZIP) — corte, instalação, expedição e RM</button>`:'');
+    $('#prodFiles').innerHTML=`<label class="f">Arquivos de produção (tamanho real 1:1)</label>`+prodFiles.map((f,i)=>`<div class="row" style="justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:6px"><div><b style="font-size:14px">${esc(f.label)}</b><div class="note">${f.dim}</div></div><button class="btn ghost sm" data-pf="${i}">Baixar</button></div>`).join('')+(prodFiles.length>1&&window.JSZip?`<button class="btn acc sm" id="pfZip">Baixar todos (ZIP) — corte, instalação, expedição e RM</button>`:'');
   }catch(err){$('#outMsg').innerHTML=`<div class="msg err">Erro ao gerar: ${esc(err.message)}</div>`;console.error(err)}
 };
 $('#prodFiles').onclick=async e=>{const b=e.target.closest('button');if(!b)return;
@@ -2071,7 +2183,7 @@ $('#prodFiles').onclick=async e=>{const b=e.target.closest('button');if(!b)retur
     try{if(lDoc&&lDoc.pages){for(const [st,nm] of [['INSTALAÇÃO','PROJETO DE INSTALACAO'],['EXPEDIÇÃO','FP EXPEDICAO']]){const pg=lDoc.pages.filter(P=>P._setor===st);if(pg.length)z.file(nomeArq(`${bz} - ${nm}.pdf`),toPDF(pg))}}}catch(er){console.error(er)}
     try{if(lDoc&&lDoc.pages){const pg=lDoc.pages.filter(P=>P._setor==='PI');if(pg.length)z.file(nomeArq(`${bz} - PI produtos de instalacao.pdf`),toPDF(pg))}}catch(er){console.error(er)}
     try{if(matUlt&&matUlt.length)z.file(nomeArq(`${bz} - RM relacao de materiais.xlsx`),await rmXlsx(matUlt,bz))}catch(er){console.error(er)}const blob=await z.generateAsync({type:'blob'});await salvar(nomeArq(`OS ${$('#os').value.trim()||'sem número'} - item ${$('#item').value||1} - arquivos de producao.zip`),blob);return}
-  const f=prodFiles[+b.dataset.pf];if(f)await salvar(f.name,new Blob([f.buf.slice(0)],{type:'application/pdf'}))};
+  const f=prodFiles[+b.dataset.pf];if(f)await salvar(f.name,new Blob([f.buf.slice(0)],{type:f.mime||'application/pdf'}))};
 $('#baixar').onclick=async()=>{
   if(!lastPdf)return;
   try{
@@ -3515,23 +3627,24 @@ function folhasPI(ctx,prod,rows){const pages=[];
 /* ---------- produtos ---------- */
 function prodLetras(t,ctx,orig,defs,ledInfo,furos,nests){const fixBit=(()=>{try{const I=instLer();const k=ANC_ANTIGO[I.ancT]||I.ancT;return ANC[k]?(I.ancB||ANC[k].bit).toLowerCase():'parafuso'}catch(e){return 'parafuso'}})();const regs=regionsOf(toC(orig)).map(r=>{const ps=fromC(r);return{ps,bb:bbox(ps)}});const L=ordenaPecas(regs);
   const ar=p=>{let a=0;for(let i=0,j=p.length-1;i<p.length;j=i++)a+=(p[j][0]+p[i][0])*(p[j][1]-p[i][1]);return a/2};
-  const temPVC=defs.some(p=>/PVC/i.test(p.material||'')),temAcr=defs.some(p=>/ACR/i.test((p.material||'')+' '+(p.titulo||''))),temLed=defs.some(p=>p.tipo==='led');
+  const l3d=defs.some(p=>p.tipo==='imp3d');const temPVC=defs.some(p=>/PVC/i.test(p.material||'')),temAcr=defs.some(p=>/ACR/i.test((p.material||'')+' '+(p.titulo||''))),temLed=defs.some(p=>p.tipo==='led');
   const cx=ctx.caixa||80;const vols=[];const brocL=[],panL=[];
   L.forEach((g,k)=>{const area=Math.abs(g.ps.reduce((s,p)=>s+ar(p),0))/1e6;const per=g.ps.reduce((s,p)=>s+chainLen(p.concat([p[0]])),0)/1000;
     const kf=(temAcr?area*KG.acr4:area*KG.galv26)+per*cx/1000*KG.galv26;
-    vols.push({desc:`LETRA ${k+1} — FRENTE`,cont:`Frente da letra (letra caixa${temAcr?', acrílico':''}, lateral galvanizada${temLed?', LEDs':''})`,dims:`${f0(g.bb.w)} x ${f0(g.bb.h)} x ${cx}`,q:1,kg:kf,draw:{polys:g.ps,fill:'#ffc9de'}});
+    if(l3d){const g3=window.lastL3D&&window.lastL3D.Ls[k];vols.push({desc:`LETRA ${k+1} — LETRA 3D`,cont:`Letra impressa em PETG com acrílico 4 mm encaixado${temLed?', LEDs':''}`,dims:`${f0(g.bb.w)} x ${f0(g.bb.h)} x ${cx}`,q:1,kg:(g3?g3.gr/1000:0)+area*KG.acr4*0.9,draw:{polys:g.ps,fill:'#e5dbff'}})}
+    else vols.push({desc:`LETRA ${k+1} — FRENTE`,cont:`Frente da letra (letra caixa${temAcr?', acrílico':''}, lateral galvanizada${temLed?', LEDs':''})`,dims:`${f0(g.bb.w)} x ${f0(g.bb.h)} x ${cx}`,q:1,kg:kf,draw:{polys:g.ps,fill:'#ffc9de'}});
     if(temPVC){const nf=(furos||[]).filter(f=>f.c[0]>=g.bb.x0-5&&f.c[0]<=g.bb.x1+5&&f.c[1]>=g.bb.y0-5&&f.c[1]<=g.bb.y1+5).length;
       brocL[k]=nf;
       vols.push({desc:`LETRA ${k+1} — FUNDO PVC`,cont:`Fundo em PVC 10 mm${nf?` (${nf} furos Ø3)`:''}`,dims:`${f0(g.bb.w)} x ${f0(g.bb.h)} x 10`,q:1,kg:area*KG.pvc10,draw:{polys:g.ps,fill:'#e9ecef'}})}});
-  L.forEach((g,k)=>panL[k]=panelaPorLetra(g.ps));const nb=brocL.reduce((a,v)=>a+(v||0),0),np=panL.reduce((a,v)=>a+v,0);
+  L.forEach((g,k)=>panL[k]=l3d?0:panelaPorLetra(g.ps));const nb=brocL.reduce((a,v)=>a+(v||0),0),np=panL.reduce((a,v)=>a+v,0);
   const b=bbox(orig);
-  vols.push({desc:`PARAFUSOS CABEÇA PANELA PINTADOS (${np} un.)`,cont:`${np} parafusos cabeça panela Phillips PINTADOS na cor da letra (fixam a letra no PVC pela lateral)`,dims:'—',q:1,kg:0,draw:null});
+  if(np)vols.push({desc:`PARAFUSOS CABEÇA PANELA PINTADOS (${np} un.)`,cont:`${np} parafusos cabeça panela Phillips PINTADOS na cor da letra (fixam a letra no PVC pela lateral)`,dims:'—',q:1,kg:0,draw:null});
   vols.push({desc:'MOLDE KRAFT',cont:`Molde em papel kraft (enrolado)${furos?' com a furação':''}`,dims:`${f0(b.w+100)} x ${f0(b.h+100)}`,q:1,kg:(b.w+100)*(b.h+100)/1e6*0.1,draw:{rects:[{x0:0,y0:0,x1:b.w+100,y1:b.h+100,cor:'#f4e3c3'}]}});
   if(temLed&&ledInfo)vols.push({desc:'ELÉTRICA',cont:'Fonte / reator e fiação da iluminação',dims:'—',q:1,kg:0,draw:null});
   const qualExtra=[];(nests||[]).forEach(N=>{const B=N.best;if(!B||N.semQual)return;B.sheets.forEach((sh,k)=>{const polys=[];sh.items.forEach(it=>{const pc=pieceAt(N.pieces[it.i],it);(pc.lines[0]?[pc.lines[0]]:[]).forEach(l=>l.polys.forEach(p=>polys.push(p)))});
     qualExtra.push({desc:`APROVEITAMENTO ${N.nome==='ACRILICO'?'ACRÍLICO':'CHAPA GALV.'} ${k+1}/${B.sheets.length}`,cont:`Chapa ${B.w} x ${B.h} mm — ${sh.items.length} peças`,q:1,draw:{rects:[{x0:0,y0:0,x1:B.w,y1:B.h,cor:'#f8f9fa'}],polys,fill:N.nome==='ACRILICO'?'#ffc9de':'#dee2e6'}})})});
   return{tipo:'letra',circ:ledInfo&&ledInfo.circ,mat:matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L),anc:{peca:temPVC?'FUNDO DE PVC':'FUNDO DA LETRA',auto:temPVC?nb:L.length*3,onde:temPVC?'nos furos do PVC (molde kraft)':'3 por letra (estimado)'},qualExtra,nome:ctx.descItem||t.nome,W:b.w,H:b.h,D:cx,un:1,ledN:(()=>{try{return ledInfo&&ledInfo.letters?ordenaPecas(ledInfo.letters).map(g=>g.n):null}catch(e){return null}})(),ledWm:ledInfo&&ledInfo.P&&ledInfo.P.watts||null,letras:L.map((g,k)=>({h:g.bb.h,w:g.bb.w,bb:g.bb,ps:g.ps,broc:temPVC?(brocL[k]||0):null,pan:panL[k]})),fixBit,
-    metodo:[...(temPVC?[`Fixar o molde kraft na parede, furar pelos furos e fixar o FUNDO DE PVC com ${fixBit} (${nb} no total).`]:[]),`Encaixar a frente da letra${temPVC?' sobre o PVC':''} e fixar pela LATERAL com ${PANELA} — um a cada ~330 mm (${np} no total).`,'Os parafusos da lateral vão pintados na cor da letra.'],contorno:orig,volumes:vols,
+    metodo:[...(temPVC?[`Fixar o molde kraft na parede, furar pelos furos e fixar o FUNDO DE PVC com ${fixBit} (${nb} no total).`]:[]),...(l3d?['Letra 3D: encaixar o acrílico na face (entra justo, apoia no degrau) e fixar a letra pelo FUNDO na parede (furar o fundo impresso).']:[`Encaixar a frente da letra${temPVC?' sobre o PVC':''} e fixar pela LATERAL com ${PANELA} — um a cada ~330 mm (${np} no total).`,'Os parafusos da lateral vão pintados na cor da letra.'])],contorno:orig,volumes:vols,
     checks:['MEDIDAS','ACABAMENTO / PINTURA',`PARAFUSOS CABEÇA PANELA PINTADOS (${np})`,...(temLed?['LED ACENDE']:[]),...(temPVC?['FUROS PVC']:[])]}}
 function prodTesteira(M,o,ctx){const comp=M.comp;const vols=[];const b3=bbox3(M.acm?M.boxes.concat(M.acm.boxes):M.boxes.filter(b=>!b.fix));
   comp.forEach(c=>{const F=c.F;let kg=0;F.mem.forEach(m=>{const pp=PERFIS[m.perfil];if(!pp)return;kg+=(m.len+(m.ext||0))/1000*tuboKgM(pp.f,pp.p,numBR(m.parede||o.parede))});
@@ -3701,7 +3814,9 @@ function matTesteira(M,o){const N=[];const lista=M.lista||[];
       if(ap.polys&&ap.polys.length){const Q=aplPos(frenteTesteira(M),ap);const rolo=adesRolo(ap.cor);mL+=Math.ceil((Q.h+40)/rolo)*(Q.w+40)/1000*o.un}
       if(mL>0){const c2=ap.cor;N.push({k:`ades|${c2?c2.marca+'|'+(c2.cod||'')+'|'+c2.nome:''}`,desc:`Adesivo ${c2?adesDesc(c2):'(cor a definir)'}`,q:Math.round(mL*100)/100,un:'m',uso:'adesivo no ACM (+2 cm de sobra)',busca:buscaAdesivo(c2)})}}}
   return N}
-function matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L){const N=[];const temLed=!!(ledInfo&&ledInfo.mods&&ledInfo.mods.length);
+function matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L){const N=[];const temLed=!!(ledInfo&&((ledInfo.mods&&ledInfo.mods.length)||ledInfo.fitaM>0));
+  // letra 3D: filamento PETG (rolo de 1 kg)
+  if(defs.some(p=>p.tipo==='imp3d')&&window.lastL3D){const R=window.lastL3D;const c=l3dCor();N.push({k:'petg|'+c[0],desc:`Filamento PETG 1,75 mm ${c[0]} (rolo 1 kg)`,q:Math.round(R.grComPerda/L3D.rolo*1000)/1000,un:'un',uso:`letras 3D: ${f0(R.grTot)} g + ${Math.round((L3D.perda-1)*100)}% perda = ${f0(R.grComPerda)} g (${String(R.mTot.toFixed(1)).replace('.',',')} m)`,busca:{must:['FILAMENTO 3D PETG',c[0]]}})}
   const consumo=B=>{if(!B||!B.sheets||!B.sheets.length)return 0;const n=B.sheets.length,last=B.sheets[n-1];return((n-1)*B.w+Math.min(B.w,last.usedW||B.w))*B.h/1e6};
   const fr=v=>String(Math.round(v*100)/100).replace('.',',');
   let areaGalv=0;
@@ -3725,6 +3840,7 @@ function matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L){const N=[];const temLed=
   // pintura: face/filete + lateral
   if(pint||areaGalv>0){const soLat=pint&&pint.partes==='lateral';N.push(...needsTinta(soLat?areaLat:areaGalv+areaLat,soLat?'lateral das letras':'letras (face + lateral)'))}
   if(temLed){const P=ledInfo.P||{};const wt=+P.watts||0.72;const t=String(ctx.led||'').match(/\d{4,5}/);const tk=t?t[0]:'6500';const ws=String(wt).replace('.',',');
+    if(ledInfo.fitaM>0)N.push({k:`fitaled|${tk}`,desc:`Fita LED zig-zag 10 W/m 12 V ${tk}K`,q:Math.round(ledInfo.fitaM*100)/100,un:'m',uso:'letras onde o módulo não cabe (linha interna, +10%)',busca:{must:['FITA LED FLEXIVEL ZIGZAG',`${tk}K`]}});
     N.push({k:`led|${tk}|${wt}`,desc:`Módulo LED ${tk}K ${ws} W 12 V`,q:ledInfo.mods.length,un:'un',uso:'iluminação (configuração do sistema)',busca:{must:['MODULO LED',`${tk}K`,[`${(+wt).toFixed(2)}W`,`${+wt}W`]],want:['3P','VINILSUL']}});
     const c={};(ledInfo.circ?ledInfo.circ.lista.map(x=>x.fonte):fontes(ledInfo.watts*LED_FOLGA)).forEach(w=>c[w]=(c[w]||0)+1);
     Object.entries(c).forEach(([w,q])=>N.push({k:`fonte|${w}`,desc:`Fonte blindada ${w} W 12 V IP67`,q,un:'un',uso:ledInfo.circ?`${ledInfo.circ.lista.length} circuito(s)${ledInfo.circ.grande?' — letra > 350 mm: só 100/150 W':''}`:`${f1(ledInfo.watts)} W + 25%`,busca:{must:['REATOR',`${w}W`,'IP67']}}));
