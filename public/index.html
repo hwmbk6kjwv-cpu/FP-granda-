@@ -1473,7 +1473,7 @@ function footer(P,ctx,n,total){if(P._ref&&!P._refOk)refAplica(P);obsBox(P,ctx);o
 const setorNome=s=>s==='LED'?'ELÉTRICA':s;
 // página do setor no selo colorido: "SERRALHERIA 1/3"
 function numeraSetores(pages){const tot={},k={};pages.forEach(P=>{if(P._setor)tot[P._setor]=(tot[P._setor]||0)+1});
-  pages.forEach(P=>{if(!P._setorT)return;const s=P._setor;k[s]=(k[s]||0)+1;const lab=`${s}  ${k[s]}/${tot[s]}`;P._setorT.s=lab;P._setorT.size=lab.length>16?3.4:4.2})}
+  pages.forEach(P=>{if(!P._setorT)return;const s=P._setor;k[s]=(k[s]||0)+1;const lab=`${s==='PI'?'PI — PRODUTOS DE INSTALAÇÃO':s}  ${k[s]}/${tot[s]}`;P._setorT.s=lab;P._setorT.size=lab.length>26?2.9:lab.length>16?3.4:4.2})}
 function frame(P,ctx,pg){pg={...pg,setor:setorNome(pg.setor)};
   P.push({t:'rect',x:8,y:8,w:PW-16,h:PH-16,stroke:'#000000',lw:0.3});
   const col=SETORES[pg.setor]||'#666666';
@@ -1508,7 +1508,7 @@ function tOrdem(){const c3=$('#t3d')&&$('#t3d').closest('.card');if(!c3)return;i
 function instColoca(tb){const s=$('#instSec');if(tb==='testeiras'){tOrdem();return}const alvo=tb==='novo'?$('#gerar').closest('.card'):tb==='modelo'?$('#mResCard'):null;
   if(alvo&&alvo.parentNode&&alvo.previousElementSibling!==s)alvo.parentNode.insertBefore(s,alvo);if(tb==='modelo'){const xf=$('#xfM').closest('.card');$('#mResCard').before(xf)}}
 let lSel='',lDoc=null;
-const lSetNome=s=>({RM:'Relação de material (RM)',MONTAGEM:'Montagem ACM','LETRA CAIXA':'Letra caixa',ROUTER:'Router',P1:'P1',PINTURA:'Pintura','ELÉTRICA':'Elétrica',ACABAMENTO:'Acabamento','INSTALAÇÃO':'Instalação','EXPEDIÇÃO':'Expedição',QUALIDADE:'Qualidade',SERRALHERIA:'Serralheria',OUTRAS:'Outras'}[s]||s);
+const lSetNome=s=>({RM:'Relação de material (RM)',PI:'PI — Produtos de instalação',MONTAGEM:'Montagem ACM','LETRA CAIXA':'Letra caixa',ROUTER:'Router',P1:'P1',PINTURA:'Pintura','ELÉTRICA':'Elétrica',ACABAMENTO:'Acabamento','INSTALAÇÃO':'Instalação','EXPEDIÇÃO':'Expedição',QUALIDADE:'Qualidade',SERRALHERIA:'Serralheria',OUTRAS:'Outras'}[s]||s);
 // fichas de produção separadas por setor (botões)
 function setorChips(pages,sel,attr){const sk=P=>P._setor||'OUTRAS';const sets=[...new Set(pages.map(sk))];if(!sets.includes(sel))sel=sets[0];
   const html=sets.map(s=>{const n=pages.filter(P=>sk(P)===s).length;return `<button class="chip${s===sel?' on':''}" ${attr}="${esc(s)}">${esc(lSetNome(s))}${n>1?` (${n})`:''}</button>`}).join('');
