@@ -179,6 +179,32 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
 <nav><button data-tab="pedidos" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5h10M9 12h10M9 19h10M4.5 5h.01M4.5 12h.01M4.5 19h.01"/></svg>Pedidos</button><button data-tab="novo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 10 5h4l5 14M7.5 13h9"/></svg>Letra caixa</button><button data-tab="testeiras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="1"/><path d="M9 7v10M15 7v10"/></svg>Testeiras e estruturas</button><button data-tab="modelo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 20 7.5v9L12 21l-8-4.5v-9z"/><path d="M12 12 20 7.5M12 12v9M12 12 4 7.5"/></svg>Modelo 3D</button><button data-tab="tipos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18" cy="18" r="2"/></svg>Cadastros</button></nav>
 <main>
   <div id="pedBar" hidden></div>
+  <section id="osSec" hidden>
+    <div class="card" id="osCard">
+      <h2>Dados da OS <span class="badge">valem para todas as folhas</span></h2>
+      <div class="g3">
+        <div><label class="f">Número da OS</label><input type="text" id="os" inputmode="numeric"></div>
+        <div id="itemBox"><label class="f">Item nº</label><input type="number" id="item" value="1" inputmode="numeric"></div>
+        <div><label class="f">Data de entrega</label><input type="date" id="entrega"></div>
+      </div>
+      <div id="descBox"><label class="f">Descrição do item</label><input type="text" id="descItem" value="LETRA CAIXA FACHADA"></div>
+      <div class="g2">
+        <div><label class="f">Cliente</label><input type="text" id="cliente"></div>
+        <div><label class="f">Vendedor</label><input type="text" id="vendedor"></div>
+        <div><label class="f">Projetista</label><input type="text" id="projetista"></div>
+        <div><label class="f">Endereço</label><input type="text" id="endereco"></div>
+      </div>
+      <div id="refBox">
+      <label class="f">Imagem de referência <span class="note" style="text-transform:none;font-weight:400">— sai no canto superior de todas as folhas (70 x 50 mm)</span></label>
+      <div class="row" style="gap:8px;align-items:stretch">
+        <label class="btn ghost sm" style="display:inline-flex;align-items:center">Enviar imagem<input type="file" id="refIn" accept="image/*" hidden></label>
+        <div id="refZone" contenteditable="true" style="flex:1;min-width:150px;border:1.5px dashed var(--line);border-radius:10px;padding:8px 10px;font-size:13px;color:#868e96;outline:none">Colar print aqui (toque e segure → Colar, ou Ctrl+V)</div>
+      </div>
+      <div id="refPrev" style="margin-top:8px"></div>
+      </div>
+
+    </div>
+  </section>
   <section id="tab-pedidos">
     <div class="card" id="pedListaCard">
       <div class="pedHead"><div><h2>Pedidos</h2><div class="sub" id="pedSub"></div></div><div class="row" style="gap:6px"><label class="btn ghost sm" style="cursor:pointer">Importar pedido (arquivo)<input type="file" accept=".json,application/json" id="pedImport" hidden></label><button class="btn pink" id="pedNovo">+ Novo pedido</button></div></div><div id="pedImpMsg" class="note"></div>
@@ -196,30 +222,6 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div class="row" style="gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)"><button class="btn pink" id="pedGerar">Gerar FP completa do pedido</button><button class="btn ghost" id="pedBaixar" hidden>Baixar FP completa (PDF)</button><button class="btn ghost sm" id="pedExport">Exportar pedido (arquivo)</button><button class="btn danger sm" id="pedExcluir" style="margin-left:auto">Excluir pedido</button></div><div id="pedExpMsg" class="note" style="margin-top:6px"></div>
       <div id="pedMsg"></div>
       <div class="prev" id="pedPrev"></div>
-    </div>
-  </section>
-  <section id="osSec" hidden>
-    <div class="card" id="osCard">
-      <h2>Dados da OS <span class="badge">valem para todas as folhas</span></h2>
-      <div class="g3">
-        <div><label class="f">Número da OS</label><input type="text" id="os" inputmode="numeric"></div>
-        <div id="itemBox"><label class="f">Item nº</label><input type="number" id="item" value="1" inputmode="numeric"></div>
-        <div><label class="f">Data de entrega</label><input type="date" id="entrega"></div>
-      </div>
-      <div id="descBox"><label class="f">Descrição do item</label><input type="text" id="descItem" value="LETRA CAIXA FACHADA"></div>
-      <div class="g2">
-        <div><label class="f">Cliente</label><input type="text" id="cliente"></div>
-        <div><label class="f">Vendedor</label><input type="text" id="vendedor"></div>
-        <div><label class="f">Projetista</label><input type="text" id="projetista"></div>
-        <div><label class="f">Endereço</label><input type="text" id="endereco"></div>
-      </div>
-      <label class="f">Imagem de referência <span class="note" style="text-transform:none;font-weight:400">— sai no canto superior de todas as folhas (70 x 50 mm)</span></label>
-      <div class="row" style="gap:8px;align-items:stretch">
-        <label class="btn ghost sm" style="display:inline-flex;align-items:center">Enviar imagem<input type="file" id="refIn" accept="image/*" hidden></label>
-        <div id="refZone" contenteditable="true" style="flex:1;min-width:150px;border:1.5px dashed var(--line);border-radius:10px;padding:8px 10px;font-size:13px;color:#868e96;outline:none">Colar print aqui (toque e segure → Colar, ou Ctrl+V)</div>
-      </div>
-      <div id="refPrev" style="margin-top:8px"></div>
-
     </div>
   </section>
   <section id="tab-novo" hidden>
@@ -703,7 +705,7 @@ $('#typeList').onclick=e=>{const b=e.target.closest('.type');if(b)openModal(type
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
   const tb=b.dataset.tab;$('#tab-pedidos').hidden=tb!=='pedidos';$('#tab-novo').hidden=tb!=='novo';$('#tab-tipos').hidden=tb!=='tipos';$('#tab-testeiras').hidden=tb!=='testeiras';$('#tab-modelo').hidden=tb!=='modelo';if(tb==='modelo')setTimeout(()=>m3Draw(),30);
-  $('#osSec').hidden=tb==='tipos'||(tb==='pedidos'&&!pedAtual);$('#instSec').hidden=!['novo','modelo','testeiras'].includes(tb);instColoca(tb);pedBarRender();if(tb==='testeiras')setTimeout(tRender,30);pickerCasa();$('#itemBox').hidden=false;$('#descBox').hidden=tb==='testeiras';
+  $('#osSec').hidden=tb==='tipos'||(tb==='pedidos'&&!pedAtual);if($('#refBox'))$('#refBox').hidden=tb==='pedidos';if($('#descBox'))$('#descBox').hidden=tb==='pedidos';$('#instSec').hidden=!['novo','modelo','testeiras'].includes(tb);instColoca(tb);pedBarRender();if(tb==='testeiras')setTimeout(tRender,30);pickerCasa();$('#itemBox').hidden=tb==='pedidos';$('#descBox').hidden=tb==='testeiras'||tb==='pedidos';
 });
 async function shrinkImage(f,max,type){
   const img=new Image();img.src=URL.createObjectURL(f);await img.decode();
