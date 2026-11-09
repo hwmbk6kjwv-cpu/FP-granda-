@@ -1904,9 +1904,14 @@ function toSVG(P){const K=P.K||1;
     else if(p.t==='img')o.push(`<image x="${r(p.x)}" y="${r(p.y)}" width="${r(p.w)}" height="${r(p.h)}" href="${p.src}"/>`);
     else if(p.t==='text')o.push(`<text x="${r(p.x)}" y="${r(p.y)}" font-size="${r(p.size)}" font-family="Helvetica,Arial,sans-serif" ${p.bold?'font-weight="700"':''} ${p.italic?'font-style="italic"':''} fill="${p.color}" ${p.anchor?`text-anchor="${p.anchor}"`:''} ${p.angle?`transform="rotate(${-p.angle} ${r(p.x)} ${r(p.y)})"`:''}>${esc(p.s)}</text>`);
   }
-  return `<svg xmlns="http://www.w3.org/2000/svg"${P._n?` data-pg="${P._n}"`:''}${P._setor?` data-setor="${esc(String(P._setor))}"`:''} viewBox="0 0 ${r(PW*K)} ${r(PH*K)}"><rect width="100%" height="100%" fill="#fff"/>${o.join('')}</svg>`;
+  if(PGREG.length>800)PGREG.length=0;const _rg=PGREG.push(P)-1;
+  return `<svg xmlns="http://www.w3.org/2000/svg" data-reg="${_rg}"${P._n?` data-pg="${P._n}"`:''}${P._setor?` data-setor="${esc(String(P._setor))}"`:''} viewBox="0 0 ${r(PW*K)} ${r(PH*K)}"><rect width="100%" height="100%" fill="#fff"/>${o.join('')}</svg>`;
 }
 function hex(c){if(c.length===4)c='#'+c[1]+c[1]+c[2]+c[2]+c[3]+c[3];const n=parseInt(c.slice(1),16);return[(n>>16)&255,(n>>8)&255,n&255]}
+const PGREG=[];
+async function baixaPagina(P,nome){const pdf=toPDF([P]);try{const dl=window.claude&&claude.use?await claude.use('downloads'):null;
+  if(dl){await dl.save({filename:nome,data:new Blob([pdf],{type:'application/pdf'})});return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([pdf],{type:'application/pdf'}));a.download=nome;document.body.appendChild(a);a.click();a.remove()}catch(e){if(e&&e.code==='declined')return;alert('Não foi possível baixar: '+(e.code||e.message))}}
 function toPDF(pages){
   const {jsPDF}=window.jspdf;
   const K=pages[0].K||1;const fmtP=[PW*K,PH*K];
@@ -3508,6 +3513,8 @@ function fpObsLinha(pg){const n=+pg.querySelector('svg[data-pg]').dataset.pg;con
   d.style.cssText='display:flex;gap:8px;align-items:center;margin:6px 0 14px';const v=fpObsPg[n];
   d.innerHTML=`<button class="btn ghost sm" type="button" style="padding:6px 12px;border-color:#e03131;color:#c92a2a;white-space:nowrap">${v?'✎ Editar observação':'+ Add observação'}</button>${v?`<span style="font-size:12px;color:#c92a2a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">${esc(v)}</span>`:''}`;
   d.querySelector('button').onclick=()=>fpObsPopup(n,pg.closest('.prev').id);
+  {const sr=pg.querySelector('svg[data-reg]');if(sr){const b3=document.createElement('button');b3.className='btn ghost sm';b3.type='button';b3.style.cssText='padding:6px 12px;white-space:nowrap';b3.textContent='Baixar esta página (PDF)';
+    b3.onclick=()=>{const P=PGREG[+sr.dataset.reg];if(!P)return;const st=(sr.dataset.setor||'FP').replace(/[^A-Za-zÀ-ú0-9 ]/g,'');const nome=`OS ${($('#os')||{}).value||'sem número'} - item ${($('#item')||{}).value||''} - ${st} pag ${n}.pdf`.replace(/[\\/:*?"<>|]/g,'-');baixaPagina(P,nome)};d.insertBefore(b3,d.children[1]||null)}}
   const sv=pg.querySelector('svg[data-setor]');if(sv&&/^RM/.test(sv.dataset.setor)){const b2=document.createElement('button');b2.className='btn ghost sm';b2.type='button';b2.style.cssText='padding:6px 12px;border-color:#2b8a3e;color:#2b8a3e;white-space:nowrap';b2.textContent='+ Add matéria-prima';b2.onclick=()=>matAddPopup(pg.closest('.prev').id);d.insertBefore(b2,d.children[1]||null)}
   pg.after(d)}
 function fpObsPopup(n,prevId){let M=$('#fpObsModal');if(M)M.remove();M=document.createElement('div');M.id='fpObsModal';
