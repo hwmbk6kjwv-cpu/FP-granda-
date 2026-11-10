@@ -237,9 +237,11 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
     <div class="card"><h2>3. Tipo de letra caixa</h2><div class="types" id="typePick"></div><div id="chapaBox" hidden><label class="f" style="margin-top:14px">Linha interna da chapa galvanizada</label><div class="leds" id="chapaPick"></div></div>
       <label class="f" style="margin-top:14px">Profundidade da caixa (espessura da letra)</label><div class="leds" id="caixaPick"></div>
       <div id="l3dBox" hidden style="margin-top:12px;padding:10px;border:1.5px solid #b197fc;background:#f3f0ff;border-radius:10px"><b style="color:#5f3dc4">Letra 3D (PETG)</b>
-        <div class="row" style="gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap"><label class="f" style="margin:0">Cor do filamento</label><select id="l3dCor" style="max-width:160px"><option>BRANCO</option><option>PRETO</option><option>CINZA</option><option>AZUL</option><option>VERMELHO</option><option>LARANJA</option></select>
+        <div class="row" style="gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap"><label class="f" style="margin:0">Cor do filamento</label><select id="l3dCor" style="max-width:160px"><option>BRANCO</option><option>PRETO</option><option>CINZA</option><option>AZUL</option><option>VERMELHO</option><option>LARANJA</option><option>BRANCO TRANSLÚCIDO</option></select>
         <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="l3dFundo" checked> Fundo impresso junto</label></div>
-        <p class="note" style="margin:6px 0 0">Parede 2,5 mm; face com 4 mm para o acrílico encaixar justo; degrau de 1,5 mm abaixo. STL de cada letra sai em "Arquivos de produção".</p></div></div>
+        <div class="row" style="gap:14px;align-items:center;margin-top:8px;flex-wrap:wrap"><label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="l3dCapa"> Interior branco para LED (capa interna em PETG branco, 0,5 mm menor que a cavidade)</label><label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="l3dPvc"> PVC 2 mm para LED no fundo (1 mm menor que a capa)</label></div>
+        <p class="note" style="margin:6px 0 0">Parede 2,5 mm; face com 4 mm para o acrílico encaixar justo; degrau de 1,5 mm abaixo. STL de cada letra sai em "Arquivos de produção".</p></div>
+      <div id="acrFBox" style="margin-top:12px;padding:10px;border:1.5px solid #74c0fc;background:#e7f5ff;border-radius:10px"><b style="color:#1864ab">Acrílico no fundo</b><div class="row" style="gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap"><label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="l3dAcrF"> Colocar fundo em acrílico (20 mm maior que o desenho, peça única ligando as letras no topo e na base)</label><label class="f" style="margin:0">Espessura</label><select id="l3dAcrEsp" style="max-width:90px"><option value="4">4 mm</option><option value="6">6 mm</option><option value="8">8 mm</option></select><span class="note" style="margin:0">acrílico transparente (cristal)</span></div></div></div>
     <div class="card"><h2>4. LED</h2><div class="leds" id="ledPick"></div><label class="f" style="margin-top:12px">Potência do módulo de LED</label><div class="leds" id="ledWPick"></div>
       <div class="g2"><div><label class="f">Rabicho do fio por letra (mm)</label><input type="number" id="ledRab" value="3000" step="100" min="0"></div><div><label class="f">Saída do fio na letra</label><select id="ledSaida"><option value="inf">Inferior centralizado</option><option value="sup">Superior centralizado</option></select></div></div>
       <div class="g2"><div><label class="f">Distância centro a centro (mm) <span class="badge">opcional</span></label><input type="number" step="1" id="ledGap" placeholder="Padrão do tipo: 80" inputmode="decimal"></div>
@@ -273,8 +275,8 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
         <div><label class="f">Espaço entre peças (mm)</label><input type="number" id="nestGap" value="10" inputmode="numeric"></div>
         <div><label class="f">Margem da chapa (mm)</label><input type="number" id="nestMargin" value="10" inputmode="numeric"></div>
       </div>
-      <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;font-size:13px;margin-top:8px"><input type="checkbox" id="nestGalvOn" checked> Aproveitamento da chapa galvanizada (filetada)</label>
-      <div><label class="f">Chapa galvanizada (mm)</label><input type="text" id="nestGalvSheets" value="3000x1200"></div>
+      <div id="galvBox"><label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;font-size:13px;margin-top:8px"><input type="checkbox" id="nestGalvOn" checked> Aproveitamento da chapa galvanizada (filetada)</label>
+      <div><label class="f">Chapa galvanizada (mm)</label><input type="text" id="nestGalvSheets" value="3000x1200"></div></div>
       <label class="f">Observações (saem em todas as folhas)</label><textarea id="obs" placeholder="Ex.: conferir medida na obra antes de cortar"></textarea>
       <label class="f" style="margin-top:14px">Páginas extras</label>
       <div id="xPages"></div>
@@ -765,7 +767,7 @@ function renderCaixa(){$('#caixaPick').innerHTML=[40,60,80].map(v=>`<button data
 $('#caixaPick').onclick=e=>{const b=e.target.closest('button');if(!b)return;selCaixa=+b.dataset.cx;renderCaixa();resetOut()};
 function renderChapa(){
   const t=types.find(x=>x.id===selType);const cp=t&&pagesOf(t).find(p=>p.tipo==='chapa');
-  if($('#l3dBox'))$('#l3dBox').hidden=!(t&&pagesOf(t).some(p=>p.tipo==='imp3d'));
+  if($('#l3dBox'))$('#l3dBox').hidden=!(t&&pagesOf(t).some(p=>p.tipo==='imp3d'));if($('#galvBox'))$('#galvBox').hidden=!!(t&&pagesOf(t).some(p=>p.tipo==='imp3d'));
   $('#chapaBox').hidden=!cp;if(!cp)return;const C={opcoes:[5,7,10],padrao:7,...cp.chapa};
   if(!C.opcoes.includes(selChapa))selChapa=C.opcoes.includes(C.padrao)?C.padrao:C.opcoes[0];
   $('#chapaPick').innerHTML=C.opcoes.map(o=>`<button data-c="${o}" class="${o===selChapa?'sel':''}"><b>${fmt(o).replace(',0','')} mm</b></button>`).join('');
@@ -1061,6 +1063,17 @@ function fitCurves(poly,tol){
     const d2=[6*(m*(b[2][0]-2*b[1][0]+b[0][0])+t*(b[3][0]-2*b[2][0]+b[1][0])),6*(m*(b[2][1]-2*b[1][1]+b[0][1])+t*(b[3][1]-2*b[2][1]+b[1][1]))];
     const num=(q[0]-p[0])*d1[0]+(q[1]-p[1])*d1[1],den=D(d1,d1)+(q[0]-p[0])*d2[0]+(q[1]-p[1])*d2[1];const r=den?t-num/den:t;return Math.min(1,Math.max(0,r))}
 }
+
+// acrílico de fundo em PEÇA ÚNICA: liga cada letra à vizinha com uma ponte de 20 mm no topo e outra na base
+// (entrada/saída em mm: só contornos externos; os vãos entre as letras ficam vazados)
+function acrPecaUnica(polys,larg=20){if(!polys||polys.length<2)return polys;
+  const pcs=polys.map(p=>({p,b:bbox([p])})).sort((a,b)=>(a.b.x0+a.b.x1)-(b.b.x0+b.b.x1));const br=[];
+  for(let i=0;i+1<pcs.length;i++){const A=pcs[i].b,B=pcs[i+1].b;const xa=(A.x0+A.x1)/2,xb=(B.x0+B.x1)/2;
+    const yT=Math.min(A.y1,B.y1),yB=Math.max(A.y0,B.y0);const h=Math.min(larg,Math.max(4,(yT-yB)/3));
+    br.push([[xa,yT-h],[xb,yT-h],[xb,yT],[xa,yT]],[[xa,yB],[xb,yB],[xb,yB+h],[xa,yB+h]])}
+  const c=new ClipperLib.Clipper();c.AddPaths(toC(polys),ClipperLib.PolyType.ptSubject,true);c.AddPaths(toC(br),ClipperLib.PolyType.ptClip,true);
+  const out=[];c.Execute(ClipperLib.ClipType.ctUnion,out,ClipperLib.PolyFillType.pftNonZero,ClipperLib.PolyFillType.pftNonZero);
+  return fromC(ClipperLib.Clipper.CleanPolygons(out,0.05*S))}
 
 /* ---------- Distribuição de LED ---------- */
 const REATORES=[60,100,120,150];
@@ -1510,9 +1523,12 @@ const circTxt=c=>`FONTE ${c.n} (${c.fonte} W): LETRA${c.letras.length>1?'S':''} 
    - parede de L3D.parede em toda a altura
    - abaixo da face a parede fica com parede+apoio (degrau de 1,5 mm onde o acrílico apoia), até o fundo
    - últimos L3D.face mm: só a parede — o acrílico 4 mm entra justo (mesmo contorno do arquivo da router) */
-const L3D={parede:2.5,face:4,apoio:1.5,apoioH:999,fundo:2.5,dens:1.27,perda:1.05,rolo:1000,mesa:[400,400],gm:2.98};
+const L3D={parede:2.5,face:4,apoio:1.5,apoioH:999,fundo:2.5,dens:1.27,perda:1.05,rolo:1000,mesa:[400,400],gm:2.98,capa:1.2,capaFolga:0.5,pvc:2,pvcFolga:1};
+const l3dCapa=()=>!!($('#l3dCapa')&&$('#l3dCapa').checked);const l3dPvc=()=>!!($('#l3dPvc')&&$('#l3dPvc').checked);
+// recuo do PVC 2 mm a partir do contorno externo da letra: cavidade − 0,5 (capa) − 1 mm
+const l3dPvcOff=()=>-(L3D.parede+L3D.apoio+(l3dCapa()?L3D.capaFolga:0)+L3D.pvcFolga);
 const l3dFundo=()=>!($('#l3dFundo')&&!$('#l3dFundo').checked);
-const L3D_CORES=[['BRANCO',1841],['PRETO',1844],['CINZA',1842],['AZUL',1840],['VERMELHO',1845],['LARANJA',1843]];
+const L3D_CORES=[['BRANCO',1841],['PRETO',1844],['CINZA',1842],['AZUL',1840],['VERMELHO',1845],['LARANJA',1843],['BRANCO TRANSLÚCIDO',null]];
 function l3dDiff(A,B){const c=new ClipperLib.Clipper();c.AddPaths(A,ClipperLib.PolyType.ptSubject,true);if(B&&B.length)c.AddPaths(B,ClipperLib.PolyType.ptClip,true);
   const tree=new ClipperLib.PolyTree();c.Execute(ClipperLib.ClipType.ctDifference,tree,ClipperLib.PolyFillType.pftNonZero,ClipperLib.PolyFillType.pftNonZero);
   const out=[];const walk=n=>{for(const ch of n.Childs()){if(!ch.IsHole()){out.push([ch.Contour(),...ch.Childs().map(h=>h.Contour())]);ch.Childs().forEach(h=>walk(h))}}};walk(tree);return out}
@@ -1526,7 +1542,11 @@ function l3dLetra(reg,H){const acr=toC(offset(reg,-L3D.parede));           // ca
   const cheio=l3dDiff(reg,[]);
   const slabs=[{z0:0,z1:fz,regs:cheio},{z0:0,z1:zA,regs:comApoio},{z0:0,z1:H,regs:parede}].filter(s=>s.z1-s.z0>0.01&&s.regs.length);
   const vol=l3dArea(cheio)*fz+l3dArea(comApoio)*(zA-fz)+l3dArea(parede)*(H-zA); // mm³ (sem contar a sobreposição)
-  return{slabs,vol,acr:fromC(acr),apo:fromC(apo)}}
+  // capa interna branca (interior branco p/ LED): contorno da cavidade − 0,5 mm, parede de L3D.capa, do fundo (ou do PVC) até o degrau do acrílico
+  let capa=null;if(l3dCapa()){const cO=toC(offset(reg,-(L3D.parede+L3D.apoio+L3D.capaFolga),'centro'));const cI=toC(offset(cO,-L3D.capa,'centro'));const z0=fz+(l3dPvc()?L3D.pvc:0),hC=zA-z0;
+    const regs=l3dDiff(cO,cI);if(hC>1&&regs.length)capa={z0,h:hC,slabs:[{z0:0,z1:hC,regs}],out:fromC(cO),inn:fromC(cI),vol:l3dArea(regs)*hC}}
+  const pvc=l3dPvc()?offset(reg,l3dPvcOff(),'centro'):null;
+  return{slabs,vol,acr:fromC(acr),apo:fromC(apo),capa,pvc}}
 // STL binário de várias camadas (cada camada é um sólido fechado)
 function l3dSTL(slabs,dx=0,dy=0){const tris=l3dTris(slabs,dx,dy);return l3dBin(tris)}
 function l3dTris(slabs,dx=0,dy=0){const tris=[];
@@ -1548,24 +1568,26 @@ function l3dBin(tris){const buf=new ArrayBuffer(84+tris.length*50),dv=new DataVi
     let n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];const l=Math.hypot(...n)||1;n=n.map(x=>x/l);
     [n,...t].forEach(p=>{dv.setFloat32(o,p[0],true);dv.setFloat32(o+4,p[1],true);dv.setFloat32(o+8,p[2],true);o+=12});dv.setUint16(o,0,true);o+=2}
   return buf}
+function l3dAcrF(){const c=$('#l3dAcrF');return c&&c.checked?(+($('#l3dAcrEsp').value)||4):0}
 function l3dCor(){const v=($('#l3dCor')&&$('#l3dCor').value)||'BRANCO';return L3D_CORES.find(c=>c[0]===v)||L3D_CORES[0]}
 // tudo da letra 3D: geometria, filamento e arquivos STL (um por letra + o conjunto)
 function l3dCalc(cp,H){const Ls=ordenaPecas(regionsOf(cp).map(r=>{const ps=fromC(r);return{r,ps,bb:bbox(ps)}}));
   const res=Ls.map((g,k)=>{const G=l3dLetra(g.r,H);const gr=G.vol/1000*L3D.dens;return{...g,...G,k,gr,m:gr/L3D.gm,mesa:Math.max(g.bb.w,g.bb.h)>Math.max(...L3D.mesa)-10||Math.min(g.bb.w,g.bb.h)>Math.min(...L3D.mesa)-10}});
-  const grTot=res.reduce((a,x)=>a+x.gr,0);return{Ls:res,H,grTot,grComPerda:grTot*L3D.perda,mTot:grTot*L3D.perda/L3D.gm}}
+  res.forEach(x=>x.grC=x.capa?x.capa.vol/1000*L3D.dens:0);const grTot=res.reduce((a,x)=>a+x.gr,0),grCapa=res.reduce((a,x)=>a+x.grC,0);return{Ls:res,H,grTot,grComPerda:grTot*L3D.perda,mTot:grTot*L3D.perda/L3D.gm,grCapa,grCapaPerda:grCapa*L3D.perda}}
 function l3dArquivos(R,base){const out=[];
   R.Ls.forEach(g=>{out.push({name:nomeArq(`${base} - LETRA 3D ${g.k+1} (${f0(g.bb.w)}x${f0(g.bb.h)}x${R.H}).stl`),label:`STL — letra ${g.k+1} (${f0(g.gr)} g de PETG)${g.mesa?' — PASSA DA MESA':''}`,buf:l3dSTL(g.slabs,g.bb.x0,g.bb.y0),dim:`${f0(g.bb.w)} × ${f0(g.bb.h)} × ${R.H} mm`,mime:'model/stl'})});
+  R.Ls.forEach(g=>{if(!g.capa)return;const b=bbox(g.capa.out);out.push({name:nomeArq(`${base} - CAPA INTERNA BRANCA ${g.k+1} (${f0(b.w)}x${f0(b.h)}x${f0(g.capa.h)}).stl`),label:`STL — capa interna branca da letra ${g.k+1} (${f0(g.grC)} g de PETG branco)`,buf:l3dSTL(g.capa.slabs,b.x0,b.y0),dim:`${f0(b.w)} × ${f0(b.h)} × ${f0(g.capa.h)} mm`,mime:'model/stl'})});
   if(R.Ls.length>1){const b=bbox(R.Ls.flatMap(g=>g.ps));out.push({name:nomeArq(`${base} - LETRAS 3D CONJUNTO.stl`),label:`STL — todas as letras na posição (${f0(R.grTot)} g)`,buf:l3dSTL(R.Ls.flatMap(g=>g.slabs),b.x0,b.y0),dim:`${f0(b.w)} × ${f0(b.h)} × ${R.H} mm`,mime:'model/stl'})}
   return out}
 // folha da IMPRESSÃO 3D
 function l3dFolha(P,ctx,pg,R,orig){const H=R.H;const cor=l3dCor();
   P.push({t:'text',x:PW/2,y:30,s:pg.titulo||'LETRA CAIXA EM 3D — IMPRESSÃO EM PETG',size:4.4,bold:true,color:'#000000',anchor:'middle'});
-  P.push({t:'text',x:PW/2,y:35.4,s:`PROFUNDIDADE ${H} MM  •  PAREDE ${String(L3D.parede).replace('.',',')} MM (${String(L3D.parede+L3D.apoio).replace('.',',')} ABAIXO DA FACE)  •  ${l3dFundo()?'FUNDO IMPRESSO JUNTO':'SEM FUNDO'}  •  ACRÍLICO 4 MM TRANSLÚCIDO ENCAIXADO  •  PETG ${cor[0]}`,size:2.8,bold:true,color:'#5f3dc4',anchor:'middle'});
+  P.push({t:'text',x:PW/2,y:35.4,s:`PROFUNDIDADE ${H} MM  •  PAREDE ${String(L3D.parede).replace('.',',')} MM (${String(L3D.parede+L3D.apoio).replace('.',',')} ABAIXO DA FACE)  •  ${l3dFundo()?'FUNDO IMPRESSO JUNTO':'SEM FUNDO'}  •  ACRÍLICO 4 MM TRANSLÚCIDO ENCAIXADO  •  PETG ${cor[0]}`,size:2.6,bold:true,color:'#5f3dc4',anchor:'middle'});{const ex=[l3dCapa()?'CAPA INTERNA BRANCA P/ LED (PETG BRANCO, −0,5 MM)':'',l3dPvc()?'FUNDO EM PVC 2 MM BRANCO P/ LED (−1 MM DA CAPA)':'',l3dAcrF()?`ACRÍLICO ${l3dAcrF()} MM TRANSPARENTE NO FUNDO (+20 MM)`:''].filter(Boolean);if(ex.length)P.push({t:'text',x:PW/2,y:39,s:ex.join('  •  '),size:2.4,bold:true,color:'#1c7ed6',anchor:'middle'})}
   // desenho das letras: contorno (preto), acrílico/cavidade (rosa), apoio (verde)
   const bb=bbox(orig);const BX=14,BY=40,BW=180,BH=56;const s=Math.min(BW/bb.w,BH/bb.h);const dx=BX+(BW-bb.w*s)/2,dy=BY+(BH-bb.h*s)/2;
   const map=p=>p.map(([x,y])=>[dx+(x-bb.x0)*s,dy+(bb.y1-y)*s]);
   R.Ls.forEach(g=>{P.push({t:'pathfill',polys:g.ps.map(map),fill:'#e5dbff'});P.push({t:'pathfill',polys:g.acr.map(map),fill:'#ffffff'});
-    g.apo.forEach(p=>P.push({t:'poly',pts:map(p),color:'#2f9e44',w:0.15}));g.acr.forEach(p=>P.push({t:'poly',pts:map(p),color:'#e64980',w:0.18}));g.ps.forEach(p=>P.push({t:'poly',pts:map(p),color:'#000000',w:0.2}));
+    g.apo.forEach(p=>P.push({t:'poly',pts:map(p),color:'#2f9e44',w:0.15}));g.acr.forEach(p=>P.push({t:'poly',pts:map(p),color:'#e64980',w:0.18}));g.ps.forEach(p=>P.push({t:'poly',pts:map(p),color:'#000000',w:0.2}));if(g.capa)g.capa.out.forEach(p=>P.push({t:'poly',pts:map(p),color:'#1c7ed6',w:0.18}));if(g.pvc)g.pvc.forEach(p=>P.push({t:'poly',pts:map(p),color:'#f08c00',w:0.15}));
     const c=map([[(g.bb.x0+g.bb.x1)/2,(g.bb.y0+g.bb.y1)/2]])[0];P.push({t:'circle',x:c[0],y:c[1],r:2.1,fill:g.mesa?'#c92a2a':'#7048e8',stroke:'#ffffff',lw:0.3},{t:'text',x:c[0],y:c[1]+0.9,s:String(g.k+1),size:2.4,bold:true,color:'#ffffff',anchor:'middle'})});
   cotas(P,dx,dy,bb.w*s,bb.h*s,Math.round(bb.w),Math.round(bb.h));
   // corte da parede (esquemático, fora de escala)
@@ -1573,6 +1595,8 @@ function l3dFolha(P,ctx,pg,R,orig){const H=R.H;const cor=l3dCor();
    const fz=l3dFundo()?L3D.fundo:0;const x0=X+30,xR=X+W-5,yT=Y+12,yb=Y+Hh-9,wP=6,wA=4,hF=10,yF=yT+hF,hFu=fz?4:0;const nm=v=>String(v).replace('.',',');
    P.push({t:'pathfill',polys:[[[x0,yT],[x0+wP,yT],[x0+wP,yF],[x0+wP+wA,yF],[x0+wP+wA,yb-hFu],[xR,yb-hFu],[xR,yb],[x0,yb]]],fill:'#9775fa'});
    P.push({t:'rect',x:x0+wP,y:yT,w:xR-x0-wP,h:hF,fill:'#ffe3f0',stroke:'#e64980',lw:0.3},{t:'text',x:(x0+wP+xR)/2+2,y:yT+hF/2+1,s:'ACRÍLICO 4 MM',size:2.2,bold:true,color:'#c2255c',anchor:'middle'});
+   {const hP=l3dPvc()?3:0;if(hP)P.push({t:'rect',x:x0+wP+wA+1,y:yb-hFu-hP,w:xR-x0-wP-wA-1,h:hP,fill:'#ffe8cc',stroke:'#f08c00',lw:0.3},{t:'text',x:xR-1,y:yb-hFu-hP-1,s:'PVC 2 MM',size:1.9,bold:true,color:'#e8590c',anchor:'end'});
+    if(l3dCapa())P.push({t:'rect',x:x0+wP+wA+0.6,y:yF+1,w:2.2,h:(yb-hFu-hP)-(yF+1),fill:'#ffffff',stroke:'#1c7ed6',lw:0.35},{t:'text',x:x0+wP+wA+4,y:yF+12,s:'CAPA BRANCA',size:1.9,bold:true,color:'#1c7ed6'},{t:'text',x:x0+wP+wA+4,y:yF+15,s:`${String(L3D.capa).replace('.',',')} mm • folga 0,5`,size:1.8,color:'#1c7ed6'})}
    P.push({t:'line',x1:X+4,y1:yb,x2:X+W-4,y2:yb,color:'#495057',w:0.5},{t:'text',x:X+W/2,y:yb+4,s:'MESA DA IMPRESSORA',size:1.9,color:'#495057',anchor:'middle'});
    // cotas
    const cv=(x,y1,y2,t,c)=>{P.push({t:'line',x1:x,y1,x2:x,y2,color:c,w:0.2},{t:'line',x1:x-1,y1,x2:x+1,y2:y1,color:c,w:0.2},{t:'line',x1:x-1,y1:y2,x2:x+1,y2,color:c,w:0.2},{t:'text',x:x-1.5,y:(y1+y2)/2+0.8,s:t,size:2.1,bold:true,color:c,anchor:'end'})};
@@ -1589,10 +1613,10 @@ function l3dFolha(P,ctx,pg,R,orig){const H=R.H;const cor=l3dCor();
     cols.forEach(([h,w],c)=>{P.push({t:'rect',x,y,w,h:RH,fill:i%2?'#ffffff':'#f3f0ff',stroke:'#000000',lw:0.1},{t:'text',x:x+w/2,y:y+RH/2+0.9,s:v[c],size:Math.min(2.4,RH*0.6),bold:c===0||c===3||(c===5&&g.mesa),color:c===5&&g.mesa?'#c92a2a':'#000000',anchor:'middle'});x+=w});y+=RH});
   // totais
   const X2=200,Y2=118;P.push({t:'rect',x:X2,y:Y2,w:86,h:44,r:2,fill:'#f3f0ff',stroke:'#7048e8',lw:0.35});
-  [[`PETG ${cor[0]} 1,75 MM — cód. ${cor[1]}`,2.6,true],[`Peças: ${f0(R.grTot)} g  (+${Math.round((L3D.perda-1)*100)}% perda = ${f0(R.grComPerda)} g)`,2.5,false],[`Filamento: ${String(R.mTot.toFixed(1)).replace('.',',')} m  •  ${String((R.grComPerda/L3D.rolo).toFixed(2)).replace('.',',')} rolo(s) de 1 kg`,2.5,true],
-   ['Imprimir com o FUNDO na mesa e a face para cima.',2.2,false],[`Parede e fundo 100% sólidos (paredes de ${String(L3D.parede).replace('.',',')} e ${String(L3D.parede+L3D.apoio).replace('.',',')} mm).`,2.2,false],['Acrílico entra JUSTO na face e apoia no degrau.',2.2,false],[`Mesa considerada: ${L3D.mesa[0]} x ${L3D.mesa[1]} mm.`,2.2,false],['Arquivos STL: em "Arquivos de produção" (1 por letra).',2.2,true]]
+  [[`PETG ${cor[0]} 1,75 MM — ${cor[1]?'cód. '+cor[1]:'SEM CADASTRO'}`,2.6,true],[`Peças: ${f0(R.grTot)} g  (+${Math.round((L3D.perda-1)*100)}% perda = ${f0(R.grComPerda)} g)`,2.5,false],[`Filamento: ${String(R.mTot.toFixed(1)).replace('.',',')} m  •  ${String((R.grComPerda/L3D.rolo).toFixed(2)).replace('.',',')} rolo(s) de 1 kg`,2.5,true],
+   ['Imprimir com o FUNDO na mesa e a face para cima.',2.2,false],[`Parede e fundo 100% sólidos (paredes de ${String(L3D.parede).replace('.',',')} e ${String(L3D.parede+L3D.apoio).replace('.',',')} mm).`,2.2,false],['Acrílico entra JUSTO na face e apoia no degrau.',2.2,false],(R.grCapa>0?[`CAPA BRANCA (PETG BRANCO): ${f0(R.grCapa)} g (+perda = ${f0(R.grCapaPerda)} g) — STL separado`,2.2,true]:[`Mesa considerada: ${L3D.mesa[0]} x ${L3D.mesa[1]} mm.`,2.2,false]),['Arquivos STL: em "Arquivos de produção" (1 por letra).',2.2,true]]
    .forEach(([s2,sz,b],i)=>P.push({t:'text',x:X2+3,y:Y2+5+i*5,s:fit(s2,80,sz),size:sz,bold:b,color:b?'#3b2a99':'#000000'}));
-  [['#000000','Contorno externo (parede)'],['#e64980',`Acrílico / cavidade (${String(L3D.parede).replace('.',',')} mm p/ dentro)`],['#2f9e44',`Degrau de apoio (${String(L3D.parede+L3D.apoio).replace('.',',')} mm p/ dentro)`]].forEach(([c,t],i)=>{const xx=14+i*62;P.push({t:'rect',x:xx,y:108.5,w:4,h:2.6,fill:c==='#000000'?'#e5dbff':'#ffffff',stroke:c,lw:0.5},{t:'text',x:xx+5.5,y:110.8,s:t,size:2.2,color:'#000000'})})
+  [['#000000','Contorno externo (parede)'],['#e64980',`Acrílico / cavidade (${String(L3D.parede).replace('.',',')} mm p/ dentro)`],['#2f9e44',`Degrau de apoio (${String(L3D.parede+L3D.apoio).replace('.',',')} mm p/ dentro)`],...(l3dCapa()?[['#1c7ed6','Capa interna branca (−0,5)']]:[]),...(l3dPvc()?[['#f08c00','PVC 2 mm (−1 da capa)']]:[])].forEach(([c,t],i,A)=>{const xx=14+(i%3)*62,yy=i<3?0:4.2;P.push({t:'rect',x:xx,y:108.5+yy,w:4,h:2.6,fill:c==='#000000'?'#e5dbff':'#ffffff',stroke:c,lw:0.5},{t:'text',x:xx+5.5,y:110.8+yy,s:t,size:2.2,color:'#000000'})})
 }
 
 /* ---------- visualização 3D da letra (mesma geometria do STL) ---------- */
@@ -1621,8 +1645,8 @@ function l3dMostra(d){const R=(d.info||[]).map(i=>i.l3d).find(Boolean);const car
   if(!l3vInit()){$('#l3dInfo').textContent='Visualizador 3D indisponível neste aparelho.';return}l3vMonta()}
 function l3vMonta(){const R=l3vUlt;if(!R)return;
   if(L3V.grp){L3V.scene.remove(L3V.grp);L3V.grp.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
-  const g=new THREE.Group();const cor=l3dCor()[0];const hex={BRANCO:0xf1f3f5,PRETO:0x2b2b2b,CINZA:0x868e96,AZUL:0x1c7ed6,VERMELHO:0xe03131,LARANJA:0xf76707}[cor]||0xf1f3f5;
-  const mP=new THREE.MeshLambertMaterial({color:hex,side:THREE.DoubleSide});const mA=new THREE.MeshLambertMaterial({color:0xffc9de,transparent:true,opacity:0.55,depthWrite:false,side:THREE.DoubleSide});
+  const g=new THREE.Group();const cor=l3dCor()[0];const hex={BRANCO:0xf1f3f5,PRETO:0x2b2b2b,CINZA:0x868e96,AZUL:0x1c7ed6,VERMELHO:0xe03131,LARANJA:0xf76707,'BRANCO TRANSLÚCIDO':0xf8f9fa}[cor]||0xf1f3f5;const tr=/TRANSL/.test(cor);
+  const mP=new THREE.MeshLambertMaterial({color:hex,side:THREE.DoubleSide,...(tr?{transparent:true,opacity:0.72}:{})});const mA=new THREE.MeshLambertMaterial({color:0xffc9de,transparent:true,opacity:0.55,depthWrite:false,side:THREE.DoubleSide});
   const lm=new THREE.LineBasicMaterial({color:0x222222,transparent:true,opacity:0.35});
   const all=bbox(R.Ls.flatMap(x=>x.ps));const ox=(all.x0+all.x1)/2,oy=(all.y0+all.y1)/2;
   R.Ls.forEach(L=>{let slabs=L.slabs;
@@ -1630,13 +1654,19 @@ function l3vMonta(){const R=l3vUlt;if(!R)return;
       const yc=(L.bb.y0+L.bb.y1)/2;const clip=[[{X:Math.round((L.bb.x0-10)*S),Y:Math.round((L.bb.y0-10)*S)},{X:Math.round((L.bb.x1+10)*S),Y:Math.round((L.bb.y0-10)*S)},{X:Math.round((L.bb.x1+10)*S),Y:Math.round(yc*S)},{X:Math.round((L.bb.x0-10)*S),Y:Math.round(yc*S)}]];
       slabs=slabs.map(sl=>({...sl,regs:sl.regs.flatMap(r=>{const c=new ClipperLib.Clipper();c.AddPaths(r,ClipperLib.PolyType.ptSubject,true);c.AddPaths(clip,ClipperLib.PolyType.ptClip,true);const tr=new ClipperLib.PolyTree();c.Execute(ClipperLib.ClipType.ctIntersection,tr,ClipperLib.PolyFillType.pftNonZero,ClipperLib.PolyFillType.pftNonZero);const o=[];const w=n=>{for(const ch of n.Childs()){if(!ch.IsHole()){o.push([ch.Contour(),...ch.Childs().map(h=>h.Contour())]);ch.Childs().forEach(h=>w(h))}}};w(tr);return o})}))}
     const geo=l3vGeo(l3dTris(slabs,ox,oy));const me=new THREE.Mesh(geo,mP);g.add(me);g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo,25),lm));
+    if(L.capa){const gc=l3vGeo(l3dTris(L.capa.slabs.map(x=>({...x,z0:x.z0+L.capa.z0,z1:x.z1+L.capa.z0})),ox,oy));g.add(new THREE.Mesh(gc,new THREE.MeshLambertMaterial({color:0xffffff,side:THREE.DoubleSide})));g.add(new THREE.LineSegments(new THREE.EdgesGeometry(gc,25),new THREE.LineBasicMaterial({color:0x1c7ed6,transparent:true,opacity:0.6})))}
+    if(L.pvc){const z0=l3dFundo()?L3D.fundo:0;const gv=l3vGeo(l3dTris([{z0,z1:z0+L3D.pvc,regs:l3dDiff(toC(L.pvc),[])}],ox,oy));g.add(new THREE.Mesh(gv,new THREE.MeshLambertMaterial({color:0xffe8cc,side:THREE.DoubleSide})))}
     if(L3V.acr&&!L3V.corte){const acr=[{z0:R.H-L3D.face,z1:R.H,regs:l3dDiff(toC(L.acr),[])}];const ga=l3vGeo(l3dTris(acr,ox,oy));g.add(new THREE.Mesh(ga,mA))}});
+  // acrílico transparente no fundo (+20 mm do desenho)
+  if(l3dAcrF()&&!L3V.corte){try{const es=l3dAcrF();const co=new ClipperLib.ClipperOffset(10,0.005*S);co.AddPaths(toC(R.Ls.flatMap(x=>x.ps)),ClipperLib.JoinType.jtMiter,ClipperLib.EndType.etClosedPolygon);let o=[];co.Execute(o,20*S);
+    const ar=q=>ClipperLib.Clipper.Area(q);const mx=o.reduce((m,q)=>Math.abs(ar(q))>Math.abs(ar(m))?q:m,o[0]);o=o.filter(q=>Math.sign(ar(q))===Math.sign(ar(mx)));o=toC(acrPecaUnica(fromC(o)));
+    const pl=[{z0:-es,z1:0,regs:l3dDiff(o,[])}];const gp=l3vGeo(l3dTris(pl,ox,oy));g.add(new THREE.Mesh(gp,new THREE.MeshLambertMaterial({color:0xa5d8ff,transparent:true,opacity:0.35,depthWrite:false,side:THREE.DoubleSide})));g.add(new THREE.LineSegments(new THREE.EdgesGeometry(gp,25),lm))}catch(e){console.error('acrílico fundo 3D',e)}}
   // gira para a face ficar de frente (z da letra -> para a câmera)
   g.rotation.set(0,0,0);L3V.scene.add(L3V.grp=g);
   L3V.tg=[0,0,R.H/2];{const cv=$('#l3dCv');const asp=(cv.clientWidth||900)/(cv.clientHeight||420);L3V.R=Math.max(all.w*1.15/(0.64*asp),all.h*1.6/0.64,R.H*3)}
   // eixo Y do three = altura da letra; câmera olha a partir de +z (face)
   l3vDraw();
-  $('#l3dInfo').textContent=`${R.Ls.length} letra(s) • profundidade ${R.H} mm • parede ${String(L3D.parede).replace('.',',')} mm (${String(L3D.parede+L3D.apoio).replace('.',',')} abaixo da face) • ${l3dFundo()?'fundo impresso':'sem fundo'} • PETG ${cor} ${Math.round(R.grTot)} g`}
+  $('#l3dInfo').textContent=`${R.Ls.length} letra(s) • profundidade ${R.H} mm • parede ${String(L3D.parede).replace('.',',')} mm (${String(L3D.parede+L3D.apoio).replace('.',',')} abaixo da face) • ${l3dFundo()?'fundo impresso':'sem fundo'}${l3dAcrF()?` + acrílico ${l3dAcrF()} mm transparente no fundo`:''}${l3dCapa()?' + capa interna branca':''}${l3dPvc()?' + PVC 2 mm':''} • PETG ${cor} ${Math.round(R.grTot)} g`}
 document.querySelectorAll('[data-l3v]').forEach(b=>b.onclick=()=>{const k=b.dataset.l3v;
   if(k==='acr'){L3V.acr=!L3V.acr;b.textContent='Acrílico: '+(L3V.acr?'sim':'não');l3vMonta();return}
   if(k==='corte'){L3V.corte=!L3V.corte;b.classList.toggle('sel',L3V.corte);l3vMonta();return}
@@ -1653,7 +1683,7 @@ function l3dPrevia(){const card=$('#l3dCard');if(!card)return;try{
   const fr=Math.max(0,num($('#fresaD').value)/2);FRESA_R=fr;const cp=unionEO(polys);
   const R=l3dCalc(cp,+selCaixa||80);card.hidden=false;l3vUlt=R;if(!l3vInit()){$('#l3dInfo').textContent='Visualizador 3D indisponível neste aparelho.';return}l3vMonta();
   $('#l3dInfo').textContent+=' • prévia (antes de gerar a FP)'}catch(e){console.error('prévia 3D',e)}}
-['#l3dCor','#l3dFundo','#largReal','#fresaD'].forEach(sel=>{const el=document.querySelector(sel);if(el)el.addEventListener('change',l3dPrevAgenda)});
+['#l3dCor','#l3dFundo','#l3dAcrF','#l3dAcrEsp','#l3dCapa','#l3dPvc','#largReal','#fresaD'].forEach(sel=>{const el=document.querySelector(sel);if(el)el.addEventListener('change',l3dPrevAgenda)});
 
 
 /* ---------- Folha padrão Granda (A4 deitada, mm) ---------- */
@@ -1857,6 +1887,8 @@ function buildDoc(){
   const d=$('#entrega').value;
   const ctx={os:$('#os').value.trim(),item:$('#item').value||'1',descItem:$('#descItem').value.trim()||'LETRA CAIXA',cliente:$('#cliente').value.trim(),vendedor:$('#vendedor').value.trim(),projetista:$('#projetista').value.trim(),endereco:$('#endereco').value.trim(),entrega:d?d.split('-').reverse().join('/'):'',tipo:t.nome,led:selLed.toLocaleString('pt-BR')+' K',caixa:selCaixa,obs:$('#obs').value.trim()};
   let defs=pagesOf(t).concat(readPages($('#xPages')));
+  if(is3d&&$('#l3dPvc')&&$('#l3dPvc').checked){const iF=defs.findIndex(p=>p.setor==='ROUTER'&&/ACR/i.test((p.material||'')+' '+(p.titulo||'')));defs.splice(iF>=0?iF+1:defs.length,0,{setor:'ROUTER',fundoPvc:true,titulo:'FUNDO INTERNO LETRA 3D - PVC 2mm BRANCO (LED)',material:'PVC',espessura:'2MM',cor:'BRANCO',textura:'----',linhas:[{offset:l3dPvcOff(),legenda:'CORTE EXTERNO',cor:'#ff00c0'}]})}
+  if($('#l3dAcrF')&&$('#l3dAcrF').checked){const es=$('#l3dAcrEsp').value||'4';const iF=defs.findIndex(p=>p.setor==='ROUTER'&&/ACR/i.test((p.material||'')+' '+(p.titulo||'')));defs.splice(iF>=0?iF+1:defs.length,0,{setor:'ROUTER',fundoAcr:true,titulo:`FUNDO ${is3d?'LETRA 3D':'DAS LETRAS'} - ACRÍLICO ${es}mm TRANSPARENTE (+20 mm, PEÇA ÚNICA)`,material:'ACRÍLICO',espessura:es+'MM',cor:'CRISTAL',textura:'----',linhas:[{offset:20,legenda:'CORTE EXTERNO',cor:'#ff00c0',soExt:true,ponte:true}]})}
   if(!defs.length)defs=[{...PG_BLANK,setor:'ROUTER',titulo:'ORIGINAL - LINHA PRETA',material:'',linhas:[{offset:0,legenda:'Original',cor:'#000000'}]}];
   const pages=[],info=[];let furosDoc=null,pvcPolys=null,acabP=null;
   // saída do fio de cada letra: centralizado, a 10 mm do topo ou da base (só se o tipo tem LED)
@@ -1967,7 +1999,7 @@ function buildDoc(){
       legend(P,pg,[{cor:'#e03131',legenda:`Contorno base`,offset:Pp.base,polys:R.boundary},{cor:'#000000',legenda:`Módulo LED ${f0(Pp.larg)}x${f0(Pp.alt)} mm — ${Pp.watts}W`,offset:0,polys:[1],noOff:true},{cor:'#7a7a7a',legenda:'Fio entre módulos (zig-zag)',offset:0,polys:[1],noOff:true},{cor:'#1c7ed6',legenda:'Linha base (centro do traço)',offset:0,polys:[1],noOff:true}]);
       pages.push(P);info.push({pg,lines:[],vec:[{color:'#e03131',polys:R.boundary},{color:'#000000',polys:R.mods.map(m=>m.rect)}]});return;
     }
-    const lines=(pg.linhas||[]).map(l=>({...l,polys:offset(cpRaw,l.offset,ladoDe(l))}));
+    const lines=(pg.linhas||[]).map(l=>{let polys=offset(cpRaw,l.offset,ladoDe(l));if(l.soExt){const ar=q=>{let A=0;for(let i=0;i<q.length;i++){const[a,b]=q[i],[c,d]=q[(i+1)%q.length];A+=a*d-c*b}return A/2};const mx=polys.reduce((m,q)=>Math.abs(ar(q))>Math.abs(ar(m))?q:m,polys[0]||[]);const sg=Math.sign(ar(mx));polys=polys.filter(q=>Math.sign(ar(q))===sg)}if(l.ponte)polys=acrPecaUnica(polys);return{...l,polys}});
     const P=[];frame(P,ctx,pg);
     P.push({t:'text',x:PW/2,y:30,s:pg.titulo||pg.material||'',size:4.2,color:'#000000',anchor:'middle'});
     if(lines.length)compLinha(P,lines.map(compDe),fresaR);
@@ -1996,11 +2028,11 @@ function buildDoc(){
   const gap=num($('#nestGap').value)||10,mg=num($('#nestMargin').value)||10;
   const parseSizes=v=>v.split(/[,;]+/).map(s=>s.toLowerCase().split('x').map(num)).filter(a=>a[0]>0&&a[1]>0).map(([a,b])=>[Math.max(a,b),Math.min(a,b)]);
   const jobs=[];
-  if($('#nestOn').checked){const inf=info.find(x=>x.lines&&x.lines.length&&/ACR/i.test((x.pg.material||'')+' '+(x.pg.titulo||'')));if(inf)jobs.push({after:info.indexOf(inf),nome:'ACRILICO',titulo:inf.pg.titulo||'ACRÍLICO',pieces:piecesFromLines(inf.lines),sizes:parseSizes($('#nestSheets').value)})}
+  if($('#nestOn').checked){const inf=info.find(x=>x.lines&&x.lines.length&&!x.pg.fundoAcr&&/ACR/i.test((x.pg.material||'')+' '+(x.pg.titulo||'')));if(inf)jobs.push({after:info.indexOf(inf),nome:'ACRILICO',titulo:inf.pg.titulo||'ACRÍLICO',pieces:piecesFromLines(inf.lines),sizes:parseSizes($('#nestSheets').value)});const iF=info.find(x=>x.pg.fundoAcr&&x.lines&&x.lines.length);if(iF)jobs.push({after:info.indexOf(iF),nome:'ACRILICO FUNDO',titulo:iF.pg.titulo,pieces:piecesFromLines(iF.lines),sizes:parseSizes($('#nestSheets').value)})}
   if($('#nestGalvOn').checked){const inf=info.find(x=>x.pg.tipo==='chapa');if(inf)jobs.push({after:info.indexOf(inf),nome:'CHAPA GALVANIZADA',titulo:inf.pg.titulo||'CHAPA GALVANIZADA',pieces:piecesFromVec(inf.vec),sizes:parseSizes($('#nestGalvSheets').value)})}
   // só tamanhos de chapa que existem no cadastro de matérias-primas (FP e RM usam a mesma chapa)
   try{const temLed=defs.some(p=>p.tipo==='led');jobs.forEach(job=>{let must=null;
-    let kk=null;if(job.nome==='ACRILICO'){const pg=(info[job.after]||{}).pg||{};const B=buscaAcrilico(pg,temLed);must=B.must;kk=`acr|${B.es}|${temLed?'transl':B.cor}`}else if(job.nome==='CHAPA GALVANIZADA'){must=['CHAPA GALVANIZADA','(20)'];kk='galv20'}
+    let kk=null;if(job.nome==='ACRILICO FUNDO'){const pg=(info[job.after]||{}).pg||{};const B=buscaAcrilico(pg,false);must=[...B.must,'CRISTAL'];kk=`acr|${B.es}|CRISTAL`}else if(job.nome==='ACRILICO'){const pg=(info[job.after]||{}).pg||{};const B=buscaAcrilico(pg,temLed);must=B.must;kk=`acr|${B.es}|${temLed?'transl':B.cor}`}else if(job.nome==='CHAPA GALVANIZADA'){must=['CHAPA GALVANIZADA','(20)'];kk='galv20'}
     if(!must)return;const esc=kk&&chapaEscolhida(kk);if(esc){job.sizes=[esc];return}const disp=mpChapasDisp(must);if(!disp.length)return;const ok=job.sizes.filter(([w,h])=>disp.some(d=>d[0]===w&&d[1]===h));job.sizes=ok.length?ok:disp;job.disp=disp})}catch(e){console.error('chapas do cadastro',e)}
   const ins=[];
   for(const job of jobs){if(!job.pieces.length||!job.sizes.length)continue;
@@ -2306,8 +2338,8 @@ $('#gerar').onclick=()=>{
     for(const N of d.nests){if(N.semQual)continue;const B=N.best;const wm=(B.w/1000).toLocaleString('pt-BR'),hm=(B.h/1000).toLocaleString('pt-BR');
       B.sheets.forEach((sh,k)=>{const vec=[{color:'#adb5bd',polys:[[[0,0],[B.w,0],[B.w,B.h],[0,B.h]]]}];
         sh.items.forEach(it=>{const pc=pieceAt(N.pieces[it.i],it);pc.lines.forEach(l=>vec.push(l))});
-        const v=vecPDF(vec);if(v)prodFiles.push({name:nomeArq(`${base} - ${N.nome} CHAPA ${k+1} de ${B.sheets.length} (${B.w}x${B.h}).pdf`),label:`${N.nome==='ACRILICO'?'Acrílico':'Chapa galvanizada'} — chapa ${k+1} de ${B.sheets.length} (${wm}x${hm} m, encaixe pronto)`,buf:v.buf,dim:`${sh.items.length} peças`})});
-      $('#outMsg').insertAdjacentHTML('beforeend',`<div class="msg ok"><b>${N.nome==='ACRILICO'?'Acrílico':'Chapa galvanizada'}: ${B.sheets.length} chapa(s) de ${wm}x${hm} m</b> (${(B.util*100).toFixed(1).replace('.',',')}% de aproveitamento).${N.opts.filter(o=>o!==B).map(o=>` Com ${(o.w/1000).toLocaleString('pt-BR')}x${(o.h/1000).toLocaleString('pt-BR')} m seriam ${o.sheets.length} chapa(s), ${(o.util*100).toFixed(1).replace('.',',')}%.`).join('')}${B.naoCabe.length?` ${B.naoCabe.length} peça(s) maiores que a chapa — precisam de emenda.`:''}</div>`)}
+        const v=vecPDF(vec);if(v)prodFiles.push({name:nomeArq(`${base} - ${N.nome} CHAPA ${k+1} de ${B.sheets.length} (${B.w}x${B.h}).pdf`),label:`${N.nome==='ACRILICO FUNDO'?'Acrílico do fundo':N.nome==='ACRILICO'?'Acrílico':'Chapa galvanizada'} — chapa ${k+1} de ${B.sheets.length} (${wm}x${hm} m, encaixe pronto)`,buf:v.buf,dim:`${sh.items.length} peças`})});
+      $('#outMsg').insertAdjacentHTML('beforeend',`<div class="msg ok"><b>${N.nome==='ACRILICO FUNDO'?'Acrílico do fundo':N.nome==='ACRILICO'?'Acrílico':'Chapa galvanizada'}: ${B.sheets.length} chapa(s) de ${wm}x${hm} m</b> (${(B.util*100).toFixed(1).replace('.',',')}% de aproveitamento).${N.opts.filter(o=>o!==B).map(o=>` Com ${(o.w/1000).toLocaleString('pt-BR')}x${(o.h/1000).toLocaleString('pt-BR')} m seriam ${o.sheets.length} chapa(s), ${(o.util*100).toFixed(1).replace('.',',')}%.`).join('')}${B.naoCabe.length?` ${B.naoCabe.length} peça(s) maiores que a chapa — precisam de emenda.`:''}</div>`)}
     $('#prodFiles').hidden=!prodFiles.length;
     $('#prodFiles').innerHTML=`<label class="f">Arquivos de produção (tamanho real 1:1)</label>`+prodFiles.map((f,i)=>`<div class="row" style="justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:6px"><div><b style="font-size:14px">${esc(f.label)}</b><div class="note">${f.dim}</div></div><button class="btn ghost sm" data-pf="${i}">Baixar</button></div>`).join('')+(prodFiles.length>1&&window.JSZip?`<button class="btn acc sm" id="pfZip">Baixar todos (ZIP) — corte, instalação, expedição e RM</button>`:'');
   }catch(err){$('#outMsg').innerHTML=`<div class="msg err">Erro ao gerar: ${esc(err.message)}</div>`;console.error(err)}
@@ -3736,7 +3768,8 @@ function paginasFinais(pages,tags,ctx,prod){try{
 function piLargura(prod){const L=prod.letras||[];if(!L.length||!L[0].bb)return 0;return Math.max(...L.map(g=>g.bb.x1))-Math.min(...L.map(g=>g.bb.x0))}
 function piPrep(prod,needs){const out=needs.map(n=>({...n}));const tinta={};
   // tinta: +50 ml de cada cor do projeto (retoque na instalação)
-  out.forEach(n=>{if(/^tinta\|/.test(n.k)&&!/^tinta\|(catpu|wash|washcat|catepox)$/.test(n.k)&&n.litros>0&&!tinta[n.k]){n.litros+=0.05;n.uso=(n.uso||'')+' + 50 ml p/ PI (retoque)';tinta[n.k]=1}});
+  const soTinta=n=>/^tinta\|/.test(n.k)&&!/^tinta\|(catpu|wash|washcat|catepox)$/.test(n.k)&&!/cat(pu|epox|alis)|wash|primer|diluente|thinner|solvente|verniz/i.test(n.k.split('|').pop()+' '+(n.desc||''));
+  out.forEach(n=>{if(soTinta(n)&&n.litros>0&&!tinta[n.k]){n.litros+=0.05;n.uso=(n.uso||'')+' + 50 ml p/ PI (retoque)';tinta[n.k]=1}});
   // fio: extra de 2 x a largura total do arquivo (preto + vermelho)
   const W=piLargura(prod);if(W>0)['preto','verm'].forEach(c=>{const f=out.find(n=>n.k==='fio|1.5|'+c);if(f){const q=Math.round(2*W/1000*100)/100;out.push({...f,k:'pi|fio|'+c,q,uso:`PI: fio extra p/ instalação (2 x largura total ${f0(W)} mm)`})}});
   return{needs:out,tinta}}
@@ -3777,7 +3810,7 @@ function prodLetras(t,ctx,orig,defs,ledInfo,furos,nests){const fixBit=(()=>{try{
   vols.push({desc:'MOLDE KRAFT',cont:`Molde em papel kraft (enrolado)${furos?' com a furação':''}`,dims:`${f0(b.w+100)} x ${f0(b.h+100)}`,q:1,kg:(b.w+100)*(b.h+100)/1e6*0.1,draw:{rects:[{x0:0,y0:0,x1:b.w+100,y1:b.h+100,cor:'#f4e3c3'}]}});
   if(temLed&&ledInfo)vols.push({desc:'ELÉTRICA',cont:'Fonte / reator e fiação da iluminação',dims:'—',q:1,kg:0,draw:null});
   const qualExtra=[];(nests||[]).forEach(N=>{const B=N.best;if(!B||N.semQual)return;B.sheets.forEach((sh,k)=>{const polys=[];sh.items.forEach(it=>{const pc=pieceAt(N.pieces[it.i],it);(pc.lines[0]?[pc.lines[0]]:[]).forEach(l=>l.polys.forEach(p=>polys.push(p)))});
-    qualExtra.push({desc:`APROVEITAMENTO ${N.nome==='ACRILICO'?'ACRÍLICO':'CHAPA GALV.'} ${k+1}/${B.sheets.length}`,cont:`Chapa ${B.w} x ${B.h} mm — ${sh.items.length} peças`,q:1,draw:{rects:[{x0:0,y0:0,x1:B.w,y1:B.h,cor:'#f8f9fa'}],polys,fill:N.nome==='ACRILICO'?'#ffc9de':'#dee2e6'}})})});
+    qualExtra.push({desc:`APROVEITAMENTO ${N.nome==='ACRILICO FUNDO'?'ACRÍLICO FUNDO':N.nome==='ACRILICO'?'ACRÍLICO':'CHAPA GALV.'} ${k+1}/${B.sheets.length}`,cont:`Chapa ${B.w} x ${B.h} mm — ${sh.items.length} peças`,q:1,draw:{rects:[{x0:0,y0:0,x1:B.w,y1:B.h,cor:'#f8f9fa'}],polys,fill:N.nome==='ACRILICO'?'#ffc9de':'#dee2e6'}})})});
   return{tipo:'letra',circ:ledInfo&&ledInfo.circ,mat:matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L),anc:{peca:temPVC?'FUNDO DE PVC':'FUNDO DA LETRA',auto:temPVC?nb:L.length*3,onde:temPVC?'nos furos do PVC (molde kraft)':'3 por letra (estimado)'},qualExtra,nome:ctx.descItem||t.nome,W:b.w,H:b.h,D:cx,un:1,ledN:(()=>{try{return ledInfo&&ledInfo.letters?ordenaPecas(ledInfo.letters).map(g=>g.n):null}catch(e){return null}})(),ledWm:ledInfo&&ledInfo.P&&ledInfo.P.watts||null,letras:L.map((g,k)=>({h:g.bb.h,w:g.bb.w,bb:g.bb,ps:g.ps,broc:temPVC?(brocL[k]||0):null,pan:panL[k]})),fixBit,
     metodo:[...(temPVC?[`Fixar o molde kraft na parede, furar pelos furos e fixar o FUNDO DE PVC com ${fixBit} (${nb} no total).`]:[]),...(l3d?['Letra 3D: encaixar o acrílico na face (entra justo, apoia no degrau) e fixar a letra pelo FUNDO na parede (furar o fundo impresso).']:[`Encaixar a frente da letra${temPVC?' sobre o PVC':''} e fixar pela LATERAL com ${PANELA} — um a cada ~330 mm (${np} no total).`,'Os parafusos da lateral vão pintados na cor da letra.'])],contorno:orig,volumes:vols,
     checks:['MEDIDAS','ACABAMENTO / PINTURA',`PARAFUSOS CABEÇA PANELA PINTADOS (${np})`,...(temLed?['LED ACENDE']:[]),...(temPVC?['FUROS PVC']:[])]}}
@@ -3951,7 +3984,7 @@ function matTesteira(M,o){const N=[];const lista=M.lista||[];
   return N}
 function matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L){const N=[];const temLed=!!(ledInfo&&((ledInfo.mods&&ledInfo.mods.length)||ledInfo.fitaM>0));
   // letra 3D: filamento PETG (rolo de 1 kg)
-  if(defs.some(p=>p.tipo==='imp3d')&&window.lastL3D){const R=window.lastL3D;const c=l3dCor();N.push({k:'petg|'+c[0],desc:`Filamento PETG 1,75 mm ${c[0]} (rolo 1 kg)`,q:Math.round(R.grComPerda/L3D.rolo*1000)/1000,un:'un',uso:`letras 3D: ${f0(R.grTot)} g + ${Math.round((L3D.perda-1)*100)}% perda = ${f0(R.grComPerda)} g (${String(R.mTot.toFixed(1)).replace('.',',')} m)`,busca:{must:['FILAMENTO 3D PETG',c[0]]}})}
+  if(defs.some(p=>p.tipo==='imp3d')&&window.lastL3D){const R=window.lastL3D;const c=l3dCor();N.push({k:'petg|'+c[0],desc:`Filamento PETG 1,75 mm ${c[0]} (rolo 1 kg)`,q:Math.round(R.grComPerda/L3D.rolo*1000)/1000,un:'un',uso:`letras 3D: ${f0(R.grTot)} g + ${Math.round((L3D.perda-1)*100)}% perda = ${f0(R.grComPerda)} g (${String(R.mTot.toFixed(1)).replace('.',',')} m)`,busca:{must:/TRANSL/.test(c[0])?['FILAMENTO 3D PETG','TRANSLUCIDO']:['FILAMENTO 3D PETG',c[0]]}});if(R.grCapa>0)N.push({k:'petg|BRANCO|capa',desc:'Filamento PETG 1,75 mm BRANCO (rolo 1 kg) — capa interna',q:Math.round(R.grCapaPerda/L3D.rolo*1000)/1000,un:'un',uso:`capa interna branca (LED): ${f0(R.grCapa)} g + perda = ${f0(R.grCapaPerda)} g`,busca:{must:['FILAMENTO 3D PETG','BRANCO']}})}
   const consumo=B=>{if(!B||!B.sheets||!B.sheets.length)return 0;const n=B.sheets.length,last=B.sheets[n-1];return((n-1)*B.w+Math.min(B.w,last.usedW||B.w))*B.h/1e6};
   const fr=v=>String(Math.round(v*100)/100).replace('.',',');
   let areaGalv=0;
@@ -3960,6 +3993,8 @@ function matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L){const N=[];const temLed=
       const es=temLed?'4':(e?e[1]:'4');const cor=String(pg.cor||'').replace(/-+/g,'').trim();
       N.push({k:`acr|${es}|${temLed?'transl':cor}`,desc:`Acrílico ${es} mm ${temLed?'translúcido (letra com LED)':cor} ${B.h/1000}x${B.w/1000} m (igual ao aproveitamento)`,m2,un:'un',uso:`frente das letras — aproveitamento ${fr(m2)} m²`,
         busca:temLed?{must:['ACRILICO',['LEITOSO','TRANSLUCIDO'],[`0${es}MM`,` ${es}MM`],sz]}:{must:['ACRILICO',[`0${es}MM`,` ${es}MM`],sz],want:[...cor.split(/\s+/),cor?'':'CRISTAL']}})}
+    else if(Nn.nome==='ACRILICO FUNDO'){const pg=defs.find(p=>p.fundoAcr)||{};const es=(String(pg.espessura||'').match(/(\d+)/)||[0,'4'])[1];
+      N.push({k:`acrf|${es}`,desc:`Acrílico ${es} mm cristal (transparente) ${B.h/1000}x${B.w/1000} m — fundo das letras 3D`,m2,un:'un',uso:`fundo (+20 mm do desenho) — aproveitamento ${fr(m2)} m²`,busca:{must:['ACRILICO','CRISTAL',[`0${es}MM`,` ${es}MM`],sz]}})}
     else if(Nn.nome==='PVC'){const pg=defs.find(p=>/PVC/i.test(p.material||''))||{};const e=String(pg.espessura||'').match(/(\d+)/);const es=e?e[1]:'10';
       N.push({k:`pvc|${es}`,desc:`PVC expandido ${es} mm 1,22x2,44 m`,m2,un:'un',uso:`fundo — aproveitamento ${fr(m2)} m²`,busca:{must:['PVC EXPANDIDO',[`${es.padStart(2,'0')}MM`,` ${es}MM`]]}})}
     else{areaGalv=(B.areaPecas||0)/1e6;N.push({k:'galv20',desc:`Chapa galvanizada 20 (0,95 mm) ${B.h/1000}x${B.w/1000} m — face`,m2,un:'un',uso:`face/filete — aproveitamento ${fr(m2)} m²`,busca:{must:['CHAPA GALVANIZADA','(20)',sz]}})}});
@@ -4524,9 +4559,9 @@ $('#mBaixar').onclick=async()=>{if(!mBuild)return;const pdf=toPDF(mBuild.pages);
    - RIPADO: requadro em barra chata 1" x 1/8" com metalon 15x15 na horizontal (22 mm em cima e embaixo, ~20 mm entre ripas) — PU semi brilho
    - ACM QUADRICULADO: ACM com quadrados vazados de 20 mm (quadrado sempre igual; a quantidade muda com a medida) — PU semi brilho
    - ACM INTEIRO: ACM adesivado
-   ACMs presos por cantoneira de alumínio 15x15 preta no fundo do vão + fita VHB 15 mm + brocante philips 4,2 x 13 (1/2").
+   ACMs presos por cantoneira de alumínio 12x12 preta no fundo do vão + fita VHB 15 mm + brocante philips 4,2 x 13 (1/2").
    Cantoneira de alumínio 25x25 com LED COB 3000K embaixo, na largura de todos os requadros + complementos 30x30. */
-const BOBS={mold:30,folga:2,bc:{l:25.4,e:3.175},rip:{p:15,ini:22,gap:20},quad:{q:20,gap:8.5,mg:22},paraf:250,cobW:12,barra:6000,cantBarra:3000,serra:3};
+const BOBS={mold:30,folga:2,bc:{l:25.4,e:3.175},rip:{p:15,ini:22,gap:20},quad:{q:20,gap:8.5,mg:22},paraf:250,cobW:12,sangria:20,barra:6000,cantBarra:3000,serra:3};
 const BOBS_TIPOS={ripado:'Ripado metalon 15x15',quad:'ACM quadriculado',acm:'ACM inteiro (adesivado)'};
 const BOBS_COR={ripado:'#f76707',quad:'#862e9c',acm:'#adb5bd'};
 function bobsModelo(m){return m==='m2'?{modelo:'m2',W:1710,H:870,cols:[{w:297,tipo:'quad'},{w:861,tipo:'acm'},{tipo:'ripado'}]}
@@ -4544,6 +4579,31 @@ function bobsEspacos(p){const M=BOBS.mold,n=p.cols.length;const util=p.W-2*M-(n-
   return{esp:out,div,trav,ws}}
 function bobsRipas(RH){const e=BOBS.bc.e,P=BOBS.rip;const hi=RH-2*e;let n=Math.max(1,Math.round((hi-2*P.ini+P.gap)/(P.p+P.gap)));const g=n>1?(hi-2*P.ini-n*P.p)/(n-1):0;
   const ys=[];for(let i=0;i<n;i++)ys.push(e+P.ini+i*(P.p+g));return{n,g,ys,len:0}}
+// detalhe ampliado (corte lateral) do espaçamento das ripas — deitado: esquerda = topo do requadro
+function bobsDetRip(P,el,bx,by,bw,bh){const e=BOBS.bc.e,R=BOBS.rip,g=el.rip.g,n=Math.min(3,el.rip.n),D=BOBS.bc.l,C='#c2255c';
+  P.push({t:'rect',x:bx,y:by,w:bw,h:bh,r:1.5,fill:'#fff9db',stroke:'#e8590c',lw:0.35},{t:'text',x:bx+3,y:by+5,s:'DETALHE — CORTE LATERAL DO RIPADO (TOPO DO REQUADRO)',size:2.8,bold:true,color:'#000000'});
+  const L=e+R.ini+n*R.p+(n-1)*g+8;const s=Math.min((bw-12)/L,(bh-30)/D,1.6);const x0=bx+6,yc=by+12+(bh-30-D*s)/2;const X=v=>x0+v*s,yB=yc+D*s;
+  // barra chata (topo, de pé = 1" de profundidade)
+  P.push({t:'rect',x:X(0),y:yc,w:e*s,h:D*s,fill:'#868e96',stroke:'#000000',lw:0.2});
+  P.push({t:'text',x:X(0),y:yc-1.2,s:'BARRA CHATA 1" x 1/8"',size:2,color:'#495057'});
+  const yr=yc;let xx=e+R.ini;const at=[];
+  for(let i=0;i<n;i++){at.push(xx);P.push({t:'rect',x:X(xx),y:yr,w:R.p*s,h:R.p*s,fill:'#f76707',stroke:'#000000',lw:0.2},{t:'rect',x:X(xx+0.95),y:yr+0.95*s,w:(R.p-1.9)*s,h:(R.p-1.9)*s,fill:'#fff9db',stroke:'#000000',lw:0.12});xx+=R.p+g}
+  P.push({t:'text',x:X(at[0]),y:yc-1.2,s:'RIPA METALON 15x15',size:2,color:'#495057'},{t:'text',x:bx+bw-3,y:yc-1.2,s:'▲ FRENTE (RIPA FACEADA)',size:2.2,bold:true,color:C,anchor:'end'},{t:'text',x:bx+bw-3,y:yB-0.5,s:'FUNDO',size:2,color:'#868e96',anchor:'end'});
+  const xb=X(xx-g+4);P.push({t:'line',x1:xb,y1:yc-2,x2:xb,y2:yB+2,color:'#868e96',w:0.25,dash:[1,0.8]},{t:'text',x:xb+1.5,y:yc+D*s/2+0.8,s:'...',size:3,bold:true,color:'#868e96'});
+  // cotas (abaixo do corte)
+  const yc1=yB+5;cotaH(P,X(e),X(at[0]),yc1,yB,`${R.ini}`,2.6,C);
+  for(let i=0;i<n;i++){cotaH(P,X(at[i]),X(at[i]+R.p),yc1,yB,'15',2.4,'#495057');if(i<n-1)cotaH(P,X(at[i]+R.p),X(at[i+1]),yc1,yB,`${f1(g)}`,2.8,C)}
+  
+  P.push({t:'text',x:bx+3,y:by+bh-6.5,s:`ESPAÇO ENTRE RIPAS: ${f1(g)} mm (vão livre)  •  PASSO (eixo a eixo): ${f1(R.p+g)} mm  •  1ª e última: ${R.ini} mm da barra chata`,size:2.4,bold:true,color:C},
+    {t:'text',x:bx+3,y:by+bh-2.6,s:`Dica: usar um calço/gabarito de ${f1(g)} mm entre as ripas na hora de soldar.`,size:2.2,color:'#555555'})}
+// desenho do requadro em retângulos (instalação / volumes) — fica igual ao modelo, não um bloco preto
+function bobsRects(p,dx){dx=dx||0;const F=BOBS.folga/2,e=BOBS.bc.e,c=BOBS_COR,R=[];const r=(x0,y0,x1,y1,cor)=>R.push({x0:dx+x0,y0,x1:dx+x1,y1,cor});
+  r(0,0,p.W,p.H,'#212529');
+  p.elems.forEach(el=>{const x0=el.x+F,y0=el.y+F;
+    if(el.tipo==='ripado'){r(x0,y0,x0+el.W,y0+el.H,c.ripado);r(x0+e,y0+e,x0+el.W-e,y0+el.H-e,'#ffffff');el.rip.ys.forEach(yy=>r(x0+e,y0+yy,x0+el.W-e,y0+yy+BOBS.rip.p,c.ripado))}
+    else if(el.tipo==='quad'){r(x0,y0,x0+el.W,y0+el.H,c.quad);const Q=BOBS.quad;for(let a=0;a<el.qx.n;a++)for(let b=0;b<el.qy.n;b++){const qx=x0+Q.mg+a*(Q.q+el.qx.g),qy=y0+Q.mg+b*(Q.q+el.qy.g);r(qx,qy,qx+Q.q,qy+Q.q,'#ffffff')}}
+    else r(x0,y0,x0+el.W,y0+el.H,'#d0ebff')});
+  return R}
 function bobsQuad(L){const Q=BOBS.quad;const n=Math.max(1,Math.floor((L-2*Q.mg+Q.gap)/(Q.q+Q.gap)));const g=n>1?(L-2*Q.mg-n*Q.q)/(n-1):0;return{n,g}}
 // lista completa de peças / materiais de um projeto Bobs
 function bobsCalc(B){const M=BOBS.mold,F=BOBS.folga,e=BOBS.bc.e;const pecas=B.pecas.map((p,pi)=>{const G=bobsEspacos(p);
@@ -4602,14 +4662,15 @@ function bobsFolhas(){if(bModo==='comp')return bobsCompFolhas();if(bModo==='cant
   const rips=C.pecas.flatMap(p=>p.elems.filter(e=>e.tipo==='ripado'));
   rips.forEach(el=>{const P=[];frame(P,ctx,{setor:'SERRALHERIA'});P.push({t:'text',x:18,y:31,s:`${un}X`,size:7,bold:true,italic:true,color:'#000000'});
     tit(P,`REQUADRO RIPADO — VÃO ${vid(el)}`,`BARRA CHATA 1" x 1/8" EM VOLTA • RIPAS METALON 15x15 NA HORIZONTAL • ${f0(el.W)} x ${f0(el.H)} MM (VÃO ${f0(el.w)} x ${f0(el.h)} − 2 MM)`);
-    const p={W:el.W,H:el.H};const s=Math.min(160/el.W,100/el.H);const ox=24+(160-el.W*s)/2,oy=42+(100-el.H*s)/2;const X=x=>ox+x*s,Y=y=>oy+(el.H-y)*s;const e=BOBS.bc.e;
+    const p={W:el.W,H:el.H};const s=Math.min(116/el.W,100/el.H);const ox=24+(116-el.W*s)/2,oy=42+(100-el.H*s)/2;const X=x=>ox+x*s,Y=y=>oy+(el.H-y)*s;const e=BOBS.bc.e;
     P.push({t:'rect',x:X(0),y:Y(el.H),w:el.W*s,h:el.H*s,fill:'#f76707',stroke:'#000000',lw:0.2},{t:'rect',x:X(e),y:Y(el.H-e),w:(el.W-2*e)*s,h:(el.H-2*e)*s,fill:'#ffffff',stroke:'#000000',lw:0.15});
     el.rip.ys.forEach(yy=>P.push({t:'rect',x:X(e),y:Y(yy+BOBS.rip.p),w:el.ripLen*s,h:BOBS.rip.p*s,fill:'#f76707',stroke:'#000000',lw:0.12}));
     cotaH(P,X(0),X(el.W),Y(el.H)-5,Y(el.H),`${f1(el.W)}`,2.6);cotaV(P,X(0)-6,Y(el.H),Y(0),X(0),`${f1(el.H)}`,2.6);
-    {const y1=el.rip.ys[0],y2=el.rip.ys[1];cotaV(P,X(el.W)+5,Y(BOBS.rip.p+y1),Y(0),X(el.W),`${nm(f1(y1))}`,2,'#c2255c');if(y2!=null)cotaV(P,X(el.W)+5,Y(y2),Y(y1+BOBS.rip.p),X(el.W),`${f1(el.rip.g)}`,2,'#c2255c')}
+    {const y1=el.rip.ys[0],y2=el.rip.ys[1];cotaV(P,X(el.W)+5,Y(y1),Y(e),X(el.W),`${nm(f1(BOBS.rip.ini))}`,2,'#c2255c');if(y2!=null)cotaV(P,X(el.W)+5,Y(y2),Y(y1+BOBS.rip.p),X(el.W),`${f1(el.rip.g)}`,2,'#c2255c')}
+    bobsDetRip(P,el,150,88,134,56);
     const rows=[['Barra chata 1" x 1/8" — cima/baixo','1" x 1/8"',f1(el.W),'2',String(2*un)],['Barra chata 1" x 1/8" — laterais','1" x 1/8"',f1(el.H-2*e),'2',String(2*un)],['Ripa metalon 15x15','15x15 #0,95',f1(el.ripLen),String(el.rip.n),String(el.rip.n*un)]];
     tabela(P,[['PEÇA',62],['PERFIL',22],['COMPR. (MM)',22],['QTD.',12],[`TOTAL (${un} UN.)`,20]],rows,12,148);
-    [['RIPAS',`${el.rip.n} ripas de 15 mm`],['1ª E ÚLTIMA RIPA',`${BOBS.rip.ini} mm da barra chata (em cima e embaixo)`],['ESPAÇO ENTRE RIPAS',`${f1(el.rip.g)} mm`],['BARRA CHATA','de pé (1" de profundidade), soldada em volta'],['PINTURA',`PU semi brilho ${corRip}`]]
+    [['RIPAS',`${el.rip.n} ripas de 15 mm`],['1ª E ÚLTIMA RIPA',`${BOBS.rip.ini} mm da barra chata (em cima e embaixo)`],['ESPAÇO ENTRE RIPAS',`${f1(el.rip.g)} mm`],['BARRA CHATA','de pé (1" de profundidade), soldada em volta'],['SOLDA','ripa 15x15 FACEADA com a frente da barra chata'],['PINTURA',`PU semi brilho ${corRip}`]]
       .forEach(([a,b],i)=>{P.push({t:'text',x:192,y:50+i*6,s:a+':',size:2.6,bold:true,color:'#000000'},{t:'text',x:192,y:53.2+i*6,s:fit(b,92,2.5),size:2.5,color:'#c2410c'})});
     add(P,'RIPADO')});
   // ===== SERRALHERIA: complementos e plano de corte =====
@@ -4640,6 +4701,41 @@ function bobsFolhas(){if(bModo==='comp')return bobsCompFolhas();if(bModo==='cant
       const polys=[[[0,0],[el.W,0],[el.W,el.H],[0,el.H]]];const inn=[];if(el.tipo==='quad'){const Q=BOBS.quad;for(let a=0;a<el.qx.n;a++)for(let b=0;b<el.qy.n;b++){const qx=Q.mg+a*(Q.q+el.qx.g),qy=Q.mg+b*(Q.q+el.qy.g);inn.push([[qx,qy],[qx+Q.q,qy],[qx+Q.q,qy+Q.q],[qx,qy+Q.q]])}}
       bobsFiles.push({name:`VAO ${vid(el)} - ${el.tipo==='quad'?'ACM QUADRICULADO':'ACM INTEIRO'} ${f0(el.W)}x${f0(el.H)}${un>1?` (${un} UN)`:''}.pdf`,label:`Router — vão ${vid(el)}: ${BOBS_TIPOS[el.tipo]} ${f1(el.W)} x ${f1(el.H)} mm`,vec:[{color:RC['CORTE EXTERNO'],polys},...(inn.length?[{color:RC['CORTE INTERNO'],polys:inn}]:[])]})});
     pages.filter(P=>P._setor==='ROUTER').forEach(P=>legend(P,{setor:'ROUTER'},[{cor:RC['CORTE EXTERNO'],legenda:'CORTE EXTERNO (medida final)',noOff:true,offset:0,polys:[1]},{cor:RC['CORTE INTERNO'],legenda:'CORTE INTERNO (quadrados vazados)',noOff:true,offset:0,polys:[1]}]))}
+  // ===== IMPRESSÃO + P1: adesivo fosco nos ACMs inteiros =====
+  const ades=acms.filter(e=>e.tipo==='acm');const SG=BOBS.sangria;
+  if(ades.length){const CI='#1c7ed6',CS='#d6336c';
+    {const P=[];frame(P,ctx,{setor:'IMPRESSÃO'});P.push({t:'text',x:18,y:31,s:`${un}X`,size:7,bold:true,italic:true,color:'#000000'});
+     tit(P,'IMPRESSÃO — ADESIVO FOSCO PARA O ACM INTEIRO',`IMPRIMIR EM ADESIVO (VINIL) BRANCO FOSCO • ARTE BOBS APROVADA • SANGRIA DE ${SG} MM EM CADA LADO`);
+     let tot=0;const rows=ades.map(el=>{const w=el.W+2*SG,h=el.H+2*SG,a=w*h/1e6*un;tot+=a;return[`Vão ${vid(el)}`,`${f1(el.W)} x ${f1(el.H)}`,`${f0(w)} x ${f0(h)}`,String(un),f2(a)]});
+     tabela(P,[['VÃO',22],['MEDIDA FINAL (ACM)',44],[`IMPRIMIR (+${SG} MM CADA LADO)`,50],['QTD.',14],['m²',20]],rows,14,44,5.2,CI);
+     const yT=44+5.2*(rows.length+1)+4;P.push({t:'text',x:14,y:yT,s:`TOTAL A IMPRIMIR: ${f2(tot)} m²  •  ${ades.length*un} peça(s) de adesivo`,size:3,bold:true,color:CI});
+     [['MATERIAL','Adesivo (vinil) BRANCO FOSCO — impressão em adesivo FOSCO'],['ACABAMENTO','Fosco. Sem laminação brilho.'],['ARTE','Layout Bobs aprovado pelo cliente — conferir cores antes de imprimir'],['SANGRIA',`${SG} mm em cada lado (refila rente ao ACM na aplicação — ver P1)`],['ARQUIVO','PDF 1:1 de cada vão com o contorno da impressão e a linha de refile']]
+       .forEach(([a,b],i)=>P.push({t:'text',x:170,y:48+i*7,s:a+':',size:2.6,bold:true,color:'#000000'},{t:'text',x:170,y:51.4+i*7,s:fit(b,114,2.5),size:2.5,color:'#1864ab'}));
+     // miniaturas com sangria
+     const n=ades.length,bw=Math.min(60,268/n),y0=Math.max(yT+8,92);ades.forEach((el,k)=>{const w=el.W+2*SG,h=el.H+2*SG;const ss=Math.min((bw-10)/w,(150-y0)/h);const cx=14+k*bw+(bw-w*ss)/2;
+       P.push({t:'rect',x:cx,y:y0,w:w*ss,h:h*ss,fill:'#e7f5ff',stroke:CI,lw:0.3},{t:'rect',x:cx+SG*ss,y:y0+SG*ss,w:el.W*ss,h:el.H*ss,fill:'none',stroke:CS,lw:0.2,dash:[1,0.7]},
+         {t:'text',x:cx+w*ss/2,y:y0+h*ss+4,s:`VÃO ${vid(el)}`,size:2.3,bold:true,color:'#000000',anchor:'middle'})});
+     P.push({t:'rect',x:14,y:156,w:5,h:3,fill:'#e7f5ff',stroke:CI,lw:0.3},{t:'text',x:21,y:158.4,s:'ÁREA IMPRESSA (com sangria)',size:2.2,color:'#000000'},{t:'line',x1:80,y1:157.5,x2:86,y2:157.5,color:CS,w:0.3,dash:[1,0.7]},{t:'text',x:88,y:158.4,s:'LINHA DE REFILE = medida final do ACM',size:2.2,color:'#000000'});
+     add(P,'IMPRESSÃO')}
+    ades.forEach(el=>{const w=el.W+2*SG,h=el.H+2*SG;
+      bobsFiles.push({name:`IMPRESSAO ADESIVO FOSCO - VAO ${vid(el)} ${f0(w)}x${f0(h)} (sangria ${SG}mm)${un>1?` (${un} UN)`:''}.pdf`,label:`Impressão — vão ${vid(el)}: adesivo fosco ${f0(w)} x ${f0(h)} mm (com sangria)`,
+        vec:[{color:'#1c7ed6',polys:[[[0,0],[w,0],[w,h],[0,h]]]},{color:'#d6336c',polys:[[[SG,SG],[SG+el.W,SG],[SG+el.W,SG+el.H],[SG,SG+el.H]]]}]})});
+    // P1: aplicação
+    const per=2;for(let i0=0;i0<ades.length;i0+=per){const lote=ades.slice(i0,i0+per);const P=[];frame(P,ctx,{setor:'P1'});P.push({t:'text',x:18,y:31,s:`${un}X`,size:7,bold:true,italic:true,color:'#000000'});
+      tit(P,'P1 — APLICAR O ADESIVO FOSCO NO ACM INTEIRO','APLICAR COM O ACM AINDA SOLTO, ANTES DE MONTAR NO REQUADRO • REFILAR RENTE À BORDA');
+      lote.forEach((el,k)=>{const cx=14+k*92,cy=44,bw=86,bh=66;const w=el.W+2*SG,h=el.H+2*SG;const ss=Math.min((bw-14)/w,(bh-16)/h);const ox=cx+8+(bw-14-w*ss)/2,oy=cy+8+(bh-16-h*ss)/2;
+        P.push({t:'text',x:cx,y:cy+2,s:`VÃO ${vid(el)} — ACM ${f1(el.W)} x ${f1(el.H)} MM${un>1?` — ${un} UN.`:''}`,size:2.5,bold:true,color:'#000000'});
+        P.push({t:'rect',x:ox,y:oy,w:w*ss,h:h*ss,fill:'#e7f5ff',stroke:CI,lw:0.25,dash:[1,0.7]},{t:'rect',x:ox+SG*ss,y:oy+SG*ss,w:el.W*ss,h:el.H*ss,fill:'#a5d8ff',stroke:'#000000',lw:0.35},
+          {t:'text',x:ox+w*ss/2,y:oy+h*ss/2+1,s:'ADESIVO FOSCO',size:2.4,bold:true,color:'#1864ab',anchor:'middle'});
+        cotaH(P,ox+SG*ss,ox+(SG+el.W)*ss,oy-2.5,oy+SG*ss,f1(el.W),2.2);cotaV(P,ox-3,oy+SG*ss,oy+(SG+el.H)*ss,ox+SG*ss,f1(el.H),2.2);
+        P.push({t:'text',x:cx+bw/2,y:cy+bh+1,s:`impresso ${f0(w)} x ${f0(h)} mm  →  refilar para ${f1(el.W)} x ${f1(el.H)} mm`,size:2.1,color:CS,anchor:'middle'})});
+      const st=['1. Conferir a arte impressa (vão, cores e posição) com o layout Bobs.','2. Limpar o ACM com ÁLCOOL ISOPROPÍLICO e deixar secar (sem pó/gordura).',
+        `3. Posicionar o adesivo com a sangria de ${SG} mm sobrando em todos os lados.`,'4. Aplicar A SECO com rodo de feltro, do centro para as bordas, sem bolhas.',
+        '5. REFILAR com estilete rente à borda do ACM (linha de refile = medida final).','6. Conferir cantos colados e entregar para a MONTAGEM (acabamento).'];
+      P.push({t:'rect',x:198,y:44,w:86,h:66,r:1.5,fill:'#f8f9fa',stroke:'#0c8599',lw:0.35},{t:'text',x:201,y:49,s:'COMO APLICAR',size:2.9,bold:true,color:'#0c8599'});
+      st.forEach((t,i)=>{const L=[];let l='';t.split(' ').forEach(w=>{if((l+' '+w).trim().length>52){L.push(l);l=w}else l=(l+' '+w).trim()});L.push(l);P.push({t:'text',x:201,y:55+i*9,s:L[0],size:2.3,color:'#000000'});if(L[1])P.push({t:'text',x:204,y:58.3+i*9,s:L.slice(1).join(' '),size:2.3,color:'#000000'})});
+      P.push({t:'text',x:14,y:120,s:'ADESIVO FOSCO — NÃO USAR SOPRADOR QUENTE EM EXCESSO (MARCA O FOSCO).',size:2.6,bold:true,color:'#c92a2a'});
+      add(P,'P1')}}
   // ===== PINTURA =====
   const areas=(()=>{const per30=0.12,mm=(a)=>a/1000;let preto=0,lar=0,rox=0;
     C.pecas.forEach(p=>p.cortes30.forEach(c=>preto+=mm(c.len*c.q)*per30));C.comp.forEach(c=>preto+=mm(c.len*(c.q||1))*per30);
@@ -4651,7 +4747,7 @@ function bobsFolhas(){if(bModo==='comp')return bobsCompFolhas();if(bModo==='cant
    bx(14,42,270,30,'#212529','#f1f3f5','PRETO — PINTURA A PÓ (TERCEIRIZADA)','Estrutura externa em metalon 30x30 de todas as peças + complementos 30x30',`ÁREA APROX.: ${f2(areas.preto)} m²  •  ENVIAR PARA A PINTURA ELETROSTÁTICA`,'Mandar a estrutura soldada e limpa. Proteger as roscas / furos.');
    bx(14,78,270,30,'#f76707','#fff4e6',`${corRip} — PU SEMI BRILHO${$('#bRalRip').value.trim()?' • RAL '+$('#bRalRip').value.trim():''}`,`Requadros ripados (barra chata 1" x 1/8" + ripas metalon 15x15): ${rips.length} vão(s)`,`ÁREA APROX.: ${f2(areas.lar)} m²`,'Wash primer antes da PU. Pintar as ripas por inteiro (frente, laterais e cantos).');
    bx(14,114,270,30,'#862e9c','#f8f0fc',`${corAcm} — PU SEMI BRILHO${$('#bRalAcm').value.trim()?' • RAL '+$('#bRalAcm').value.trim():''}`,`ACM quadriculado: ${acms.filter(e=>e.tipo==='quad').length} vão(s) — pintar a frente e as bordas dos quadrados`,`ÁREA APROX.: ${f2(areas.rox)} m²`,'Lixar leve e aplicar wash primer no ACM antes da PU.');
-   P.push({t:'text',x:14,y:152,s:'ACM INTEIRO: não pinta — vai ADESIVADO (ver acabamento).   CANTONEIRAS DE ALUMÍNIO 15x15 E 25x25: não pintar.',size:2.8,bold:true,color:'#c92a2a'});
+   P.push({t:'text',x:14,y:152,s:'ACM INTEIRO: não pinta — vai ADESIVADO (ver IMPRESSÃO e P1).   CANTONEIRAS DE ALUMÍNIO 12x12 E 25x25: não pintar.',size:2.8,bold:true,color:'#c92a2a'});
    add(P,'PINTURA')}
   // ===== ELÉTRICA: LED COB =====
   let led=null;if(B.led){const m=Math.round(C.ledM*un*100)/100;const W=m*BOBS.cobW;const fs=fontes(W*LED_FOLGA);led={m,W,fs};
@@ -4670,14 +4766,14 @@ function bobsFolhas(){if(bModo==='comp')return bobsCompFolhas();if(bModo==='cant
     const D=bobsDesenha(P,p,{x:20,y:42,w:170,h:84},{num:vid});cotaH(P,D.X(0),D.X(p.W),D.Y(p.H)-5,D.Y(p.H),f0(p.W),2.6);cotaV(P,D.X(0)-6,D.Y(p.H),D.Y(0),D.X(0),f0(p.H),2.6);
     if(B.led)P.push({t:'rect',x:D.X(0),y:D.Y(0)+1.2,w:p.W*D.s,h:1.6,fill:'#ffd43b',stroke:'#212529',lw:0.2},{t:'text',x:D.X(p.W/2),y:D.Y(0)+6,s:'CANTONEIRA 25x25 COM LED COB 3000K EMBAIXO',size:2.2,bold:true,color:'#e8590c',anchor:'middle'});
     const st=[`1. ESTRUTURA preta (pintada a pó) e elementos pintados conferidos.`,
-      `2. ACM (vãos ${p.elems.filter(e=>e.tipo!=='ripado').map(vid).join(', ')||'—'}): fixar a CANTONEIRA DE ALUMÍNIO 15x15 PRETA no fundo de cada vão com brocante philips 4,2 x 13 (1/2"), ~1 a cada ${BOBS.paraf} mm.`,
+      `2. ACM (vãos ${p.elems.filter(e=>e.tipo!=='ripado').map(vid).join(', ')||'—'}): fixar a CANTONEIRA DE ALUMÍNIO 12x12 PRETA no fundo de cada vão com brocante philips 4,2 x 13 (1/2"), ~1 a cada ${BOBS.paraf} mm.`,
       `3. Passar FITA VHB 15 mm na face da cantoneira e colar o ACM (2 mm menor que o vão).`,
-      `4. ACM INTEIRO: aplicar o ADESIVO antes de montar. ACM QUADRICULADO: pintado (PU ${corAcm}).`,
+      `4. ACM INTEIRO: chega da P1 já com o ADESIVO FOSCO aplicado e refilado. ACM QUADRICULADO: pintado (PU ${corAcm}).`,
       `5. RIPADO (vãos ${p.elems.filter(e=>e.tipo==='ripado').map(vid).join(', ')||'—'}): encaixar o requadro (2 mm menor) e fixar pela barra chata com brocante.`,
       ...(B.led?[`6. CANTONEIRA 25x25 com o LED COB 3000K colado embaixo, na largura da peça (${f0(p.W)} mm).`]:[])];
     {let yy=46;const wrap=(t,n)=>{const ws=t.split(' '),L=[];let l='';ws.forEach(w=>{if((l+' '+w).trim().length>n){L.push(l);l=w}else l=(l+' '+w).trim()});if(l)L.push(l);return L};
      st.forEach(t=>{wrap(t,58).forEach((l,j)=>{P.push({t:'text',x:j?201:198,y:yy,s:l,size:2.4,color:'#000000'});yy+=3.6});yy+=2})}
-    if(p.pi===0){const rows=[['Cantoneira alumínio 15x15 preta',`${nm(fix.cant.toFixed(2))} m`,'já comprada'],['Fita VHB 15 mm',`${nm(fix.vhb.toFixed(2))} m`,`${Math.ceil(fix.vhb/33)} rolo(s) de 33 m`],['Brocante philips 4,2 x 13 (1/2")',`${fix.paraf} un.`,'cantoneiras + ripados'],...(led?[['Cantoneira alumínio 25x25 preta',`${nm(led.m.toFixed(2))} m`,'com LED COB embaixo']]:[])];
+    if(p.pi===0){const rows=[['Cantoneira alumínio 12x12 x 0,90 preta',`${nm(fix.cant.toFixed(2))} m`,`${Math.ceil(fix.cant/(BOBS.cantBarra/1000))} barra(s) de ${BOBS.cantBarra/1000} m`],['Fita VHB 15 mm',`${nm(fix.vhb.toFixed(2))} m`,`${Math.ceil(fix.vhb/33)} rolo(s) de 33 m`],['Brocante philips 4,2 x 13 (1/2")',`${fix.paraf} un.`,'cantoneiras + ripados'],...(led?[['Cantoneira alumínio 25x25 preta',`${nm(led.m.toFixed(2))} m`,'com LED COB embaixo']]:[])];
       tabela(P,[['MATERIAL DA MONTAGEM (TODAS AS PEÇAS)',70],['QUANTIDADE',28],['OBS.',40]],rows,20,136)}
     add(P,'ACABAMENTO')});
   xfPaginas(ctx,'#xfB',pages,tags);
@@ -4688,12 +4784,12 @@ function bobsFolhas(){if(bModo==='comp')return bobsCompFolhas();if(bModo==='cant
   return{pages,tags,ctx,C}}
 function bobsProd(C,un,ctx,X){const N=[];const nm=v=>String(v).replace('.',',');
   const bars=C.bars||{};const kg30=C.pecas.reduce((a,p)=>a+p.cortes30.reduce((s,c)=>s+c.len*c.q,0),0)/1000*tuboKgM(30,30,1.55);
-  if(bars['METALON 30x30 #1,55'])N.push({k:'bobs|m30',desc:'Metalon galvanizado 30x30 #1,55 — barra 6 m',q:bars['METALON 30x30 #1,55'],un:'un',uso:'estrutura externa + complementos (plano de corte)',busca:{must:['METALON GALVANIZADO 30X30']}});
+  if(bars['METALON 30x30 #1,55'])N.push({k:'bobs|m30',desc:'Metalon galvanizado 30x30 #1,55 — barra 6 m',q:bars['METALON 30x30 #1,55'],un:'un',uso:'estrutura externa + complementos (plano de corte)',busca:{must:['METALON GALVANIZADO 30X30','1,55MM']}});
   if(bars['BARRA CHATA 1" x 1/8"'])N.push({k:'bobs|bc',desc:'Barra chata 1" x 1/8" — barra 6 m',q:bars['BARRA CHATA 1" x 1/8"'],un:'un',uso:'requadro dos ripados',busca:{must:['BARRA CHATA','1/8 X 1']}});
   if(bars['METALON 15x15 #0,95'])N.push({k:'bobs|m15',desc:'Metalon galvanizado 15x15 #0,95 — barra 6 m',q:bars['METALON 15x15 #0,95'],un:'un',uso:'ripas dos ripados',busca:{must:['METALON GALVANIZADO 15X15','0,95MM']}});
   const aQ=X.acms.reduce((a,e)=>a+e.W*e.H,0)/1e6*un;if(aQ>0)N.push({k:'bobs|acm',desc:'ACM branco fosco 3 mm 1500 x 5000',m2:aQ*1.15,un:'un',uso:`vãos de ACM: ${f2(aQ)} m² + 15% de perda`,busca:{must:['ACM BRANCO FOSCO','1500 X 5000','03MM']}});
-  const aA=X.acms.filter(e=>e.tipo==='acm').reduce((a,e)=>a+e.W*e.H,0)/1e6*un;if(aA>0)N.push({k:'bobs|ades',desc:'Adesivo impresso (ACM inteiro)',q:Math.round(aA*1.1*100)/100,un:'m²',uso:`ACM inteiro: ${f2(aA)} m² + 10%`,busca:{must:['ADESIVO IMPRESSO']}});
-  N.push({k:'bobs|cant15',desc:'Cantoneira de alumínio 15x15 preta (JÁ COMPRADA)',q:Math.round(X.fix.cant*100)/100,un:'m',uso:'fundo dos vãos de ACM — estoque',busca:{must:['CANTONEIRA DE ALUMINIO','15X15']}});
+  const aA=X.acms.filter(e=>e.tipo==='acm').reduce((a,e)=>a+e.W*e.H,0)/1e6*un;if(aA>0)N.push({k:'bobs|ades',desc:'Adesivo impresso FOSCO (ACM inteiro)',q:Math.round(X.acms.filter(e=>e.tipo==='acm').reduce((a,e)=>a+(e.W+2*BOBS.sangria)*(e.H+2*BOBS.sangria),0)/1e6*un*100)/100,un:'m²',uso:`ACM inteiro: ${f2(aA)} m² + sangria de ${BOBS.sangria} mm`,busca:{must:['ADESIVO IMPRESSO']}});
+  N.push({k:'bobs|cant12',desc:`Cantoneira de alumínio 12x12 x 0,90 preta — barra ${BOBS.cantBarra/1000} m`,q:Math.ceil(X.fix.cant/(BOBS.cantBarra/1000)),un:'un',uso:`fundo dos vãos de ACM: ${nm(X.fix.cant.toFixed(2))} m`,busca:{must:['CANTONEIRA DE ALUMINIO 12X12','0,90MM','PRETA']}});
   if(X.fix.vhb>0)N.push({k:'bobs|vhb',desc:'Fita VHB 4910 15 mm (rolo 33 m)',q:Math.round(X.fix.vhb/33*100)/100,un:'un',uso:`face das cantoneiras: ${nm(X.fix.vhb.toFixed(2))} m`,busca:{must:['VHB 4910','15MM']}});
   if(X.fix.paraf)N.push({k:'bobs|broc',desc:'Parafuso brocante philips 4,2 x 13 (1/2")',q:X.fix.paraf,un:'un',uso:'cantoneiras e ripados',busca:{must:['BROCANTE','4,2X13']}});
   // tintas PU (laranja e roxo) + catalisador e wash primer
@@ -4708,9 +4804,9 @@ function bobsProd(C,un,ctx,X){const N=[];const nm=v=>String(v).replace('.',',');
     N.push({k:'bobs|cob',desc:'Fita LED COB 12 V 12 W/m 3000K',q:Math.round(L.m*100)/100,un:'m',uso:`embaixo da cantoneira 25x25 — ${nm(L.W.toFixed(1))} W`,busca:{must:['FITA LED','COB','3000K']}});
     const c={};L.fs.forEach(w=>c[w]=(c[w]||0)+1);Object.entries(c).forEach(([w,q])=>N.push({k:`fonte|${w}`,desc:`Fonte blindada ${w} W 12 V IP67`,q,un:'un',uso:`LED COB ${nm(L.W.toFixed(1))} W + 25%`,busca:{must:['REATOR',`${w}W`,'IP67']}}));
     N.push({k:'fio|1.5|preto',desc:'Cabo flexível 1,5 mm preto',q:Math.round(L.m*100)/100,un:'m',uso:'alimentação do LED',busca:{must:['CABO FLEXIVEL','PRETO','01.50MM']}},{k:'fio|1.5|verm',desc:'Cabo flexível 1,5 mm vermelho',q:Math.round(L.m*100)/100,un:'m',uso:'alimentação do LED',busca:{must:['CABO FLEXIVEL','VERMELHO','01.50MM']}})}
-  const rects=C.pecas.map((p,i)=>{const x0=C.pecas.slice(0,i).reduce((a,q)=>a+q.W+100,0);return{x0,y0:0,x1:x0+p.W,y1:p.H,cor:'#495057'}});
-  const W=rects.length?rects[rects.length-1].x1:0,H=Math.max(0,...C.pecas.map(p=>p.H));
-  const vols=C.pecas.map(p=>({desc:`PEÇA ${p.pi+1} — REQUADRO MONTADO`,cont:`Estrutura 30x30 preta com ${p.elems.map(e=>BOBS_TIPOS[e.tipo].split(' ')[0].toLowerCase()).join(' + ')} montados`,dims:`${f0(p.W)} x ${f0(p.H)} x 30`,q:un,kg:(p.cortes30.reduce((s,c)=>s+c.len*c.q,0)/1000*tuboKgM(30,30,1.55))+p.elems.reduce((a,e)=>a+e.W*e.H/1e6*(e.tipo==='ripado'?6:KG.acm[3]),0),draw:{rects:[{x0:0,y0:0,x1:p.W,y1:p.H,cor:'#495057'}]}}));
+  const offs=C.pecas.map((p,i)=>C.pecas.slice(0,i).reduce((a,q)=>a+q.W+100,0));const rects=C.pecas.flatMap((p,i)=>bobsRects(p,offs[i]));const rectsW=C.pecas.length?offs[offs.length-1]+C.pecas[C.pecas.length-1].W:0;
+  const W=rectsW,H=Math.max(0,...C.pecas.map(p=>p.H));
+  const vols=C.pecas.map(p=>({desc:`PEÇA ${p.pi+1} — REQUADRO MONTADO`,cont:`Estrutura 30x30 preta com ${p.elems.map(e=>BOBS_TIPOS[e.tipo].split(' ')[0].toLowerCase()).join(' + ')} montados`,dims:`${f0(p.W)} x ${f0(p.H)} x 30`,q:un,kg:(p.cortes30.reduce((s,c)=>s+c.len*c.q,0)/1000*tuboKgM(30,30,1.55))+p.elems.reduce((a,e)=>a+e.W*e.H/1e6*(e.tipo==='ripado'?6:KG.acm[3]),0),draw:{rects:bobsRects(p)}}));
   if(C.comp.length)vols.push({desc:'COMPLEMENTOS 30x30',cont:C.comp.map(c=>`${c.q||1} x ${f0(c.len)} mm`).join(', ')+' — pintados de preto',dims:'—',q:1,kg:C.comp.reduce((a,c)=>a+c.len*(c.q||1),0)/1000*tuboKgM(30,30,1.55)*un,draw:null});
   if(X.led)vols.push({desc:'CANTONEIRAS 25x25 COM LED + REATORES',cont:`${String(X.led.m.toFixed(2)).replace('.',',')} m de cantoneira com LED COB 3000K e ${X.led.fs.length} reator(es)`,dims:'—',q:1,kg:0,draw:null});
   return{tipo:'estrutura',mat:N,anc:{peca:'REQUADRO',auto:4*C.pecas.length*un,onde:'fixação no balcão (estimado)'},nome:ctx.descItem,W,H,D:30,un,volumes:vols,contornoRects:rects,contorno:[[[0,0],[W,0],[W,H],[0,H]]],checks:['MEDIDAS','PINTURA','MONTAGEM','LED ACENDE']}}
@@ -4833,8 +4929,8 @@ function bobsCaixas(q,led){const M=BOBS.mold,out=[],F=BOBS.folga/2,e=BOBS.bc.e,K
       el.rip.ys.forEach(yy=>bx(x0+e,y0+yy,2,x0+el.W-e,y0+yy+BOBS.rip.p,2+BOBS.rip.p,c))}
     else{bx(x0,y0,2,x0+el.W,y0+el.H,5,el.tipo==='quad'?BOBS_COR.quad:'#ced4da');
       if(el.tipo==='quad'){const Q=BOBS.quad;for(let a=0;a<el.qx.n;a++)for(let b=0;b<el.qy.n;b++){const qx=x0+Q.mg+a*(Q.q+el.qx.g),qy=y0+Q.mg+b*(Q.q+el.qy.g);bx(qx,qy,1.5,qx+Q.q,qy+Q.q,5.5,'#f8f9fa')}}}
-    // cantoneira 15x15 atrás do ACM
-    if(el.tipo!=='ripado'){const z=5,c='#111111';bx(el.x,el.y,z,el.x+el.w,el.y+1.5,z+15,c);bx(el.x,el.y+el.h-1.5,z,el.x+el.w,el.y+el.h,z+15,c)}});
+    // cantoneira 12x12 atrás do ACM
+    if(el.tipo!=='ripado'){const z=5,c='#111111';bx(el.x,el.y,z,el.x+el.w,el.y+1.5,z+12,c);bx(el.x,el.y+el.h-1.5,z,el.x+el.w,el.y+el.h,z+12,c)}});
   if(led){bx(0,-25,0,q.W,0,25,'#1a1a1a');bx(0,-26.5,2,q.W,-25,23,'#ffd43b')}
   return out}
 function bobs3D(){if(!b3Init()){$('#b3dInfo').textContent='Visualizador 3D indisponível neste aparelho.';return}
@@ -4871,10 +4967,15 @@ function bobsTrechos(){const out=[];const its=(typeof pedAtual!=='undefined'&&pe
   bCantExtra.filter(x=>x.len>0).forEach(x=>out.push({nome:x.nome||'Trecho avulso',lens:Array(Math.max(1,x.q||1)).fill(x.len),extra:true}));return out}
 function bobsCantUI(){const T=bobsTrechos();const tot=T.reduce((a,t)=>a+t.lens.reduce((s2,v)=>s2+v,0),0);
   $('#bCantLista').innerHTML=`<label class="f">Trechos (largura de cada requadro / complemento do pedido)</label>`+(T.filter(t=>t.auto).length?T.filter(t=>t.auto).map(t=>`<div class="row" style="justify-content:space-between;border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin-top:4px;font-size:13px"><span>${esc(t.nome)}</span><b>${t.lens.map(v=>f0(v)).join(' + ')} mm</b></div>`).join(''):`<p class="note">${typeof pedAtual!=='undefined'&&pedAtual?'Nenhum requadro / complemento salvo neste pedido ainda. Salve os itens Bobs antes e volte aqui.':'Abra o pedido para somar os requadros e complementos salvos.'}</p>`)
-    +bCantExtra.map((x,i)=>`<div class="row" style="gap:6px;align-items:center;margin-top:6px"><input type="text" data-ce="${i}" data-ck="nome" value="${esc(x.nome||'')}" placeholder="descrição" style="max-width:200px"><input type="number" inputmode="decimal" data-ce="${i}" data-ck="len" value="${x.len||''}" placeholder="mm" style="max-width:110px"><span class="note">mm ×</span><input type="number" data-ce="${i}" data-ck="q" value="${x.q||1}" style="max-width:60px"><button class="btn danger sm" data-cedel="${i}">Remover</button></div>`).join('')
-    +`<div class="msg ok" style="margin-top:8px">TOTAL: <b>${String((tot/1000).toFixed(2)).replace('.',',')} m</b> de cantoneira 25x25 com LED COB 3000K • ${String((tot/1000*BOBS.cobW).toFixed(1)).replace('.',',')} W</div>`}
+    +bCantExtra.map((x,i)=>`<div class="row" style="gap:6px;align-items:flex-end;margin-top:6px;flex-wrap:wrap"><div><label class="f" style="margin:0 0 2px">Comprimento (mm)</label><input type="number" inputmode="decimal" data-ce="${i}" data-ck="len" value="${x.len||''}" placeholder="ex.: 6510" style="max-width:130px"></div><div><label class="f" style="margin:0 0 2px">Qtd.</label><input type="number" inputmode="numeric" data-ce="${i}" data-ck="q" value="${x.q||1}" style="max-width:64px"></div><div><label class="f" style="margin:0 0 2px">Descrição (opcional)</label><input type="text" data-ce="${i}" data-ck="nome" value="${esc(x.nome||'')}" placeholder="ex.: balcão lateral" style="max-width:200px"></div><button class="btn danger sm" data-cedel="${i}">Remover</button></div>`).join('')
+    +`<div class="msg ok" id="bCantTot" style="margin-top:8px"></div>`;bobsCantTotal()}
+function bobsCantTotal(){const el=$('#bCantTot');if(!el)return;const tot=bobsTrechos().reduce((a,t)=>a+t.lens.reduce((s2,v)=>s2+v,0),0);el.innerHTML=`TOTAL: <b>${String((tot/1000).toFixed(2)).replace('.',',')} m</b> de cantoneira 25x25 com LED COB 3000K • ${String((tot/1000*BOBS.cobW).toFixed(1)).replace('.',',')} W`}
 $('#bCantAdd').onclick=()=>{bCantExtra.push({nome:'',len:0,q:1});bobsCantUI();bobsSujo()};
-$('#bCantLista').addEventListener('change',e=>{const i=e.target.dataset.ce;if(i==null)return;const k=e.target.dataset.ck;bCantExtra[+i][k]=k==='nome'?e.target.value:num(e.target.value);bobsCantUI();bobsSujo()});
+const bCantSet=(e,redesenha)=>{const i=e.target.dataset.ce;if(i==null)return;const k=e.target.dataset.ck;const x=bCantExtra[+i];x[k]=k==='nome'?e.target.value:num(e.target.value);
+  // número digitado na descrição sem comprimento: usa como comprimento
+  let conv=false;if(k==='nome'&&!(x.len>0)&&/^\s*\d+([.,]\d+)?\s*(mm)?\s*$/.test(x.nome)){x.len=num(x.nome);x.nome='';conv=true}
+  if(redesenha&&conv)bobsCantUI();else bobsCantTotal();bobsSujo()};
+$('#bCantLista').addEventListener('change',e=>bCantSet(e,true));$('#bCantLista').addEventListener('input',e=>{if(e.target.dataset.ck!=='nome')bCantSet(e,false)});
 $('#bCantLista').addEventListener('click',e=>{const i=e.target.dataset.cedel;if(i==null)return;bCantExtra.splice(+i,1);bobsCantUI();bobsSujo()});
 const bobsTit=(P,s,sub)=>{P.push({t:'text',x:PW/2,y:30,s,size:4.2,bold:true,color:'#000000',anchor:'middle'});if(sub)P.push({t:'text',x:PW/2,y:35,s:sub,size:2.7,bold:true,color:'#495057',anchor:'middle'})};
 function bobsPlano(P0,ctx,pages,tags,grupos,titulo){let P=null,y=0;const novo=()=>{P=[];frame(P,ctx,{setor:'SERRALHERIA'});bobsTit(P,titulo,'');pages.push(P);tags.push('PLANO');y=40};novo();const out={};
@@ -4897,7 +4998,7 @@ function bobsCompFolhas(){const un=Math.max(1,Math.round(num($('#bcUn').value))|
   const area=L.reduce((a,c)=>a+c.len*(c.q||1),0)/1000*0.12*un;
   {const P=[];frame(P,ctx,{setor:'PINTURA'});bobsTit(P,'PINTURA — COMPLEMENTO 30x30','');P.push({t:'rect',x:14,y:44,w:270,h:30,r:2,fill:'#f1f3f5',stroke:'#212529',lw:0.6},{t:'rect',x:18,y:49,w:18,h:20,r:1.5,fill:'#212529'},{t:'text',x:41,y:52,s:'PRETO — PINTURA A PÓ (TERCEIRIZADA)',size:3.4,bold:true,color:'#000000'},{t:'text',x:41,y:58,s:`${L.reduce((a,c)=>a+(c.q||1),0)*un} tubo(s) 30x30 — área aprox. ${f2(area)} m²`,size:2.8,color:'#000000'},{t:'text',x:41,y:64,s:'Mandar os tubos cortados e limpos para a pintura eletrostática.',size:2.5,color:'#555555'});pages.push(P);tags.push('PINTURA')}
   xfPaginas(ctx,'#xfB',pages,tags);
-  const N=[];if(bars['METALON 30x30 #1,55'])N.push({k:'bobs|m30',desc:'Metalon galvanizado 30x30 #1,55 — barra 6 m',q:bars['METALON 30x30 #1,55'],un:'un',uso:'complemento 30x30 (plano de corte)',busca:{must:['METALON GALVANIZADO 30X30']}});
+  const N=[];if(bars['METALON 30x30 #1,55'])N.push({k:'bobs|m30',desc:'Metalon galvanizado 30x30 #1,55 — barra 6 m',q:bars['METALON 30x30 #1,55'],un:'un',uso:'complemento 30x30 (plano de corte)',busca:{must:['METALON GALVANIZADO 30X30','1,55MM']}});
   N.push({k:'bobs|po',desc:'Pintura eletrostática a pó PRETA (terceirizada)',q:Math.round(area*100)/100,un:'m²',uso:'complemento 30x30 — informar o valor do serviço',busca:{must:['PINTURA ELETROSTATICA']}});
   const tot=L.reduce((a,c)=>a+c.len*(c.q||1),0)*un;const mx=Math.max(...L.map(c=>c.len));
   const prod={tipo:'estrutura',mat:N,anc:{peca:'COMPLEMENTO',auto:2*L.reduce((a,c)=>a+(c.q||1),0)*un,onde:'fixação do tubo (estimado)'},nome:ctx.descItem,W:mx,H:30,D:30,un:1,volumes:[{desc:'COMPLEMENTOS 30x30',cont:L.map(c=>`${c.q||1} x ${f0(c.len)} mm`).join(', ')+' — pintados de preto',dims:`${f0(mx)} x 30 x 30`,q:un,kg:tot/1000*tuboKgM(30,30,1.55)/un,draw:{rects:[{x0:0,y0:0,x1:mx,y1:30,cor:'#2b2b2b'}]}}],contornoRects:[{x0:0,y0:0,x1:mx,y1:30,cor:'#2b2b2b'}],contorno:[[[0,0],[mx,0],[mx,30],[0,30]]],checks:['MEDIDAS','PINTURA']};
