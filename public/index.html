@@ -695,7 +695,7 @@ let types=[];let db=null;let local=false;let empresa={logo:GRANDA_LOGO,lw:375,lh
 function lsGet(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 function setTypes(list){types=list.slice().sort((a,b)=>(a.ordem||99)-(b.ordem||99)||a.nome.localeCompare(b.nome));renderTypes()}
-function startLocal(){local=true;fixLocal();perfisLocal();ancTiposLocal();acmLocal();pedLocal();setTypes(lsGet('granda_tipos2')||DEFAULT_TYPES);empresa=lsGet('granda_empresa')||empresa;renderLogo();$('#storeNote').textContent='Modo local: os cadastros ficam salvos só neste aparelho.'}
+function startLocal(){local=true;fixLocal();perfisLocal();mpExtraLocal();ancTiposLocal();acmLocal();pedLocal();setTypes(lsGet('granda_tipos2')||DEFAULT_TYPES);empresa=lsGet('granda_empresa')||empresa;renderLogo();$('#storeNote').textContent='Modo local: os cadastros ficam salvos só neste aparelho.'}
 async function initStore(){
   const timer=setTimeout(()=>{if(!types.length)startLocal()},10000);
   try{if(window.claude&&claude.use)db=await claude.use('db')}catch(e){db=null}
@@ -706,7 +706,7 @@ async function initStore(){
     if(!snap.docs.some(d=>d.id==='letra3d')&&!window.__seed3d){window.__seed3d=1;db.doc('config/seed_letra3d').get().then(g=>{if(g&&g.exists)return;const t=DEFAULT_TYPES.find(x=>x.id==='letra3d');const {id,...body}=t;db.collection('tipos').doc(id).set(JSON.parse(JSON.stringify(body))).catch(()=>{});db.doc('config/seed_letra3d').set({em:Date.now()}).catch(()=>{})}).catch(()=>{})}
     setTypes(snap.docs.map(d=>({id:d.id,...d.data()})));
   },()=>{clearTimeout(timer);if(!types.length)startLocal()});
-  fixListen(db);perfisListen(db);ancTiposListen(db);acmListen(db);pedListen(db);
+  fixListen(db);perfisListen(db);mpExtraListen(db);ancTiposListen(db);acmListen(db);pedListen(db);
   db.doc('config/empresa').onSnapshot(s=>{if(s.exists){empresa={logo:GRANDA_LOGO,lw:375,lh:134,...s.data()};if(!empresa.logo){empresa.logo=GRANDA_LOGO;empresa.lw=375;empresa.lh=134}renderLogo()}},()=>{});
 }
 async function saveType(t){
@@ -3888,8 +3888,8 @@ function fpObsPopup(n,prevId){let M=$('#fpObsModal');if(M)M.remove();M=document.
   document.body.appendChild(M);const ta=M.querySelector('#fpObsTxt');ta.value=fpObsPg[n]||'';setTimeout(()=>ta.focus(),50);
   M.onclick=e=>{const b=e.target.closest('[data-x]');if(e.target===M||(b&&b.dataset.x==='cancelar')){M.remove();return}if(!b)return;
     const v=b.dataset.x==='limpar'?'':ta.value.trim();if(v)fpObsPg[n]=v;else delete fpObsPg[n];if(typeof pedSujo!=='undefined'){pedSujo=true;try{pedBarRender()}catch(e){}}M.remove();try{(FPOBS_RUN[prevId]||(()=>{}))()}catch(err){console.error(err)}}}
-const FPOBS_RUN={prev:()=>{if(!$('#gerar').disabled)$('#gerar').click()},mPrev:()=>mFolhasRender(),dPrev:()=>dRender3D(),tPrev:()=>tRender()};
-['prev','mPrev','dPrev','tPrev'].forEach(id=>{const el=$('#'+id);if(!el)return;
+const FPOBS_RUN={prev:()=>{if(!$('#gerar').disabled)$('#gerar').click()},mPrev:()=>mFolhasRender(),dPrev:()=>dRender3D(),tPrev:()=>tRender(),bPrev:()=>{const b=$('#bGerar');if(b&&!b.disabled)b.click()}};
+['prev','mPrev','dPrev','tPrev','bPrev'].forEach(id=>{const el=$('#'+id);if(!el)return;
   new MutationObserver(()=>{el.querySelectorAll('.pg').forEach(pg=>{const nx=pg.nextElementSibling;if((!nx||!nx.classList.contains('fpObsRow'))&&pg.querySelector('svg[data-pg]'))fpObsLinha(pg)})}).observe(el,{childList:true})});
 $('#lPgPick').onclick=e=>{const b=e.target.closest('[data-lpg]');if(!b)return;lSel=b.dataset.lpg;lPrevRender()};
 
@@ -3931,6 +3931,13 @@ function mppSalva(){try{localStorage.setItem('granda_mpparam',JSON.stringify(MPP
 function mpChapaM2(nome){const n=mpNorm(nome);let m=n.match(/(\d{3,4})\s*X\s*(\d{3,4})/);if(m)return (+m[1])*(+m[2])/1e6;m=n.match(/(\d\.\d{1,2})X(\d\.\d{1,2})/);if(m)return (+m[1])*(+m[2]);return 0}
 // volume da lata pelo nome (0,9L, 3,6L, 600ML, 18L) em litros
 function mpLitros(nome){const n=mpNorm(nome);let m=n.match(/(\d+(?:\.\d+)?)\s*ML\b/);if(m)return +m[1]/1000;m=n.match(/(\d+(?:\.\d+)?)\s*(?:L|LT|LTS|LITRO)\b/);return m?+m[1]:0}
+// matérias-primas cadastradas no sistema (não estão na planilha): [cód, nome, un, valor, conta, data] — ficam no banco (config/mpextra)
+let mpExtra=[];
+function mpExtraAplica(list){(list||[]).forEach(r=>{if(!Array.isArray(r)||!r[1])return;const i=MP.findIndex(x=>String(x[0])===String(r[0]));if(i>=0){MP[i]=r;MPN[i]=' '+mpNorm(r[1])+' '}else{MP.push(r);MPN.push(' '+mpNorm(r[1])+' ')}if(!mpExtra.some(x=>String(x[0])===String(r[0])))mpExtra.push(r);else mpExtra=mpExtra.map(x=>String(x[0])===String(r[0])?r:x)})}
+function mpExtraLocal(){try{mpExtraAplica(JSON.parse(localStorage.getItem('granda_mpextra')||'[]'))}catch(e){}}
+function mpExtraListen(db){mpExtraLocal();try{db.doc('config/mpextra').onSnapshot(s=>{if(s.exists){const d=s.data()||{};let L=d.itens||[];if(typeof L==='string')try{L=JSON.parse(L)}catch(e){L=[]}mpExtraAplica(L)}},()=>{})}catch(e){}}
+async function mpExtraSalva(){try{localStorage.setItem('granda_mpextra',JSON.stringify(mpExtra))}catch(e){}if(typeof local!=='undefined'&&local)return;try{if(typeof db!=='undefined'&&db)await db.doc('config/mpextra').set({itens:JSON.stringify(mpExtra),em:Date.now()})}catch(e){console.error('mpextra',e)}}
+function mpCadastra(nome,un,valor,conta){const cod=Math.max(90000,...MP.map(r=>+r[0]||0).filter(v=>v>=90000&&v<99000))+1;const r=[cod,String(nome).toUpperCase(),un||'un',+valor||0,conta||'Cadastro no sistema',new Date().toLocaleDateString('pt-BR')];mpExtraAplica([r]);mpExtraSalva();return r}
 let mpMapa={};try{mpMapa=JSON.parse(localStorage.getItem('granda_mpmap')||'{}')}catch(e){}
 let matQtd={};// quantidades trocadas à mão (por item do pedido)
 let mpPreco={};try{mpPreco=JSON.parse(localStorage.getItem('granda_mpprecos')||'{}')}catch(e){}
@@ -4107,7 +4114,7 @@ function matAddPopup(prevId,pi){let M=$('#mpModal');if(M)M.remove();M=document.c
   M.innerHTML=`<div style="background:#fff;border-radius:14px;padding:14px;width:100%;max-width:520px;max-height:86vh;display:flex;flex-direction:column;gap:8px"><b>${pi?'Adicionar produto na PI (entra também na RM)':'Adicionar matéria-prima na RM'}</b>
     <div class="row" style="gap:6px;align-items:center;flex-wrap:nowrap"><label class="f" style="margin:0;white-space:nowrap">Quantidade</label><input type="text" id="maQtd" inputmode="decimal" value="1" style="max-width:90px"><label class="f" style="margin:0;white-space:nowrap">Uso</label><input type="text" id="maUso" placeholder="ex.: acabamento" style="flex:1"></div>
     <input type="text" id="maBusca" placeholder="Buscar na lista (ex.: rebite, silicone, metalon 20x20)"><div id="maRes" style="overflow:auto;flex:1;min-height:120px"></div>
-    <details style="border-top:1px solid var(--line);padding-top:6px"><summary style="cursor:pointer;font-size:13px;font-weight:600">Não está na lista? Cadastrar item com valor</summary><div class="row" style="gap:6px;margin-top:6px;flex-wrap:nowrap"><input type="text" id="maNome" placeholder="Nome do material" style="flex:2"><input type="text" id="maUn" value="un" style="max-width:56px"><input type="text" id="maVal" placeholder="R$ un." inputmode="decimal" style="max-width:90px"><button class="btn pink sm" data-x="custom" type="button">Adicionar</button></div></details>
+    <details style="border-top:1px solid var(--line);padding-top:6px"><summary style="cursor:pointer;font-size:13px;font-weight:600">Não está na lista? Cadastrar novo item com preço</summary><div class="g2" style="gap:6px;margin-top:6px"><div style="grid-column:span 2"><label class="f" style="margin:0 0 2px">Nome do material</label><input type="text" id="maNome" placeholder="ex.: CANTONEIRA DE ALUMINIO 15X15 PRETA"></div><div><label class="f" style="margin:0 0 2px">Unidade</label><select id="maUn"><option>un</option><option>m</option><option>m²</option><option>kg</option><option>l</option><option>par</option><option>rolo</option></select></div><div><label class="f" style="margin:0 0 2px">Preço (R$ por unidade)</label><input type="text" id="maVal" placeholder="0,00" inputmode="decimal"></div></div><label style="display:flex;gap:6px;align-items:center;font-size:12px;margin-top:6px"><input type="checkbox" id="maSalva" checked> Salvar no cadastro de matérias-primas (fica disponível para todos os itens)</label><div class="row" style="justify-content:flex-end;margin-top:6px"><button class="btn pink sm" data-x="custom" type="button">Cadastrar e adicionar</button></div></details>
     <div class="row" style="justify-content:flex-end"><button class="btn ghost sm" data-x="cancelar" type="button">Cancelar</button></div></div>`;
   document.body.appendChild(M);const inp=M.querySelector('#maBusca');
   const lista=()=>{const ws=mpNorm(inp.value).split(' ').filter(Boolean);const res=[];if(ws.length)for(let j=0;j<MP.length&&res.length<60;j++)if(ws.every(w=>MPN[j].includes(w)))res.push(j);
@@ -4115,12 +4122,12 @@ function matAddPopup(prevId,pi){let M=$('#mpModal');if(M)M.remove();M=document.c
   lista();inp.addEventListener('input',lista);setTimeout(()=>inp.focus(),50);
   const fim=a=>{a.id='a'+Date.now().toString(36);a.q=numBR(M.querySelector('#maQtd').value)||1;a.uso=M.querySelector('#maUso').value.trim()||(pi?'PI: produto extra de instalação':'adicionado à mão');if(pi)a.pi=true;matAdd.push(a);if(typeof pedSujo!=='undefined')pedSujo=true;M.remove();matRodar(prevId)};
   M.onclick=e=>{const b=e.target.closest('[data-x]'),it=e.target.closest('[data-mp]');if(e.target===M||(b&&b.dataset.x==='cancelar')){M.remove();return}
-    if(b&&b.dataset.x==='custom'){const nome=M.querySelector('#maNome').value.trim().toUpperCase(),valor=numBR(M.querySelector('#maVal').value);if(!nome)return;fim({nome,un:M.querySelector('#maUn').value.trim()||'un',valor:valor||0,data:new Date().toLocaleDateString('pt-BR')});return}
+    if(b&&b.dataset.x==='custom'){const nome=M.querySelector('#maNome').value.trim().toUpperCase(),valor=numBR(M.querySelector('#maVal').value),un=M.querySelector('#maUn').value||'un';if(!nome){M.querySelector('#maNome').focus();return}if(M.querySelector('#maSalva').checked){const r=mpCadastra(nome,un,valor);fim({cod:r[0]})}else fim({nome,un,valor:valor||0,data:new Date().toLocaleDateString('pt-BR')});return}
     if(it){fim({cod:MP[+it.dataset.mp][0]})}}}
-function matCardRender(){const html=matUlt&&matUlt.length?`<div style="margin-top:14px;padding:12px;border:1.5px solid #495057;border-radius:12px;background:#f8f9fa"><div class="row" style="justify-content:space-between"><b>Relação de material (RM)</b><span class="note">total ${matUlt.reduce((s,r)=>s+r.tot,0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</span></div>
+function matCardRender(){const html=matUlt&&matUlt.length?`<div style="margin-top:14px;padding:12px;border:1.5px solid #495057;border-radius:12px;background:#f8f9fa"><div class="row" style="justify-content:space-between"><b>Relação de material (RM)</b><span class="note">total ${matUlt.reduce((s,r)=>s+r.tot,0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</span></div><div class="row" style="margin:6px 0 4px"><button class="btn ghost sm" type="button" data-mpadd="1" style="border-color:#2b8a3e;color:#2b8a3e">+ Adicionar matéria-prima (lista ou cadastrar nova)</button></div>
   ${matUlt.map((r,i)=>`<div class="row" style="gap:8px;align-items:center;border-top:1px solid var(--line);padding:6px 0;font-size:13px"><div style="flex:1;min-width:0"><div style="font-weight:600;${r.cod==null||r.semPreco?'color:#c92a2a':''}">${r.cod==null?'SEM CÓDIGO — '+esc(r.desc):esc(r.cod+' — '+r.nome)+(r.semPreco?' (SEM PREÇO)':'')}</div><div class="note" style="font-size:11px">${esc(r.desc)} • ${String(r.q).replace('.',',')} ${esc(r.unMP)} x ${r.vu.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}${r.data?' (valor de '+esc(r.data)+')':''}${r.manual?' • produto escolhido à mão':''}${r.qtdManual?' • quantidade à mão':''}</div></div><button class="btn ghost sm" type="button" data-mpk="${i}">Trocar</button></div>`).join('')}${matUlt.some(r=>r.semPreco)?`<div style="margin-top:10px;padding:10px;border:1.5px solid #e03131;border-radius:10px;background:#fff5f5"><b style="color:#c92a2a">Sem preço no cadastro — informe o valor</b>${matUlt.filter(r=>r.semPreco).map(r=>`<div class="row" style="gap:6px;align-items:center;margin-top:6px;flex-wrap:nowrap"><span style="flex:1;min-width:0;font-size:12.5px">${esc(r.cod+' — '+r.nome)}</span><input type="text" inputmode="decimal" placeholder="R$ un." data-mppr="${r.cod}" style="max-width:96px"></div>`).join('')}<button class="btn pink sm" type="button" data-mpprok="1" style="margin-top:8px">Salvar valores e atualizar</button></div>`:''}</div>`:'';
   document.querySelectorAll('.matBox').forEach(b=>b.innerHTML=html)}
-function matRodar(prevId){try{const t=typeof abaAtual==='function'?abaAtual():'';if(t==='novo')FPOBS_RUN.prev();else if(t==='testeiras'){if(tModo==='desenho')dRender3D();else tRender()}else if(t==='modelo')mFolhasRender();else (FPOBS_RUN[prevId]||(()=>{}))()}catch(e){console.error(e)}}
+function matRodar(prevId){try{const t=typeof abaAtual==='function'?abaAtual():'';if(t==='novo')FPOBS_RUN.prev();else if(t==='testeiras'){if(tModo==='desenho')dRender3D();else tRender()}else if(t==='modelo')mFolhasRender();else if(t==='bobs'){const b=$('#bGerar');if(b&&!b.disabled)b.click()}else (FPOBS_RUN[prevId]||(()=>{}))()}catch(e){console.error(e)}}
 function matPopup(i,prevId){const r=matUlt[i];let M=$('#mpModal');if(M)M.remove();M=document.createElement('div');M.id='mpModal';
   M.style.cssText='position:fixed;inset:0;background:#0007;z-index:9999;display:flex;align-items:center;justify-content:center;padding:12px';
   M.innerHTML=`<div style="background:#fff;border-radius:14px;padding:14px;width:100%;max-width:520px;max-height:86vh;display:flex;flex-direction:column;gap:8px"><b>Matéria-prima para: ${esc(r.desc)}</b>
@@ -4142,6 +4149,7 @@ function matPopup(i,prevId){const r=matUlt[i];let M=$('#mpModal');if(M)M.remove(
     if(it&&r.add){const a=matAdd.find(x=>x.id===r.add);if(a){a.cod=+it.dataset.mp;delete a.nome;const v=numBR(M.querySelector('#mpQtd').value);if(v>=0)a.q=v}M.remove();run();return}
     if(it){mpMapa[r.k]=+it.dataset.mp;mpSalvaMapa();const v=numBR(M.querySelector('#mpQtd').value);if(v>=0&&Math.abs(v-r.q)>1e-9)matQtd[r.k]=v;M.remove();run()}}}
 document.addEventListener('click',e=>{const ok=e.target.closest('[data-mpprok]');if(ok){const box=ok.closest('.matBox');box.querySelectorAll('[data-mppr]').forEach(i=>{const v=numBR(i.value);if(v>0)mpPreco[+i.dataset.mppr]={valor:v,data:new Date().toLocaleDateString('pt-BR')}});mpSalvaPreco();matRodar(box&&box.dataset.prev);return}
+  const ad=e.target.closest('[data-mpadd]');if(ad){const box=ad.closest('.matBox');matAddPopup(box&&box.dataset.prev);return}
   const b=e.target.closest('[data-mpk]');if(!b)return;const box=b.closest('.matBox');matPopup(+b.dataset.mpk,box&&box.dataset.prev)});
 
 // tintas do cadastro na lista do campo "Tipo de tinta"
@@ -4619,7 +4627,9 @@ function bobsCalc(B){const M=BOBS.mold,F=BOBS.folga,e=BOBS.bc.e;const pecas=B.pe
   return{pecas,comp,ledM}}
 // plano de corte simples (maior primeiro)
 function bobsBarras(pcs,barra){const L=pcs.slice().sort((a,b)=>b.len-a.len);const bars=[];
-  for(const pc of L){if(pc.len>barra){bars.push({pcs:[pc],used:pc.len,emenda:true});continue}let b=bars.find(b=>!b.emenda&&b.used+BOBS.serra+pc.len<=barra);if(!b){b={pcs:[],used:0};bars.push(b)}b.used+=(b.pcs.length?BOBS.serra:0)+pc.len;b.pcs.push(pc)}return bars}
+  // peça maior que a barra: usa barras inteiras e o resto entra no aproveitamento (com aviso de EMENDA)
+  const L2=[];for(const pc of L){if(pc.len>barra){let r=pc.len;while(r>barra){bars.push({pcs:[{...pc,len:barra,parte:true}],used:barra,emenda:true});r-=barra}if(r>0.5)L2.push({...pc,len:r,parte:true})}else L2.push(pc)}L2.sort((a,b)=>b.len-a.len);
+  for(const pc of L2){let b=bars.find(b=>!b.emenda&&b.used+BOBS.serra+pc.len<=barra);if(!b){b={pcs:[],used:0};bars.push(b)}b.used+=(b.pcs.length?BOBS.serra:0)+pc.len;b.pcs.push(pc)}return bars}
 const bobsExp=(arr,un,extra)=>arr.flatMap(c=>Array.from({length:(c.q||1)*un},()=>({len:c.len,...(extra||{})})));
 // ---------- desenho de uma peça (frente) ----------
 function bobsDesenha(P,p,R,o={}){const s=Math.min(R.w/p.W,R.h/p.H);const ox=R.x+(R.w-p.W*s)/2,oy=R.y+(R.h-p.H*s)/2;
