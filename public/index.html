@@ -5089,12 +5089,13 @@ if($('#bArte')){$('#bArte').onchange=async e=>{for(const f of e.target.files)bAr
    Fichas por setor com foto, instruções e quantitativo; RM/PI à mão; arquivos que vão no ZIP. */
 let brFichas=[],brArqs=[],brBuild=null,brSel='';
 const BR_SETORES=['SERRALHERIA','P1','ROUTER','PINTURA','IMPRESSÃO','ELÉTRICA','ACABAMENTO','MONTAGEM','LETRA CAIXA','IMPRESSÃO 3D','TERCEIRIZAÇÃO','INSTALAÇÃO','EXPEDIÇÃO','QUALIDADE'];
-const brNovaFicha=setor=>({id:'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),setor,titulo:'',img:null,texto:'',linhas:[{desc:'',med:'',q:1,un:'un'}]});
+const brImgs=f=>{if(!f.imgs)f.imgs=f.img?[f.img]:[];delete f.img;return f.imgs};
+const brNovaFicha=setor=>({id:'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),setor,titulo:'',imgs:[],texto:'',linhas:[{desc:'',med:'',q:1,un:'un'}]});
 function brUI(){const L=$('#brLista');if(!L)return;
   L.innerHTML=brFichas.length?brFichas.map((f,i)=>{const cor=SETORES[f.setor]||'#666';return `<div class="card" style="border-left:6px solid ${cor};margin:10px 0;padding:12px" data-bri="${i}">
     <div class="row" style="justify-content:space-between;align-items:center;gap:6px"><b style="color:${cor}">FP ${i+1} — ${esc(lSetNome(f.setor))}</b><div class="row" style="gap:4px"><button class="btn ghost sm" type="button" data-bra="up">↑</button><button class="btn ghost sm" type="button" data-bra="down">↓</button><button class="btn ghost sm" type="button" data-bra="dup">Duplicar</button><button class="btn danger sm" type="button" data-bra="del">Remover</button></div></div>
     <div class="g2" style="margin-top:8px"><div><label class="f">Setor</label><select data-brk="setor">${BR_SETORES.map(s=>`<option${s===f.setor?' selected':''}>${s}</option>`).join('')}</select></div><div><label class="f">Título da ficha</label><input type="text" data-brk="titulo" value="${esc(f.titulo)}" placeholder="ex.: ESTRUTURA DO TOTEM"></div></div>
-    <label class="f">Imagem da ficha (foto, print do projeto)</label><div class="row" style="gap:8px;align-items:center"><label class="btn ghost sm" style="display:inline-flex;align-items:center;cursor:pointer">${f.img?'Trocar imagem':'Enviar imagem'}<input type="file" accept="image/*" data-brimg="1" hidden></label><div class="colaZona" contenteditable="true" spellcheck="false">Colar print aqui (toque e segure → Colar, ou Ctrl+V)</div>${f.img?`<img src="${f.img.src}" style="height:56px;border:1px solid var(--line);border-radius:6px"><button class="btn ghost sm" type="button" data-bra="semimg">Tirar imagem</button>`:''}</div>
+    <label class="f">Imagens da ficha (até 4 — foto, print do projeto)</label><div class="row" style="gap:8px;align-items:center">${brImgs(f).length<4?`<label class="btn ghost sm" style="display:inline-flex;align-items:center;cursor:pointer">Enviar imagem<input type="file" accept="image/*" multiple data-brimg="1" hidden></label><div class="colaZona" contenteditable="true" spellcheck="false">Colar print aqui (toque e segure → Colar, ou Ctrl+V)</div>`:'<span class="note">Limite de 4 imagens nesta FP.</span>'}</div>${brImgs(f).length?`<div class="row" style="gap:8px;margin-top:6px;flex-wrap:wrap">${brImgs(f).map((im,n)=>`<div style="position:relative"><img src="${im.src}" style="height:64px;border:1px solid var(--line);border-radius:6px;display:block"><button class="btn danger sm" type="button" data-brimdel="${n}" style="position:absolute;top:-8px;right:-8px;padding:0 7px;min-height:0;line-height:20px;border-radius:50%">×</button></div>`).join('')}</div>`:''}
     <label class="f">Instruções / observações</label><textarea data-brk="texto" rows="3" placeholder="o que fazer nesta etapa">${esc(f.texto)}</textarea>
     <label class="f">Quantitativo</label>${f.linhas.map((l,j)=>`<div class="row" style="gap:6px;margin-top:4px;flex-wrap:wrap"><input type="text" data-brl="${j}" data-brc="desc" value="${esc(l.desc)}" placeholder="descrição (ex.: metalon 30x30)" style="flex:3;min-width:150px"><input type="text" data-brl="${j}" data-brc="med" value="${esc(l.med)}" placeholder="medida (mm)" style="flex:1;min-width:80px"><input type="number" inputmode="decimal" data-brl="${j}" data-brc="q" value="${l.q}" style="max-width:70px"><input type="text" data-brl="${j}" data-brc="un" value="${esc(l.un)}" style="max-width:56px"><button class="btn ghost sm" type="button" data-brld="${j}">×</button></div>`).join('')}
     <button class="btn ghost sm" type="button" data-bra="lin" style="margin-top:6px">+ Linha</button></div>`}).join(''):'<p class="note">Nenhuma ficha ainda. Use os botões acima para adicionar.</p>';
@@ -5108,8 +5109,12 @@ function brFolhas(){const ctx=brCtx();const un=Math.max(1,Math.round(num($('#brU
       P.push({t:'text',x:PW/2,y:30,s:fit((f.titulo||f.setor).toUpperCase(),200,4.2),size:4.2,bold:true,color:'#000000',anchor:'middle'});
       const temTab=linhas.length>0,temTxt=!!(f.texto.trim()||obsG);const yTab=temTab?Math.max(118,166-6-5.2*(Math.min(per,linhas.length-k)+1)):168;
       const imgW=temTxt?190:270,imgH=yTab-42-4;
-      if(f.img&&k===0){const s=Math.min(imgW/f.img.w,imgH/f.img.h);const w=f.img.w*s,h=f.img.h*s;P.push({t:'rect',x:12,y:38,w:imgW+2,h:imgH+2,fill:'#ffffff',stroke:'#ced4da',lw:0.2},{t:'img',x:13+(imgW-w)/2,y:39+(imgH-h)/2,w,h,src:f.img.src,fmt:'JPEG'})}
-      else if(k===0)P.push({t:'rect',x:12,y:38,w:imgW+2,h:imgH+2,fill:'#f8f9fa',stroke:'#ced4da',lw:0.2},{t:'text',x:12+imgW/2,y:38+imgH/2,s:'(sem imagem)',size:3,color:'#adb5bd',anchor:'middle'});
+      if(k===0){const IM=brImgs(f);P.push({t:'rect',x:12,y:38,w:imgW+2,h:imgH+2,fill:IM.length?'#ffffff':'#f8f9fa',stroke:'#ced4da',lw:0.2});
+        if(!IM.length)P.push({t:'text',x:12+imgW/2,y:38+imgH/2,s:'(sem imagem)',size:3,color:'#adb5bd',anchor:'middle'});
+        // 1: inteira • 2: lado a lado • 3: duas em cima e uma centralizada embaixo • 4: 2 x 2
+        const n=Math.min(4,IM.length),g=2,cw=n>1?(imgW-g)/2:imgW,ch=n>2?(imgH-g)/2:imgH;
+        IM.slice(0,4).forEach((im,q)=>{let cx,cy;if(n===1){cx=13;cy=39}else if(n===2){cx=13+q*(cw+g);cy=39}else if(n===3&&q===2){cx=13+(imgW-cw)/2;cy=39+ch+g}else{cx=13+(q%2)*(cw+g);cy=39+Math.floor(q/2)*(ch+g)}
+          const sc=Math.min(cw/im.w,ch/im.h),w=im.w*sc,h=im.h*sc;P.push({t:'img',x:cx+(cw-w)/2,y:cy+(ch-h)/2,w,h,src:im.src,fmt:'JPEG'});if(n>1)P.push({t:'rect',x:cx,y:cy,w:cw,h:ch,stroke:'#e9ecef',lw:0.15})})}
       if(temTxt&&k===0){const x0=12+imgW+6,w=PW-12-x0;const L=[...(f.texto.trim()?wrap(f.texto,Math.floor(w/1.45)):[]),...(obsG?['',...wrap('OBS.: '+obsG,Math.floor(w/1.45))]:[])];
         P.push({t:'rect',x:x0,y:38,w,h:imgH+2,r:1.5,fill:'#ebfbee',stroke:'#2f9e44',lw:0.35},{t:'text',x:x0+3,y:43.5,s:'INSTRUÇÕES',size:3,bold:true,color:'#2b8a3e'});
         L.slice(0,Math.floor((imgH-10)/4.4)).forEach((t,i)=>P.push({t:'text',x:x0+3,y:50+i*4.4,s:t,size:2.7,bold:/^OBS\./.test(t),color:'#000000'}))}
@@ -5140,8 +5145,9 @@ function brLimpa(){brFichas=[];brArqs=[];brBuild=null;$('#brDesc').value='';$('#
     if(t.dataset.brk&&t.dataset.brk!=='setor')f[t.dataset.brk]=t.value;if(t.dataset.brl!=null){const l=f.linhas[+t.dataset.brl];l[t.dataset.brc]=t.dataset.brc==='q'?num(t.value):t.value}brSujo()});
   L.addEventListener('change',async e=>{const c=e.target.closest('[data-bri]');if(!c)return;const f=brFichas[+c.dataset.bri];const t=e.target;
     if(t.dataset.brk==='setor'){f.setor=t.value;brUI()}
-    if(t.dataset.brimg&&t.files[0]){const r=await shrinkImage(t.files[0],1600,'image/jpeg');f.img={src:r.url,w:r.w,h:r.h};brUI()}brSujo()});
+    if(t.dataset.brimg&&t.files.length){const L=brImgs(f);let fora=0;for(const fl of t.files){if(L.length>=4){fora++;continue}const r=await shrinkImage(fl,1600,'image/jpeg');L.push({src:r.url,w:r.w,h:r.h})}if(fora)$('#brMsg').innerHTML=`<div class="msg err">Limite de 4 imagens por FP — ${fora} imagem(ns) ficou(aram) de fora.</div>`;brUI()}brSujo()});
   L.addEventListener('click',e=>{const c=e.target.closest('[data-bri]');if(!c)return;const i=+c.dataset.bri,f=brFichas[i];const a=e.target.closest('[data-bra]');const ld=e.target.closest('[data-brld]');
+    const im=e.target.closest('[data-brimdel]');if(im){brImgs(f).splice(+im.dataset.brimdel,1);brUI();brSujo();return}
     if(ld){f.linhas.splice(+ld.dataset.brld,1);if(!f.linhas.length)f.linhas.push({desc:'',med:'',q:1,un:'un'});brUI();brSujo();return}
     if(!a)return;const k=a.dataset.bra;
     if(k==='del'){if(!confirm('Remover esta ficha?'))return;brFichas.splice(i,1)}
@@ -5149,8 +5155,7 @@ function brLimpa(){brFichas=[];brArqs=[];brBuild=null;$('#brDesc').value='';$('#
     else if(k==='down'&&i<brFichas.length-1)[brFichas[i+1],brFichas[i]]=[brFichas[i],brFichas[i+1]];
     else if(k==='dup')brFichas.splice(i+1,0,{...JSON.parse(JSON.stringify(f)),id:'f'+Date.now().toString(36)});
     else if(k==='lin')f.linhas.push({desc:'',med:'',q:1,un:'un'});
-    else if(k==='semimg')f.img=null;
-    brUI();brSujo()});
+        brUI();brSujo()});
   $('#brArq').onchange=async e=>{for(const f of e.target.files){const buf=new Uint8Array(await f.arrayBuffer());brArqs.push({name:f.name,b64:b64(buf)})}e.target.value='';brUI();brSujo();
     const tot=brArqs.reduce((a,f)=>a+f.b64.length*0.75,0);if(tot>15*1048576)$('#brMsg').innerHTML='<div class="msg err">Arquivos somam mais de 15 MB — podem não salvar junto com o item.</div>'};
   $('#brArqLista').onclick=e=>{const b=e.target.closest('[data-brad]');if(!b)return;brArqs.splice(+b.dataset.brad,1);brUI();brSujo()};
