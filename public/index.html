@@ -1734,11 +1734,13 @@ function obsBox(P,ctx){
 }
 // observação geral da FP: canto inferior direito, em vermelho, em todas as folhas
 let fpObsPg={};
-function obsFPDraw(P,n){P._n=n;const s=(P._obs!==undefined?P._obs:fpObsPg[n]||'').replace(/\s+/g,' ').trim();if(!s)return;const maxc=50;const ws=s.toUpperCase().split(' ');const ls=[];let c='';
-  ws.forEach(w=>{if((c+' '+w).trim().length>maxc){ls.push(c);c=w}else c=(c+' '+w).trim()});if(c)ls.push(c);const L=ls.slice(0,5);if(ls.length>5)L[4]=L[4].slice(0,maxc-1)+'…';
-  const lh=4.2,x1=PW-9,w=Math.max(30,Math.max(...L.map(l=>l.length))*1.95+8),h=L.length*lh+8.4,y0=169.4-h;
-  P.push({t:'rect',x:x1-w,y:y0,w,h,r:2,fill:'#d3f9d8',stroke:'#2b8a3e',lw:0.6},{t:'text',x:x1-w+3,y:y0+4.2,s:'OBSERVAÇÃO',size:2.7,bold:true,color:'#2b8a3e'});
-  L.forEach((l,i)=>P.push({t:'text',x:x1-w+3,y:y0+8.6+i*lh,s:l,size:3.2,bold:true,color:'#000000'}))}
+// observações da folha: uma ou várias (cada uma num box verde, empilhados de baixo para cima no canto inferior direito)
+const obsLista=v=>(Array.isArray(v)?v:v?[v]:[]).map(x=>String(x||'').replace(/\s+/g,' ').trim()).filter(Boolean);
+function obsFPDraw(P,n){P._n=n;const lista=obsLista(P._obs!==undefined?P._obs:fpObsPg[n]);if(!lista.length)return;const maxc=50,lh=4.2,x1=PW-9;let yb=169.4;
+  lista.forEach((s,k)=>{const ws=s.toUpperCase().split(' ');const ls=[];let c='';ws.forEach(w=>{if((c+' '+w).trim().length>maxc){ls.push(c);c=w}else c=(c+' '+w).trim()});if(c)ls.push(c);
+    const L=ls.slice(0,5);if(ls.length>5)L[4]=L[4].slice(0,maxc-1)+'…';const w=Math.max(30,Math.max(...L.map(l=>l.length))*1.95+8),h=L.length*lh+8.4,y0=yb-h;
+    P.push({t:'rect',x:x1-w,y:y0,w,h,r:2,fill:'#d3f9d8',stroke:'#2b8a3e',lw:0.6},{t:'text',x:x1-w+3,y:y0+4.2,s:lista.length>1?`OBSERVAÇÃO ${k+1}`:'OBSERVAÇÃO',size:2.7,bold:true,color:'#2b8a3e'});
+    L.forEach((l,i)=>P.push({t:'text',x:x1-w+3,y:y0+8.6+i*lh,s:l,size:3.2,bold:true,color:'#000000'}));yb=y0-2})}
 function footer(P,ctx,n,total){if(P._ref&&!P._refOk)refAplica(P);obsBox(P,ctx);obsFPDraw(P,n);
   const y0=171;P.push({t:'line',x1:8,y1:y0,x2:PW-8,y2:y0,color:'#000000',w:0.3});
   const LG=empresa.logo&&empresa.lw?empresa:{logo:GRANDA_LOGO,lw:375,lh:134};
@@ -3894,23 +3896,25 @@ if($('#instIn')){
 
 /* ---------- observação por folha da FP (campo fino abaixo de cada folha na prévia) ---------- */
 function fpObsLinha(pg){const n=+pg.querySelector('svg[data-pg]').dataset.pg;const d=document.createElement('div');d.className='fpObsRow';
-  d.style.cssText='display:flex;gap:8px;align-items:center;margin:6px 0 14px';const v=fpObsPg[n];
-  d.innerHTML=`<button class="btn ghost sm" type="button" style="padding:6px 12px;border-color:#e03131;color:#c92a2a;white-space:nowrap">${v?'✎ Editar observação':'+ Add observação'}</button>${v?`<span style="font-size:12px;color:#c92a2a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">${esc(v)}</span>`:''}`;
-  d.querySelector('button').onclick=()=>fpObsPopup(n,pg.closest('.prev').id);
+  d.style.cssText='display:flex;gap:8px;align-items:center;margin:6px 0 14px;flex-wrap:wrap';const lista=obsLista(fpObsPg[n]);
+  d.innerHTML=`<button class="btn ghost sm" type="button" style="padding:6px 12px;border-color:#e03131;color:#c92a2a;white-space:nowrap">+ Add observação</button>`+lista.map((v,k)=>`<span data-obsk="${k}" style="display:inline-flex;gap:4px;align-items:center;max-width:100%;border:1px solid #ffc9c9;background:#fff5f5;border-radius:999px;padding:3px 4px 3px 10px;font-size:12px;color:#c92a2a"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:260px">${lista.length>1?(k+1)+'. ':''}${esc(v)}</span><button type="button" data-obsed="${k}" title="Editar" style="border:0;background:none;cursor:pointer;color:#c92a2a">✎</button><button type="button" data-obsdel="${k}" title="Remover" style="border:0;background:none;cursor:pointer;color:#c92a2a;font-weight:700">×</button></span>`).join('');
+  const pid=pg.closest('.prev').id;d.querySelector('button').onclick=()=>fpObsPopup(n,pid);
+  d.querySelectorAll('[data-obsed]').forEach(b=>b.onclick=()=>fpObsPopup(n,pid,+b.dataset.obsed));
+  d.querySelectorAll('[data-obsdel]').forEach(b=>b.onclick=()=>{const L=obsLista(fpObsPg[n]);L.splice(+b.dataset.obsdel,1);if(L.length)fpObsPg[n]=L;else delete fpObsPg[n];if(typeof pedSujo!=='undefined'){pedSujo=true;try{pedBarRender()}catch(e){}}try{(FPOBS_RUN[pid]||(()=>{}))()}catch(err){console.error(err)}});
   {const sr=pg.querySelector('svg[data-reg]');if(sr){const b3=document.createElement('button');b3.className='btn ghost sm';b3.type='button';b3.style.cssText='padding:6px 12px;white-space:nowrap';b3.textContent='Baixar esta página (PDF)';
     b3.onclick=()=>{const P=PGREG[+sr.dataset.reg];if(!P)return;const st=(sr.dataset.setor||'FP').replace(/[^A-Za-zÀ-ú0-9 ]/g,'');const nome=`OS ${($('#os')||{}).value||'sem número'} - item ${($('#item')||{}).value||''} - ${st} pag ${n}.pdf`.replace(/[\\/:*?"<>|]/g,'-');baixaPagina(P,nome)};d.insertBefore(b3,d.children[1]||null)}}
   const sv=pg.querySelector('svg[data-setor]');if(sv&&/^PI/.test(sv.dataset.setor)){const b2=document.createElement('button');b2.className='btn ghost sm';b2.type='button';b2.style.cssText='padding:6px 12px;border-color:#0b7285;color:#0b7285;white-space:nowrap';b2.textContent='+ Add produto na PI';b2.onclick=()=>matAddPopup(pg.closest('.prev').id,true);d.insertBefore(b2,d.children[1]||null)}
   if(sv&&/^RM/.test(sv.dataset.setor)){const b2=document.createElement('button');b2.className='btn ghost sm';b2.type='button';b2.style.cssText='padding:6px 12px;border-color:#2b8a3e;color:#2b8a3e;white-space:nowrap';b2.textContent='+ Add matéria-prima';b2.onclick=()=>matAddPopup(pg.closest('.prev').id);d.insertBefore(b2,d.children[1]||null)}
   pg.after(d)}
-function fpObsPopup(n,prevId){let M=$('#fpObsModal');if(M)M.remove();M=document.createElement('div');M.id='fpObsModal';
+function fpObsPopup(n,prevId,idx){const novo=idx==null;let M=$('#fpObsModal');if(M)M.remove();M=document.createElement('div');M.id='fpObsModal';
   M.style.cssText='position:fixed;inset:0;background:#0007;z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
   M.innerHTML=`<div style="background:#fff;border-radius:14px;padding:16px;width:100%;max-width:420px;box-shadow:0 10px 40px #0004">
-    <div style="font-weight:700;margin-bottom:4px">Observação — folha ${n}</div><div class="note" style="margin-bottom:8px">Sai num box verde no canto inferior direito desta folha.</div>
+    <div style="font-weight:700;margin-bottom:4px">${novo?'Nova observação':'Editar observação '+(idx+1)} — folha ${n}</div><div class="note" style="margin-bottom:8px">Sai num box verde no canto inferior direito desta folha.</div>
     <textarea id="fpObsTxt" rows="4" style="width:100%;box-sizing:border-box" placeholder="Ex.: conferir medida na obra"></textarea>
     <div class="row" style="gap:8px;margin-top:10px;justify-content:flex-end"><button class="btn ghost sm" type="button" data-x="limpar">Remover</button><button class="btn ghost sm" type="button" data-x="cancelar">Cancelar</button><button class="btn pink sm" type="button" data-x="ok">Atualizar FP</button></div></div>`;
-  document.body.appendChild(M);const ta=M.querySelector('#fpObsTxt');ta.value=fpObsPg[n]||'';setTimeout(()=>ta.focus(),50);
+  document.body.appendChild(M);const ta=M.querySelector('#fpObsTxt');ta.value=novo?'':(obsLista(fpObsPg[n])[idx]||'');setTimeout(()=>ta.focus(),50);
   M.onclick=e=>{const b=e.target.closest('[data-x]');if(e.target===M||(b&&b.dataset.x==='cancelar')){M.remove();return}if(!b)return;
-    const v=b.dataset.x==='limpar'?'':ta.value.trim();if(v)fpObsPg[n]=v;else delete fpObsPg[n];if(typeof pedSujo!=='undefined'){pedSujo=true;try{pedBarRender()}catch(e){}}M.remove();try{(FPOBS_RUN[prevId]||(()=>{}))()}catch(err){console.error(err)}}}
+    const v=b.dataset.x==='limpar'?'':ta.value.trim();const L=obsLista(fpObsPg[n]);if(novo){if(v)L.push(v)}else{if(v)L[idx]=v;else L.splice(idx,1)}if(L.length)fpObsPg[n]=L;else delete fpObsPg[n];if(typeof pedSujo!=='undefined'){pedSujo=true;try{pedBarRender()}catch(e){}}M.remove();try{(FPOBS_RUN[prevId]||(()=>{}))()}catch(err){console.error(err)}}}
 const FPOBS_RUN={prev:()=>{if(!$('#gerar').disabled)$('#gerar').click()},mPrev:()=>mFolhasRender(),dPrev:()=>dRender3D(),tPrev:()=>tRender(),bPrev:()=>{const b=$('#bGerar');if(b&&!b.disabled)b.click()},brPrev:()=>brRender()};
 ['prev','mPrev','dPrev','tPrev','bPrev','brPrev'].forEach(id=>{const el=$('#'+id);if(!el)return;
   new MutationObserver(()=>{el.querySelectorAll('.pg').forEach(pg=>{const nx=pg.nextElementSibling;if((!nx||!nx.classList.contains('fpObsRow'))&&pg.querySelector('svg[data-pg]'))fpObsLinha(pg)})}).observe(el,{childList:true})});
