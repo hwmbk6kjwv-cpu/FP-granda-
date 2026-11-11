@@ -222,7 +222,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <label class="f" style="margin-top:14px">Itens do pedido</label>
       <div id="pedItens"></div>
       <div class="row" style="gap:6px;margin-top:10px"><span class="note" style="align-self:center">Novo item:</span><button class="btn ghost sm" data-novo="letra">+ Letra caixa</button><button class="btn ghost sm" data-novo="testeira">+ Testeira</button><button class="btn ghost sm" data-novo="estrutura">+ Estrutura por desenho</button><button class="btn ghost sm" data-novo="modelo3d">+ Modelo 3D</button><button class="btn ghost sm" data-novo="bobs">+ Bobs requadro</button><button class="btn ghost sm" data-novo="bobscomp">+ Bobs complemento 30x30</button><button class="btn ghost sm" data-novo="bobscant">+ Bobs cantoneira iluminada</button></div>
-      <div class="row" style="gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)"><button class="btn pink" id="pedGerar">Gerar FP completa do pedido</button><button class="btn acc" id="pedGerarSel" disabled>Gerar FP parcial (selecione os itens)</button><button class="btn ghost" id="pedBaixar" hidden>Baixar FP completa (PDF)</button><button class="btn ghost sm" id="pedExport">Exportar pedido (arquivo)</button><button class="btn danger sm" id="pedExcluir" style="margin-left:auto">Excluir pedido</button></div><div id="pedExpMsg" class="note" style="margin-top:6px"></div>
+      <div class="row" style="gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)"><button class="btn pink" id="pedGerar">Gerar FP completa do pedido</button><button class="btn acc" id="pedGerarSel" disabled>Gerar FP parcial (selecione os itens)</button><button class="btn ghost" id="pedBaixar" hidden>Baixar FP completa (PDF)</button><button class="btn" id="pedRM" style="background:#495057;color:#fff">Baixar RM + PI do pedido (por produto + total)</button><button class="btn ghost sm" id="pedExport">Exportar pedido (arquivo)</button><button class="btn danger sm" id="pedExcluir" style="margin-left:auto">Excluir pedido</button></div><div id="pedExpMsg" class="note" style="margin-top:6px"></div>
       <div id="pedMsg"></div>
       <div class="prev" id="pedPrev"></div>
     </div>
@@ -381,6 +381,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
     </div>
     <div class="card"><h2>Páginas extras</h2><p class="note" style="margin:0 0 6px">Folha com foto grande centralizada e observação em destaque (box verde).</p><div class="xfList" id="xfB"></div><button class="btn ghost sm xfAdd" type="button" data-box="xfB">+ Página extra</button></div>
     <div class="card" id="bResCard">
+      <div id="bArteBox" style="margin-bottom:10px;padding:10px;border:1.5px dashed #1c7ed6;border-radius:10px;background:#f8fbff"><label class="f" style="margin:0 0 4px">Arquivo de impressão (arte do adesivo fosco) — vai junto no ZIP</label><input type="file" id="bArte" multiple accept=".pdf,.ai,.eps,.cdr,.svg,.png,.jpg,.jpeg,.tif,.tiff,.psd"><div id="bArteLista" class="note" style="margin-top:4px">Nenhum arquivo anexado.</div></div>
       <div class="row" style="gap:8px"><button class="btn pink" id="bGerar">Gerar FP</button><button class="btn ghost" id="bBaixar" hidden>Baixar FP (PDF)</button></div><div id="bMsg" style="margin-top:8px"></div>
       <div id="bFiles" style="margin-top:10px"></div>
       <h2 id="bFichasT" hidden style="margin:16px 0 0">Fichas de produção</h2>
@@ -2217,17 +2218,22 @@ async function baixaPagina(P,nome){const pdf=toPDF([P]);try{const dl=window.clau
   if(dl){await dl.save({filename:nome,data:new Blob([pdf],{type:'application/pdf'})});return}
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([pdf],{type:'application/pdf'}));a.download=nome;document.body.appendChild(a);a.click();a.remove()}catch(e){if(e&&e.code==='declined')return;alert('Não foi possível baixar: '+(e.code||e.message))}}
 // RM em planilha .xlsx (gerada com JSZip, sem biblioteca extra)
+// planilha da PI (produtos de instalação)
+function piXlsx(pi,titulo){const lin=[[titulo||'PI'],['CÓDIGO','PRODUTO','QTD','UN','USO NA INSTALAÇÃO']];(pi||[]).forEach(r=>lin.push([r.cod==null?'—':r.cod,r.nome||'',String(r.q),r.un||'',r.uso||'']));const o=[];o.__lin=lin;o.__aba='PI';return rmXlsx(o,titulo)}
+// todo ZIP leva a RM e a PI em planilha (xlsx)
+async function zipRmPi(z,bz){try{const rows=(rmUlt&&rmUlt.rows)||matUlt;if(rows&&rows.length)z.file(nomeArq(`${bz} - RM relacao de materiais.xlsx`),await rmXlsx(rows,bz+' - RM'))}catch(e){console.error('RM xlsx',e)}
+  try{if(rmUlt&&rmUlt.pi&&rmUlt.pi.length)z.file(nomeArq(`${bz} - PI produtos de instalacao.xlsx`),await piXlsx(rmUlt.pi,bz+' - PI'))}catch(e){console.error('PI xlsx',e)}}
 async function rmXlsx(rows,titulo){const x=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const col=i=>String.fromCharCode(65+i);
   const cel=(r,i,v)=>typeof v==='number'&&isFinite(v)?`<c r="${col(i)}${r}"><v>${v}</v></c>`:`<c r="${col(i)}${r}" t="inlineStr"><is><t xml:space="preserve">${x(v)}</t></is></c>`;
-  const lin=[[titulo||'RM'],['CÓDIGO','DESCRIÇÃO','QTD','UN','VALOR UN.','TOTAL','USO']];
+  let lin=rows&&rows.__lin;if(!lin){lin=[[titulo||'RM'],['CÓDIGO','DESCRIÇÃO','QTD','UN','VALOR UN.','TOTAL','USO']];
   let tot=0;rows.forEach(r=>{const t=+(r.tot||0);tot+=t;lin.push([r.cod==null?'SEM CÓDIGO':r.cod,r.nome||r.desc||'',+(+r.q||0).toFixed(3),r.unMP||r.un||'',+(+r.vu||0).toFixed(2),+t.toFixed(2),r.uso||''])});
-  lin.push([]);lin.push(['','','','','TOTAL',+tot.toFixed(2)]);
+  lin.push([]);lin.push(['','','','','TOTAL',+tot.toFixed(2)])}
   const sd=lin.map((L,ri)=>`<row r="${ri+1}">${L.map((v,ci)=>cel(ri+1,ci,v)).join('')}</row>`).join('');
   const z=new JSZip();
   z.file('[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>');
   z.file('_rels/.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');
-  z.file('xl/workbook.xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="RM" sheetId="1" r:id="rId1"/></sheets></workbook>');
+  z.file('xl/workbook.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${rows&&rows.__aba||'RM'}" sheetId="1" r:id="rId1"/></sheets></workbook>`);
   z.file('xl/_rels/workbook.xml.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>');
   z.file('xl/worksheets/sheet1.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="1" max="1" width="11" customWidth="1"/><col min="2" max="2" width="60" customWidth="1"/><col min="3" max="6" width="12" customWidth="1"/><col min="7" max="7" width="40" customWidth="1"/></cols><sheetData>${sd}</sheetData></worksheet>`);
   return z.generateAsync({type:'arraybuffer'})}
@@ -2349,7 +2355,7 @@ $('#prodFiles').onclick=async e=>{const b=e.target.closest('button');if(!b)retur
     const bz=`OS ${$('#os').value.trim()||'sem número'} - item ${$('#item').value||1}`;
     try{if(lDoc&&lDoc.pages){for(const [st,nm] of [['INSTALAÇÃO','PROJETO DE INSTALACAO'],['EXPEDIÇÃO','FP EXPEDICAO']]){const pg=lDoc.pages.filter(P=>P._setor===st);if(pg.length)z.file(nomeArq(`${bz} - ${nm}.pdf`),toPDF(pg))}}}catch(er){console.error(er)}
     try{if(lDoc&&lDoc.pages){const pg=lDoc.pages.filter(P=>P._setor==='PI');if(pg.length)z.file(nomeArq(`${bz} - PI produtos de instalacao.pdf`),toPDF(pg))}}catch(er){console.error(er)}
-    try{if(matUlt&&matUlt.length)z.file(nomeArq(`${bz} - RM relacao de materiais.xlsx`),await rmXlsx(matUlt,bz))}catch(er){console.error(er)}const blob=await z.generateAsync({type:'blob'});await salvar(nomeArq(`OS ${$('#os').value.trim()||'sem número'} - item ${$('#item').value||1} - arquivos de producao.zip`),blob);return}
+    await zipRmPi(z,bz);const blob=await z.generateAsync({type:'blob'});await salvar(nomeArq(`OS ${$('#os').value.trim()||'sem número'} - item ${$('#item').value||1} - arquivos de producao.zip`),blob);return}
   const f=prodFiles[+b.dataset.pf];if(f)await salvar(f.name,new Blob([f.buf.slice(0)],{type:f.mime||'application/pdf'}))};
 $('#baixar').onclick=async()=>{
   if(!lastPdf)return;
@@ -3022,7 +3028,7 @@ function pickerCasa(){const pk=$('#pPicker');if($('#tab-testeiras').hidden){$('#
   if(tModo==='desenho'){if(dPint==='toda')$('#dPintSlot').appendChild(pk)}else if(tPint==='toda')$('#tPintSlot').appendChild(pk)}
 
 $('#tAcmFiles').onclick=async()=>{if(!lastBuild||!lastBuild.M.acm)return;const r=lastBuild;const fs=acmArquivos(r.M.acm,`OS ${r.ctx.os||'sem número'} - item ${r.ctx.item}`);
-  let blob,name;if(fs.length===1){blob=new Blob([fs[0].buf],{type:'application/pdf'});name=fs[0].name}else{const z=new JSZip();fs.forEach(f=>z.file(f.name,f.buf));blob=await z.generateAsync({type:'blob'});name=nomeArq(`OS ${r.ctx.os||'sem número'} - item ${r.ctx.item} - ACM router.zip`)}
+  let blob,name;{const z=new JSZip();fs.forEach(f=>z.file(f.name,f.buf));await zipRmPi(z,`OS ${r.ctx.os||'sem número'} - item ${r.ctx.item}`);blob=await z.generateAsync({type:'blob'});name=nomeArq(`OS ${r.ctx.os||'sem número'} - item ${r.ctx.item} - ACM router.zip`)}
   try{const dl=window.claude&&claude.use?await claude.use('downloads'):null;if(!dl){$('#tMsg').insertAdjacentHTML('beforeend','<div class="msg err">Download indisponível nesta visualização.</div>');return}await dl.save({filename:name,data:blob})}catch(e){if(e&&e.code==='declined')return;$('#tMsg').insertAdjacentHTML('beforeend',`<div class="msg err">Não foi possível baixar (${esc(e.code||e.message)}).</div>`)}};
 
 $('#tDivMsg').addEventListener('click',e=>{if(e.target.id==='tDivManter'){tFaces.forEach(f=>{if(!cabeLim(f.W,f.H))f.semDiv=true});$('#tDivMsg').innerHTML='<div class="msg ok">Estrutura mantida no tamanho original (sem divisão).</div>';tAtualizar();return}if(e.target.id!=='tDivBtn')return;for(let i=tFaces.length-1;i>=0;i--)dividirFace(i);renderFaces();acmUI();v3Fit=true;tAtualizar()});
@@ -3763,9 +3769,10 @@ function paginasFinais(pages,tags,ctx,prod){try{
   try{const anc=prod.semAnc?[]:needsAncoragem(ancInfo(instLer(),prod));const X=piPrep(prod,[...(prod.mat||[]),...anc]);
     const rows=matResolve(X.needs).concat(ancTipoRows(prod),matAddRows());
     if(rows.length){folhasMaterial(ctx,prod,rows).forEach(P=>{pages.push(P);if(tags)tags.push('RM')});matUlt=rows;setTimeout(matCardRender,0);if(typeof custoAuto==='function')custoAuto()}
-    try{const pi=piLista(rows,X.tinta);folhasPI(ctx,prod,pi).forEach(P=>{pages.push(P);if(tags)tags.push('PI')})}catch(e){console.error('PI',e)}}catch(e){console.error('lista de material',e)}}catch(e){console.error('paginasFinais',e)}}
+    try{const pi=piLista(rows,X.tinta);rmUlt={ctx,prod,rows,pi};folhasPI(ctx,prod,pi).forEach(P=>{pages.push(P);if(tags)tags.push('PI')})}catch(e){console.error('PI',e)}}catch(e){console.error('lista de material',e)}}catch(e){console.error('paginasFinais',e)}}
 /* ---------- PI — PRODUTOS DE INSTALAÇÃO (tudo que está aqui também entra na RM) ---------- */
 function piLargura(prod){const L=prod.letras||[];if(!L.length||!L[0].bb)return 0;return Math.max(...L.map(g=>g.bb.x1))-Math.min(...L.map(g=>g.bb.x0))}
+let rmUlt=null;
 function piPrep(prod,needs){const out=needs.map(n=>({...n}));const tinta={};
   // tinta: +50 ml de cada cor do projeto (retoque na instalação)
   const soTinta=n=>/^tinta\|/.test(n.k)&&!/^tinta\|(catpu|wash|washcat|catepox)$/.test(n.k)&&!/cat(pu|epox|alis)|wash|primer|diluente|thinner|solvente|verniz/i.test(n.k.split('|').pop()+' '+(n.desc||''));
@@ -4801,7 +4808,9 @@ function bobsProd(C,un,ctx,X){const N=[];const nm=v=>String(v).replace('.',',');
   const aA=X.acms.filter(e=>e.tipo==='acm').reduce((a,e)=>a+e.W*e.H,0)/1e6*un;if(aA>0)N.push({k:'bobs|ades',desc:'Adesivo impresso FOSCO (ACM inteiro)',q:Math.round(X.acms.filter(e=>e.tipo==='acm').reduce((a,e)=>a+(e.W+2*BOBS.sangria)*(e.H+2*BOBS.sangria),0)/1e6*un*100)/100,un:'m²',uso:`ACM inteiro: ${f2(aA)} m² + sangria de ${BOBS.sangria} mm`,busca:{must:['ADESIVO IMPRESSO']}});
   N.push({k:'bobs|cant12',desc:`Cantoneira de alumínio 12x12 x 0,90 preta — barra ${BOBS.cantBarra/1000} m`,q:Math.ceil(X.fix.cant/(BOBS.cantBarra/1000)),un:'un',uso:`fundo dos vãos de ACM: ${nm(X.fix.cant.toFixed(2))} m`,busca:{must:['CANTONEIRA DE ALUMINIO 12X12','0,90MM','PRETA']}});
   if(X.fix.vhb>0)N.push({k:'bobs|vhb',desc:'Fita VHB 4910 15 mm (rolo 33 m)',q:Math.round(X.fix.vhb/33*100)/100,un:'un',uso:`face das cantoneiras: ${nm(X.fix.vhb.toFixed(2))} m`,busca:{must:['VHB 4910','15MM']}});
-  if(X.fix.paraf)N.push({k:'bobs|broc',desc:'Parafuso brocante philips 4,2 x 13 (1/2")',q:X.fix.paraf,un:'un',uso:'cantoneiras e ripados',busca:{must:['BROCANTE','4,2X13']}});
+  // fixação do requadro no balcão: parafuso fixer 4,5 x 45 em cima e embaixo, a cada ~300 mm (vai na PI)
+  {const qF=C.pecas.reduce((a,p)=>a+2*(Math.ceil(p.W/300)+1),0)*un;if(qF)N.push({k:'pi|bobs|fixer',desc:'Parafuso fixer cab. chata philips 4,5 x 45',q:qF,un:'un',uso:'fixar o requadro no balcão (em cima e embaixo, a cada ~300 mm)',busca:{must:['FIXER','4,5X45']}})}
+  if(X.fix.paraf)N.push({k:'bobs|broc',desc:'Parafuso brocante philips 4,2 x 13 (1/2")',q:X.fix.paraf,un:'un',uso:'cantoneiras e ripados',busca:{must:['FLANGEADO BROCANTE PHILIPS','4,2X13']}});
   // tintas PU (laranja e roxo) + catalisador e wash primer
   const tPU=(area,cor,k,must,want)=>{if(!(area>0))return;const L=area*MPP.demaos/MPP.tintaRend;N.push({k:'tinta|bobs|'+k,desc:`Tinta PU semi brilho ${cor}`,litros:L,un:'un',uso:`${f2(area)} m² x ${MPP.demaos} demãos`,busca:{must,want}});
     N.push({k:'tinta|bobs|cat'+k,desc:'Catalisador PU',litros:L*MPP.puCatMl/1000,un:'un',uso:`${MPP.puCatMl} ml por litro`,busca:{must:['CATALISADOR','PU']}});
@@ -4864,7 +4873,8 @@ $('#bGerar').onclick=()=>bobsRender();
 $('#bPgPick').onclick=e=>{const b=e.target.closest('[data-bpg]');if(!b)return;bobsSel=b.dataset.bpg;bobsRender()};
 $('#bBaixar').onclick=async()=>{if(!bobsBuild)return;await salvar(nomeArq(`OS ${bobsBuild.ctx.os||'sem número'} - Bobs requadro - item ${bobsBuild.ctx.item}.pdf`),new Blob([toPDF(bobsBuild.pages)],{type:'application/pdf'}))};
 $('#bFiles').onclick=async e=>{const b=e.target.closest('[data-bf]');if(!b)return;const base=`OS ${$('#os').value.trim()||'sem número'} - item ${$('#item').value||1}`;
-  if(b.dataset.bf==='zip'){const z=new JSZip();bobsFiles.forEach(f=>{const v=vecPDF(f.vec);if(v)z.file(nomeArq(`${base} - ${f.name}`),v.buf)});await salvar(nomeArq(`${base} - Bobs arquivos router.zip`),await z.generateAsync({type:'blob'}));return}
+  if(b.dataset.bf==='zip'){const z=new JSZip();bobsFiles.forEach(f=>{const v=vecPDF(f.vec);if(v)z.file(nomeArq(`${base} - ${f.name}`),v.buf)});bArtes.forEach(f=>z.file(nomeArq(`${base} - ARTE IMPRESSAO - ${f.name}`),f.buf));
+    try{if(bobsBuild){const pi=bobsBuild.pages.filter(P=>P._setor==='PI');if(pi.length)z.file(nomeArq(`${base} - PI produtos de instalacao.pdf`),toPDF(pi))}}catch(e){console.error(e)}await zipRmPi(z,base);await salvar(nomeArq(`${base} - Bobs arquivos.zip`),await z.generateAsync({type:'blob'}));return}
   const f=bobsFiles[+b.dataset.bf];const v=f&&vecPDF(f.vec);if(v)await salvar(nomeArq(`${base} - ${f.name}`),new Blob([v.buf],{type:'application/pdf'}))};
 /* ---------- editor de medidas (igual ao da testeira) ---------- */
 let bEdPeca=0,bDrag=null;
@@ -5038,6 +5048,12 @@ function bobsCantFolhas(){const ctx=bobsCtx(bobsDesc());const pages=[],tags=[];c
   return{pages,tags,ctx,resumo:`${nm(m.toFixed(2))} m de cantoneira com LED • ${Object.entries(c).map(([w,q])=>`${q} x ${w} W`).join(' + ')}.`}}
 bobsUI();
 
+// arquivo(s) de impressão da arte (vão no ZIP)
+let bArtes=[];
+function bArteUI(){const L=$('#bArteLista');if(!L)return;L.innerHTML=bArtes.length?bArtes.map((f,i)=>`<div class="row" style="gap:6px;align-items:center;margin-top:3px"><b style="font-size:13px">📎 ${esc(f.name)}</b><span class="note">${(f.buf.byteLength/1048576).toFixed(1).replace('.',',')} MB</span><button class="btn ghost sm" type="button" data-bartedel="${i}">Remover</button></div>`).join(''):'Nenhum arquivo anexado.'}
+if($('#bArte')){$('#bArte').onchange=async e=>{for(const f of e.target.files)bArtes.push({name:f.name,buf:await f.arrayBuffer()});e.target.value='';bArteUI()};
+  $('#bArteLista').onclick=e=>{const b=e.target.closest('[data-bartedel]');if(!b)return;bArtes.splice(+b.dataset.bartedel,1);bArteUI()}}
+
 /* ================= PEDIDOS: uma OS com vários itens (letras, testeiras, estruturas, modelos 3D), tudo salvo ================= */
 let pedidos=[],pedAtual=null,itemAtual=null,pedPdf=null,pedSujo=false;
 const TIPO_NOME={letra:'Letra caixa',testeira:'Testeira',estrutura:'Estrutura por desenho',modelo3d:'Modelo 3D',bobs:'Bobs — requadro do balcão',bobscomp:'Bobs — complemento 30x30',bobscant:'Bobs — cantoneira com iluminação'};
@@ -5116,7 +5132,7 @@ $('#pedExcluir').onclick=async e=>{const b=e.currentTarget;if(b.dataset.ok!=='1'
 function irAba(tab){const b=document.querySelector(`nav button[data-tab="${tab}"]`);if(b)b.click()}
 function proximoN(){return Math.max(0,...(pedAtual.itens||[]).map(i=>+i.n||0))+1}
 document.querySelectorAll('[data-novo]').forEach(b=>b.onclick=()=>{const tipo=b.dataset.novo;novoComp(tipo,proximoN())});
-function limpaTipo(tipo){matUlt=null;if($('#itemVenda'))$('#itemVenda').value='';refImg=null;fpObsPg={};matQtd={};matAdd=[];if(tipo==='testeira'||tipo==='estrutura')xfPut('#xfT',[]);if(tipo==='modelo3d')xfPut('#xfM',[]);refRender();instReset();
+function limpaTipo(tipo){matUlt=null;rmUlt=null;if(typeof bArtes!=='undefined'){bArtes=[];bArteUI()}if($('#itemVenda'))$('#itemVenda').value='';refImg=null;fpObsPg={};matQtd={};matAdd=[];if(tipo==='testeira'||tipo==='estrutura')xfPut('#xfT',[]);if(tipo==='modelo3d')xfPut('#xfM',[]);refRender();instReset();
   if(tipo==='letra'){src=null;srcBytes=null;ledAdj={};ledFonte={};ledFonteW={};resetOut();lDoc=null;lPrevRender();prevSet('');$('#outMsg').innerHTML='';$('#fileInfo').innerHTML='';$('#drop').classList.remove('has');$('#dropTxt').textContent='Toque para escolher o PDF';$('#xPages').innerHTML='';$('#obs').value='';selLed=6500;selCaixa=80;renderLeds();renderCaixa();updateBtn()}
   if(tipo==='testeira'){tFaces=[{W:1000,H:1000,prof:0,junta:'linha'}];tAcm={on:false,esp:3,inst:'rente',fita:'vhb',chapa:'auto',marca:'',cor:null,jt:false,jmm:5,je:false,envT:'ext',apl:aplDef()};acmUI();adesMarca="";acmAplUI();renderFaces();v3Fit=true}
   if(tipo==='estrutura'){dSrc=null;dModel=null;dHist=[];dPrevModels=[];$('#dTxt').value='';$('#dAlt').value='';$('#dInfo').innerHTML='';$('#dDraw').innerHTML='';$('#dPecas').innerHTML='';$('#dDropTxt').textContent='Toque para escolher o PDF';$('#dAltBox').hidden=true;$('#dResCard').hidden=true;dBotao()}
@@ -5230,6 +5246,28 @@ if($('#pedImport'))$('#pedImport').onchange=e=>{pedImportar(e.target.files[0]);e
 let custoT=null;
 function custoAuto(){try{if(!pedAtual||!itemAtual||itemAtual.novo||!matUlt||!matUlt.length)return;const it=(pedAtual.itens||[]).find(i=>i.id===itemAtual.id);if(!it)return;
   const c=Math.round(matUlt.reduce((a,r)=>a+(+r.tot||0),0)*100)/100;let mud=false;if((it.tipo==='bobs'||it.tipo==='bobscomp')&&typeof bobsLens==='function'&&abaAtual()==='bobs'){const L=bobsLens(it.tipo);if(JSON.stringify(L)!==JSON.stringify(it.bobsLens||null)){it.bobsLens=L;mud=true}}if(it.custo===c&&!mud)return;it.custo=c;clearTimeout(custoT);custoT=setTimeout(()=>{pedSalvar(pedAtual).catch(()=>{});try{pedAbertoRender()}catch(e){}},800)}catch(e){}}
+
+/* ---------- RM + PI do pedido: primeiro cada produto, no final tudo somado ---------- */
+async function pedGerarRM(){let its=(pedAtual.itens||[]).slice().sort((a,b)=>a.n-b.n);if(pedSel.size)its=its.filter(i=>pedSel.has(i.id));if(!its.length){$('#pedMsg').innerHTML='<div class="msg err">O pedido ainda não tem itens.</div>';return}
+  const btn=$('#pedRM');btn.disabled=true;const salvo={item:$('#item').value,ia:itemAtual};const rmP=[],piP=[],somaRM=new Map(),somaPI=new Map();let ctx0=null;const nums=n=>+String(n).replace(',','.')||0;
+  try{for(const [k,it] of its.entries()){$('#pedMsg').innerHTML=`<div class="msg ok">Lendo a RM do item ${it.n} (${k+1} de ${its.length})…</div>`;await new Promise(r=>setTimeout(r,30));
+      rmUlt=null;await itemAbrir(it,false);FOOT_SKIP=true;try{buildItem(it.tipo)}finally{FOOT_SKIP=false}const R=rmUlt;if(!R)continue;ctx0=ctx0||R.ctx;
+      folhasMaterial(R.ctx,R.prod,R.rows).forEach(P=>rmP.push({P,ctx:R.ctx}));if(R.pi.length)folhasPI(R.ctx,R.prod,R.pi).forEach(P=>piP.push({P,ctx:R.ctx}));
+      R.rows.forEach(r=>{const key=r.cod!=null?'c'+r.cod:'d'+r.desc;const o=somaRM.get(key);if(o){o.q=Math.round((nums(o.q)+nums(r.q))*1000)/1000;o.tot+=r.tot;o.itens.add(it.n);o.semPreco=o.semPreco||r.semPreco}else somaRM.set(key,{...r,q:nums(r.q),itens:new Set([it.n])})});
+      R.pi.forEach(r=>{const ml=/ml/i.test(r.q);const key=(r.cod!=null?r.cod:r.nome)+'|'+(ml?'ml':r.un);const v=ml?nums(String(r.q).replace(/\D+$/,'')):nums(r.q);const o=somaPI.get(key);if(o){o.v+=v;o.itens.add(it.n)}else somaPI.set(key,{...r,v,ml,itens:new Set([it.n])})})}
+    if(!rmP.length)throw new Error('nenhum item gerou RM');
+    const ctxT={...ctx0,item:'TOTAL',descItem:'TODOS OS PRODUTOS DO PEDIDO (SOMADOS)'},prodT={nome:`TODOS OS PRODUTOS DO PEDIDO SOMADOS (${its.length} componentes)`,un:1};
+    const rowsT=[...somaRM.values()].map(r=>({...r,uso:'itens '+[...r.itens].join(', ')}));
+    const piT=[...somaPI.values()].map(r=>({...r,q:r.ml?`${Math.round(r.v)} ml`:String(Math.round(r.v*100)/100).replace('.',','),uso:'itens '+[...r.itens].join(', ')}));
+    const tot=[...folhasMaterial(ctxT,prodT,rowsT).map(P=>({P,ctx:ctxT})),...(piT.length?folhasPI(ctxT,prodT,piT).map(P=>({P,ctx:ctxT})):[])];
+    const todas=[...rmP,...piP,...tot];numeraSetores(todas.map(x=>x.P));todas.forEach((x,i)=>footer(x.P,x.ctx,i+1,todas.length));
+    const pdf=toPDF(todas.map(x=>x.P));$('#pedPrev').innerHTML=todas.map(x=>`<div class="pg">${toSVG(x.P)}</div>`).join('');
+    const totR=rowsT.reduce((a,r)=>a+r.tot,0);
+    $('#pedMsg').innerHTML=`<div class="msg ok">RM + PI do pedido: ${its.length} componente(s) • ${rmP.length} pág. de RM e ${piP.length} de PI por produto + ${tot.length} pág. com tudo somado • total ${totR.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}. Baixando o PDF…</div>`;
+    await salvar(nomeArq(`OS ${pedAtual.os||'sem número'}${pedAtual.nome?' - '+pedAtual.nome:''} - RM e PI${pedSel.size?' (itens selecionados)':''}.pdf`),new Blob([pdf],{type:'application/pdf'}))}
+  catch(e){console.error(e);$('#pedMsg').innerHTML=`<div class="msg err">Erro ao gerar a RM: ${esc(e.message)}</div>`}
+  finally{btn.disabled=false;$('#item').value=salvo.item;itemAtual=salvo.ia;pedBarRender()}}
+if($('#pedRM'))$('#pedRM').onclick=pedGerarRM;
 
 renderTypes();renderLogo();initStore();
 
