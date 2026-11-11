@@ -2804,7 +2804,11 @@ let v3Fit=true;
 function v3Set(boxes){if(!v3Init())return false;
   if(V3.grp){V3.scene.remove(V3.grp);V3.grp.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
   const g=new THREE.Group();const mats={};const lm=new THREE.LineBasicMaterial({color:0x222222,transparent:true,opacity:0.55});
-  boxes.forEach(b=>{const dx=Math.max(1,b.x1-b.x0),dy=Math.max(1,b.y1-b.y0),dz=Math.max(1,b.z1-b.z0);const geo=new THREE.BoxGeometry(dx,dy,dz);
+  boxes.forEach(b=>{const dx=Math.max(1,b.x1-b.x0),dy=Math.max(1,b.y1-b.y0),dz=Math.max(1,b.z1-b.z0);
+    if(b.poly){try{const sh=new THREE.Shape(b.poly.map(([x,y])=>new THREE.Vector2(x,y)));(b.holes||[]).forEach(h=>sh.holes.push(new THREE.Path(h.map(([x,y])=>new THREE.Vector2(x,y)))));
+      const geo=new THREE.ExtrudeGeometry(sh,{depth:dz,bevelEnabled:false});const mk=b.cor;const m=mats[mk]||(mats[mk]=new THREE.MeshLambertMaterial({color:b.cor}));const mesh=new THREE.Mesh(geo,m);mesh.position.set(0,0,-b.z1);g.add(mesh);
+      const ed=new THREE.LineSegments(new THREE.EdgesGeometry(geo,20),lm);ed.position.copy(mesh.position);g.add(ed);return}catch(e){console.error('forma 3D',e)}}
+    const geo=new THREE.BoxGeometry(dx,dy,dz);
     const mk=b.cor+(b.op||'');const m=mats[mk]||(mats[mk]=new THREE.MeshLambertMaterial(b.op?{color:b.cor,transparent:true,opacity:b.op,depthWrite:false}:{color:b.cor}));const mesh=new THREE.Mesh(geo,m);
     mesh.position.set((b.x0+b.x1)/2,(b.y0+b.y1)/2,-(b.z0+b.z1)/2);g.add(mesh);
     const ed=new THREE.LineSegments(new THREE.EdgesGeometry(geo),lm);ed.position.copy(mesh.position);g.add(ed)});
@@ -4265,7 +4269,13 @@ $('#dAplicar').onclick=()=>{const t=$('#dAlt').value.trim();if(!t||!dHist.length
 $('#dDesfazer').onclick=()=>{if(!dPrevModels.length)return;dModel=dPrevModels.pop();dHist=dHist.slice(0,-2);$('#dDesfazer').hidden=!dPrevModels.length;v3Fit=true;dRender3D()};
 
 /* ---------- 3D, tabela e folhas ---------- */
-function dBoxes(){return dModel?dModel.pecas.map(p=>({x0:p.x0,x1:p.x1,y0:p.y0,y1:p.y1,z0:p.z0,z1:p.z1,cor:p.cor})):[]}
+// peça com contorno recortado no PDF (não retangular): usa o contorno real, encaixado na caixa da peça
+function dForma(p){if(!dSrc||!p)return null;const sp=dSrc.pecas.find(x=>x.id===p.ref||x.id===String(p.ref||'').split('-')[0]&&!/-T\d/.test(p.ref));if(!sp||sp.ret||!sp.poly||sp.poly.length<4)return null;
+  const W=p.x1-p.x0,H=p.y1-p.y0;if(!(W>0&&H>0&&sp.w>0&&sp.h>0))return null;
+  // só quando a caixa da peça é a mesma face do desenho (frente): proporção parecida
+  if(Math.abs(W/H-sp.w/sp.h)>0.15*(sp.w/sp.h))return null;
+  const m=([x,y])=>[p.x0+(x-sp.x0)/sp.w*W,p.y0+(y-sp.y0)/sp.h*H];return{poly:sp.poly.map(m),holes:(sp.holes||[]).map(h=>h.map(m))}}
+function dBoxes(){return dModel?dModel.pecas.map(p=>({x0:p.x0,x1:p.x1,y0:p.y0,y1:p.y1,z0:p.z0,z1:p.z1,cor:p.cor,...(dForma(p)||{})})):[]}
 function dLista(){const rows=[];(dModel?dModel.pecas:[]).forEach(p=>{const len=Math.round(p.comprimento*10)/10;const k=[p.tipo,p.perfil,p.parede,p.nome,len].join('|');
   let r=rows.find(r=>r.k===k);if(!r){r={k,tipo:p.tipo||'tubo',perfil:p.perfil||'',parede:p.parede||'',nome:p.nome||p.ref,cor:p.cor,len,q:0,refs:[],obs:new Set()};rows.push(r)}r.q++;r.refs.push(p.ref);if(p.obs)r.obs.add(p.obs)});
   rows.forEach((r,i)=>{r.item=i+1;r.total=r.len*r.q});return rows}
@@ -4305,7 +4315,7 @@ function dFolhas(){const un=Math.max(1,Math.round(num($('#dUn').value))||1);cons
    const nCor=new Set(dModel.pecas.filter(p=>p.tipo!=='chapa').map(p=>p.cor)).size;const legH=Math.max(30,5+4.4*nCor+1);
    const sW=Math.min(214/(W+D),92/H);const largo=48+H*sW+18<=167-legH-3;const s=largo?sW:Math.min(150/(W+D),104/H);
    const ox=30,oy=48;const X=x=>ox+(x-bb.x0)*s,Y=y=>oy+(bb.y1-y)*s;const fs=3;
-   bs.slice().sort((a,b)=>b.z0-a.z0).forEach(b=>P.push({t:'rect',x:X(b.x0),y:Y(b.y1),w:Math.max(0.3,(b.x1-b.x0)*s),h:Math.max(0.3,(b.y1-b.y0)*s),fill:b.cor,stroke:'#1a1a1a',lw:0.12}));
+   bs.slice().sort((a,b)=>b.z0-a.z0).forEach(b=>{if(b.poly){P.push({t:'polyf',pts:b.poly.map(([x,y])=>[X(x),Y(y)]),fill:b.cor,stroke:'#1a1a1a',lw:0.12});(b.holes||[]).forEach(h=>P.push({t:'polyf',pts:h.map(([x,y])=>[X(x),Y(y)]),fill:'#ffffff',stroke:'#1a1a1a',lw:0.12}))}else P.push({t:'rect',x:X(b.x0),y:Y(b.y1),w:Math.max(0.3,(b.x1-b.x0)*s),h:Math.max(0.3,(b.y1-b.y0)*s),fill:b.cor,stroke:'#1a1a1a',lw:0.12})});
    // totais
    cotaH(P,X(bb.x0),X(bb.x1),Y(bb.y1)-7,Y(bb.y1),fmI(W),fs);cotaV(P,X(bb.x0)-8,Y(bb.y1),Y(bb.y0),X(bb.x0),fmI(H),fs);
    // correntes: embaixo pelos eixos das peças verticais; à direita pelas bordas das peças
