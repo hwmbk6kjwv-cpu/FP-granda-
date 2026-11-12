@@ -184,7 +184,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
 <main>
   <div id="pedBar" hidden></div>
   <section id="osSec" hidden>
-    <div class="row" style="gap:8px;margin:0 0 10px"><label class="btn" style="cursor:pointer;background:#2b3a8c;color:#fff">Ler OS (PDF) — lança os dados e os itens<input type="file" accept=".pdf,application/pdf" id="osPdfPed" hidden></label></div>
+    <div class="row" style="gap:8px;margin:0 0 10px"><label class="btn" style="cursor:pointer;background:#2f9e44;color:#fff;font-weight:700">Ler OS (PDF) — lança os dados e os itens<input type="file" accept=".pdf,application/pdf" id="osPdfPed" hidden></label></div>
     <div class="card" id="osCard">
       <h2>Dados da OS <span class="badge">valem para todas as folhas</span></h2>
       <div class="g3">
@@ -5558,6 +5558,9 @@ async function osLerPdf(buf){const pdf=await pdfjsLib.getDocument({data:buf,isEv
         if(c>a+6&&e>b+6){const c3=document.createElement('canvas');c3.width=c-a+8;c3.height=e-b+8;const g3=c3.getContext('2d');g3.fillStyle='#fff';g3.fillRect(0,0,c3.width,c3.height);g3.drawImage(c2,a,b,c-a,e-b,4,4,c-a,e-b);it.img={src:c3.toDataURL('image/jpeg',0.85),w:c3.width,h:c3.height}}})}catch(e){console.error('foto OS',e)}}
   out.itens.forEach(it=>{const mm=it.titulo.match(/^(.*?)\s+Modelo:\s*(.*?)\s*(Variação:.*)?$/i);if(mm){const base=mm[1].trim(),mod=(mm[2]||'').trim();it.titulo=mod&&!base.toUpperCase().includes(mod.toUpperCase())?`${base} — ${mod}`:base}it.desc=it.desc.join(' ').replace(/\s*Variação:.*?(?=\s-\s|$)/i,'').replace(/^\S.*?Variação:\s*/i,'').trim();delete it.y0;delete it.pg});
   return out}
+// valor de venda da OS: vai para o item do pedido (no 1º componente) quando ainda não tem venda informada
+function osAplicaVenda(){if(!pedAtual||!pedAtual.osItens)return false;let mud=false;pedAtual.osItens.forEach(o=>{if(!(o.sub>0))return;const cs=(pedAtual.itens||[]).filter(i=>+i.n===+o.n).sort((a,b)=>(a.criado||0)-(b.criado||0));if(!cs.length)return;
+  if(cs.reduce((a,i)=>a+(+i.venda||0),0)>0)return;cs[0].venda=o.sub;mud=true});return mud}
 function osStatus(n){const tem=(pedAtual.itens||[]).some(i=>+i.n===+n);if(!tem)return 'pend';const o=(pedAtual.osItens||[]).find(i=>+i.n===+n);return o&&o.fin?'fin':'parc'}
 async function osImportar(file,noPedidoAberto){const msg=$('#pedMsg')||$('#pedListaMsg');try{if(msg)msg.innerHTML='<div class="msg ok">Lendo a ordem de serviço…</div>';
     const R=await osLerPdf(await file.arrayBuffer());if(!R.itens.length&&!R.os)throw new Error('não encontrei os itens nem o número da OS neste PDF');
@@ -5568,7 +5571,7 @@ async function osImportar(file,noPedidoAberto){const msg=$('#pedMsg')||$('#pedLi
     [['os',R.os],['cliente',R.cliente],['vendedor',R.vendedor],['endereco',R.endereco],['entrega',R.entrega]].forEach(([k,v])=>{if(v&&!String(pedAtual[k]||'').trim()){pedAtual[k]=v;$('#'+k).value=v}});
     pedAtual.nome=pedAtual.cliente||pedAtual.nome;
     const velhos=pedAtual.osItens||[];pedAtual.osItens=R.itens.map(it=>{const v=velhos.find(o=>+o.n===+it.n);return{...it,fin:v?!!v.fin:false}});pedAtual.produtos={...(pedAtual.produtos||{})};R.itens.forEach(it=>{if(!pedAtual.produtos[it.n])pedAtual.produtos[it.n]=it.titulo});
-    pedAbertoRender();pedBarRender();await pedSalvar(pedAtual);
+    osAplicaVenda();pedAbertoRender();pedBarRender();await pedSalvar(pedAtual);
     const cs=st=>R.itens.filter(i=>osStatus(i.n)===st).length;if(msg)msg.innerHTML=`<div class="msg ok">OS ${esc(R.os||'')} lida: ${R.itens.length} itens • ${cs('fin')} finalizado(s) • ${cs('parc')} parcial(is) • ${cs('pend')} pendente(s).</div>`;
     const l=$('#osLista');if(l)l.scrollIntoView({behavior:'smooth',block:'start'})}
   catch(e){console.error(e);if(msg)msg.innerHTML=`<div class="msg err">Não consegui ler a OS: ${esc(e.message)}</div>`}}
@@ -5582,6 +5585,7 @@ const osFormHtml=()=>{const L=(pedAtual&&pedAtual.osItens)||[];const prox=Math.m
   <div class="row" style="gap:8px;align-items:center;margin-top:6px"><label class="btn ghost sm" style="cursor:pointer">Foto (opcional)<input type="file" accept="image/*" id="osmF" hidden></label><div class="colaZona" contenteditable="true" spellcheck="false">Colar print aqui (Ctrl+V)</div><span id="osmFok" class="note" style="margin:0"></span><button class="btn pink sm" type="button" id="osmAdd" style="margin-left:auto">Adicionar à lista</button></div></details>`};
 let osmImg=null;
 function osListaRender(){const box=$('#osLista');if(!box)return;const L=(pedAtual&&pedAtual.osItens)||[];if(!pedAtual){box.innerHTML='';return}
+  if(osAplicaVenda()){setTimeout(()=>{pedAbertoRender();pedSalvar(pedAtual)},0);return}
   if(!L.length){box.innerHTML=`<div style="border:1.5px dashed #2b3a8c;border-radius:12px;padding:8px 12px;margin:10px 0;background:#f8f9ff"><span class="note" style="margin:0">Lista de itens do pedido: leia a OS em PDF ou adicione os itens à mão.</span>${osFormHtml()}</div>`;return}
   const nf=L.filter(i=>osStatus(i.n)==='fin').length,np=L.filter(i=>osStatus(i.n)==='parc').length;
   box.innerHTML=`<div style="border:1.5px solid #2b3a8c;border-radius:12px;padding:10px 12px;margin:10px 0;background:#f8f9ff"><div class="row" style="justify-content:space-between;align-items:center"><b style="font-size:15px">Itens do pedido${pedAtual.os?' (OS '+esc(pedAtual.os)+')':''}</b><span class="note" style="margin:0"><b style="color:#2b8a3e">${nf} finalizado(s)</b> • <b style="color:#e67700">${np} parcial(is)</b> • <b style="color:#e8590c">${L.length-nf-np} pendente(s)</b></span></div>
@@ -5593,7 +5597,7 @@ function osListaRender(){const box=$('#osLista');if(!box)return;const L=(pedAtua
 // começa o projeto do item já com a descrição, a venda e a foto da OS
 const OS_DESC={letra:'#descItem',testeira:'#tDesc',estrutura:'#dDesc',bobs:'#bDesc',branco:'#brDesc',modelo3d:'#mDesc'};
 function osFazer(tipo,n){const it=(pedAtual.osItens||[]).find(i=>+i.n===+n);novoComp(tipo,n);if(!it)return;
-  try{const d=$(OS_DESC[tipo]);if(d)d.value=it.titulo;if($('#itemVenda')&&it.sub)$('#itemVenda').value=String(it.sub.toFixed(2)).replace('.',',');if(it.img){refImg=it.img;if(typeof refRender==='function')refRender()}}catch(e){console.error(e)}}
+  try{const d=$(OS_DESC[tipo]);if(d)d.value=it.titulo;const jaTem=(pedAtual.itens||[]).some(i=>+i.n===+n&&+i.venda>0);if($('#itemVenda')&&it.sub&&!jaTem)$('#itemVenda').value=String(it.sub.toFixed(2)).replace('.',',');if(it.img){refImg=it.img;if(typeof refRender==='function')refRender()}}catch(e){console.error(e)}}
 (function(){const L=$('#osLista');if(!L)return;L.addEventListener('click',e=>{const f=e.target.closest('[data-osfazer]');if(f){const r=L.querySelector(`[data-ostipos="${f.dataset.osfazer}"]`);r.hidden=!r.hidden;return}
     const b=e.target.closest('[data-osnovo]');if(b){osFazer(b.dataset.osnovo,+b.dataset.osn);return}
     const fz=e.target.closest('[data-osfin]'),rb=e.target.closest('[data-osreab]');if(fz||rb){const n=+(fz?fz.dataset.osfin:rb.dataset.osreab);const o=(pedAtual.osItens||[]).find(i=>+i.n===n);if(o){o.fin=!!fz;osListaRender();pedSalvar(pedAtual)}return}
