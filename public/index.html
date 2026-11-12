@@ -3566,7 +3566,7 @@ function instPosTxt(I){const h={centro:'CENTRALIZADO NA LARGURA',esquerda:`A ${f
   const v={centro:'CENTRALIZADO NA ALTURA',baixo:`A ${f0(I.vv)} MM DO PISO / BASE`,cima:`A ${f0(I.vv)} MM DO TETO / TOPO`}[I.vm];return h+' • '+v}
 function caixaCheck(P,x,y,s=5){P.push({t:'rect',x,y,w:s,h:s,r:0.6,fill:'#ffffff',stroke:'#212529',lw:0.35})}
 // desenha a forma de uma peça (polígonos em mm ou retângulos) dentro de uma caixa
-function miniDesenho(P,d,bx,by,bw,bh){if(!d)return;const ps=d.polys||[];const rs=d.rects||[];
+function miniDesenho(P,d,bx,by,bw,bh){if(!d)return;if(d.img){const im=d.img,sc=Math.min(bw/im.w,bh/im.h),w=im.w*sc,h=im.h*sc;P.push({t:'img',x:bx+(bw-w)/2,y:by+(bh-h)/2,w,h,src:im.src,fmt:'JPEG'});return}const ps=d.polys||[];const rs=d.rects||[];
   const all=ps.concat(rs.map(r=>[[r.x0,r.y0],[r.x1,r.y1]]));if(!all.length)return;const b=bbox(all);if(!(b.w>0||b.h>0))return;
   const s=Math.min(bw/Math.max(b.w,1),bh/Math.max(b.h,1));const ox=bx+(bw-b.w*s)/2,oy=by+(bh-b.h*s)/2;const M=([x,y])=>[ox+(x-b.x0)*s,oy+(b.y1-y)*s];
   rs.forEach(r=>{const [x0,y1]=M([r.x0,r.y1]);P.push({t:'rect',x:x0,y:y1,w:Math.max(0.2,(r.x1-r.x0)*s),h:Math.max(0.2,(r.y1-r.y0)*s),fill:r.cor||'#dee2e6',stroke:'#495057',lw:0.06})});
@@ -3740,7 +3740,7 @@ function folhasExpedicao(ctx,prod){const pages=[];const V=prod.volumes||[];const
   const novo=()=>{P=[];frame(P,ctx,{setor:'EXPEDIÇÃO'});pages.push(P);
     P.push({t:'text',x:PW/2,y:30,s:'PROJETO DE EXPEDIÇÃO — CARREGAMENTO',size:4.4,bold:true,color:'#000000',anchor:'middle'});
     P.push({t:'rect',x:60,y:33,w:177,h:8,r:2,fill:'#f1f3f5',stroke:'#495057',lw:0.4});
-    P.push({t:'text',x:PW/2,y:38.6,s:`ITEM ${ctx.item} — ${fit(prod.nome,70,3.4)}   •   ${tot} VOLUME${tot>1?'S':''}   •   ~${kgTxt(kg)}`,size:3.4,bold:true,color:'#000000',anchor:'middle'});
+    P.push({t:'text',x:PW/2,y:38.6,s:`ITEM ${ctx.item} — ${fit(prod.nome,70,3.4)}   •   ${tot} VOLUME${tot>1?'S':''}${kg>0?'   •   ~'+kgTxt(kg):''}`,size:3.4,bold:true,color:'#000000',anchor:'middle'});
     y=44;let x=12;cols.forEach(([h,w])=>{P.push({t:'rect',x,y,w,h:5,fill:'#495057',stroke:'#000000',lw:0.15},{t:'text',x:x+w/2,y:y+3.5,s:h,size:2.3,bold:true,color:'#ffffff',anchor:'middle'});x+=w});y+=5};
   let n=0;V.forEach((v,i)=>{if(!P||((i)%per===0))novo();let x=12;
     const vals=['',`${n+1}${(v.q||1)>1?`–${n+(v.q||1)}`:''}`,v.desc,v.cont||'',v.dims||'',String(v.q||1),kgTxt(v.kg*(v.q||1))+((v.q||1)>1&&v.kg?` (${kgTxt(v.kg)} cada)`:''),''];n+=(v.q||1);
@@ -3754,7 +3754,7 @@ function folhasExpedicao(ctx,prod){const pages=[];const V=prod.volumes||[];const
       x+=w});y+=RH});
   if(!V.length)novo();
   const last=pages[pages.length-1];const yy=Math.min(160,y+6);
-  last.push({t:'text',x:12,y:yy,s:`TOTAL: ${tot} VOLUME${tot>1?'S':''} — PESO APROXIMADO ${kgTxt(kg)} (estimado pelos materiais; conferir na balança)`,size:2.8,bold:true,color:'#000000'});
+  last.push({t:'text',x:12,y:yy,s:`TOTAL: ${tot} VOLUME${tot>1?'S':''} — PESO ${kg>0?'APROXIMADO '+kgTxt(kg)+' (estimado pelos materiais; conferir na balança)':': PESAR NA BALANÇA'}`,size:2.8,bold:true,color:'#000000'});
   last.push({t:'text',x:12,y:yy+6,s:'Carregado por: ______________________________   Data: ____/____/______   Veículo / placa: _______________',size:2.8,color:'#000000'});
   return pages}
 
@@ -5151,6 +5151,13 @@ function brFolhas(){const ctx=brCtx();const un=1;const pages=[],tags=[];const ob
           cols.forEach(([h,w],c)=>{P.push({t:'rect',x,y,w,h:5.2,fill:i%2?'#ffffff':'#f8f9fa',stroke:'#adb5bd',lw:0.1},{t:'text',x:c===1?x+1.5:x+w/2,y:y+3.6,s:fit(v[c],w-2,2.5),size:2.5,bold:c===1,color:'#000000',anchor:c===1?'start':'middle'});x+=w});});
 }
       pages.push(P);tags.push(f.setor);k+=per}while(k<linhas.length)});
+  // EXPEDIÇÃO e QUALIDADE automáticas: uma linha por ficha, com a imagem e o quantitativo dela
+  const SEM_VOL=['QUALIDADE','EXPEDIÇÃO','INSTALAÇÃO'];
+  const vols=brFichas.filter(f=>!SEM_VOL.includes(f.setor)).map(f=>{const L=f.linhas.filter(l=>String(l.desc).trim()||String(l.med).trim());const im=brImgs(f)[0];
+    return{desc:(f.titulo||lSetNome(f.setor)).toUpperCase(),cont:[lSetNome(f.setor),...L.map(l=>`${String(num(l.q)||0).replace('.',',')} ${l.un||''} ${l.desc}`.trim())].join(' • '),
+      dims:[...new Set(L.map(l=>String(l.med||'').trim()).filter(Boolean))].slice(0,3).join(' / ')||'—',q:1,kg:0,draw:im?{img:im}:null}});
+  const prodQ={nome:ctx.descItem,volumes:vols,checks:['MEDIDAS','ACABAMENTO','LIMPEZA']};
+  if(vols.length){try{folhasExpedicao(ctx,prodQ).forEach(P=>{pages.push(P);tags.push('EXPEDIÇÃO')});folhasQualidade(ctx,prodQ).forEach(P=>{pages.push(P);tags.push('QUALIDADE')})}catch(e){console.error('expedição/qualidade',e)}}
   // RM e PI feitas à mão (matérias-primas adicionadas)
   const prod={tipo:'branco',nome:ctx.descItem,un,mat:[],semAnc:true};let rows=[];
   try{rows=matAddRows();rmUlt=null;if(rows.length){folhasMaterial(ctx,prod,rows).forEach(P=>{pages.push(P);tags.push('RM')});const pi=piLista(rows,{});rmUlt={ctx,prod,rows,pi};if(pi.length)folhasPI(ctx,prod,pi).forEach(P=>{pages.push(P);tags.push('PI')})}
