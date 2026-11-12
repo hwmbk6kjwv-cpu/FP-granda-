@@ -219,7 +219,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
     </div>
     <div class="card" id="pedCard" hidden>
       <div class="row" style="justify-content:space-between;align-items:flex-start"><div><span class="note">PEDIDO</span><h2 style="margin:2px 0 0" id="pedTitulo"></h2></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px"><button class="btn ghost sm" id="pedFechar">Voltar à lista</button><div id="pedTotal"></div></div></div>
-      <label class="f">Nome do pedido</label><input type="text" id="pedNome" placeholder="Ex.: OMODA RONDONÓPOLIS">
+      <input type="hidden" id="pedNome">
       <p class="note" style="margin:6px 0 0">Os dados da OS (número, cliente, entrega…) ficam no quadro acima e valem para todos os itens. Tudo é salvo sozinho.</p>
       <label class="f" style="margin-top:14px">Itens do pedido</label>
       <div id="pedItens"></div>
@@ -5268,7 +5268,7 @@ function novoComp(tipo,n){itemAtual={id:'i'+Date.now().toString(36),tipo,n,novo:
 $('#pedItens').addEventListener('change',e=>{const i=e.target.closest('[data-prodnome]');if(!i||!pedAtual)return;pedAtual.produtos={...(pedAtual.produtos||{})};const v=i.value.trim();if(v)pedAtual.produtos[i.dataset.prodnome]=v;else delete pedAtual.produtos[i.dataset.prodnome];pedSalvar(pedAtual)});
 $('#pedFechar').onclick=()=>{pedAtual=null;itemAtual=null;$('#pedCard').hidden=true;$('#pedListaCard').hidden=false;$('#osSec').hidden=true;pedBarRender();pedListaRender()};
 let pedTimer=null;
-const pedHeader=()=>{if(!pedAtual)return;OS_IDS.forEach(k=>pedAtual[k]=$('#'+k).value.trim());pedAtual.nome=$('#pedNome').value.trim();pedAbertoRender();pedBarRender();clearTimeout(pedTimer);pedTimer=setTimeout(()=>pedSalvar(pedAtual),700)};
+const pedHeader=()=>{if(!pedAtual)return;OS_IDS.forEach(k=>pedAtual[k]=$('#'+k).value.trim());pedAtual.nome=pedAtual.cliente||$('#pedNome').value.trim()||pedAtual.nome||'';pedAbertoRender();pedBarRender();clearTimeout(pedTimer);pedTimer=setTimeout(()=>pedSalvar(pedAtual),700)};
 OS_IDS.concat(['pedNome']).forEach(k=>$('#'+k).addEventListener('input',pedHeader));
 $('#pedItens').onclick=async e=>{const cm=e.target.closest('[data-compmenu]');if(cm){const r=$(`[data-comptipos="${cm.dataset.compmenu}"]`);r.hidden=!r.hidden;return}
   const cn=e.target.closest('[data-compnovo]');if(cn){novoComp(cn.dataset.compnovo,+cn.dataset.compn);return}
