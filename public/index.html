@@ -212,7 +212,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
   </section>
   <section id="tab-pedidos">
     <div class="card" id="pedListaCard">
-      <div class="pedHead"><div><h2>Pedidos</h2><div class="sub" id="pedSub"></div></div><div class="row" style="gap:6px"><label class="btn ghost sm" style="cursor:pointer">Importar pedido (arquivo)<input type="file" accept=".json,application/json" id="pedImport" hidden></label><button class="btn pink" id="pedNovo">+ Novo pedido</button></div></div><div id="pedImpMsg" class="note"></div>
+      <div class="pedHead"><div><h2>Pedidos</h2><div class="sub" id="pedSub"></div></div><div class="row" style="gap:6px"><label class="btn sm" style="cursor:pointer;background:#2b3a8c;color:#fff">Novo pedido pela OS (PDF)<input type="file" accept=".pdf,application/pdf" id="osPdfNovo" hidden></label><label class="btn ghost sm" style="cursor:pointer">Importar pedido (arquivo)<input type="file" accept=".json,application/json" id="pedImport" hidden></label><button class="btn pink" id="pedNovo">+ Novo pedido</button></div></div><div id="pedImpMsg" class="note"></div>
       <div class="pedSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="pedBusca" autocomplete="off" autocorrect="off" spellcheck="false" name="busca_pedidos_x" readonly onfocus="this.removeAttribute('readonly')" placeholder="Buscar por OS, nome, cliente ou projetista"></div>
       <div id="pedLista" style="margin-top:10px"></div>
       <p class="note" id="pedNota"></p>
@@ -222,6 +222,8 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <input type="hidden" id="pedNome">
       <p class="note" style="margin:6px 0 0">Os dados da OS (número, cliente, entrega…) ficam no quadro acima e valem para todos os itens. Tudo é salvo sozinho.</p>
       <label class="f" style="margin-top:14px">Itens do pedido</label>
+      <div class="row" style="gap:8px;margin-top:8px"><label class="btn ghost sm" style="cursor:pointer;border-color:#2b3a8c;color:#2b3a8c">Ler OS (PDF) — lança os itens<input type="file" accept=".pdf,application/pdf" id="osPdfPed" hidden></label></div>
+      <div id="osLista"></div>
       <div id="pedItens"></div>
       <div class="row" style="gap:6px;margin-top:10px"><span class="note" style="align-self:center">Novo item:</span><button class="btn ghost sm" data-novo="letra">+ Letra caixa</button><button class="btn ghost sm" data-novo="branco">+ FP em branco</button><button class="btn ghost sm" data-novo="testeira">+ Testeira</button><button class="btn ghost sm" data-novo="estrutura">+ Estrutura por desenho</button><button class="btn ghost sm" data-novo="modelo3d">+ Modelo 3D</button><button class="btn ghost sm" data-novo="bobs">+ Bobs requadro</button><button class="btn ghost sm" data-novo="bobscomp">+ Bobs complemento 30x30</button><button class="btn ghost sm" data-novo="bobscant">+ Bobs cantoneira iluminada</button></div>
       <div class="row" style="gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)"><button class="btn pink" id="pedGerar">Gerar FP completa do pedido</button><button class="btn acc" id="pedGerarSel" disabled>Gerar FP parcial (selecione os itens)</button><button class="btn ghost" id="pedBaixar" hidden>Baixar FP completa (PDF)</button><button class="btn" id="pedGeral" style="background:#2f9e44;color:#fff;font-weight:700">Gerar apenas FP geral</button><button class="btn" id="pedRM" style="background:#495057;color:#fff">Baixar RM + PI do pedido (por produto + total)</button><button class="btn ghost sm" id="pedExport">Exportar pedido (arquivo)</button><button class="btn danger sm" id="pedExcluir" style="margin-left:auto">Excluir pedido</button></div><div id="pedExpMsg" class="note" style="margin-top:6px"></div>
@@ -5271,7 +5273,7 @@ function pedAbertoRender(){if(!pedAtual)return;$('#pedTitulo').innerHTML=`Pedido
     ${g.its.map((it,k)=>`<div style="display:flex;gap:10px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;border-top:1px solid #8ce99a;padding:8px 0 4px;margin-top:8px;${varios?'margin-left:14px':''}"><div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;flex:1;min-width:200px">
       <div>${varios?`<input type="checkbox" data-sel="${it.id}" title="Selecionar para FP parcial" style="width:16px;height:16px;vertical-align:-3px;margin-right:4px"${pedSel.has(it.id)?' checked':''}>`:''}<b>${varios?`${g.n}.${k+1}`:`Item ${g.n}`} — ${esc(TIPO_NOME[it.tipo]||it.tipo)}</b><div class="note">${esc(it.desc||'')}${it.resumo?' • '+esc(it.resumo):''}${it.fonteNome?' • '+esc(it.fonteNome):''}</div></div>
       <div class="row" style="gap:6px"><button class="btn acc sm" data-abrir="${it.id}">Abrir</button><button class="btn danger sm" data-del="${it.id}">Excluir</button></div></div>${margemBox(it.custo,+it.venda||0,varios?`${g.n}.${k+1}`:'')}</div>`).join('')}
-    <div style="margin-top:8px${varios?';margin-left:14px':''}"><button class="btn ghost sm" data-compmenu="${g.n}">+ Componente no item ${g.n}</button><div class="row" data-comptipos="${g.n}" style="gap:6px;margin-top:6px" hidden>${tipos.map(([t,l])=>`<button class="btn ghost sm" data-compnovo="${t}" data-compn="${g.n}">+ ${l}</button>`).join('')}</div></div></div>`}).join(''):'<p class="note">Nenhum item ainda. Use os botões abaixo para incluir letras, testeiras ou estruturas.</p>';pedSelBtn()}
+    <div style="margin-top:8px${varios?';margin-left:14px':''}"><button class="btn ghost sm" data-compmenu="${g.n}">+ Componente no item ${g.n}</button><div class="row" data-comptipos="${g.n}" style="gap:6px;margin-top:6px" hidden>${tipos.map(([t,l])=>`<button class="btn ghost sm" data-compnovo="${t}" data-compn="${g.n}">+ ${l}</button>`).join('')}</div></div></div>`}).join(''):'<p class="note">Nenhum item ainda. Use os botões abaixo para incluir letras, testeiras ou estruturas.</p>';pedSelBtn();if(typeof osListaRender==='function')osListaRender()}
 function novoComp(tipo,n){itemAtual={id:'i'+Date.now().toString(36),tipo,n,novo:true};limpaTipo(tipo);$('#item').value=n;irAba(TIPO_ABA[tipo]);if(tipo==='testeira')setModo('padrao');if(tipo==='estrutura')setModo('desenho');pedSujo=true;pedBarRender();window.scrollTo(0,0)}
 $('#pedItens').addEventListener('change',e=>{const i=e.target.closest('[data-prodnome]');if(!i||!pedAtual)return;pedAtual.produtos={...(pedAtual.produtos||{})};const v=i.value.trim();if(v)pedAtual.produtos[i.dataset.prodnome]=v;else delete pedAtual.produtos[i.dataset.prodnome];pedSalvar(pedAtual)});
 $('#pedFechar').onclick=()=>{pedAtual=null;itemAtual=null;$('#pedCard').hidden=true;$('#pedListaCard').hidden=false;$('#osSec').hidden=true;pedBarRender();pedListaRender()};
@@ -5498,7 +5500,8 @@ async function geralInfo(it,r){let img=null,q=1;try{const ps=(r&&r.pages)||[];co
     if(P0){const t=P0.find(o=>o.t==='text'&&/^\d+([.,]\d+)?X$/.test(String(o.s||'')));if(t)q=num(String(t.s).replace('X',''))||1}
     if(it.tipo==='branco'&&brFichas.length){q=Math.max(...brFichas.map(brQtd));const f=brFichas.find(f=>brImgs(f).length);if(f)img=brImgs(f)[0]}
     if(!img&&refImg)img=refImg;if(!img&&P0)img=await geralSvgImg(P0)}catch(e){console.error('geral item',it.n,e)}
-  return{n:it.n,desc:it.desc||TIPO_NOME[it.tipo]||'',tipo:TIPO_NOME[it.tipo]||it.tipo,q,img,resumo:it.resumo||''}}
+  const oi=((pedAtual&&pedAtual.osItens)||[]).find(o=>+o.n===+it.n);if(oi){if(oi.q)q=oi.q;if(oi.img&&!(refImg&&img===refImg)&&it.tipo!=='branco')img=oi.img}
+  return{n:it.n,desc:(oi&&oi.titulo)||it.desc||TIPO_NOME[it.tipo]||'',tipo:TIPO_NOME[it.tipo]||it.tipo,q,img,resumo:it.resumo||''}}
 
 
 async function pedGerarGeral(){let its=(pedAtual.itens||[]).slice().sort((a,b)=>a.n-b.n);if(pedSel.size)its=its.filter(i=>pedSel.has(i.id));if(!its.length){$('#pedMsg').innerHTML='<div class="msg err">O pedido ainda não tem itens.</div>';return}
@@ -5512,6 +5515,89 @@ async function pedGerarGeral(){let its=(pedAtual.itens||[]).slice().sort((a,b)=>
   catch(e){console.error(e);$('#pedMsg').innerHTML=`<div class="msg err">Erro na FP geral: ${esc(e.message)}</div>`}
   finally{btn.disabled=false;$('#item').value=salvo.item;itemAtual=salvo.ia;pedBarRender()}}
 if($('#pedGeral'))$('#pedGeral').onclick=pedGerarGeral;
+
+/* ===================== LER ORDEM DE SERVIÇO (PDF) =====================
+   Lê nº da OS, cliente, vendedor, endereço, entrega e a lista de itens (com a foto de cada um).
+   Os itens da OS ficam no pedido como lista: FINALIZADO quando já tem projeto, PENDENTE quando falta fazer. */
+async function osLerPdf(buf){const pdf=await pdfjsLib.getDocument({data:buf,isEvalSupported:false}).promise;const out={itens:[]};let cab=null;
+  for(let pn=1;pn<=pdf.numPages;pn++){const page=await pdf.getPage(pn);const vp=page.getViewport({scale:1});const tc=await page.getTextContent();
+    const T=tc.items.filter(i=>i.str&&i.str.trim()).map(i=>({s:i.str.trim(),x:i.transform[4],y:vp.height-i.transform[5],w:i.width}));
+    // linhas por altura
+    const rows=[];T.sort((a,b)=>a.y-b.y||a.x-b.x).forEach(t=>{let r=rows.find(r=>Math.abs(r.y-t.y)<2.5);if(!r){r={y:t.y,t:[]};rows.push(r)}r.t.push(t)});rows.forEach(r=>r.t.sort((a,b)=>a.x-b.x));
+    const txt=r=>r.t.map(t=>t.s).join(' ');
+    if(pn===1){// cabeçalho
+      const num=rows.find(r=>r.y<120&&r.t.length===1&&/^\d{2,7}$/.test(r.t[0].s));if(num)out.os=num.t[0].s;
+      const lab=(rx,nome)=>{const i=rows.findIndex(r=>r.t.some(t=>new RegExp('^'+rx,'i').test(t.s)));if(i<0)return'';const L=rows[i].t.find(t=>new RegExp('^'+rx,'i').test(t.s));const nx=rows[i].t.filter(t=>t.x>L.x+2).sort((a,b)=>a.x-b.x)[0];const lim=nx?nx.x-2:9999;
+        const r2=rows[i+1];if(!r2)return'';return r2.t.filter(t=>t.x>=L.x-3&&t.x<lim).map(t=>t.s).join(' ').trim()};
+      out.cliente=lab('Cliente');out.contato=lab('Contato');out.endereco=lab('Endere');
+      const all=rows.map(txt).join('\n');const me=all.match(/Entrega:\s*(\d{2})\/(\d{2})\/(\d{4})/);if(me)out.entrega=`${me[3]}-${me[2]}-${me[1]}`;
+      const mv=all.match(/Vendedor:\s*([^\n]+)/);if(mv)out.vendedor=mv[1].trim();const mr=all.match(/Ref\.:\s*([^\n]+)/);if(mr)out.ref=mr[1].trim()}
+    // tabela de itens
+    const hi=rows.findIndex(r=>r.t.some(t=>/^Item$/i.test(t.s))&&r.t.some(t=>/^Descri/i.test(t.s)));if(hi<0)continue;
+    const H=rows[hi].t;const cx=n=>{const t=H.find(t=>new RegExp('^'+n,'i').test(t.s));return t?t.x:null};
+    const C={item:cx('Item'),img:cx('Imagem'),desc:cx('Descri'),med:cx('Medidas'),qt:cx('Qtde'),vu:cx('Valor'),sub:cx('Subtotal')};cab=C;
+    const fim=rows.findIndex((r,i)=>i>hi&&(/^Outros$/i.test(r.t[0].s)||/GRANDA COMUNICA/i.test(txt(r))));const corpo=rows.slice(hi+1,fim<0?rows.length:fim);
+    const dIni=C.img+(C.desc-C.img)*0.35;// os títulos ficam centralizados: o texto da descrição começa bem antes do título 'Descrição'
+    const colDe=t=>t.x<C.img-10?'item':t.x<dIni?'img':t.x<C.med-35?'desc':t.x<C.qt-5?'med':t.x<C.vu-7?'qt':t.x<C.sub-15?'vu':'sub';
+    let atual=null;const inicioY=[];
+    corpo.forEach(r=>{const cel={};r.t.forEach(t=>{const c=colDe(t);cel[c]=(cel[c]?cel[c]+' ':'')+t.s});
+      if(cel.item&&/^\d{1,3}$/.test(cel.item.trim())&&(cel.qt||cel.sub)){atual={n:+cel.item.trim(),titulo:(cel.desc||'').trim(),desc:[],med:(cel.med||'').trim(),q:vendaNum(cel.qt||'1')||1,vu:vendaNum(cel.vu),sub:vendaNum(cel.sub),pg:pn,y0:r.y};out.itens.push(atual);inicioY.push(atual)}
+      else if(atual&&cel.desc){atual.desc.push(cel.desc.trim())}});
+    // foto de cada item: recorte da coluna "Imagem"
+    try{const sc=3,v2=page.getViewport({scale:sc});const cv=document.createElement('canvas');cv.width=v2.width;cv.height=v2.height;const g=cv.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,cv.width,cv.height);
+      await page.render({canvasContext:g,viewport:v2}).promise;const fimY=(fim<0?vp.height-40:rows[fim].y-12);
+      inicioY.forEach((it,k)=>{const y0=it.y0-14,y1=(inicioY[k+1]?inicioY[k+1].y0-12:fimY);const x0=C.img-22,x1=dIni-3;
+        const w=Math.round((x1-x0)*sc),h=Math.round(Math.max(10,y1-y0)*sc);if(w<10||h<10)return;
+        const c2=document.createElement('canvas');c2.width=w;c2.height=h;const g2=c2.getContext('2d');g2.drawImage(cv,Math.round(x0*sc),Math.round(y0*sc),w,h,0,0,w,h);
+        // corta o branco em volta
+        const d=g2.getImageData(0,0,w,h).data;let a=w,b=h,c=0,e=0;for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++){const p=(yy*w+xx)*4;if(d[p]<235||d[p+1]<235||d[p+2]<235){if(xx<a)a=xx;if(xx>c)c=xx;if(yy<b)b=yy;if(yy>e)e=yy}}
+        if(c>a+6&&e>b+6){const c3=document.createElement('canvas');c3.width=c-a+8;c3.height=e-b+8;const g3=c3.getContext('2d');g3.fillStyle='#fff';g3.fillRect(0,0,c3.width,c3.height);g3.drawImage(c2,a,b,c-a,e-b,4,4,c-a,e-b);it.img={src:c3.toDataURL('image/jpeg',0.85),w:c3.width,h:c3.height}}})}catch(e){console.error('foto OS',e)}}
+  out.itens.forEach(it=>{const mm=it.titulo.match(/^(.*?)\s+Modelo:\s*(.*?)\s*(Variação:.*)?$/i);if(mm){const base=mm[1].trim(),mod=(mm[2]||'').trim();it.titulo=mod&&!base.toUpperCase().includes(mod.toUpperCase())?`${base} — ${mod}`:base}it.desc=it.desc.join(' ').replace(/\s*Variação:.*?(?=\s-\s|$)/i,'').replace(/^\S.*?Variação:\s*/i,'').trim();delete it.y0;delete it.pg});
+  return out}
+function osStatus(n){return (pedAtual.itens||[]).some(i=>+i.n===+n)?'fin':'pend'}
+async function osImportar(file,noPedidoAberto){const msg=$('#pedMsg')||$('#pedListaMsg');try{if(msg)msg.innerHTML='<div class="msg ok">Lendo a ordem de serviço…</div>';
+    const R=await osLerPdf(await file.arrayBuffer());if(!R.itens.length&&!R.os)throw new Error('não encontrei os itens nem o número da OS neste PDF');
+    let p=noPedidoAberto&&pedAtual?pedAtual:pedidos.find(x=>String(x.os||'').trim()===String(R.os||'').trim()&&R.os);
+    if(!p){p={id:'p'+Date.now().toString(36),os:'',nome:'',cliente:'',vendedor:'',projetista:'',endereco:'',entrega:'',itens:[],criado:Date.now()};pedidos.push(p)}
+    if(!(pedAtual&&pedAtual.id===p.id))pedAbrir(p);
+    // dados da OS (só preenche o que está vazio, para não apagar o que já foi digitado)
+    [['os',R.os],['cliente',R.cliente],['vendedor',R.vendedor],['endereco',R.endereco],['entrega',R.entrega]].forEach(([k,v])=>{if(v&&!String(pedAtual[k]||'').trim()){pedAtual[k]=v;$('#'+k).value=v}});
+    pedAtual.nome=pedAtual.cliente||pedAtual.nome;
+    pedAtual.osItens=R.itens.map(it=>({...it}));pedAtual.produtos={...(pedAtual.produtos||{})};R.itens.forEach(it=>{if(!pedAtual.produtos[it.n])pedAtual.produtos[it.n]=it.titulo});
+    pedAbertoRender();pedBarRender();await pedSalvar(pedAtual);
+    const nf=R.itens.filter(i=>osStatus(i.n)==='fin').length;if(msg)msg.innerHTML=`<div class="msg ok">OS ${esc(R.os||'')} lida: ${R.itens.length} itens • ${nf} finalizado(s) • ${R.itens.length-nf} pendente(s).</div>`;
+    const l=$('#osLista');if(l)l.scrollIntoView({behavior:'smooth',block:'start'})}
+  catch(e){console.error(e);if(msg)msg.innerHTML=`<div class="msg err">Não consegui ler a OS: ${esc(e.message)}</div>`}}
+// lista dos itens da OS dentro do pedido
+const OS_TIPOS=[['letra','Letra caixa'],['branco','FP em branco'],['testeira','Testeira'],['estrutura','Estrutura por desenho'],['modelo3d','Modelo 3D'],['bobs','Bobs']];
+const osFormHtml=()=>{const L=(pedAtual&&pedAtual.osItens)||[];const prox=Math.max(0,...L.map(i=>+i.n||0),...((pedAtual&&pedAtual.itens)||[]).map(i=>+i.n||0))+1;
+  return `<details id="osManual" style="margin-top:8px"><summary style="cursor:pointer;font-weight:600;font-size:13px;color:#2b3a8c">+ Adicionar item à lista (manual, sem a OS em PDF)</summary>
+  <div class="g3" style="gap:6px;margin-top:6px"><div><label class="f">Nº do item</label><input type="number" id="osmN" value="${prox}" min="1"></div><div style="grid-column:span 2"><label class="f">Nome do item</label><input type="text" id="osmT" placeholder="ex.: LETREIRO OMODA"></div>
+  <div><label class="f">Medidas</label><input type="text" id="osmM" placeholder="ex.: 5.200 x 0.600 m"></div><div><label class="f">Quantidade</label><input type="number" id="osmQ" value="1" min="1"></div><div><label class="f">Valor de venda (R$)</label><input type="text" id="osmV" inputmode="decimal" placeholder="0,00"></div>
+  <div style="grid-column:span 3"><label class="f">Descrição (opcional)</label><input type="text" id="osmD" placeholder="ex.: letra caixa em chapa galvanizada com face em acrílico"></div></div>
+  <div class="row" style="gap:8px;align-items:center;margin-top:6px"><label class="btn ghost sm" style="cursor:pointer">Foto (opcional)<input type="file" accept="image/*" id="osmF" hidden></label><div class="colaZona" contenteditable="true" spellcheck="false">Colar print aqui (Ctrl+V)</div><span id="osmFok" class="note" style="margin:0"></span><button class="btn pink sm" type="button" id="osmAdd" style="margin-left:auto">Adicionar à lista</button></div></details>`};
+let osmImg=null;
+function osListaRender(){const box=$('#osLista');if(!box)return;const L=(pedAtual&&pedAtual.osItens)||[];if(!pedAtual){box.innerHTML='';return}
+  if(!L.length){box.innerHTML=`<div style="border:1.5px dashed #2b3a8c;border-radius:12px;padding:8px 12px;margin:10px 0;background:#f8f9ff"><span class="note" style="margin:0">Lista de itens do pedido: leia a OS em PDF ou adicione os itens à mão.</span>${osFormHtml()}</div>`;return}
+  const nf=L.filter(i=>osStatus(i.n)==='fin').length;
+  box.innerHTML=`<div style="border:1.5px solid #2b3a8c;border-radius:12px;padding:10px 12px;margin:10px 0;background:#f8f9ff"><div class="row" style="justify-content:space-between;align-items:center"><b style="font-size:15px">Itens do pedido${pedAtual.os?' (OS '+esc(pedAtual.os)+')':''}</b><span class="note" style="margin:0"><b style="color:#2b8a3e">${nf} finalizado(s)</b> • <b style="color:#e8590c">${L.length-nf} pendente(s)</b></span></div>
+  ${L.map(it=>{const st=osStatus(it.n);return `<div style="display:flex;gap:10px;align-items:center;border-top:1px solid #dee2e6;padding:8px 0;flex-wrap:wrap">
+    <div style="width:64px;height:48px;flex:none;border:1px solid #dee2e6;border-radius:6px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden">${it.img?`<img src="${it.img.src}" style="max-width:100%;max-height:100%">`:'<span class="note" style="font-size:10px">sem foto</span>'}</div>
+    <div style="flex:1;min-width:180px"><b>Item ${it.n} — ${esc(it.titulo)}</b> <span style="display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;color:#fff;background:${st==='fin'?'#2b8a3e':'#e8590c'}">${st==='fin'?'FINALIZADO':'PENDENTE'}</span>
+      <div class="note" style="margin:2px 0 0;font-size:11.5px">${esc(it.med||'')}${it.med?' • ':''}${String(it.q).replace('.',',')} un.${it.sub?' • '+brlP(it.sub):''}${it.desc?' • '+esc(it.desc.slice(0,140))+(it.desc.length>140?'…':''):''}</div></div>
+    ${st==='fin'?'':`<div><button class="btn pink sm" data-osfazer="${it.n}">Fazer projeto</button><div class="row" data-ostipos="${it.n}" hidden style="gap:4px;margin-top:6px;flex-wrap:wrap">${OS_TIPOS.map(([t,l])=>`<button class="btn ghost sm" data-osnovo="${t}" data-osn="${it.n}">${l}</button>`).join('')}</div></div>`}${it.manual&&st!=='fin'?`<button class="btn ghost sm" type="button" data-osdel="${it.n}" title="Tirar da lista">×</button>`:''}</div>`}).join('')}${osFormHtml()}</div>`}
+// começa o projeto do item já com a descrição, a venda e a foto da OS
+const OS_DESC={letra:'#descItem',testeira:'#tDesc',estrutura:'#dDesc',bobs:'#bDesc',branco:'#brDesc',modelo3d:'#mDesc'};
+function osFazer(tipo,n){const it=(pedAtual.osItens||[]).find(i=>+i.n===+n);novoComp(tipo,n);if(!it)return;
+  try{const d=$(OS_DESC[tipo]);if(d)d.value=it.titulo;if($('#itemVenda')&&it.sub)$('#itemVenda').value=String(it.sub.toFixed(2)).replace('.',',');if(it.img){refImg=it.img;if(typeof refRender==='function')refRender()}}catch(e){console.error(e)}}
+(function(){const L=$('#osLista');if(!L)return;L.addEventListener('click',e=>{const f=e.target.closest('[data-osfazer]');if(f){const r=L.querySelector(`[data-ostipos="${f.dataset.osfazer}"]`);r.hidden=!r.hidden;return}
+    const b=e.target.closest('[data-osnovo]');if(b){osFazer(b.dataset.osnovo,+b.dataset.osn);return}
+    const dl=e.target.closest('[data-osdel]');if(dl){pedAtual.osItens=(pedAtual.osItens||[]).filter(i=>+i.n!==+dl.dataset.osdel);osListaRender();pedSalvar(pedAtual);return}
+    if(e.target.closest('#osmAdd')){const n=Math.round(num($('#osmN').value)),t=$('#osmT').value.trim();if(!(n>0)){$('#osmN').focus();return}if(!t){$('#osmT').focus();return}
+      const L=pedAtual.osItens=(pedAtual.osItens||[]).filter(i=>+i.n!==n);L.push({n,titulo:t.toUpperCase(),med:$('#osmM').value.trim(),q:Math.max(1,num($('#osmQ').value)||1),sub:vendaNum($('#osmV').value),desc:$('#osmD').value.trim(),img:osmImg,manual:true});L.sort((a,b)=>a.n-b.n);osmImg=null;
+      pedAtual.produtos={...(pedAtual.produtos||{})};if(!pedAtual.produtos[n])pedAtual.produtos[n]=t.toUpperCase();osListaRender();pedSalvar(pedAtual);const m=$('#osManual');if(m)m.open=true;setTimeout(()=>{const x=$('#osmT');if(x)x.focus()},50)}});
+  L.addEventListener('change',async e=>{if(e.target.id==='osmF'&&e.target.files[0]){const r=await shrinkImage(e.target.files[0],900,'image/jpeg');osmImg={src:r.url,w:r.w,h:r.h};$('#osmFok').textContent='✓ foto anexada'}});
+  const i1=$('#osPdfNovo'),i2=$('#osPdfPed');if(i1)i1.onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)osImportar(f,false)};if(i2)i2.onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)osImportar(f,true)}})();
 
 renderTypes();renderLogo();initStore();
 
