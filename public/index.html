@@ -184,7 +184,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
 <main>
   <div id="pedBar" hidden></div>
   <section id="osSec" hidden>
-    <div class="row" style="gap:8px;margin:0 0 10px"><label class="btn" style="cursor:pointer;background:#2f9e44;color:#fff;font-weight:700">Ler OS (PDF) — lança os dados e os itens<input type="file" accept=".pdf,application/pdf" id="osPdfPed" hidden></label></div>
+    <div class="row" id="osLerRow" style="gap:8px;margin:0 0 10px"><label class="btn" style="cursor:pointer;background:#2f9e44;color:#fff;font-weight:700">Ler OS (PDF) — lança os dados e os itens<input type="file" accept=".pdf,application/pdf" id="osPdfPed" hidden></label></div>
     <div class="card" id="osCard">
       <h2>Dados da OS <span class="badge">valem para todas as folhas</span></h2>
       <div class="g3">
@@ -808,7 +808,7 @@ $('#ledPick').onclick=e=>{const b=e.target.closest('button');if(!b)return;selLed
 $('#typeList').onclick=e=>{const b=e.target.closest('.type');if(b)openModal(types.find(t=>t.id===b.dataset.id))};
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
-  const tb=b.dataset.tab;$('#tab-pedidos').hidden=tb!=='pedidos';$('#tab-novo').hidden=tb!=='novo';$('#tab-tipos').hidden=tb!=='tipos';$('#tab-testeiras').hidden=tb!=='testeiras';$('#tab-modelo').hidden=tb!=='modelo';$('#tab-bobs').hidden=tb!=='bobs';if($('#tab-branco'))$('#tab-branco').hidden=tb!=='branco';if(tb==='bobs')setTimeout(()=>{try{bobsEditor();bobs3D()}catch(e){console.error(e)}},30);if(tb==='modelo')setTimeout(()=>m3Draw(),30);
+  const tb=b.dataset.tab;$('#tab-pedidos').hidden=tb!=='pedidos';$('#tab-novo').hidden=tb!=='novo';$('#tab-tipos').hidden=tb!=='tipos';$('#tab-testeiras').hidden=tb!=='testeiras';$('#tab-modelo').hidden=tb!=='modelo';$('#tab-bobs').hidden=tb!=='bobs';if($('#tab-branco'))$('#tab-branco').hidden=tb!=='branco';if($('#osLerRow'))$('#osLerRow').hidden=tb!=='pedidos';if(tb==='bobs')setTimeout(()=>{try{bobsEditor();bobs3D()}catch(e){console.error(e)}},30);if(tb==='modelo')setTimeout(()=>m3Draw(),30);
   $('#osSec').hidden=tb==='tipos'||(tb==='pedidos'&&!pedAtual);if($('#refBox'))$('#refBox').hidden=tb==='pedidos';if($('#descBox'))$('#descBox').hidden=tb==='pedidos';if($('#vendaBox'))$('#vendaBox').hidden=tb==='pedidos';$('#instSec').hidden=!['novo','modelo','testeiras','bobs'].includes(tb);instColoca(tb);pedBarRender();if(tb==='testeiras')setTimeout(tRender,30);pickerCasa();$('#itemBox').hidden=tb==='pedidos';$('#descBox').hidden=tb==='testeiras'||tb==='pedidos';
 });
 async function shrinkImage(f,max,type){
