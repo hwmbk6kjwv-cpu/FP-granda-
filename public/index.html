@@ -4672,7 +4672,8 @@ function mView3D(){if(!m3Init()){$('#m3dNote').hidden=false;return}
 document.querySelectorAll('[data-m3]').forEach(b=>b.onclick=()=>{const v={iso:[-0.65,1.12],frente:[0,Math.PI/2],lado:[Math.PI/2,Math.PI/2],topo:[0,0.06],tras:[Math.PI,Math.PI/2]}[b.dataset.m3];M3.th=v[0];M3.ph=v[1];m3Draw()});
 // ---------- desenho vetorial das peças (caixas orientadas, pintor) ----------
 const VISTAS={iso:{fwd:V3a.nrm([1,-1,1]),right:V3a.nrm([1,0,-1])},frente:{fwd:[0,0,1],right:[1,0,0]},lateral:{fwd:[-1,0,0],right:[0,0,1]},topo:{fwd:[0,-1,0],right:[1,0,0],up:[0,0,1]}};
-function desenhaPecas(P,pecas,vista,R,opts={}){const V=VISTAS[vista];const up=V.up||V3a.cross(V.fwd,V.right);
+function vistaDef(n){if(VISTAS[n])return VISTAS[n];const b=VISTAS[n.replace(/R$/,'')];const up=b.up||V3a.cross(b.fwd,b.right);return VISTAS[n]={fwd:b.fwd,right:up,up:V3a.sc(b.right,-1)}}
+function desenhaPecas(P,pecas,vista,R,opts={}){const V=vistaDef(vista);const up=V.up||V3a.cross(V.fwd,V.right);
   const pr=q=>[V3a.dot(q,V.right),V3a.dot(q,up)];const all=pecas.flatMap(p=>cantos(p.obb).map(pr));
   const bx0=aMin(all.map(q=>q[0])),bx1=aMax(all.map(q=>q[0])),by0=aMin(all.map(q=>q[1])),by1=aMax(all.map(q=>q[1]));
   const s=opts.s||Math.min(R.w/((bx1-bx0)||1),R.h/((by1-by0)||1));const ox=R.x+(R.w-(bx1-bx0)*s)/2,oy=R.y+(R.h-(by1-by0)*s)/2;
@@ -4727,12 +4728,17 @@ function mFolhas(){const un=Math.max(1,Math.round(num($('#mQt').value))||1);cons
    // escolhe o arranjo que deixa as vistas maiores (lado a lado, em L ou empilhado)
    const AX=24,AY=44,AW=214-AX,AH=164-AY,mx=26,my=24;
    const ops=[{n:'linha',w:W+Dp+W,h:Math.max(H,Dp),gx:3*mx,gy:my},{n:'L',w:W+Dp,h:H+Dp,gx:2*mx,gy:2*my},{n:'coluna',w:Math.max(W,Dp),h:2*H+Dp,gx:mx,gy:3*my}].map(o=>({...o,s:Math.min((AW-o.gx)/(o.w||1),(AH-o.gy)/(o.h||1))}));
-   const op=ops.reduce((a,b)=>b.s>a.s?b:a);const s=op.s;const x0=AX+12,y0=AY+6;
-   const vistas=op.n==='linha'?[['frente',{x:x0,y:y0,w:W*s,h:H*s}],['lateral',{x:x0+W*s+mx,y:y0,w:Dp*s,h:H*s}],['topo',{x:x0+(W+Dp)*s+2*mx,y:y0,w:W*s,h:Dp*s}]]
+   // peça muito alta: testa também as vistas VIRADAS 90° (de lado) — só usa se ficar bem maior
+   const rops=[{n:'rcol',w:Math.max(H,W),h:W+Dp+Dp,gx:mx,gy:3*my},{n:'rlado',w:H+W,h:Math.max(W+Dp,Dp),gx:2*mx,gy:2*my}].map(o=>({...o,s:Math.min((AW-o.gx)/(o.w||1),(AH-o.gy)/(o.h||1))}));
+   let op=ops.reduce((a,b)=>b.s>a.s?b:a);const rb=rops.reduce((a,b)=>b.s>a.s?b:a);if(rb.s>op.s*1.15)op=rb;const s=op.s;const x0=AX+12,y0=AY+6;
+   const vistas=op.n==='rcol'?[['frenteR',{x:x0,y:y0,w:H*s,h:W*s}],['lateralR',{x:x0,y:y0+W*s+my,w:H*s,h:Dp*s}],['topoR',{x:x0,y:y0+(W+Dp)*s+2*my,w:Dp*s,h:W*s}]]
+     :op.n==='rlado'?[['frenteR',{x:x0,y:y0,w:H*s,h:W*s}],['lateralR',{x:x0,y:y0+W*s+my,w:H*s,h:Dp*s}],['topo',{x:x0+H*s+mx,y:y0,w:W*s,h:Dp*s}]]
+     :op.n==='linha'?[['frente',{x:x0,y:y0,w:W*s,h:H*s}],['lateral',{x:x0+W*s+mx,y:y0,w:Dp*s,h:H*s}],['topo',{x:x0+(W+Dp)*s+2*mx,y:y0,w:W*s,h:Dp*s}]]
      :op.n==='L'?[['frente',{x:x0,y:y0,w:W*s,h:H*s}],['lateral',{x:x0+W*s+mx,y:y0,w:Dp*s,h:H*s}],['topo',{x:x0,y:y0+H*s+my,w:W*s,h:Dp*s}]]
      :[['frente',{x:x0,y:y0,w:W*s,h:H*s}],['lateral',{x:x0,y:y0+H*s+my,w:Dp*s,h:H*s}],['topo',{x:x0,y:y0+2*H*s+2*my,w:W*s,h:Dp*s}]];
    const junta=(arr,tol)=>{const a=arr.slice().sort((p,q)=>p-q);const out=[];a.forEach(v=>{if(!out.length||v-out[out.length-1]>tol)out.push(v)});return out};
-   vistas.forEach(([nm,R])=>{if(R.y+R.h>167)return;const D=desenhaPecas(P,mPecas,nm,R,{s});
+   vistas.forEach(([nmV,R])=>{if(R.y+R.h>167)return;const nm=nmV.replace(/R$/,''),rot=nmV!==nm;const D=desenhaPecas(P,mPecas,nmV,R,{s});
+     if(rot){P.push({t:'rect',x:R.x-11,y:R.y-10,w:R.w+22,h:R.h+(nm==='frente'?27:20),stroke:'#e8590c',lw:0.35,r:1.5})}
      const X=u=>D.ox+(u-D.bx0)*s,Y=v=>D.oy+(D.by1-v)*s;const fs=2.8;
      cotaH(P,X(D.bx0),X(D.bx1),Y(D.by1)-6,Y(D.by1),fmm(D.bx1-D.bx0),fs);cotaV(P,X(D.bx0)-7,Y(D.by1),Y(D.by0),X(D.bx0),fmm(D.by1-D.by0),fs);
      // correntes pelas bordas das peças (só nesta vista)
@@ -4741,7 +4747,7 @@ function mFolhas(){const un=Math.max(1,Math.round(num($('#mQt').value))||1);cons
      if(xs.length>2&&nm!=='lateral')for(let k=0;k+1<xs.length;k++)cotaH(P,X(xs[k]),X(xs[k+1]),Y(D.by0)+6,Y(D.by0),fmm(xs[k+1]-xs[k]),fs*0.85);
      const ys=junta(rects.flatMap(r=>[r.y0,r.y1]),8).reverse();if(ys.length>2&&nm==='frente')for(let k=0;k+1<ys.length;k++)cotaV(P,X(D.bx1)+7,Y(ys[k]),Y(ys[k+1]),X(D.bx1),fmm(ys[k]-ys[k+1]),fs*0.85);
      if(nm==='frente')mPecas.forEach(p=>{const [x,y]=D.M(p.obb.c);P.push({t:'circle',x,y,r:1.7,fill:'#ffffff',stroke:'#000000',lw:0.2},{t:'text',x,y:y+0.8,s:String(p.item),size:1.9,bold:true,color:'#000000',anchor:'middle'})});
-     P.push({t:'text',x:R.x+R.w/2,y:Y(D.by0)+(nm==='lateral'?6:13),s:{frente:'FRENTE',lateral:'LATERAL',topo:'TOPO'}[nm],size:3,bold:true,color:'#000000',anchor:'middle'})});
+     P.push({t:'text',x:R.x+R.w/2,y:Y(D.by0)+(nm==='lateral'?6:13),s:{frente:'FRENTE',lateral:'LATERAL',topo:'TOPO'}[nm]+(rot?' — VIRADA 90° (DESENHO DE LADO)':''),size:3,bold:true,color:rot?'#e8590c':'#000000',anchor:'middle'})});
    legendaSerr(P,220,137,66,L.map(r=>r.perfil));P.push({t:'text',x:284,y:25,s:`ESCALA 1:${Math.round(1/s)} — MEDIDAS EM MM`,size:2.4,bold:true,color:'#2f6fa8',anchor:'end'});
    pages.push(P);tags.push('VISTAS')}
   // PLANO DE CORTE (tubos e barras), barras de 6 m
@@ -5487,20 +5493,27 @@ function ct3Pagina(G,ctx,titulo,det,qt,E){let yLivre=30;const W=G.hi[0]-G.lo[0],
   // distribuição: testa 3 arranjos (lado a lado, frente+lateral em cima com topo embaixo, empilhado) e usa o que deixa as vistas maiores
   const cor='#1971c2',fs=2.8;const AX=22,AY=42,AW=(det||E?194:200)-AX,AH=144-AY;const mx=det?30:16,my=det?24:15;
   const ops=[{n:'linha',w:W+D+W,h:Math.max(H,D),gx:3*mx,gy:my},{n:'L',w:W+D,h:H+D,gx:2*mx,gy:2*my},{n:'coluna',w:Math.max(W,D),h:H+H+D,gx:mx,gy:3*my}].map(o=>({...o,s:Math.min((AW-o.gx)/(o.w||1),(AH-o.gy)/(o.h||1))}));
-  const op=ops.reduce((a,b)=>b.s>a.s?b:a);const s=op.s;const g=x=>x;
-  let vx;if(op.n==='linha'){const tw=(W+D+W)*s+2*mx,x0=AX+mx*0.6+Math.max(0,(AW-op.gx-(W+D+W)*s)/2),y0=AY+my*0.55+Math.max(0,(AH-op.gy-Math.max(H,D)*s)/2);vx={frente:[x0,y0,W*s,H*s],lateral:[x0+W*s+mx,y0,D*s,H*s],topo:[x0+(W+D)*s+2*mx,y0,W*s,D*s]};void tw}
+  const rops=[{n:'rcol',w:Math.max(H,W),h:W+D+D,gx:mx,gy:3*my},{n:'rlado',w:H+W,h:Math.max(W+D,D)+my,gx:2*mx,gy:2*my}].map(o=>({...o,s:Math.min((AW-o.gx)/(o.w||1),(AH-o.gy)/(o.h||1))}));
+  let op=ops.reduce((a,b)=>b.s>a.s?b:a);const rb=rops.reduce((a,b)=>b.s>a.s?b:a);if(rb.s>op.s*1.15)op=rb;const s=op.s;const ROT={frente:op.n[0]==='r',lateral:op.n[0]==='r',topo:op.n==='rcol'};
+  let vx;if(op.n==='rcol'){const x0=AX+mx*0.6,y0=AY+my*0.55;vx={frente:[x0,y0,H*s,W*s],lateral:[x0,y0+W*s+my,H*s,D*s],topo:[x0,y0+(W+D)*s+2*my,D*s,W*s]}}
+  else if(op.n==='rlado'){const x0=AX+mx*0.6,y0=AY+my*0.55;vx={frente:[x0,y0,H*s,W*s],lateral:[x0,y0+W*s+my,H*s,D*s],topo:[x0+H*s+mx,y0,W*s,D*s]}}
+  else if(op.n==='linha'){const tw=(W+D+W)*s+2*mx,x0=AX+mx*0.6+Math.max(0,(AW-op.gx-(W+D+W)*s)/2),y0=AY+my*0.55+Math.max(0,(AH-op.gy-Math.max(H,D)*s)/2);vx={frente:[x0,y0,W*s,H*s],lateral:[x0+W*s+mx,y0,D*s,H*s],topo:[x0+(W+D)*s+2*mx,y0,W*s,D*s]};void tw}
   else if(op.n==='L'){const x0=AX+mx*0.6+Math.max(0,(AW-op.gx-(W+D)*s)/2),y0=AY+my*0.55+Math.max(0,(AH-op.gy-(H+D)*s)/2);vx={frente:[x0,y0,W*s,H*s],lateral:[x0+W*s+mx,y0,D*s,H*s],topo:[x0,y0+H*s+my,W*s,D*s]}}
   else{const x0=AX+mx*0.6+Math.max(0,(AW-op.gx-Math.max(W,D)*s)/2),y0=AY+my*0.55;vx={frente:[x0,y0,W*s,H*s],lateral:[x0,y0+H*s+my,D*s,H*s],topo:[x0,y0+2*H*s+2*my,W*s,D*s]}}
-  const put=(nm,x,y,w,h)=>{const im=ct3Img(G,nm,Math.max(4,s*6));P.push({t:'img',x,y,w,h,src:im.src,fmt:'JPEG'});P.push({t:'rect',x,y,w,h,stroke:'#dee2e6',lw:0.1});return im};
-  const [a,b,c,d]=vx.frente;put('frente',a,b,c,d);cotaH(P,a,a+c,b-5,b,ctFmt(W),fs,cor);cotaV(P,a-6,b,b+d,a,ctFmt(H),fs,cor);P.push({t:'text',x:a+c/2,y:b+d+(det?10:4.5),s:'FRENTE',size:2.8,bold:true,color:'#000000',anchor:'middle'});
-  {const [a,b,c,d]=vx.lateral;put('lateral',a,b,c,d);cotaH(P,a,a+c,b-5,b,ctFmt(D),fs,cor);cotaV(P,a+c+6,b,b+d,a+c,ctFmt(H),fs,cor);P.push({t:'text',x:a+c/2,y:b+d+(det?10:4.5),s:'LATERAL',size:2.8,bold:true,color:'#000000',anchor:'middle'})}
-  {const [a,b,c,d]=vx.topo;put('topo',a,b,c,d);cotaV(P,a-6,b,b+d,a,ctFmt(D),fs,cor);cotaH(P,a,a+c,b+d+5,b+d,ctFmt(W),fs,cor);P.push({t:'text',x:a+c/2,y:b+d+10.5,anchor:'middle',s:'SUPERIOR (AÉREA)',size:2.8,bold:true,color:'#000000'})}
+  const put=(nm,x,y,w,h)=>{if(ROT[nm]&&!CT3V[nm+'R']){const V0=CT3V[nm];CT3V[nm+'R']={r:V0.u,u:v=>-V0.r(v),d:V0.d}}const im=ct3Img(G,ROT[nm]?nm+'R':nm,Math.max(4,s*6));P.push({t:'img',x,y,w,h,src:im.src,fmt:'JPEG'});P.push({t:'rect',x,y,w,h,stroke:'#dee2e6',lw:0.1});return im};
+  // cada vista: medidas horizontais/verticais (trocam quando a vista está virada 90°)
+  [['frente','FRENTE',W,H],['lateral','LATERAL',D,H],['topo','SUPERIOR (AÉREA)',W,D]].forEach(([nm,lb,hz,vt])=>{const [a,b,c,d]=vx[nm];put(nm,a,b,c,d);const rt=ROT[nm];const HZ=rt?vt:hz,VT=rt?hz:vt;
+    if(nm==='topo'&&!rt){cotaV(P,a-6,b,b+d,a,ctFmt(VT),fs,cor);cotaH(P,a,a+c,b+d+5,b+d,ctFmt(HZ),fs,cor)}
+    else{cotaH(P,a,a+c,b-5,b,ctFmt(HZ),fs,cor);if(nm==='lateral'&&!rt)cotaV(P,a+c+6,b,b+d,a+c,ctFmt(VT),fs,cor);else cotaV(P,a-6,b,b+d,a,ctFmt(VT),fs,cor)}
+    const ly=b+d+(nm==='topo'&&!rt?10.5:(det?10:4.5));P.push({t:'text',x:a+c/2,y:ly,anchor:'middle',s:lb+(rt?' — VIRADA 90° (DE LADO)':''),size:2.8,bold:true,color:rt?'#e8590c':'#000000'});
+    if(rt)P.push({t:'rect',x:a-10,y:b-7,w:c+(det?26:20),h:(ly-b)+9,stroke:'#e8590c',lw:0.35,r:1.5})});
   if(E){const [a,b]=vx.frente;E.forEach((e,n)=>{const cx=a+((e.lo[0]+e.hi[0])/2-G.lo[0])*s,cy=b+(G.hi[1]-(e.lo[1]+e.hi[1])/2)*s;P.push({t:'circle',x:cx,y:cy,r:2.4,fill:'#2b3a8c',stroke:'#2b3a8c',lw:0.1},{t:'text',x:cx,y:cy+1,s:String(n+1),size:2.6,bold:true,color:'#ffffff',anchor:'middle'})});
     yLivre=49.5+Math.min(14,E.length)*4.6+4;P.push({t:'text',x:198,y:44,s:`${E.length} ELEMENTOS — cada um nas folhas seguintes:`,size:2.6,bold:true,color:'#2b3a8c'});E.slice(0,14).forEach((e,n)=>P.push({t:'text',x:198,y:49.5+n*4.6,s:`${n+1}.  ${ctFmt(e.hi[0]-e.lo[0])} × ${ctFmt(e.hi[1]-e.lo[1])} × ${ctFmt(e.hi[2]-e.lo[2])} mm${e.pcs[0].nome?'  '+e.pcs[0].nome:''}`,size:2.5,color:'#000000'}))}
   P.push({t:'text',x:284,y:25,s:`ESCALA 1:${ctFmt(1/s)} — MEDIDAS EM MM — ${ctFmt(W)} × ${ctFmt(H)} × ${ctFmt(D)} (L × A × P)`,size:2.4,bold:true,color:'#2f6fa8',anchor:'end'});
   if(det){// cotas na própria imagem: correntes com o espaçamento das barras em cada vista + resumo dos perfis
     const VV={frente:{r:p=>[p.lo[0],p.hi[0]],u:p=>[p.lo[1],p.hi[1]],r0:G.lo[0],u1:G.hi[1]},lateral:{r:p=>[-p.hi[2],-p.lo[2]],u:p=>[p.lo[1],p.hi[1]],r0:-G.hi[2],u1:G.hi[1]},topo:{r:p=>[p.lo[0],p.hi[0]],u:p=>[-p.hi[2],-p.lo[2]],r0:G.lo[0],u1:-G.lo[2]}};
     const junta=(arr,tol)=>{const a=arr.slice().sort((p,q)=>p-q);const out=[];a.forEach(v=>{if(!out.length||v-out[out.length-1]>tol)out.push(v)});return out};
+    const EXT={frente:[W,H],lateral:[D,H],topo:[W,D]};Object.keys(VV).forEach(nm=>{if(!ROT[nm])return;const V0=VV[nm],Hv=EXT[nm][1];VV[nm]={r:V0.u,u:p=>{const [a,b]=V0.r(p);return[-b,-a]},r0:V0.u1-Hv,u1:-V0.r0}});
     Object.entries(VV).forEach(([nm,V])=>{const [a,b,w,h]=vx[nm];const R=G.pcs.map(p=>{const [r0,r1]=V.r(p),[u0,u1]=V.u(p);return{r0,r1,u0,u1,w:r1-r0,h:u1-u0}});
       const Wv=w/s,Hv=h/s,X=r=>a+(r-V.r0)*s,Y=u=>b+(V.u1-u)*s;const fs=2.2;
       const vert=R.filter(q=>q.h>q.w*3&&q.w<Wv*0.2),hor=R.filter(q=>q.w>q.h*3&&q.h<Hv*0.2);
@@ -5548,7 +5561,10 @@ async function ctGuardar(){if(!$('#ctSetor').value){$('#ctMsg').innerHTML='<div 
   let ref=null,arqs=[];try{ref=await guardaGrande(ctBytes);for(const f of ctArqs)arqs.push(f.ref?{name:f.name,ref:f.ref}:{name:f.name,ref:await guardaGrande(unb64(f.b64))})}catch(e){$('#ctGuardar').disabled=false;$('#ctMsg').innerHTML=`<div class="msg err">Não salvou: ${esc(e.message)}</div>`;return}$('#ctGuardar').disabled=false;
   const velho=ctEdit>=0?compCotas[ctEdit]:null;if(velho&&velho.ref)apagaGrande(velho.ref);
   const c={id:ctEdit>=0&&compCotas[ctEdit]?compCotas[ctEdit].id:'c'+Date.now().toString(36),setor:$('#ctSetor').value,modo:ctModo,desc:$('#ctDesc').value.trim(),mat:$('#ctMat').value.trim(),obs:$('#ctObs').value.trim(),qtd:$('#ctQtd').value||'1',larg:$('#ctLarg').value,un:$('#ctUn').value,eixo:$('#ctEixo').value,nome:ctNome,ref,n:ctBytes.length,arqs,_bytes:ctBytes,_src:ctSrc,_3d:ct3};
-  if(ctEdit>=0&&compCotas[ctEdit])compCotas[ctEdit]=c;else compCotas.push(c);if(typeof pedSujo!=='undefined')pedSujo=true;ctSair()}
+  if(ctEdit>=0&&compCotas[ctEdit])compCotas[ctEdit]=c;else compCotas.push(c);if(typeof pedSujo!=='undefined')pedSujo=true;const tp=ctVolta&&ctVolta.tipo;ctSair();await ctPosSalvar(tp)}
+// depois de salvar/excluir uma cota: grava o item no pedido e atualiza a FP do projeto na tela
+async function ctPosSalvar(tp){try{if(tp&&typeof pedAtual!=='undefined'&&pedAtual&&typeof itemSalvar==='function')await itemSalvar(tp)}catch(e){console.error('salvar item',e)}
+  try{const a=abaAtual();const btn={novo:'#gerar',bobs:'#bGerar',branco:'#brGerar'}[a];if(btn&&$(btn)&&!$(btn).disabled&&document.querySelector('#tab-'+a+' .pg'))$(btn).click();else if(a==='testeiras'&&typeof tRender==='function')tRender();else if(a==='modelo'&&typeof mFolhasRender==='function')mFolhasRender()}catch(e){console.error(e)}}
 document.addEventListener('DOMContentLoaded',()=>{
   ['buildDoc','buildTesteira','dFolhas','mFolhas','bobsFolhas','brFolhas'].forEach(n=>{if(typeof window[n]==='function'&&!window[n]._ct)window[n]=ctComCotas(window[n])});
   if(typeof capturaEstado==='function'){const _c=capturaEstado;window.capturaEstado=function(t){const C=_c(t);if(C&&C.estado&&t!=='cotas')C.estado.cotas=ctSalvaveis();return C}}
@@ -5556,7 +5572,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.addEventListener('click',e=>{const n=e.target.closest('[data-ctnova]'),ed=e.target.closest('[data-cted]'),d=e.target.closest('[data-ctdel]');
     if(n){ctEdit=-1;irAba('cotas')}
     else if(ed)ctEditar(+ed.dataset.cted);
-    else if(d){const c=compCotas[+d.dataset.ctdel];if(c){if(c.ref)apagaGrande(c.ref);(c.arqs||[]).forEach(f=>f.ref&&apagaGrande(f.ref));compCotas.splice(+d.dataset.ctdel,1);if(typeof pedSujo!=='undefined')pedSujo=true;ctListaRender()}}});
+    else if(d){const c=compCotas[+d.dataset.ctdel];if(c){if(c.ref)apagaGrande(c.ref);(c.arqs||[]).forEach(f=>f.ref&&apagaGrande(f.ref));compCotas.splice(+d.dataset.ctdel,1);if(typeof pedSujo!=='undefined')pedSujo=true;ctListaRender();ctPosSalvar(ctTipoDe(abaAtual()))}}});
   $('#ctGuardar').onclick=ctGuardar;$('#ctCancelar').onclick=ctSair;});
 
 /* ================= PEDIDOS: uma OS com vários itens (letras, testeiras, estruturas, modelos 3D), tudo salvo ================= */
