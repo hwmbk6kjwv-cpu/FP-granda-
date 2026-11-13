@@ -220,6 +220,21 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
 .pedFinSep{display:flex;align-items:center;gap:10px;margin:16px 0 8px;color:#2b8a3e;font-weight:700;font-size:13px}.pedFinSep:before,.pedFinSep:after{content:"";flex:1;border-top:2px solid #b2f2bb}
 .ledEsp{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:0 12px}.ledEsp summary{list-style:none;cursor:pointer;padding:11px 0;font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px}.ledEsp summary::-webkit-details-marker{display:none}.ledEsp .seta{margin-left:auto;transition:transform .15s;color:var(--mute)}.ledEsp[open] .seta{transform:rotate(180deg)}.ledEsp[open]{padding-bottom:12px}.ledEsp .g2 label.f{margin-top:0}
 .osAgCom{background:none;border:1px solid #a5d8ff;color:#1971c2;border-radius:8px;padding:4px 9px;font:inherit;font-size:11.5px;font-weight:600;cursor:pointer}
+
+/* ---- testeira: editor do quadro (visualizadores lado a lado + controles em volta) ---- */
+#tEditor{border:1px solid var(--line);border-radius:12px;background:#fafbfd;padding:10px;margin-top:8px}
+.edBar{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}.edLin{display:flex;flex-wrap:wrap;gap:5px;align-items:center}.edLb{font-size:11px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.04em;min-width:58px}
+.edLin .chip,.edLin .btn.sm{padding:5px 10px;font-size:12px}#tEdPickLin:has(#tEdPick:empty){display:none}
+#tEdSlot .bGrid{grid-template-columns:1fr 1fr!important;gap:8px;margin:0 0 8px}#tEdSlot .bGrid>.card{padding:8px;border-radius:10px;box-shadow:none}
+#tEdSlot .bGrid>.card .v3wrap{min-height:260px}#tEdSlot .bGrid>.card .v3wrap canvas{min-height:260px}
+.edVt{font-size:13px!important;margin:0 0 6px!important;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.edVt .note{font-size:11px}.edZoom{margin-left:auto;border:1px solid var(--line);background:#fff;border-radius:7px;padding:1px 7px;font-size:14px;cursor:pointer;line-height:1.3}
+#tEdSlot .bGrid.edZ1{grid-template-columns:1fr!important}#tEdSlot .bGrid.edZ1>.card:nth-child(2){display:none}
+#tEdSlot .bGrid.edZ2{grid-template-columns:1fr!important}#tEdSlot .bGrid.edZ2>.card:nth-child(1){display:none}
+#tEdSlot .bGrid>.card>p.note{display:none}
+#tFaces .fcard:not(.edSel){display:none}#tFaces .fcard{margin-top:0;background:#fff}
+.edPerf{border-top:1px solid var(--line);margin-top:10px;padding-top:8px}.edTit{font-weight:700;font-size:14px;margin-bottom:2px}
+@media(max-width:620px){#tEdSlot .v3bar button{padding:3px 6px;font-size:10.5px}#tEdSlot .v3bar{gap:3px;padding:4px}#tEdSlot .bGrid>.card .v3wrap,#tEdSlot .bGrid>.card .v3wrap canvas{min-height:220px}
+ #tEditor{padding:7px;margin-left:-4px;margin-right:-4px}.edVt .note{display:none}#tEdSlot #t3dInfo{font-size:11px}}
 </style>
 </head>
 <body>
@@ -501,13 +516,17 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
         <div><label class="f">Quantidade (un.)</label><input type="number" id="tUn" value="1" inputmode="numeric"></div>
         <div><label class="f">Descrição</label><input type="text" id="tDesc" value="" placeholder="Ex.: testeira da fachada"></div>
       </div>
-      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">1. Faces e medidas</h2>
-      <p class="note" style="margin:0">Monte face por face. Profundidade 0 = quadro simples; com profundidade a estrutura vira caixa (quadro da frente + quadro de trás ligados). Use as junções para fazer estrutura em L ou U.</p>
-      <div class="row" style="margin-top:10px;gap:6px"><span class="note">Modelos rápidos:</span><button class="chip" data-modelo="simples">Quadro simples</button><button class="chip" data-modelo="caixa">Caixa (com profundidade)</button><button class="chip" data-modelo="L">Em L</button><button class="chip" data-modelo="U">Em U</button></div>
+      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">1. Editor do quadro</h2>
+      <div id="tEditor">
+      <div class="edBar">
+      <div class="edLin"><span class="edLb">Modelos</span><button class="chip" data-modelo="simples">Quadro simples</button><button class="chip" data-modelo="caixa">Caixa (com profundidade)</button><button class="chip" data-modelo="L">Em L</button><button class="chip" data-modelo="U">Em U</button></div>
+      <div class="edLin"><span class="edLb">Faces</span><button class="btn ghost sm" data-addf="linha">+ Em linha</button><button class="btn ghost sm" data-addf="tras">+ L para trás</button><button class="btn ghost sm" data-addf="frente">+ L para frente</button></div>
+      <div class="edLin" id="tEdPickLin"><span class="edLb">Editar</span><div class="row" id="tEdPick" style="gap:6px"></div></div>
+      </div>
       <div id="tDivMsg"></div>
+      <div id="tEdSlot"></div>
       <div id="tFaces"></div>
-      <div class="row" style="margin-top:10px;gap:6px"><button class="btn ghost sm" data-addf="linha">+ Face em linha</button><button class="btn ghost sm" data-addf="tras">+ Face em L (para trás)</button><button class="btn ghost sm" data-addf="frente">+ Face em L (para frente)</button></div>
-      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">2. Perfis e travas</h2>
+      <div class="edPerf"><div class="edTit">Perfis e travas</div>
       <div class="g2">
         <div style="display:flex;flex-direction:column;gap:2px"><label class="f">Perfil do quadro (contorno)</label><select id="tPerfil"><option>15x15</option><option>20x20</option><option>25x25</option><option>20x30</option><option selected>30x30</option><option value="20x40">40x20</option><option>40x40</option><option>80x80</option></select><label class="f" style="margin-top:8px">Parede do quadro (mm)</label><input type="text" id="tParede" value="1,25" inputmode="decimal"></div>
         <div style="display:flex;flex-direction:column;gap:2px"><label class="f">Perfil interno (travessas)</label><select id="tPerfilInt"><option>15x15</option><option>20x20</option><option>25x25</option><option>20x30</option><option value="30x20">30x20 (30 de face)</option><option>30x30</option><option value="20x40" selected>40x20</option><option>40x40</option><option>80x80</option></select><label class="f" style="margin-top:8px">Parede interna (mm)</label><input type="text" id="tParedeInt" value="1,25" inputmode="decimal"></div>
@@ -529,7 +548,8 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <p class="note" style="margin:4px 0 8px">Tubo 10 mm mais fino que o contorno, faceado pelo fundo; 150 mm de vão livre entre as faces internas. Leva 2 cantoneiras internas AJR 003 embaixo para travar.</p>
       <div class="row" id="tFixBox" style="gap:6px"></div>
       </div>
-      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">3. ACM</h2>
+      </div></div>
+      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">2. ACM</h2>
       <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;font-size:13px"><input type="checkbox" id="aOn"> Revestir a testeira com ACM</label>
       <div id="aBox" hidden>
         <label class="f">Espessura</label>
@@ -592,22 +612,21 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
         </div>
         <p class="note" style="margin:6px 0 0">Cores dos catálogos Bold, Day Brasil (Tecbond), Geoplast, ProjetoAlumínio e Alucomaxx; a cor na tela é aproximada — confirme na cartela física. A cor manual fica salva em "Minhas cores".</p>
       </div>
-      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">4. Pintura da estrutura</h2>
+      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">3. Pintura da estrutura</h2>
       <div class="leds" id="tPintModo"><button data-m="nao" class="sel"><b>Sem pintura</b></button><button data-m="toda"><b>Pintar toda a estrutura</b></button><button data-m="soldas"><b>Só proteção nas soldas</b><span class="note" style="display:block">sem pintura, sem cor</span></button></div>
       <div id="tPintSlot" hidden></div>
-      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">5. Observações</h2>
+      <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">4. Observações</h2>
       <p class="note" style="margin:0">Saem na folha.</p><textarea id="tObs"></textarea>
     </div>
     <div class="bGrid" id="tGrid">
     <div class="card tm-pad" style="margin:0">
-      <h2>Medidas da face <span class="note" style="font-weight:400">— toque numa medida para mudar ou arraste a trava</span></h2>
-      <div class="row" id="tEdPick" style="gap:6px;margin-bottom:8px"></div>
+      <h2 class="edVt">Medidas <span class="note" style="font-weight:400">— toque numa medida ou arraste a trava</span><button type="button" class="edZoom" title="Ampliar">⤢</button></h2>
       <div id="tEd"></div>
       <div id="tEdMsg"></div>
       <p class="note" style="margin:6px 0 0">Cada medida move a trava seguinte (da esquerda para a direita e de cima para baixo); a última medida fecha sozinha. Ao ajustar, a face passa para "Personalizadas".</p>
     </div>
     <div class="card" style="margin:0">
-      <h2>Visualização 3D <span class="note" style="font-weight:400">— arraste para girar, role ou pince para zoom</span></h2>
+      <h2 class="edVt">3D <span class="note" style="font-weight:400">— arraste para girar, pince para zoom</span><button type="button" class="edZoom" title="Ampliar">⤢</button></h2>
       <div class="v3wrap"><canvas id="t3d"></canvas><div class="v3bar"><button data-v3="iso">3D</button><button data-v3="frente">Frente</button><button data-v3="lado">Lateral</button><button data-v3="topo">Topo</button><button data-v3="tras">Trás</button></div></div>
       <div id="t3dNote" hidden><p class="note">Visualizador 3D indisponível neste aparelho — mostrando a isométrica.</p><div id="t3dAlt"></div></div>
       <div id="t3dInfo"></div>
@@ -1849,7 +1868,7 @@ function refRender(){$('#refPrev').innerHTML=refImg?`<div class="row" style="gap
 let c3Next=null;
 function tOrdem(){const c3=$('#tGrid');if(!c3)return;if(!c3Next)c3Next=c3.nextElementSibling;const s=$('#instSec');
   const xf=$('#xfT').closest('.card');
-  if(typeof tModo!=='undefined'&&tModo==='desenho'){$('#dCard').after(c3);c3.after(s);$('#dResCard').before(xf)}else{c3Next.before(c3);c3.before(s);$('#tPrev').closest('.card').before(xf)}}
+  if(typeof tModo!=='undefined'&&tModo==='desenho'){$('#dCard').after(c3);c3.after(s);$('#dResCard').before(xf)}else{$('#tEdSlot').appendChild(c3);c3Next.before(s);$('#tPrev').closest('.card').before(xf)}}
 function instColoca(tb){const s=$('#instSec');if(tb==='testeiras'){tOrdem();return}const alvo=tb==='novo'?$('#gerar').closest('.card'):tb==='modelo'?$('#mResCard'):tb==='bobs'?$('#bResCard'):null;
   if(alvo&&alvo.parentNode&&alvo.previousElementSibling!==s)alvo.parentNode.insertBefore(s,alvo);if(tb==='modelo'){const xf=$('#xfM').closest('.card');$('#mResCard').before(xf)}}
 let lSel='',lDoc=null;
@@ -2513,6 +2532,7 @@ function piecesFromVec(vec){if(!vec||!vec.length||!vec[0].polys.length)return[];
   const regs=regionsOf(toC(vec[0].polys));
   return regs.map(reg=>{const regP=fromC(reg);return {outer:regP,lines:vec.map((v,k)=>({color:v.color,polys:k===0?regP:v.polys.filter(p=>inside(p[0],reg))}))}})}
 
+let tEdFace=0;
 /* ================= TESTEIRAS (estrutura em metalon) ================= */
 const PERFIS={ // f = face frontal, p = profundidade (mm) e cor da legenda padrão de serralheria
   '15x15':{f:15,p:15,cor:'#ffff33'},'20x20':{f:20,p:20,cor:'#ff2a1a'},'25x25':{f:25,p:25,cor:'#33ffff'},'20x30':{f:20,p:30,cor:'#adff2f'},
@@ -2872,7 +2892,7 @@ function v3Init(){if(V3.r||V3.fail)return!!V3.r;const cv=$('#t3d');
   return true}
 function v3Draw(){if(!V3.r)return;const cv=V3.r.domElement;const w=cv.clientWidth||600,h=cv.clientHeight||360;
   if(cv.width!==Math.round(w*V3.r.getPixelRatio())||cv.height!==Math.round(h*V3.r.getPixelRatio()))V3.r.setSize(w,h,false);
-  {const hh=V3.R*0.32,ww=hh*w/h;V3.cam.left=-ww;V3.cam.right=ww;V3.cam.top=hh;V3.cam.bottom=-hh;V3.cam.updateProjectionMatrix()}const [tx,ty,tz]=V3.tg;
+  {const hh=V3.R*0.32*Math.max(1,h/w),ww=hh*w/h;V3.cam.left=-ww;V3.cam.right=ww;V3.cam.top=hh;V3.cam.bottom=-hh;V3.cam.updateProjectionMatrix()}const [tx,ty,tz]=V3.tg;
   V3.cam.position.set(tx+V3.R*Math.sin(V3.ph)*Math.sin(V3.th),ty+V3.R*Math.cos(V3.ph),tz+V3.R*Math.sin(V3.ph)*Math.cos(V3.th));V3.cam.lookAt(tx,ty,tz);
   V3.r.render(V3.scene,V3.cam)}
 let v3Fit=true;
@@ -2903,7 +2923,7 @@ function paraPers(f){let F;try{F=calcFace({...f,modo:'prop'},lerOpcoes())}catch(
   const xs=[0,...F.vcs.slice(1,-1)];f.vaosV=xs.slice(1).map((x,i)=>r(x-xs[i]));const ys=[0,...F.rows.slice().sort((a,b)=>a-b)];f.vaosH=ys.slice(1).map((y,i)=>r(y-ys[i]))}
 function ajustaVaos(f,k,n){const L=f[k]=f[k]||[];const tot=k==='vaosV'?f.W:f.H;while(L.length>n)L.pop();while(L.length<n){const rest=tot-L.reduce((s,v)=>s+v,0);L.push(Math.round(rest/2*100)/100)}}
 function renderFaces(){
-  $('#tFaces').innerHTML=tFaces.map((f,i)=>`<div class="fcard" data-i="${i}">
+  if(tEdFace>=tFaces.length)tEdFace=tFaces.length-1;$('#tFaces').innerHTML=tFaces.map((f,i)=>`<div class="fcard${i===tEdFace?' edSel':''}" data-i="${i}">
     <div class="row" style="justify-content:space-between"><b>FACE ${i+1}${i?(f.junta==='cima'?` <span class="note">(em cima da face ${faceRef(tFaces,i)+1})</span>`:(f.ref!=null?` <span class="note">(ao lado da face ${faceRef(tFaces,i)+1})</span>`:'')):' (início)'}</b>${tFaces.length>1?`<button class="btn danger sm" data-del="${i}">Remover</button>`:''}</div>
     <div class="g4">
       <div><label class="f">Largura (mm)</label><input type="number" inputmode="decimal" data-k="W" value="${f.W}"></div>
@@ -2970,7 +2990,7 @@ $('#tFaces').addEventListener('click',e=>{const c=e.target.closest('.fcard');
   const ad=e.target.closest('[data-addt],[data-subt]');if(ad&&c){const fc=tFaces[+c.dataset.i];const k=ad.dataset.addt||ad.dataset.subt;const cur=autoCont(fc)[k];const nn=Math.max(0,cur+(ad.dataset.addt?1:-1));if(fc.modo==='pers')ajustaVaos(fc,k==='nV'?'vaosV':'vaosH',nn);else fc[k]=nn;renderFaces();tAtualizar();return}
   const b=e.target.closest('[data-del]');if(!b)return;removeFace(+b.dataset.del);renderFaces();v3Fit=true;tAtualizar()});
 document.querySelectorAll('[data-addf]').forEach(b=>b.onclick=()=>{const pv=tFaces[tFaces.length-1];const j=b.dataset.addf;
-  tFaces.push({W:j==='linha'?pv.W:Math.max(300,pv.prof||600),H:pv.H,prof:pv.prof||0,junta:j});renderFaces();v3Fit=true;tAtualizar()});
+  tFaces.push({W:j==='linha'?pv.W:Math.max(300,pv.prof||600),H:pv.H,prof:pv.prof||0,junta:j});tEdFace=tFaces.length-1;renderFaces();renderEditor();v3Fit=true;tAtualizar()});
 document.querySelectorAll('[data-modelo]').forEach(b=>b.onclick=()=>{const a=tFaces[0];const W=a.W,H=a.H,P=a.prof||0,S=Math.max(400,P||600);
   tFaces={simples:[{W,H,prof:0,junta:'linha'}],caixa:[{W,H,prof:Math.max(P,300),junta:'linha'}],L:[{W,H,prof:P,junta:'linha'},{W:S,H,prof:P,junta:'tras'}],
     U:[{W:S,H,prof:P,junta:'linha'},{W,H,prof:P,junta:'tras'},{W:S,H,prof:P,junta:'tras'}]}[b.dataset.modelo];
@@ -3012,7 +3032,7 @@ $('#fxDel').onclick=async()=>{if(!fxEdit)return;try{await fixExcluir(fxEdit.id);
 renderFaces();renderFixPick();
 
 /* ================= EDITOR DE MEDIDAS (toque na cota ou arraste a trava) ================= */
-let tEdFace=0;
+
 function posDe(f,F){return{V:F.vcs.slice(1,-1),H:F.rows.slice().sort((a,b)=>a-b)}}
 function gravaPos(f,V,H){const r=v=>Math.round(v*100)/100;f.modo='pers';
   f.vaosV=V.map((x,i)=>r(x-(i?V[i-1]:0)));f.vaosH=H.map((y,i)=>r(y-(i?H[i-1]:0)))}
@@ -3065,7 +3085,8 @@ $('#tEd').addEventListener('pointermove',e=>{if(!edDrag)return;const {r,svg,c,k}
 const edSolta=e=>{if(!edDrag)return;const {c,k,orig,cur}=edDrag;edDrag=null;if(Math.abs(cur-orig)<0.01){renderEditor();$('#tEdMsg').innerHTML='';return}
   const pos=posDe(c.f,c.F);const V=pos.V.slice(),H=pos.H.slice();const L=k==='V'?V:H;const ix=L.findIndex(x=>Math.abs(x-orig)<0.01);if(ix>=0)L[ix]=cur;edAplicar(c.f,c.F,V,H)};
 $('#tEd').addEventListener('pointerup',edSolta);$('#tEd').addEventListener('pointercancel',edSolta);
-$('#tEdPick').onclick=e=>{const b=e.target.closest('[data-edf]');if(!b)return;tEdFace=+b.dataset.edf;renderEditor()};
+$('#tEdPick').onclick=e=>{const b=e.target.closest('[data-edf]');if(!b)return;tEdFace=+b.dataset.edf;renderFaces();renderEditor()};
+document.addEventListener('click',e=>{const z=e.target.closest('#tEdSlot .edZoom');if(!z)return;const g=$('#tGrid'),k=z.closest('.card')===g.children[0]?'edZ1':'edZ2';const on=!g.classList.contains(k);g.classList.remove('edZ1','edZ2');if(on)g.classList.add(k);z.textContent=on?'⤡':'⤢';g.querySelectorAll('.edZoom').forEach(x=>{if(x!==z)x.textContent='⤢'});try{v3Fit=true;tRender()}catch(_){}});
 
 /* proteção nas soldas (sem pintura): vai na própria folha de montagem da serralheria */
 function protecaoSoldas(P,ISO,pts,un,bx=196,by=33,bw=90){pts.forEach(q=>{const [x,y]=ISO.I(...q);P.push({t:'circle',x,y,r:1.1,fill:'#ffd43b',stroke:'#c92a2a',lw:0.3})});
