@@ -182,13 +182,14 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
 @keyframes onAutoFill{from{}to{}}#pedBusca:-webkit-autofill{animation-name:onAutoFill;animation-duration:1ms}
 .osBox{border-radius:10px;padding:9px 10px;margin-top:6px}.osTop{display:flex;gap:10px;align-items:center;min-height:52px}
 .osFoto{width:64px;height:48px;flex:none;border:1px solid #dee2e6;border-radius:6px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}.osFoto img{max-width:100%;max-height:100%}
-.osInfo{flex:1;min-width:0}.osTit{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}.osMeta{font-size:12px;color:var(--mute);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.osInfo{flex:1;min-width:0}.osTit{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}.osMeta{font-size:12px;color:var(--mute);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.osAberto .osTit,.osAberto .osMeta{white-space:normal;overflow:visible}
 .osBadge{display:inline-block;padding:1px 8px;border-radius:999px;font-size:10.5px;font-weight:700;color:#fff;margin-right:6px}
 .osSeta{flex:none;font-weight:700;color:var(--acc);background:#eef0fb;border-radius:999px;padding:3px 13px;cursor:pointer;font-size:14px}
 .osAcoes{display:flex;gap:8px;align-items:center;margin-top:7px}
 .osComps{margin-top:8px;border-top:1px solid #0001;padding-top:4px}.osComp{display:flex;gap:6px;align-items:center;background:#fff;border:1px solid #dee2e6;border-radius:8px;padding:5px 7px;margin-top:5px}
 .osComp input{width:16px;height:16px;flex:none}.osCompT{flex:1;min-width:0;font-size:12.5px;line-height:1.25}.osCompT b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.osCompT span{display:block;font-size:11px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.osSelo{flex:none;font-size:10.5px;font-weight:700;border-radius:999px;padding:2px 7px;white-space:nowrap}.osComp .btn.sm{padding:4px 9px;min-height:0;font-size:12px}.osDet[hidden]{display:none}
+.osSelo{flex:none;font-size:10.5px;font-weight:700;border-radius:999px;padding:2px 7px;white-space:nowrap}.osComp .btn.sm{padding:4px 9px;min-height:0;font-size:12px}.osDet[hidden]{display:none}.osTop{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}.osTop img{-webkit-user-drag:none;pointer-events:none}.osPego{outline:3px solid #1971c2;outline-offset:2px;background:#e7f5ff !important}#osEscBar{position:fixed;left:8px;right:8px;bottom:12px;z-index:9998;background:#1971c2;color:#fff;border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;justify-content:space-between;font-size:13.5px;box-shadow:0 6px 20px #0004}#osEscBar[hidden]{display:none}#osEscBar .btn{background:#fff;color:#1971c2}.osGhost{position:fixed;z-index:9999;pointer-events:none;opacity:.9;background:#fff;border:2px solid #1971c2;border-radius:10px;padding:6px 8px;box-shadow:0 8px 24px #0003;display:flex;gap:8px;align-items:center}.osAlvo{outline:3px dashed #1971c2;outline-offset:2px;background:#e7f5ff !important}body.osArrastando{user-select:none;-webkit-user-select:none}
+.osAgBar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#e7f5ff;border:1.5px solid #74c0fc;border-radius:10px;padding:8px 10px;margin-top:8px;font-size:13px}.osJunto{display:flex;gap:8px;align-items:center;justify-content:space-between;background:#fff;border:1px dashed #74c0fc;border-radius:8px;padding:5px 8px;margin-top:6px;font-size:12.5px}
 .progBox{border:1.5px solid #1971c2;background:#e7f5ff;border-radius:10px;padding:8px 12px;min-width:150px;text-align:right}.progBox b.pc{font-size:26px;color:#1864ab;line-height:1}.progBar{height:7px;border-radius:9px;background:#d0ebff;overflow:hidden;margin:5px 0}.progBar>i{display:block;height:100%;background:#1971c2;border-radius:9px}
 .pedProgMini{display:inline-flex;align-items:center;gap:5px;font-weight:700;color:#1864ab}.pedProgMini i{display:inline-block;width:46px;height:6px;border-radius:9px;background:#d0ebff;overflow:hidden;position:relative}.pedProgMini i>u{position:absolute;left:0;top:0;bottom:0;background:#1971c2}
 </style>
@@ -5584,7 +5585,7 @@ async function osLerPdf(buf){const pdf=await pdfjsLib.getDocument({data:buf,isEv
 // valor de venda da OS: vai para o item do pedido (no 1º componente) quando ainda não tem venda informada
 function osAplicaVenda(){if(!pedAtual||!pedAtual.osItens)return false;let mud=false;pedAtual.osItens.forEach(o=>{if(!(o.sub>0))return;const cs=(pedAtual.itens||[]).filter(i=>+i.n===+o.n).sort((a,b)=>(a.criado||0)-(b.criado||0));if(!cs.length)return;
   if(cs.reduce((a,i)=>a+(+i.venda||0),0)>0)return;cs[0].venda=o.sub;mud=true});return mud}
-function osStatus(n){const tem=(pedAtual.itens||[]).some(i=>+i.n===+n);if(!tem)return 'pend';const o=(pedAtual.osItens||[]).find(i=>+i.n===+n);return o&&o.fin?'fin':'parc'}
+function osStatus(n){const o0=(pedAtual.osItens||[]).find(i=>+i.n===+n);if(o0&&o0.grupo&&+o0.grupo!==+n)return osStatus(o0.grupo);const tem=(pedAtual.itens||[]).some(i=>+i.n===+n);if(!tem)return 'pend';return o0&&o0.fin?'fin':'parc'}
 async function osImportar(file,noPedidoAberto){const msg=$('#pedMsg')||$('#pedListaMsg');try{if(msg)msg.innerHTML='<div class="msg ok">Lendo a ordem de serviço…</div>';
     const R=await osLerPdf(await file.arrayBuffer());if(!R.itens.length&&!R.os)throw new Error('não encontrei os itens nem o número da OS neste PDF');
     let p=noPedidoAberto&&pedAtual?pedAtual:pedidos.find(x=>String(x.os||'').trim()===String(R.os||'').trim()&&R.os);
@@ -5606,7 +5607,7 @@ const osFormHtml=()=>{const L=(pedAtual&&pedAtual.osItens)||[];const prox=Math.m
   <div><label class="f">Medidas</label><input type="text" id="osmM" placeholder="ex.: 5.200 x 0.600 m"></div><div><label class="f">Quantidade</label><input type="number" id="osmQ" value="1" min="1"></div><div><label class="f">Valor de venda (R$)</label><input type="text" id="osmV" inputmode="decimal" placeholder="0,00"></div>
   <div style="grid-column:span 3"><label class="f">Descrição (opcional)</label><input type="text" id="osmD" placeholder="ex.: letra caixa em chapa galvanizada com face em acrílico"></div></div>
   <div class="row" style="gap:8px;align-items:center;margin-top:6px"><label class="btn ghost sm" style="cursor:pointer">Foto (opcional)<input type="file" accept="image/*" id="osmF" hidden></label><div class="colaZona" contenteditable="true" spellcheck="false">Colar print aqui (Ctrl+V)</div><span id="osmFok" class="note" style="margin:0"></span><button class="btn pink sm" type="button" id="osmAdd" style="margin-left:auto">Adicionar à lista</button></div></details>`};
-let osmImg=null;const osAbertos=new Set();
+let osmImg=null;const osAbertos=new Set();let osAgrupando=false;const osAgSel=new Set();
 // componentes do item em linhas pequenas (custo, venda e margem num selo)
 function osCompHtml(n){const cs=(pedAtual.itens||[]).filter(i=>+i.n===+n);if(!cs.length)return'';const v=cs.length>1;const r0=x=>'R$ '+Math.round(+x||0).toLocaleString('pt-BR');
   return `<div class="osComps">${cs.map((it,k)=>{const c=it.custo,ve=+it.venda||0;let selo='<span class="osSelo" style="background:#f1f3f5;color:#868e96">sem custo</span>';
@@ -5619,22 +5620,28 @@ function osListaRender(){pedTotRender();pedProgRender();const box=$('#osLista');
   if(!L.length){box.innerHTML=`<div style="border:1.5px dashed #2b3a8c;border-radius:12px;padding:8px 12px;margin:10px 0;background:#f8f9ff"><span class="note" style="margin:0">Lista de itens do pedido: leia a OS em PDF ou adicione os itens à mão.</span>${osFormHtml()}</div>`;return}
   const nf=L.filter(i=>osStatus(i.n)==='fin').length,np=L.filter(i=>osStatus(i.n)==='parc').length;
   box.innerHTML=`<div style="border:1.5px solid #2b3a8c;border-radius:12px;padding:10px 12px;margin:10px 0;background:#f8f9ff"><div class="row" style="justify-content:space-between;align-items:center"><b style="font-size:15px">Itens do pedido${pedAtual.os?' (OS '+esc(pedAtual.os)+')':''}</b><span class="note" style="margin:0"><b style="color:#2b8a3e">${nf} finalizado(s)</b> • <b style="color:#e67700">${np} parcial(is)</b> • <b style="color:#e8590c">${L.length-nf-np} pendente(s)</b></span></div>
-  ${L.map(it=>{const st=osStatus(it.n);const ab=osAbertos.has(+it.n);const cor=st==='fin'?'background:#d3f9d8;border:1.5px solid #2b8a3e':st==='parc'?'background:#fff3bf;border:1.5px solid #f59f00':'background:#fff;border:1.5px solid #ffd8a8';
+  ${osAgrupando?`<div class="osAgBar"><b>Agrupar:</b> marque os itens que foram projetados juntos <button class="btn sm" type="button" data-osagok="1" style="background:#1971c2;color:#fff">Juntar selecionados</button><button class="btn ghost sm" type="button" data-osag="0">Cancelar</button><span id="osAgAviso" class="note" style="margin:0;color:#c92a2a;font-weight:600" hidden></span></div>`:`<div style="text-align:right;margin-top:6px"><button class="btn ghost sm" type="button" data-osag="1" style="border-color:#1971c2;color:#1971c2">⛓ Agrupar itens</button></div>`}${L.filter(it=>!(it.grupo&&+it.grupo!==+it.n)).map(it=>{const st=osStatus(it.n);const junt=L.filter(o=>+o.grupo===+it.n&&+o.n!==+it.n);const ab=osAbertos.has(+it.n);const cor=st==='fin'?'background:#d3f9d8;border:1.5px solid #2b8a3e':st==='parc'?'background:#fff3bf;border:1.5px solid #f59f00':'background:#fff;border:1.5px solid #ffd8a8';
     const cp=(pedAtual.itens||[]).filter(i=>+i.n===+it.n);
-    return `<div class="osBox" style="${cor}">
+    return `<div class="osBox${ab?' osAberto':''}" data-osbox="${it.n}" style="${cor}">
     <div class="osTop"><div class="osFoto">${it.img?`<img src="${it.img.src}">`:'<span class="note" style="font-size:10px">sem foto</span>'}</div>
-      <div class="osInfo"><div class="osTit"><b>Item ${it.n} — ${esc(it.titulo)}</b></div>
-        <div class="osMeta"><span class="osBadge" style="background:${st==='fin'?'#2b8a3e':st==='parc'?'#f08c00':'#e8590c'}">${st==='fin'?'FINALIZADO':st==='parc'?'PARCIAL':'PENDENTE'}</span>${String(it.q).replace('.',',')} un.${it.sub?' · '+brlP(it.sub):''}${cp.length?` · ${cp.length} comp.`:''}</div></div>
+      <div class="osInfo"><div class="osTit">${osAgrupando?`<input type="checkbox" data-osagsel="${it.n}" style="width:17px;height:17px;vertical-align:-3px;margin-right:4px"${osAgSel.has(+it.n)?' checked':''}>`:''}<b>Item ${it.n}${junt.map(o=>' + '+o.n).join('')} — ${esc(it.titulo)}</b></div>
+        <div class="osMeta"><span class="osBadge" style="background:${st==='fin'?'#2b8a3e':st==='parc'?'#f08c00':'#e8590c'}">${st==='fin'?'FINALIZADO':st==='parc'?'PARCIAL':'PENDENTE'}</span>${String(it.q).replace('.',',')} un.${(it.sub||junt.length)?' · '+brlP((+it.sub||0)+junt.reduce((a,o)=>a+(+o.sub||0),0)):''}${cp.length?` · ${cp.length} comp.`:''}</div></div>
       <span class="osSeta" role="button" tabindex="0" data-osseta="${it.n}" title="${ab?'Fechar':'Ver detalhes'}">${ab?'▴':'▾'}</span></div>
     <div class="osAcoes">${st!=='pend'?`${st==='parc'?`<button class="btn sm" type="button" data-osfin="${it.n}" style="background:#2b8a3e;color:#fff;font-weight:700">✓ Finalizar</button>`:`<button class="btn ghost sm" type="button" data-osreab="${it.n}" title="Voltar para parcial">Reabrir</button>`}<label class="note" style="margin:0 0 0 auto;display:flex;gap:5px;align-items:center;font-size:11.5px"><input type="checkbox" data-selg="${it.n}" title="Selecionar para FP parcial" style="width:18px;height:18px"${cp.every(i=>pedSel.has(i.id))?' checked':''}>FP parcial</label>`:`<button class="btn pink sm" data-osfazer="${it.n}">Fazer projeto</button>${it.manual?`<button class="btn ghost sm" type="button" data-osdel="${it.n}" title="Tirar da lista" style="margin-left:auto">×</button>`:''}`}</div>
     ${st==='pend'?`<div class="row" data-ostipos="${it.n}" hidden style="gap:4px;margin-top:6px;flex-wrap:wrap">${OS_TIPOS.map(([t,l])=>`<button class="btn ghost sm" data-osnovo="${t}" data-osn="${it.n}">${l}</button>`).join('')}</div>`:''}
-    <div class="osDet"${ab?'':' hidden'}><div class="note" style="margin:6px 0 0;font-size:12px">${it.med?'<b>Medidas:</b> '+esc(it.med)+'<br>':''}${it.desc?esc(it.desc):''}</div>${st!=='pend'?osCompHtml(it.n):''}</div></div>`}).join('')}${osFormHtml()}</div>`}
+    <div class="osDet"${ab?'':' hidden'}><button class="btn sm" type="button" data-osagcom="${it.n}" style="background:#1971c2;color:#fff;margin:6px 0 2px">⛓ Agrupar com outro item</button>${junt.map(o=>`<div class="osJunto"><span>⛓ <b>Item ${o.n} — ${esc(o.titulo)}</b> · ${String(o.q).replace('.',',')} un.${o.sub?' · '+brlP(o.sub):''}</span><button class="btn ghost sm" type="button" data-ossep="${o.n}">Separar</button></div>`).join('')}<div class="note" style="margin:6px 0 0;font-size:12px">${it.med?'<b>Medidas:</b> '+esc(it.med)+'<br>':''}${it.desc?esc(it.desc):''}</div>${st!=='pend'?osCompHtml(it.n):''}</div></div>`}).join('')}${osFormHtml()}</div>`}
 // começa o projeto do item já com a descrição, a venda e a foto da OS
 const OS_DESC={letra:'#descItem',testeira:'#tDesc',estrutura:'#dDesc',bobs:'#bDesc',branco:'#brDesc',modelo3d:'#mDesc'};
 function osFazer(tipo,n){const it=(pedAtual.osItens||[]).find(i=>+i.n===+n);novoComp(tipo,n);if(!it)return;
   try{const d=$(OS_DESC[tipo]);if(d)d.value=it.titulo;const jaTem=(pedAtual.itens||[]).some(i=>+i.n===+n&&+i.venda>0);if($('#itemVenda')&&it.sub&&!jaTem)$('#itemVenda').value=String(it.sub.toFixed(2)).replace('.',',');if(it.img){refImg=it.img;if(typeof refRender==='function')refRender()}}catch(e){console.error(e)}}
 (function(){const L=$('#osLista');if(!L)return;L.addEventListener('click',e=>{const f=e.target.closest('[data-osfazer]');if(f){const r=L.querySelector(`[data-ostipos="${f.dataset.osfazer}"]`);r.hidden=!r.hidden;return}
     const b=e.target.closest('[data-osnovo]');if(b){osFazer(b.dataset.osnovo,+b.dataset.osn);return}
+    const ag=e.target.closest('[data-osag]');if(ag){osAgrupando=ag.dataset.osag==='1';osAgSel.clear();osListaRender();return}
+    const sl=e.target.closest('[data-osagsel]');if(sl){const n=+sl.dataset.osagsel;sl.checked?osAgSel.add(n):osAgSel.delete(n);return}
+    if(e.target.closest('[data-osagok]')){if(osAgSel.size<2){const z=$('#osAgAviso');if(z){z.textContent='Marque pelo menos 2 itens.';z.hidden=false}return}const L=pedAtual.osItens||[];const ns=[...osAgSel].sort((a,b)=>a-b);
+      // o principal é o que já tem projeto (senão o de menor número); os outros seguem ele
+      osJunta(ns);osAgrupando=false;osAgSel.clear();return}
+    const sp=e.target.closest('[data-ossep]');if(sp){const o=(pedAtual.osItens||[]).find(i=>+i.n===+sp.dataset.ossep);if(o){delete o.grupo;osListaRender();pedSalvar(pedAtual)}return}
     const se=e.target.closest('[data-osseta]');if(se){const n=+se.dataset.osseta;osAbertos.has(n)?osAbertos.delete(n):osAbertos.add(n);osListaRender();return}
     const fz=e.target.closest('[data-osfin]'),rb=e.target.closest('[data-osreab]');if(fz||rb){const n=+(fz?fz.dataset.osfin:rb.dataset.osreab);const o=(pedAtual.osItens||[]).find(i=>+i.n===n);if(o){o.fin=!!fz;osListaRender();pedSalvar(pedAtual)}return}
     const dl=e.target.closest('[data-osdel]');if(dl){pedAtual.osItens=(pedAtual.osItens||[]).filter(i=>+i.n!==+dl.dataset.osdel);osListaRender();pedSalvar(pedAtual);return}
@@ -5651,12 +5658,51 @@ function pedTotRender(){const el=$('#pedTotV');if(!el)return;if(!pedAtual){el.te
   el.innerHTML=t?`${brlP(t)} <span class="note" style="font-weight:400;font-size:12px">(${orig}${o.length?' • '+o.length+' itens':''})</span>`:'—'}
 
 // quanto do pedido está pronto: média entre itens (finalizado = 1, parcial = ½) e valor (mesmo peso, pelo valor de cada item na OS)
-function pedProgresso(p){const L=(p&&p.osItens)||[];if(!L.length)return null;const st=o=>{const tem=(p.itens||[]).some(i=>+i.n===+o.n);return !tem?0:o.fin?1:0.5};
+function pedProgresso(p){const L=(p&&p.osItens)||[];if(!L.length)return null;const st=o=>{if(o.grupo&&+o.grupo!==+o.n){const m=L.find(x=>+x.n===+o.grupo);if(m)o=m}const tem=(p.itens||[]).some(i=>+i.n===+o.n);return !tem?0:o.fin?1:0.5};
   const n=L.length,pi=L.reduce((a,o)=>a+st(o),0)/n;const tv=L.reduce((a,o)=>a+(+o.sub||0),0);const pv=tv?L.reduce((a,o)=>a+st(o)*(+o.sub||0),0)/tv:pi;
   const fin=L.filter(o=>st(o)===1).length,parc=L.filter(o=>st(o)===0.5).length;return{pc:Math.round((pi+pv)/2*100),pi:Math.round(pi*100),pv:Math.round(pv*100),fin,parc,falta:n-fin-parc,n,tv}}
 function pedProgRender(){const el=$('#pedProg');if(!el)return;const g=pedAtual&&pedProgresso(pedAtual);if(!g){el.innerHTML='';return}
   el.innerHTML=`<div class="progBox"><div class="note" style="margin:0;font-weight:700;color:#1864ab;font-size:11px">PROJETO PRONTO</div><b class="pc">${g.pc}%</b><div class="progBar"><i style="width:${g.pc}%"></i></div>
   <div class="note" style="margin:0;font-size:11px;line-height:1.35">itens: ${g.fin} ✓ • ${g.parc} parcial • ${g.falta} faltam (${g.pi}%)<br>valor: ${g.pv}% de ${brlP(g.tv)}</div></div>`}
+
+function osJunta(ns){const L=pedAtual.osItens||[];ns=ns.map(Number).sort((a,b)=>a-b);
+  // o principal é o que já tem projeto (senão o de menor número); os outros seguem ele
+  const comP=ns.filter(n=>(pedAtual.itens||[]).some(i=>+i.n===n));const main=comP.length?comP[0]:ns[0];
+  L.forEach(o=>{if(ns.includes(+o.n)||ns.includes(+o.grupo))o.grupo=+o.n===main?undefined:main});osAbertos.add(main);osListaRender();pedSalvar(pedAtual)}
+// popup próprio (o confirm() do navegador é bloqueado dentro do app/celular)
+function osPergunta(html,sim){let m=$('#osPopup');if(m)m.remove();m=document.createElement('div');m.id='osPopup';m.className='modal on';m.style.zIndex=10000;
+  m.innerHTML=`<div class="sheet" style="max-width:420px"><div style="font-weight:700;font-size:16px;margin-bottom:8px">Deseja agrupar estes itens?</div><div style="font-size:13.5px;line-height:1.45">${html}</div><div class="note" style="margin-top:6px">(foram projetados juntos)</div><div class="row" style="gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn ghost" type="button" data-n="0">Cancelar</button><button class="btn" type="button" data-n="1" style="background:#1971c2;color:#fff">Agrupar</button></div></div>`;
+  m.addEventListener('click',e=>{const k=e.target.closest('[data-n]');if(!k&&e.target!==m)return;m.remove();if(k&&k.dataset.n==='1')sim()});document.body.appendChild(m)}
+function osPerguntaJunta(a,t){const L=pedAtual.osItens||[],f=n=>{const o=L.find(o=>+o.n===n);return `<div><b>Item ${n}</b> — ${esc(o?o.titulo||'':'')}</div>`};osPergunta(f(a)+f(t),()=>osJunta([a,t]))}
+// arrastar um item para dentro de outro (segure ~0,4 s e arraste) — ou segure, solte e toque no outro item
+(function(){const box=$('#osLista');if(!box)return;let st=null,tm=null,gh=null,alvo=null,esc1=null;
+  const barra=$('#osEscBar')||(()=>{const d=document.createElement('div');d.id='osEscBar';d.hidden=true;d.innerHTML='<span></span><button class="btn ghost sm" type="button">Cancelar</button>';document.body.appendChild(d);d.querySelector('button').onclick=()=>fimEsc();return d})();
+  const fimEsc=()=>{if(esc1){const b=box.querySelector(`[data-osbox="${esc1}"]`);if(b)b.classList.remove('osPego')}esc1=null;barra.hidden=true};
+  const limpa=()=>{clearTimeout(tm);tm=null;if(gh)gh.remove();gh=null;if(alvo)alvo.classList.remove('osAlvo');alvo=null;document.body.classList.remove('osArrastando');st=null};
+  const pega=e=>{const b=e.target.closest&&e.target.closest('.osBox');if(!b||e.target.closest('button,input,label,.osSeta,a,select,textarea')||!e.target.closest('.osTop'))return null;return b};
+  const inicia=(b,x,y,ms)=>{limpa();st={n:+b.dataset.osbox,b,x,y,ok:false,mov:false};
+    tm=setTimeout(()=>{if(!st)return;st.ok=true;document.body.classList.add('osArrastando');try{navigator.vibrate&&navigator.vibrate(30)}catch(_){}
+      gh=b.querySelector('.osTop').cloneNode(true);gh.className='osGhost';gh.style.width=b.offsetWidth*0.8+'px';document.body.appendChild(gh);mv(x,y)},ms)};
+  const mv=(x,y)=>{if(gh){gh.style.left=(x-30)+'px';gh.style.top=(y-34)+'px'}const el=document.elementFromPoint(x,y);const t=el&&el.closest&&el.closest('#osLista .osBox');const nt=t&&+t.dataset.osbox!==st.n?t:null;if(alvo!==nt){if(alvo)alvo.classList.remove('osAlvo');alvo=nt;if(alvo)alvo.classList.add('osAlvo')}};
+  const solta=()=>{if(!st)return;const ok=st.ok,mov=st.mov,a=st.n,t=alvo&&+alvo.dataset.osbox,b=st.b;limpa();if(!ok)return;
+    if(t){osPerguntaJunta(a,t);return}
+    if(!mov)escolhe(a)};
+  const escolhe=a=>{fimEsc();esc1=a;const b=box.querySelector(`[data-osbox="${a}"]`);if(b)b.classList.add('osPego');barra.querySelector('span').innerHTML=`<b>Item ${a}</b> selecionado — toque no item que vai junto com ele`;barra.hidden=false};
+  // toque (celular)
+  box.addEventListener('touchstart',e=>{if(e.touches.length>1){limpa();return}const b=pega(e);if(!b)return;const p=e.touches[0];inicia(b,p.clientX,p.clientY,400)},{passive:true});
+  document.addEventListener('touchmove',e=>{if(!st)return;const p=e.touches[0];if(!st.ok){if(Math.hypot(p.clientX-st.x,p.clientY-st.y)>10)limpa();return}
+    e.preventDefault();if(Math.hypot(p.clientX-st.x,p.clientY-st.y)>12)st.mov=true;mv(p.clientX,p.clientY)},{passive:false});
+  document.addEventListener('touchend',e=>{if(st&&st.ok)e.preventDefault();solta()},{passive:false});
+  document.addEventListener('touchcancel',limpa);
+  box.addEventListener('contextmenu',e=>{if(e.target.closest('.osTop'))e.preventDefault()});
+  box.addEventListener('dragstart',e=>{if(e.target.closest('.osTop'))e.preventDefault()});
+  // mouse (computador)
+  box.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse'||e.button!==0)return;const b=pega(e);if(!b)return;inicia(b,e.clientX,e.clientY,150)});
+  document.addEventListener('pointermove',e=>{if(e.pointerType!=='mouse'||!st)return;if(!st.ok){if(Math.hypot(e.clientX-st.x,e.clientY-st.y)>10)limpa();return}e.preventDefault();if(Math.hypot(e.clientX-st.x,e.clientY-st.y)>12)st.mov=true;mv(e.clientX,e.clientY)});
+  document.addEventListener('pointerup',e=>{if(e.pointerType==='mouse')solta()});
+  // modo "toque no outro item"
+  box.addEventListener('click',e=>{const g=e.target.closest('[data-osagcom]');if(g){e.preventDefault();e.stopPropagation();escolhe(+g.dataset.osagcom);return}if(!esc1)return;const b=e.target.closest('.osBox');if(!b)return;const t=+b.dataset.osbox;e.preventDefault();e.stopPropagation();
+    if(t===esc1){fimEsc();return}const a=esc1;fimEsc();osPerguntaJunta(a,t)},true)})();
 
 renderTypes();renderLogo();initStore();
 
