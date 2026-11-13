@@ -286,7 +286,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <label class="f" style="margin-top:14px">Itens do pedido</label>
             <div id="pedItensBox"><div id="osLista"></div>
       <div id="pedItens"></div></div>
-      <div class="row" id="pedNovos" style="gap:6px;margin-top:10px"><span class="note" style="align-self:center">Novo item:</span><button class="btn ghost sm" data-novo="letra">+ Letra caixa</button><button class="btn ghost sm" data-novo="branco">+ FP em branco</button><button class="btn ghost sm" data-novo="testeira">+ Testeira</button><button class="btn ghost sm" data-novo="estrutura">+ Estrutura por desenho</button><button class="btn ghost sm" data-novo="modelo3d">+ Modelo 3D</button><button class="btn ghost sm" data-novo="bobs">+ Bobs requadro</button><button class="btn ghost sm" data-novo="bobscomp">+ Bobs complemento 30x30</button><button class="btn ghost sm" data-novo="bobscant">+ Bobs cantoneira iluminada</button></div>
+      <div class="row" id="pedNovos" style="gap:6px;margin-top:10px"><span class="note" style="align-self:center">Novo item:</span><button class="btn ghost sm" data-novo="letra">+ Letra caixa</button><button class="btn ghost sm" data-novo="branco">+ FP em branco</button><button class="btn ghost sm" data-novo="cotas">+ Cotas</button><button class="btn ghost sm" data-novo="testeira">+ Testeira</button><button class="btn ghost sm" data-novo="estrutura">+ Estrutura por desenho</button><button class="btn ghost sm" data-novo="modelo3d">+ Modelo 3D</button><button class="btn ghost sm" data-novo="bobs">+ Bobs requadro</button><button class="btn ghost sm" data-novo="bobscomp">+ Bobs complemento 30x30</button><button class="btn ghost sm" data-novo="bobscant">+ Bobs cantoneira iluminada</button></div>
       <div class="row" id="pedAcoes" style="gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)"><button class="btn pink" id="pedGerar">Gerar FP completa do pedido</button><button class="btn acc" id="pedGerarSel" disabled>Gerar FP parcial (selecione os itens)</button><button class="btn ghost" id="pedBaixar" hidden>Baixar FP completa (PDF)</button><button class="btn" id="pedGeral" style="background:#2f9e44;color:#fff;font-weight:700">Gerar apenas FP geral</button><button class="btn" id="pedRM" style="background:#495057;color:#fff">Baixar RM + PI do pedido (por produto + total)</button><button class="btn ghost sm" id="pedExport" style="display:none">Exportar pedido (arquivo)</button><button class="btn danger sm" id="pedExcluir" style="margin-left:auto">Excluir pedido</button></div><div id="pedExpMsg" class="note" style="margin-top:6px"></div>
       <div id="pedMsg"></div>
       <div class="prev" id="pedPrev"></div>
@@ -476,9 +476,10 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div class="leds" id="ctModo"><button type="button" data-ctm="padrao" class="sel"><b>Padrão</b><span>só largura e altura (no 3D: L × A × P nas vistas)</span></button><button type="button" data-ctm="detalhada"><b>Detalhada</b><span>furos, recortes e textos (no 3D: cada peça) numerados com medida e posição</span></button></div>
       <div class="g3"><div><label class="f">Descrição</label><input type="text" id="ctDesc" placeholder="Ex.: Placa fachada"></div><div id="ctLargW"><label class="f">Largura real (mm) <span class="badge">opcional</span></label><input type="number" id="ctLarg" inputmode="decimal" placeholder="Tamanho do arquivo"></div><div><label class="f">Quantidade</label><input type="number" id="ctQtd" value="1" min="1" inputmode="numeric"></div></div>
       <div class="g2" id="ct3Opts" hidden><div><label class="f">Unidade do arquivo</label><select id="ctUn"><option value="1">milímetros</option><option value="10">centímetros</option><option value="1000">metros</option><option value="25.4">polegadas</option></select></div><div><label class="f">Eixo vertical</label><select id="ctEixo"><option value="z">Z para cima (STL)</option><option value="y">Y para cima (OBJ)</option></select></div></div>
+      <div class="g2"><div><label class="f">Setor (folha vai para)</label><select id="ctSetor"></select></div><div><label class="f">Arquivos extras <span class="badge">vão no ZIP</span></label><div class="row" style="gap:6px;align-items:center"><label class="btn ghost sm" style="display:inline-flex;align-items:center">+ Adicionar arquivo<input type="file" id="ctArqIn" multiple hidden></label><span class="note" id="ctArqs" style="margin:0"></span></div></div></div>
       <label class="f">Material</label><input type="text" id="ctMat" placeholder="Ex.: ACM 3 mm branco / acrílico 4 mm cristal / chapa galvanizada #18">
       <label class="f">Observação</label><textarea id="ctObs" rows="2" placeholder="Ex.: cantos arredondados R20, furos para fixação"></textarea>
-      <div class="row" style="gap:8px;margin-top:12px"><button class="btn pink" id="ctGerar" type="button">Gerar cotas</button><button class="btn ghost" id="ctBaixar" type="button" hidden>Baixar PDF</button></div>
+      <div class="row" style="gap:8px;margin-top:12px"><button class="btn pink" id="ctGerar" type="button">Gerar cotas</button><button class="btn ghost" id="ctBaixar" type="button" hidden>Baixar PDF</button><button class="btn ghost" id="ctZip" type="button" hidden>Baixar ZIP (PDF + arquivos)</button></div>
       <div id="ctMsg" style="margin-top:8px"></div>
     </div>
     <div class="card"><div id="ctPrev" class="prev"></div></div>
@@ -905,7 +906,7 @@ $('#ledPick').onclick=e=>{const b=e.target.closest('button');if(!b)return;selLed
 $('#typeList').onclick=e=>{const b=e.target.closest('.type');if(b)openModal(types.find(t=>t.id===b.dataset.id))};
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
-  const tb=b.dataset.tab;$('#tab-pedidos').hidden=tb!=='pedidos';$('#tab-novo').hidden=tb!=='novo';$('#tab-tipos').hidden=tb!=='tipos';$('#tab-testeiras').hidden=tb!=='testeiras';$('#tab-modelo').hidden=tb!=='modelo';$('#tab-bobs').hidden=tb!=='bobs';if($('#tab-branco'))$('#tab-branco').hidden=tb!=='branco';if($('#tab-cotas'))$('#tab-cotas').hidden=tb!=='cotas';if($('#osLerRow'))$('#osLerRow').hidden=tb!=='pedidos';{const noPed=tb==='pedidos';['#itemBox','#descBox','#vendaBox'].forEach(x=>{const e=$(x);if(e)e.hidden=noPed});const pt=$('#pedTotBox');if(pt)pt.hidden=!noPed;if(noPed&&typeof pedTotRender==='function')pedTotRender()}if(tb==='bobs')setTimeout(()=>{try{bobsEditor();bobs3D()}catch(e){console.error(e)}},30);if(tb==='modelo')setTimeout(()=>m3Draw(),30);
+  const tb=b.dataset.tab;$('#tab-pedidos').hidden=tb!=='pedidos';$('#tab-novo').hidden=tb!=='novo';$('#tab-tipos').hidden=tb!=='tipos';$('#tab-testeiras').hidden=tb!=='testeiras';$('#tab-modelo').hidden=tb!=='modelo';$('#tab-bobs').hidden=tb!=='bobs';if($('#tab-branco'))$('#tab-branco').hidden=tb!=='branco';if($('#tab-cotas'))$('#tab-cotas').hidden=tb!=='cotas';if(tb==='cotas'&&typeof ctSetorUI==='function')ctSetorUI();if($('#osLerRow'))$('#osLerRow').hidden=tb!=='pedidos';{const noPed=tb==='pedidos';['#itemBox','#descBox','#vendaBox'].forEach(x=>{const e=$(x);if(e)e.hidden=noPed});const pt=$('#pedTotBox');if(pt)pt.hidden=!noPed;if(noPed&&typeof pedTotRender==='function')pedTotRender()}if(tb==='bobs')setTimeout(()=>{try{bobsEditor();bobs3D()}catch(e){console.error(e)}},30);if(tb==='modelo')setTimeout(()=>m3Draw(),30);
   $('#osSec').hidden=tb==='tipos'||(tb==='pedidos'&&!pedAtual);if($('#refBox'))$('#refBox').hidden=tb==='pedidos';if($('#descBox'))$('#descBox').hidden=tb==='pedidos';if($('#vendaBox'))$('#vendaBox').hidden=tb==='pedidos';$('#instSec').hidden=!['novo','modelo','testeiras','bobs'].includes(tb);instColoca(tb);pedBarRender();if(typeof osResumoSync==='function')osResumoSync();if(typeof ledEspSync==='function')setTimeout(()=>{ledEspSync(true);if(typeof fundoUI==='function')fundoUI()},60);if(tb==='testeiras')setTimeout(tRender,30);pickerCasa();$('#itemBox').hidden=tb==='pedidos';$('#descBox').hidden=tb==='testeiras'||tb==='pedidos';
 });
 async function shrinkImage(f,max,type){
@@ -5316,7 +5317,7 @@ function brLimpa(){brFichas=[];brArqs=[];brBuild=null;$('#brDesc').value='';$('#
   brUI()})();
 
 /* ---------- COTAS: manda um vetor (PDF) e sai uma folha cotada (padrão ou detalhada) ---------- */
-let ctSrc=null,ctBuild=null,ctModo='padrao',ct3=null;
+let ctSrc=null,ctBuild=null,ctModo='padrao',ct3=null,ctBytes=null,ctNome='',ctArqs=[];
 const ctFmt=v=>{const r=Math.round(v*10)/10;return (Number.isInteger(r)?String(r):r.toFixed(1).replace('.',',')).replace(/\B(?=(\d{3})+(?!\d))/g,'.')};
 function ctArea(q){let A=0;for(let i=0;i<q.length;i++){const[a,b]=q[i],[c,d]=q[(i+1)%q.length];A+=a*d-c*b}return A/2}
 function ctDentro(pt,q){let c=false;for(let i=0,j=q.length-1;i<q.length;j=i++){const[xi,yi]=q[i],[xj,yj]=q[j];if((yi>pt[1])!==(yj>pt[1])&&pt[0]<(xj-xi)*(pt[1]-yi)/(yj-yi)+xi)c=!c}return c}
@@ -5343,64 +5344,65 @@ function ctAnalisa(polys,k,paths){
     return{tipo,med,b,cx:(circ?(b.x0+b.x1)/2:b.x0)-B.x0,cy:(circ?(b.y0+b.y1)/2:b.y0)-B.y0,ref:circ?'centro':'canto inf. esq.'}})
     .sort((a,b)=>(b.b.y1-a.b.y1)||(a.b.x0-b.b.x0));
   return{P,B,grupos,pecas:tops.length}}
-function ctTopo(P,ctx){P._setorT.s='COTAS';P._setor='COTAS';const t=P.find(q=>q.t==='text'&&q.y===15.5);if(t)t.s=('COTAS - '+ctx.descItem).toUpperCase()}
-function ctCtx(){const d=$('#entrega').value;return{os:$('#os').value.trim(),item:'COTAS',descItem:($('#ctDesc').value||'DESENHO COTADO').trim().toUpperCase(),cliente:$('#cliente').value,vendedor:$('#vendedor').value,projetista:$('#projetista').value,endereco:$('#endereco').value,entrega:d?d.split('-').reverse().join('/'):''}}
+function ctTopo(P,ctx){const st=($('#ctSetor')&&$('#ctSetor').value)||'COTAS';if(st==='COTAS'){P._setorT.s='COTAS';P._setor='COTAS'}const t=P.find(q=>q.t==='text'&&q.y===15.5);if(t&&!ctNoPedido())t.s=(st+' - '+ctx.descItem).toUpperCase()}
+function ctNoPedido(){return typeof pedAtual!=='undefined'&&!!pedAtual}
+function ctSetorUI(){const s=$('#ctSetor');if(!s||s.options.length)return;s.innerHTML=['COTAS',...Object.keys(SETORES).filter(k=>!['RM','PI','GERAL','MATERIAL','EXPEDIÇÃO','QUALIDADE'].includes(k))].map(k=>`<option>${k}</option>`).join('')}
+function ctModoUI(){document.querySelectorAll('#ctModo [data-ctm]').forEach(x=>x.classList.toggle('sel',x.dataset.ctm===ctModo))}
+function ctArqsUI(){const e=$('#ctArqs');if(!e)return;e.innerHTML=ctArqs.length?ctArqs.map((f,i)=>`${esc(f.name)} <a href="#" data-ctax="${i}" style="color:#c92a2a;text-decoration:none">✕</a>`).join(' • '):'nenhum'}
+function ctLimpa(){ctSrc=null;ct3=null;ctBytes=null;ctNome='';ctArqs=[];ctBuild=null;ctModo='padrao';['#ctDesc','#ctLarg','#ctMat','#ctObs'].forEach(x=>{if($(x))$(x).value=''});if($('#ctQtd'))$('#ctQtd').value='1';if($('#ctPrev'))$('#ctPrev').innerHTML='';if($('#ctMsg'))$('#ctMsg').innerHTML='';if($('#ctDrop')){$('#ctDrop').classList.remove('has');$('#ctDropTxt').textContent='Toque para escolher o PDF, STL ou OBJ'}if($('#ctBaixar')){$('#ctBaixar').hidden=true;$('#ctZip').hidden=true}ctSetorUI();ctModoUI();ctArqsUI()}
+function ctCtx(){const d=$('#entrega').value;return{os:$('#os').value.trim(),item:ctNoPedido()?($('#item').value||'1'):'COTAS',descItem:($('#ctDesc').value||'DESENHO COTADO').trim().toUpperCase(),cliente:$('#cliente').value,vendedor:$('#vendedor').value,projetista:$('#projetista').value,endereco:$('#endereco').value,entrega:d?d.split('-').reverse().join('/'):''}}
 function ctFolhas(){if(!ctSrc||!ctSrc.polys.length)throw new Error('Envie o arquivo vetorial (PDF).');
   const b0=bbox(ctSrc.polys);const lr=num($('#ctLarg').value);const k=lr>0?lr/b0.w:1;
   const A=ctAnalisa(ctSrc.polys,k,ctSrc.paths);const ctx=ctCtx();const det=ctModo==='detalhada';const G=det?A.grupos:[];
   const pages=[];const mat=($('#ctMat').value||'').trim().toUpperCase(),obs=($('#ctObs').value||'').trim(),qt=$('#ctQtd').value||'1';
-  const P=[];frame(P,ctx,{setor:'GERAL'});ctTopo(P,ctx);
+  const P=[];frame(P,ctx,{setor:($('#ctSetor')&&$('#ctSetor').value!=='COTAS')?$('#ctSetor').value:'GERAL'});ctTopo(P,ctx);
   P.push({t:'text',x:18,y:31,s:`${qt}X`,size:7,bold:true,italic:true,color:'#000000'});
   P.push({t:'text',x:PW/2,y:30,s:fit(ctx.descItem+(det?' — COTAS DETALHADAS':' — COTAS GERAIS'),200,4.2),size:4.2,bold:true,color:'#000000',anchor:'middle'});
-  const temTab=det&&G.length>0;const ax0=22,ay0=44,aw=(temTab?186:262)-ax0,ah=96;
+  const temTab=det&&G.length>0;const ax0=22,ay0=44,aw=(temTab?250:262)-ax0,ah=temTab?90:96;
   const s=Math.min(aw/A.B.w,ah/A.B.h);const ox=ax0+(aw-A.B.w*s)/2,oy=ay0+(ah-A.B.h*s)/2;
   const X=x=>ox+(x-A.B.x0)*s,Y=y=>oy+(A.B.y1-y)*s;
   A.P.forEach(p=>P.push({t:'path',pts:p.concat([p[0]]).map(([x,y])=>[X(x),Y(y)]),color:'#000000',w:0.25}));
   // cotas gerais
   const cor='#1971c2';cotaH(P,X(A.B.x0),X(A.B.x1),oy-6,oy-0.5,ctFmt(A.B.w),3.2,cor);cotaV(P,ox-7,Y(A.B.y1),Y(A.B.y0),ox-0.5,ctFmt(A.B.h),3.2,cor);
-  P.push({t:'text',x:ax0+aw/2,y:ay0+ah+5,s:`Escala 1:${ctFmt(1/s)} — medidas em mm${lr>0?'':' (tamanho real do arquivo)'}${A.pecas>1?` • ${A.pecas} peças`:''}`,size:2.3,color:'#868e96',anchor:'middle'});
-  if(temTab){
-    G.forEach((g,i)=>{const n=i+1,cx=X((g.b.x0+g.b.x1)/2),cy=Y((g.b.y0+g.b.y1)/2),r=2.1;
-      P.push({t:'rect',x:X(g.b.x0)-0.6,y:Y(g.b.y1)-0.6,w:g.b.w*s+1.2,h:g.b.h*s+1.2,stroke:'#e8590c',lw:0.15});
-      const tx=Math.min(X(g.b.x1)+r+0.4,ax0+aw+3),ty=Y(g.b.y1)-0.2;P.push({t:'circle',x:tx,y:ty,r,fill:'#e8590c'});P.push({t:'text',x:tx,y:ty+1,s:String(n),size:2.4,bold:true,color:'#ffffff',anchor:'middle'});void cx;void cy});
-    // cotas de posição dos 6 primeiros (a tabela traz todos)
-    const tx0=192,tw=PW-10-tx0;let y=40;P.push({t:'rect',x:tx0,y,w:tw,h:6,fill:'#2b3a8c'});
-    [['Nº',tx0+4],['TIPO',tx0+9],['MEDIDA',tx0+44],['X',tx0+70],['Y',tx0+84]].forEach(([h,x])=>P.push({t:'text',x,y:y+4.1,s:h,size:2.4,bold:true,color:'#ffffff',anchor:h==='Nº'?'middle':'start'}));y+=6;
-    const maxL=Math.floor((140-y)/5.2);G.slice(0,maxL).forEach((g,i)=>{if(i%2)P.push({t:'rect',x:tx0,y,w:tw,h:5.2,fill:'#f1f3f5'});
-      P.push({t:'text',x:tx0+4,y:y+3.6,s:String(i+1),size:2.4,bold:true,color:'#e8590c',anchor:'middle'},{t:'text',x:tx0+9,y:y+3.6,s:fit(g.tipo,34,2.3),size:2.3,color:'#000000'},{t:'text',x:tx0+44,y:y+3.6,s:fit(g.med,25,2.3),size:2.3,bold:true,color:'#000000'},{t:'text',x:tx0+70,y:y+3.6,s:ctFmt(g.cx),size:2.3,color:'#000000'},{t:'text',x:tx0+84,y:y+3.6,s:ctFmt(g.cy),size:2.3,color:'#000000'});y+=5.2});
-    P.push({t:'rect',x:tx0,y:40,w:tw,h:y-40,stroke:'#adb5bd',lw:0.2});
-    P.push({t:'text',x:tx0,y:y+4,s:'X / Y a partir do canto inferior esquerdo (furo: até o centro)',size:1.9,color:'#868e96'});
-    if(G.length>maxL)P.push({t:'text',x:tx0,y:y+7.5,s:`+ ${G.length-maxL} item(ns) na próxima folha`,size:2.2,bold:true,color:'#e8590c'})}
+  P.push({t:'text',x:ax0+aw/2,y:ay0+ah+(temTab?11.5:5),s:`Escala 1:${ctFmt(1/s)} — medidas em mm${lr>0?'':' (tamanho real do arquivo)'}${A.pecas>1?` • ${A.pecas} peças`:''}`,size:2.3,color:'#868e96',anchor:'middle'});
+  if(temTab){// medidas na própria imagem: tamanho ao lado de cada detalhe + correntes de posição (X embaixo, Y à direita)
+    const junta=(arr,tol)=>{const a=arr.slice().sort((p,q)=>p-q);const out=[];a.forEach(v=>{if(!out.length||v-out[out.length-1]>tol)out.push(v)});return out};const cr='#c2255c',fs=2.4;
+    G.forEach(g=>{const x=X(g.b.x1)+1,y=Y((g.b.y0+g.b.y1)/2)+0.9;const txt=g.tipo==='FURO'?g.med:g.tipo==='TEXTO / GRUPO'?'texto '+g.med:g.med;
+      const sobra=(g.b.x0+g.b.x1)/2<A.B.x0+A.B.w*0.6;P.push({t:'text',x:sobra?x:X(g.b.x0)-1,y,s:txt,size:fs,bold:true,color:'#e8590c',anchor:sobra?'start':'end'})});
+    const xs=junta([0,...G.map(g=>g.cx),A.B.w],Math.max(2,A.B.w*0.004));if(xs.length>2&&xs.length<45)for(let k=0;k+1<xs.length;k++)cotaH(P,X(A.B.x0+xs[k]),X(A.B.x0+xs[k+1]),oy+A.B.h*s+6,oy+A.B.h*s,ctFmt(xs[k+1]-xs[k]),fs*0.9,cr);
+    const ys=junta([0,...G.map(g=>g.cy),A.B.h],Math.max(2,A.B.h*0.004)).reverse();if(ys.length>2&&ys.length<35)for(let k=0;k+1<ys.length;k++)cotaV(P,ox+A.B.w*s+7,Y(A.B.y0+ys[k]),Y(A.B.y0+ys[k+1]),ox+A.B.w*s,ctFmt(ys[k]-ys[k+1]),fs*0.9,cr);
+    P.push({t:'text',x:ax0+aw/2,y:ay0+ah+14.5,s:'Rosa = posição (furo: até o centro; demais: até o canto inferior esquerdo) • laranja = medida do detalhe',size:2.1,color:cr,anchor:'middle'})}
   // material / observação
   const yb=150;P.push({t:'rect',x:12,y:yb,w:120,h:14,stroke:'#adb5bd',lw:0.2},{t:'text',x:15,y:yb+4.5,s:'MATERIAL',size:2.3,bold:true,color:'#495057'},{t:'text',x:15,y:yb+10.5,s:fit(mat||'—',115,3.2),size:3.2,bold:true,color:'#000000'});
   P.push({t:'rect',x:136,y:yb,w:PW-12-136,h:14,stroke:'#adb5bd',lw:0.2},{t:'text',x:139,y:yb+4.5,s:'OBSERVAÇÃO',size:2.3,bold:true,color:'#495057'});
   {const L=[];String(obs||'—').split('\n').forEach(par=>{let l='';par.split(/\s+/).forEach(w=>{if((l+' '+w).trim().length>95){L.push(l);l=w}else l=(l+' '+w).trim()});L.push(l)});L.slice(0,2).forEach((l,i)=>P.push({t:'text',x:139,y:yb+9+i*3.6,s:l,size:2.7,color:'#000000'}))}
   pages.push(P);
-  // tabela continua
-  if(det&&G.length){const per=24;let i0=Math.floor((140-46)/5.2);while(i0<G.length){const Q=[];frame(Q,ctx,{setor:'GERAL'});ctTopo(Q,ctx);Q.push({t:'text',x:PW/2,y:30,s:'COTAS DETALHADAS (continuação)',size:4,bold:true,color:'#000000',anchor:'middle'});let y=38;
-    G.slice(i0,i0+per).forEach((g,j)=>{const n=i0+j+1;Q.push({t:'text',x:20,y:y+3.6,s:`${n}.  ${g.tipo}   ${g.med}   —   X ${ctFmt(g.cx)}   Y ${ctFmt(g.cy)} (${g.ref})`,size:2.8,color:'#000000'});y+=5.2});pages.push(Q);i0+=per}}
   if(!FOOT_SKIP){pages.forEach((Q,i)=>footer(Q,ctx,i+1,pages.length))}
   return{pages,ctx,A}}
 function ctRender(){try{ctBuild=ct3?ct3Folhas():ctFolhas();$('#ctPrev').innerHTML=ctBuild.pages.map(P=>`<div class="pg">${toSVG(P)}</div>`).join('');
-    const A=ctBuild.A;$('#ctMsg').innerHTML=ctBuild.d3?`<div class="msg ok">Modelo 3D: ${ctFmt(ctBuild.d3.W)} × ${ctFmt(ctBuild.d3.H)} × ${ctFmt(ctBuild.d3.D)} mm (L × A × P) • ${ctBuild.d3.n} peça(s)${ctBuild.d3.el>1?` • ${ctBuild.d3.el} elementos separados (uma folha cada)`:''}</div>`:`<div class="msg ok">${ctFmt(A.B.w)} × ${ctFmt(A.B.h)} mm${ctModo==='detalhada'?` • ${A.grupos.length} detalhe(s) cotado(s)`:''}${semDuplicados.ult?` • ${semDuplicados.ult} linha(s) duplicada(s) ignorada(s)`:''}</div>`;$('#ctBaixar').hidden=false;$('#ctGerar').textContent='Atualizar'}
+    const A=ctBuild.A;$('#ctMsg').innerHTML=ctBuild.d3?`<div class="msg ok">Modelo 3D: ${ctFmt(ctBuild.d3.W)} × ${ctFmt(ctBuild.d3.H)} × ${ctFmt(ctBuild.d3.D)} mm (L × A × P) • ${ctBuild.d3.n} peça(s)${ctBuild.d3.el>1?` • ${ctBuild.d3.el} elementos separados (uma folha cada)`:''}</div>`:`<div class="msg ok">${ctFmt(A.B.w)} × ${ctFmt(A.B.h)} mm${ctModo==='detalhada'?` • ${A.grupos.length} detalhe(s) cotado(s)`:''}${semDuplicados.ult?` • ${semDuplicados.ult} linha(s) duplicada(s) ignorada(s)`:''}</div>`;$('#ctBaixar').hidden=false;$('#ctZip').hidden=false;$('#ctGerar').textContent='Atualizar';if(typeof pedSujo!=='undefined'&&ctNoPedido())pedSujo=true}
   catch(e){console.error(e);$('#ctMsg').innerHTML=`<div class="msg err">${esc(e.message)}</div>`}}
-async function ctCarrega(f){if(!f)return;$('#ctDropTxt').textContent='Lendo '+f.name+'…';
+async function ctCarrega(f){if(!f)return;await ctCarregaBytes(f.name,new Uint8Array(await f.arrayBuffer()),true)}
+async function ctCarregaBytes(nome,bytes,render){const f={name:nome};ctNome=nome;ctBytes=bytes.slice();$('#ctDropTxt').textContent='Lendo '+f.name+'…';
   const ext=f.name.toLowerCase().split('.').pop();
-  if(ext==='stl'||ext==='obj'){try{const buf=await f.arrayBuffer();const objs=ext==='obj'?parseOBJ(new TextDecoder().decode(buf)):parseSTL(buf);let pecas=separaPecas(objs);if(!pecas.length)pecas=objs;if(!pecas.length)throw new Error('não encontrei triângulos no arquivo');
+  if(ext==='stl'||ext==='obj'){try{const buf=bytes.slice().buffer;const objs=ext==='obj'?parseOBJ(new TextDecoder().decode(buf)):parseSTL(buf);let pecas=separaPecas(objs);if(!pecas.length)pecas=objs;if(!pecas.length)throw new Error('não encontrei triângulos no arquivo');
       let lo=[1e18,1e18,1e18],hi=[-1e18,-1e18,-1e18];pecas.forEach(p=>p.tris.forEach(t=>t.forEach(v=>{for(let i=0;i<3;i++){if(v[i]<lo[i])lo[i]=v[i];if(v[i]>hi[i])hi[i]=v[i]}})));const span=Math.max(hi[0]-lo[0],hi[1]-lo[1],hi[2]-lo[2]);
-      $('#ctUn').value=span<30?'1000':span<300&&ext==='obj'?'10':'1';$('#ctEixo').value=ext==='stl'?'z':'y';ct3={name:f.name,pecas};ctSrc=null;$('#ct3Opts').hidden=false;$('#ctLargW').hidden=true;
-      $('#ctDrop').classList.add('has');$('#ctDropTxt').textContent='✓ '+f.name;if(!$('#ctDesc').value)$('#ctDesc').value=f.name.replace(/\.(stl|obj)$/i,'');ctRender()}
+      if(render!==false||!$('#ctUn').value){$('#ctUn').value=span<30?'1000':span<300&&ext==='obj'?'10':'1';$('#ctEixo').value=ext==='stl'?'z':'y'}ct3={name:f.name,pecas};ctSrc=null;$('#ct3Opts').hidden=false;$('#ctLargW').hidden=true;
+      $('#ctDrop').classList.add('has');$('#ctDropTxt').textContent='✓ '+f.name;if(!$('#ctDesc').value)$('#ctDesc').value=f.name.replace(/\.(stl|obj)$/i,'');if(render!==false)ctRender()}
     catch(e){console.error(e);ct3=null;$('#ctDropTxt').textContent='Toque para escolher o arquivo';$('#ctMsg').innerHTML=`<div class="msg err">Não consegui ler: ${esc(e.message)}</div>`}return}
   ct3=null;$('#ct3Opts').hidden=true;$('#ctLargW').hidden=false;
-  try{const r=await readPdf(new Uint8Array(await f.arrayBuffer()));ctSrc={name:f.name,...r};$('#ctDrop').classList.add('has');$('#ctDropTxt').textContent='✓ '+f.name;
+  try{const r=await readPdf(bytes.slice());ctSrc={name:f.name,...r};$('#ctDrop').classList.add('has');$('#ctDropTxt').textContent='✓ '+f.name;
     if(!r.polys.length){$('#ctMsg').innerHTML='<div class="msg err">Não encontrei linhas vetoriais nesse PDF (texto precisa estar em curvas).</div>';return}
-    const b=bbox(r.polys);$('#ctLarg').placeholder=`Tamanho do arquivo: ${ctFmt(b.w)} mm`;if(!$('#ctDesc').value)$('#ctDesc').value=f.name.replace(/\.pdf$/i,'');ctRender()}
+    const b=bbox(r.polys);$('#ctLarg').placeholder=`Tamanho do arquivo: ${ctFmt(b.w)} mm`;if(!$('#ctDesc').value)$('#ctDesc').value=f.name.replace(/\.pdf$/i,'');if(render!==false)ctRender()}
   catch(e){console.error(e);$('#ctDropTxt').textContent='Toque para escolher o PDF';$('#ctMsg').innerHTML=`<div class="msg err">Não consegui ler: ${esc(e.message)}</div>`}}
 (function(){if(!$('#tab-cotas'))return;
   $('#ctIn').onchange=e=>{ctCarrega(e.target.files[0]);e.target.value=''};
   $('#ctModo').onclick=e=>{const b=e.target.closest('[data-ctm]');if(!b)return;ctModo=b.dataset.ctm;document.querySelectorAll('#ctModo [data-ctm]').forEach(x=>x.classList.toggle('sel',x===b));if(ctSrc||ct3)ctRender()};
   ['#ctLarg','#ctMat','#ctObs','#ctQtd','#ctDesc','#ctUn','#ctEixo'].forEach(s=>$(s).addEventListener('change',()=>{if(ctSrc||ct3)ctRender()}));
-  $('#ctGerar').onclick=ctRender;
+  $('#ctGerar').onclick=ctRender;ctSetorUI();ctArqsUI();$('#ctSetor').addEventListener('change',()=>{if(ctSrc||ct3)ctRender()});
+  $('#ctArqIn').onchange=async e=>{for(const f of e.target.files){const b=new Uint8Array(await f.arrayBuffer());ctArqs.push({name:f.name,b64:b64(b)})}e.target.value='';ctArqsUI();if(ctNoPedido())pedSujo=true};
+  $('#ctArqs').onclick=e=>{const a=e.target.closest('[data-ctax]');if(!a)return;e.preventDefault();ctArqs.splice(+a.dataset.ctax,1);ctArqsUI()};
+  $('#ctZip').onclick=async()=>{if(!ctBuild)ctRender();if(!ctBuild)return;const z=new JSZip();const base=`${ctBuild.ctx.os?'OS '+ctBuild.ctx.os+' - ':''}${ctBuild.ctx.descItem}`;z.file(nomeArq(base+' - COTAS.pdf'),toPDF(ctBuild.pages));if(ctBytes)z.file(nomeArq(base+' - original - '+ctNome),ctBytes);ctArqs.forEach(f=>z.file(nomeArq(base+' - '+f.name),unb64(f.b64)));await salvar(nomeArq(base+' - COTAS.zip'),await z.generateAsync({type:'blob'}))};
   $('#ctBaixar').onclick=async()=>{if(!ctBuild)ctRender();if(!ctBuild)return;await salvar(nomeArq(`${ctBuild.ctx.os?'OS '+ctBuild.ctx.os+' - ':''}${ctBuild.ctx.descItem} - COTAS.pdf`),new Blob([toPDF(ctBuild.pages)],{type:'application/pdf'}))};
 })();
 
@@ -5436,7 +5438,7 @@ function ct3Folhas(){const G=ct3Prep();const ctx=ctCtx();const det=ctModo==='det
   return{pages,ctx,A:{B:{w:W,h:H},grupos:G.pcs},d3:{W,H,D,n:G.pcs.length,el:E.length}}}
 function ct3Pagina(G,ctx,titulo,det,qt,E){let yLivre=30;const W=G.hi[0]-G.lo[0],H=G.hi[1]-G.lo[1],D=G.hi[2]-G.lo[2];
   const mat=($('#ctMat').value||'').trim().toUpperCase(),obs=($('#ctObs').value||'').trim();
-  const P=[];frame(P,ctx,{setor:'GERAL'});ctTopo(P,ctx);P.push({t:'text',x:18,y:31,s:`${qt}X`,size:7,bold:true,italic:true,color:'#000000'});
+  const P=[];frame(P,ctx,{setor:($('#ctSetor')&&$('#ctSetor').value!=='COTAS')?$('#ctSetor').value:'GERAL'});ctTopo(P,ctx);P.push({t:'text',x:18,y:31,s:`${qt}X`,size:7,bold:true,italic:true,color:'#000000'});
   P.push({t:'text',x:PW/2,y:30,s:fit(ctx.descItem+' — '+titulo,200,4.2),size:4.2,bold:true,color:'#000000',anchor:'middle'});
   const areaW=det||E?150:190,areaH=96;const s=Math.min((areaW-(det?34:20))/(W+D),(areaH-(det?26:20))/(H+D));const cor='#1971c2',fs=2.8;
   const gx=det?32:22,gy=det?24:18;const fx=30,fy=46;const vx={frente:[fx,fy,W*s,H*s],lateral:[fx+W*s+gx,fy,D*s,H*s],topo:[fx,fy+H*s+gy,W*s,D*s]};
@@ -5444,7 +5446,7 @@ function ct3Pagina(G,ctx,titulo,det,qt,E){let yLivre=30;const W=G.hi[0]-G.lo[0],
   const [a,b,c,d]=vx.frente;put('frente',a,b,c,d);cotaH(P,a,a+c,b-5,b,ctFmt(W),fs,cor);cotaV(P,a-6,b,b+d,a,ctFmt(H),fs,cor);P.push({t:'text',x:a+c/2,y:b+d+(det?11:5),s:'FRENTE',size:2.8,bold:true,color:'#000000',anchor:'middle'});
   {const [a,b,c,d]=vx.lateral;put('lateral',a,b,c,d);cotaH(P,a,a+c,b-5,b,ctFmt(D),fs,cor);cotaV(P,a+c+6,b,b+d,a+c,ctFmt(H),fs,cor);P.push({t:'text',x:a+c/2,y:b+d+(det?11:5),s:'LATERAL',size:2.8,bold:true,color:'#000000',anchor:'middle'})}
   {const [a,b,c,d]=vx.topo;put('topo',a,b,c,d);cotaV(P,a-6,b,b+d,a,ctFmt(D),fs,cor);cotaH(P,a,a+c,b+d+5,b+d,ctFmt(W),fs,cor);P.push({t:'text',x:a+c+4,y:b+d/2+1,s:'SUPERIOR (AÉREA)',size:2.8,bold:true,color:'#000000'})}
-  if(E){const [a,b]=vx.frente;E.forEach((e,n)=>{const cx=a+((e.lo[0]+e.hi[0])/2-G.lo[0])*s,cy=b+(G.hi[1]-(e.lo[1]+e.hi[1])/2)*s;P.push({t:'circle',x:cx,y:cy,r:2.4,fill:'#2b3a8c'},{t:'text',x:cx,y:cy+1,s:String(n+1),size:2.6,bold:true,color:'#ffffff',anchor:'middle'})});
+  if(E){const [a,b]=vx.frente;E.forEach((e,n)=>{const cx=a+((e.lo[0]+e.hi[0])/2-G.lo[0])*s,cy=b+(G.hi[1]-(e.lo[1]+e.hi[1])/2)*s;P.push({t:'circle',x:cx,y:cy,r:2.4,fill:'#2b3a8c',stroke:'#2b3a8c',lw:0.1},{t:'text',x:cx,y:cy+1,s:String(n+1),size:2.6,bold:true,color:'#ffffff',anchor:'middle'})});
     yLivre=49.5+Math.min(14,E.length)*4.6+4;P.push({t:'text',x:192,y:44,s:`${E.length} ELEMENTOS — cada um nas folhas seguintes:`,size:2.6,bold:true,color:'#2b3a8c'});E.slice(0,14).forEach((e,n)=>P.push({t:'text',x:192,y:49.5+n*4.6,s:`${n+1}.  ${ctFmt(e.hi[0]-e.lo[0])} × ${ctFmt(e.hi[1]-e.lo[1])} × ${ctFmt(e.hi[2]-e.lo[2])} mm${e.pcs[0].nome?'  '+e.pcs[0].nome:''}`,size:2.5,color:'#000000'}))}
   P.push({t:'text',x:284,y:25,s:`ESCALA 1:${ctFmt(1/s)} — MEDIDAS EM MM — ${ctFmt(W)} × ${ctFmt(H)} × ${ctFmt(D)} (L × A × P)`,size:2.4,bold:true,color:'#2f6fa8',anchor:'end'});
   if(det){// cotas na própria imagem: correntes com o espaçamento das barras em cada vista + resumo dos perfis
@@ -5469,8 +5471,8 @@ function ct3Pagina(G,ctx,titulo,det,qt,E){let yLivre=30;const W=G.hi[0]-G.lo[0],
 
 /* ================= PEDIDOS: uma OS com vários itens (letras, testeiras, estruturas, modelos 3D), tudo salvo ================= */
 let pedidos=[],pedAtual=null,itemAtual=null,pedPdf=null,pedSujo=false;
-const TIPO_NOME={letra:'Letra caixa',testeira:'Testeira',estrutura:'Estrutura por desenho',modelo3d:'Modelo 3D',bobs:'Bobs — requadro do balcão',bobscomp:'Bobs — complemento 30x30',bobscant:'Bobs — cantoneira com iluminação',branco:'FP em branco'};
-const TIPO_ABA={letra:'novo',testeira:'testeiras',estrutura:'testeiras',modelo3d:'modelo',bobs:'bobs',bobscomp:'bobs',bobscant:'bobs',branco:'branco'};
+const TIPO_NOME={letra:'Letra caixa',testeira:'Testeira',estrutura:'Estrutura por desenho',modelo3d:'Modelo 3D',bobs:'Bobs — requadro do balcão',bobscomp:'Bobs — complemento 30x30',bobscant:'Bobs — cantoneira com iluminação',branco:'FP em branco',cotas:'Cotas'};
+const TIPO_ABA={letra:'novo',testeira:'testeiras',estrutura:'testeiras',modelo3d:'modelo',bobs:'bobs',bobscomp:'bobs',bobscant:'bobs',branco:'branco',cotas:'cotas'};
 const OS_IDS=['os','entrega','cliente','vendedor','projetista','endereco'];
 // ---------- armazenamento ----------
 function pedLocal(){pedidos=lsGet('granda_pedidos')||[];pedListaRender()}
@@ -5574,10 +5576,10 @@ function limpaTipo(tipo){matUlt=null;rmUlt=null;if(typeof bArtes!=='undefined'){
   if(tipo==='bobs'){bobs={pecas:[bobsModelo('m1')]};xfPut('#xfB',[]);setBModo('req')}
   if(tipo==='bobscomp'){bComp=[{len:1000,q:1}];xfPut('#xfB',[]);setBModo('comp')}
   if(tipo==='bobscant'){bCantExtra=[];xfPut('#xfB',[]);setBModo('cant')}
-  if(tipo==='branco')brLimpa();if(tipo==='modelo3d'){mSrc=null;mBytes=null;mPecas=[];$('#mInfo').innerHTML='';$('#mDropTxt').textContent='Toque para escolher o arquivo 3D (.stl ou .obj)';$('#mResCard').hidden=true}}
+  if(tipo==='branco')brLimpa();if(tipo==='cotas'&&typeof ctLimpa==='function')ctLimpa();if(tipo==='modelo3d'){mSrc=null;mBytes=null;mPecas=[];$('#mInfo').innerHTML='';$('#mDropTxt').textContent='Toque para escolher o arquivo 3D (.stl ou .obj)';$('#mResCard').hidden=true}}
 // ---------- barra do pedido (aparece nas abas de trabalho) ----------
 function abaAtual(){const b=document.querySelector('nav button.on');return b?b.dataset.tab:''}
-function tipoDaAba(){const t=abaAtual();return t==='novo'?'letra':t==='testeiras'?(tModo==='desenho'?'estrutura':'testeira'):t==='modelo'?'modelo3d':t==='bobs'?(bModo==='comp'?'bobscomp':bModo==='cant'?'bobscant':'bobs'):t==='branco'?'branco':null}
+function tipoDaAba(){const t=abaAtual();return t==='novo'?'letra':t==='testeiras'?(tModo==='desenho'?'estrutura':'testeira'):t==='modelo'?'modelo3d':t==='bobs'?(bModo==='comp'?'bobscomp':bModo==='cant'?'bobscant':'bobs'):t==='branco'?'branco':t==='cotas'?'cotas':null}
 function isbRender(){const tipo=tipoDaAba();const it=pedAtual&&itemAtual&&itemAtual.tipo===tipo?itemAtual:null;
   document.querySelectorAll('.isbBtn').forEach(b=>b.textContent=!pedAtual?'Salvar item (cria o pedido com os dados da OS)':it&&!it.novo?`Salvar alterações no item ${$('#item').value||it.n}`:`Salvar como item ${$('#item').value||''}`)}
 document.querySelectorAll('.isbBtn').forEach(b=>b.onclick=()=>{const tipo=tipoDaAba();if(!tipo)return;if(!pedAtual){const p={id:'p'+Date.now().toString(36),nome:'',itens:[],criado:Date.now()};OS_IDS.forEach(k=>p[k]=$('#'+k).value.trim());pedidos.push(p);pedAtual=JSON.parse(JSON.stringify(p));itemAtual={id:'i'+Date.now().toString(36),tipo,n:Math.max(1,Math.round(num($('#item').value))||1),novo:true}}itemSalvar(tipo)});
@@ -5603,6 +5605,7 @@ function capturaEstado(tipo){
   if(tipo==='bobscomp')return{estado:{bComp:JSON.parse(JSON.stringify(bComp)),inputs:capInputs(['#bCompCard']),xf:xfLer('#xfB')},desc:$('#bcDesc').value.trim()||'COMPLEMENTO 30X30 BOBS',resumo:bComp.filter(c=>c.len>0).map(c=>`${c.q||1}x ${f0(c.len)}`).join(' + ')+' mm',lens:bobsLens('bobscomp')};
   if(tipo==='bobscant'){const T=bobsTrechos();const tot=T.reduce((a,t)=>a+t.lens.reduce((x,v)=>x+v,0),0);return{estado:{bCantExtra:JSON.parse(JSON.stringify(bCantExtra)),inputs:capInputs(['#bCantCard']),xf:xfLer('#xfB')},desc:$('#bkDesc').value.trim()||'CANTONEIRA COM ILUMINAÇÃO BOBS',resumo:`${String((tot/1000).toFixed(2)).replace('.',',')} m com LED COB 3000K`}}
   if(tipo==='branco'){if(!brFichas.length&&!(matAdd||[]).length)throw new Error('adicione ao menos uma ficha ou material');return{estado:{brFichas:JSON.parse(JSON.stringify(brFichas)),inputs:capInputs(['#tab-branco'])},fonte:brArqs.length?{nome:'arquivos ('+brArqs.length+')',b64:JSON.stringify(brArqs)}:null,desc:$('#brDesc').value.trim()||'FP EM BRANCO',resumo:`${brFichas.length} ficha(s): ${[...new Set(brFichas.map(f=>f.setor))].join(', ')}`}}
+  if(tipo==='cotas'){if(!ctBytes)throw new Error('envie o arquivo (PDF, STL ou OBJ) antes de salvar');return{estado:{inputs:capInputs(['#tab-cotas']),ctModo,ctArqs:JSON.parse(JSON.stringify(ctArqs))},fonte:{nome:ctNome,b64:b64(ctBytes)},desc:$('#ctDesc').value.trim()||'COTAS',resumo:`${ctModo==='detalhada'?'detalhada':'padrão'} • ${$('#ctSetor').value}`}}
   if(tipo==='modelo3d'){if(!mSrc||!mBytes)throw new Error('carregue o arquivo 3D antes de salvar');return{estado:{xf:xfLer('#xfM'),inputs:capInputs(['#tab-modelo'])},fonte:{nome:mSrc.name,b64:b64(mBytes)},desc:$('#mDesc').value.trim()||'ESTRUTURA',resumo:`${mPecas.length} peça(s)`}}}
 async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHTML=t;document.querySelectorAll('.isbMsg').forEach(e=>e.innerHTML=t.replace(/#b2f2bb/,'#2b8a3e').replace(/#ffc9c9/,'#c92a2a'))};
   try{const n=Math.max(1,Math.round(num($('#item').value))||1);
@@ -5637,10 +5640,11 @@ async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)th
   if(it.tipo==='bobscomp'){bComp=JSON.parse(JSON.stringify(E.bComp||[{len:1000,q:1}]));putInputs(E.inputs);xfPut('#xfB',E.xf||[]);setBModo('comp');if(mostrar){irAba('bobs');bobsRender()}}
   if(it.tipo==='bobscant'){bCantExtra=JSON.parse(JSON.stringify(E.bCantExtra||[]));putInputs(E.inputs);xfPut('#xfB',E.xf||[]);setBModo('cant');if(mostrar){irAba('bobs');bobsRender()}}
   if(it.tipo==='branco'){brFichas=JSON.parse(JSON.stringify(E.brFichas||[]));putInputs(E.inputs);try{brArqs=F&&F.b64?JSON.parse(F.b64):[]}catch(e){brArqs=[]}brUI();if(mostrar){irAba('branco');brRender()}}
+  if(it.tipo==='cotas'){ctLimpa();putInputs(E.inputs);ctModo=E.ctModo||'padrao';ctArqs=E.ctArqs||[];ctSetorUI();ctModoUI();ctArqsUI();if(F)await ctCarregaBytes(F.nome,unb64(F.b64),mostrar);if(mostrar)irAba('cotas')}
   if(it.tipo==='modelo3d'){putInputs(E.inputs);if(F)await mCarrega(F.nome,unb64(F.b64).buffer,true);if(mostrar)irAba('modelo')}
   pedSujo=false;pedBarRender()}
 // ---------- FP completa do pedido ----------
-function buildItem(tipo){if(tipo==='letra')return buildDoc();if(tipo==='testeira')return buildTesteira();if(tipo==='estrutura')return dFolhas();if(tipo==='modelo3d')return mFolhas();if(tipo==='bobs'){setBModo('req');return bobsFolhas()}if(tipo==='bobscomp'){setBModo('comp');return bobsFolhas()}if(tipo==='bobscant'){setBModo('cant');return bobsFolhas()}if(tipo==='branco')return brFolhas()}
+function buildItem(tipo){if(tipo==='letra')return buildDoc();if(tipo==='testeira')return buildTesteira();if(tipo==='estrutura')return dFolhas();if(tipo==='modelo3d')return mFolhas();if(tipo==='bobs'){setBModo('req');return bobsFolhas()}if(tipo==='bobscomp'){setBModo('comp');return bobsFolhas()}if(tipo==='bobscant'){setBModo('cant');return bobsFolhas()}if(tipo==='branco')return brFolhas();if(tipo==='cotas')return ct3?ct3Folhas():ctFolhas()}
 let pedSel=new Set(),pedParcial=false;
 function pedSelBtn(){const ids=new Set((pedAtual&&pedAtual.itens||[]).map(i=>i.id));[...pedSel].forEach(x=>{if(!ids.has(x))pedSel.delete(x)});const n=pedSel.size;const b=$('#pedGerarSel');if(!b)return;b.disabled=!n;b.textContent=n?`Gerar FP parcial (${n} selecionado${n>1?'s':''})`:'Gerar FP parcial (selecione os itens)'}
 $('#pedItensBox').addEventListener('change',e=>{const t=e.target;if(t.dataset.selg!=null){const n=+t.dataset.selg;(pedAtual.itens||[]).filter(i=>+i.n===n).forEach(i=>t.checked?pedSel.add(i.id):pedSel.delete(i.id));pedAbertoRender();return}
@@ -5857,7 +5861,7 @@ async function osImportar(file,noPedidoAberto){const msg=$('#pedMsg')||$('#pedLi
     const l=$('#osLista');if(l)l.scrollIntoView({behavior:'smooth',block:'start'})}
   catch(e){console.error(e);if(msg)msg.innerHTML=`<div class="msg err">Não consegui ler a OS: ${esc(e.message)}</div>`}}
 // lista dos itens da OS dentro do pedido
-const OS_TIPOS=[['letra','Letra caixa'],['branco','FP em branco'],['testeira','Testeira'],['estrutura','Estrutura por desenho'],['modelo3d','Modelo 3D'],['bobs','Bobs']];
+const OS_TIPOS=[['letra','Letra caixa'],['branco','FP em branco'],['cotas','Cotas'],['testeira','Testeira'],['estrutura','Estrutura por desenho'],['modelo3d','Modelo 3D'],['bobs','Bobs']];
 const osFormHtml=()=>{const L=(pedAtual&&pedAtual.osItens)||[];const prox=Math.max(0,...L.map(i=>+i.n||0),...((pedAtual&&pedAtual.itens)||[]).map(i=>+i.n||0))+1;
   return `<details id="osManual" style="margin-top:8px"><summary style="cursor:pointer;font-weight:600;font-size:13px;color:#2b3a8c">+ Adicionar item à lista (manual, sem a OS em PDF)</summary>
   <div class="g3" style="gap:6px;margin-top:6px"><div><label class="f">Nº do item</label><input type="number" id="osmN" value="${prox}" min="1"></div><div style="grid-column:span 2"><label class="f">Nome do item</label><input type="text" id="osmT" placeholder="ex.: LETREIRO OMODA"></div>
@@ -5888,7 +5892,7 @@ function osListaRender(){pedTotRender();pedProgRender();const box=$('#osLista');
     ${st==='pend'?`<div class="row" data-ostipos="${it.n}" hidden style="gap:4px;margin-top:6px;flex-wrap:wrap">${OS_TIPOS.map(([t,l])=>`<button class="btn ghost sm" data-osnovo="${t}" data-osn="${it.n}">${l}</button>`).join('')}</div>`:''}
     <div class="osDet"${ab?'':' hidden'}>${junt.map(o=>`<div class="osJunto"><span>⛓ <b>Item ${o.n} — ${esc(o.titulo)}</b> · ${String(o.q).replace('.',',')} un.${o.sub?' · '+brlP(o.sub):''}</span><button class="btn ghost sm" type="button" data-ossep="${o.n}">Separar</button></div>`).join('')}<div class="note" style="margin:6px 0 0;font-size:12px">${it.med?'<b>Medidas:</b> '+esc(it.med)+'<br>':''}${it.desc?esc(it.desc):''}</div>${st!=='pend'?osCompHtml(it.n):''}<div style="text-align:right;margin-top:8px"><button class="osAgCom" type="button" data-osagcom="${it.n}">⛓ Agrupar com outro item</button></div></div></div>`}).join('')}${osFormHtml()}</div>`}
 // começa o projeto do item já com a descrição, a venda e a foto da OS
-const OS_DESC={letra:'#descItem',testeira:'#tDesc',estrutura:'#dDesc',bobs:'#bDesc',branco:'#brDesc',modelo3d:'#mDesc'};
+const OS_DESC={letra:'#descItem',testeira:'#tDesc',estrutura:'#dDesc',bobs:'#bDesc',branco:'#brDesc',cotas:'#ctDesc',modelo3d:'#mDesc'};
 // número, descrição e venda do item vêm da OS (PDF) sempre que o item existir nela
 function osPreenche(tipo,n){const it=pedAtual&&(pedAtual.osItens||[]).find(i=>+i.n===+n);if(!it)return;
   try{const t=it.titulo||'';if(t){if($('#descItem'))$('#descItem').value=t;const d=$(OS_DESC[tipo]);if(d)d.value=t;['#descItem',OS_DESC[tipo]].forEach(x=>{const e=x&&$(x);if(e)e.dispatchEvent(new Event('input',{bubbles:true}))})}
