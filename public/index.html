@@ -188,10 +188,34 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
 .osAcoes{display:flex;gap:8px;align-items:center;margin-top:7px}
 .osComps{margin-top:8px;border-top:1px solid #0001;padding-top:4px}.osComp{display:flex;gap:6px;align-items:center;background:#fff;border:1px solid #dee2e6;border-radius:8px;padding:5px 7px;margin-top:5px}
 .osComp input{width:16px;height:16px;flex:none}.osCompT{flex:1;min-width:0;font-size:12.5px;line-height:1.25}.osCompT b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.osCompT span{display:block;font-size:11px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.osSelo{flex:none;font-size:10.5px;font-weight:700;border-radius:999px;padding:2px 7px;white-space:nowrap}.osComp .btn.sm{padding:4px 9px;min-height:0;font-size:12px}.osDet[hidden]{display:none}.osTop{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}.osTop img{-webkit-user-drag:none;pointer-events:none}.osPego{outline:3px solid #1971c2;outline-offset:2px;background:#e7f5ff !important}#osEscBar{position:fixed;left:8px;right:8px;bottom:12px;z-index:9998;background:#1971c2;color:#fff;border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;justify-content:space-between;font-size:13.5px;box-shadow:0 6px 20px #0004}#osEscBar[hidden]{display:none}#osEscBar .btn{background:#fff;color:#1971c2}.osGhost{position:fixed;z-index:9999;pointer-events:none;opacity:.9;background:#fff;border:2px solid #1971c2;border-radius:10px;padding:6px 8px;box-shadow:0 8px 24px #0003;display:flex;gap:8px;align-items:center}.osAlvo{outline:3px dashed #1971c2;outline-offset:2px;background:#e7f5ff !important}body.osArrastando{user-select:none;-webkit-user-select:none}
+.osSelo{flex:none;font-size:10.5px;font-weight:700;border-radius:999px;padding:2px 7px;white-space:nowrap}.osComp .btn.sm{padding:4px 9px;min-height:0;font-size:12px}.osDet[hidden]{display:none}.osTop{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}.osTop img{-webkit-user-drag:none;pointer-events:none}.osPego{outline:3px solid #1971c2;outline-offset:2px;background:#e7f5ff !important}#osEscBar{position:fixed;left:8px;right:8px;bottom:12px;z-index:9998;background:#1971c2;color:#fff;border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;justify-content:space-between;font-size:13.5px;box-shadow:0 6px 20px #0004}#osEscBar[hidden]{display:none}body.osEscolhendo{padding-bottom:90px}#osEscBar .btn{background:#fff;color:#1971c2}.osGhost{position:fixed;z-index:9999;pointer-events:none;opacity:.9;background:#fff;border:2px solid #1971c2;border-radius:10px;padding:6px 8px;box-shadow:0 8px 24px #0003;display:flex;gap:8px;align-items:center}.osAlvo{outline:3px dashed #1971c2;outline-offset:2px;background:#e7f5ff !important}body.osArrastando{user-select:none;-webkit-user-select:none}
 .osAgBar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#e7f5ff;border:1.5px solid #74c0fc;border-radius:10px;padding:8px 10px;margin-top:8px;font-size:13px}.osJunto{display:flex;gap:8px;align-items:center;justify-content:space-between;background:#fff;border:1px dashed #74c0fc;border-radius:8px;padding:5px 8px;margin-top:6px;font-size:12.5px}
 .progBox{border:1.5px solid #1971c2;background:#e7f5ff;border-radius:10px;padding:8px 12px;min-width:150px;text-align:right}.progBox b.pc{font-size:26px;color:#1864ab;line-height:1}.progBar{height:7px;border-radius:9px;background:#d0ebff;overflow:hidden;margin:5px 0}.progBar>i{display:block;height:100%;background:#1971c2;border-radius:9px}
 .pedProgMini{display:inline-flex;align-items:center;gap:5px;font-weight:700;color:#1864ab}.pedProgMini i{display:inline-block;width:46px;height:6px;border-radius:9px;background:#d0ebff;overflow:hidden;position:relative}.pedProgMini i>u{position:absolute;left:0;top:0;bottom:0;background:#1971c2}
+
+/* ---- celular: aproveitar melhor o espaço ---- */
+#osResumo{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:#f1f3f9;border-radius:10px;padding:8px 10px;margin:-4px 0 10px;font-size:13px}#osResumo[hidden]{display:none}
+#osCard.resumo .osPed{display:none}
+@media(max-width:620px){
+ header{padding:8px 12px;gap:10px}#hdrLogo{height:34px!important;padding:3px 6px!important}header h1 img{height:34px!important}
+ nav{padding:6px 8px;gap:2px}nav button{padding:7px 11px;font-size:13px;gap:5px}nav button svg{width:15px;height:15px}
+ main{padding:10px 8px}.card{padding:12px;margin-bottom:10px;border-radius:12px}.card h2{margin-bottom:9px}
+ label.f{margin-top:8px}
+ .type{padding:8px;gap:8px}.ph.semFoto{display:none}.ph{width:60px;height:60px}
+ .pedTopo{flex-direction:column;align-items:stretch!important;gap:8px}.pedTopo>div:last-child{align-items:stretch!important;flex-direction:column!important}
+ .pedTopo #pedFechar{align-self:flex-end}
+ .pedKpis{flex-wrap:nowrap!important;justify-content:stretch!important}.pedKpis>div{flex:1 1 0;min-width:0;display:flex}.pedKpis>div>*{flex:1;min-width:0}
+ #pedAjuda{display:none}
+ #pedNovos{display:grid;grid-template-columns:1fr 1fr;gap:6px}#pedNovos .note{grid-column:1/-1}#pedNovos .btn{text-align:left;padding:8px 9px;font-size:12.5px}
+ #pedAcoes{display:grid;grid-template-columns:1fr;gap:7px}#pedAcoes .btn:not(.sm){width:100%;padding:12px}#pedAcoes #pedExcluir{justify-self:end;margin:4px 0 0!important}
+ #pedItensBox>#osLista>div{padding:8px!important;margin:6px -4px!important}
+ .osBox{padding:7px 8px}
+ .osTop{min-height:0!important;align-items:flex-start!important;gap:9px!important}
+ .osFoto{width:56px;height:56px}.osSeta{margin-top:2px}
+ .osAcoes{margin:-17px 0 0 65px}.osAcoes .btn.sm{padding:5px 10px;font-size:12px}
+ .osBox.osAberto .osAcoes{margin-top:6px}
+ .rmLin>div:first-child{flex:1 1 100%!important}.rmLin>button{padding:4px 10px!important;font-size:12px!important}.rmLin>button[data-mpk]{margin-left:auto}
+}
 </style>
 </head>
 <body>
@@ -203,15 +227,16 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
     <div class="row" id="osLerRow" style="gap:8px;margin:0 0 10px"><label class="btn" style="cursor:pointer;background:#2f9e44;color:#fff;font-weight:700">Ler OS (PDF) — lança os dados e os itens<input type="file" accept=".pdf,application/pdf" id="osPdfPed" hidden></label></div>
     <div class="card" id="osCard">
       <h2>Dados da OS <span class="badge">valem para todas as folhas</span></h2>
+      <div id="osResumo" hidden><span></span><button class="btn ghost sm" type="button" id="osResBtn">Editar dados do pedido ▾</button></div>
       <div class="g3">
-        <div><label class="f">Número da OS</label><input type="text" id="os" inputmode="numeric"></div>
+        <div class="osPed"><label class="f">Número da OS</label><input type="text" id="os" inputmode="numeric"></div>
         <div id="itemBox"><label class="f">Item nº</label><input type="number" id="item" value="1" inputmode="numeric"></div>
-        <div><label class="f">Data de entrega</label><input type="date" id="entrega"></div>
+        <div class="osPed"><label class="f">Data de entrega</label><input type="date" id="entrega"></div>
       </div>
       <div id="descBox"><label class="f">Descrição do item</label><input type="text" id="descItem" value="LETRA CAIXA FACHADA"></div>
       <div id="pedTotBox" hidden><label class="f">Valor total do pedido (R$) <span class="note" style="font-weight:400">— soma dos produtos, sem logística</span></label><div id="pedTotV" style="padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#f8f9fa;font-weight:700;font-size:16px">—</div></div>
       <div id="vendaBox"><label class="f">Valor de venda do item (R$) <span class="note" style="font-weight:400">— compara com o custo da RM no pedido</span></label><input type="text" id="itemVenda" inputmode="decimal" placeholder="Ex.: 4.500,00"></div>
-      <div class="g2">
+      <div class="g2 osPed">
         <div><label class="f">Cliente</label><input type="text" id="cliente"></div>
         <div><label class="f">Vendedor</label><input type="text" id="vendedor"></div>
         <div><label class="f">Projetista</label><input type="text" id="projetista"></div>
@@ -236,14 +261,14 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <p class="note" id="pedNota"></p>
     </div>
     <div class="card" id="pedCard" hidden>
-      <div class="row" style="justify-content:space-between;align-items:flex-start"><div><span class="note">PEDIDO</span><h2 style="margin:2px 0 0" id="pedTitulo"></h2></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px"><button class="btn ghost sm" id="pedFechar">Voltar à lista</button><div style="display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;justify-content:flex-end"><div id="pedProg"></div><div id="pedTotal"></div></div></div></div>
+      <div class="row pedTopo" style="justify-content:space-between;align-items:flex-start"><div><span class="note">PEDIDO</span><h2 style="margin:2px 0 0" id="pedTitulo"></h2></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px"><button class="btn ghost sm" id="pedFechar">Voltar à lista</button><div class="pedKpis" style="display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;justify-content:flex-end"><div id="pedProg"></div><div id="pedTotal"></div></div></div></div>
       <input type="hidden" id="pedNome">
-      <p class="note" style="margin:6px 0 0">Os dados da OS (número, cliente, entrega…) ficam no quadro acima e valem para todos os itens. Tudo é salvo sozinho.</p>
+      <p class="note" id="pedAjuda" style="margin:6px 0 0">Os dados da OS (número, cliente, entrega…) ficam no quadro acima e valem para todos os itens. Tudo é salvo sozinho.</p>
       <label class="f" style="margin-top:14px">Itens do pedido</label>
             <div id="pedItensBox"><div id="osLista"></div>
       <div id="pedItens"></div></div>
-      <div class="row" style="gap:6px;margin-top:10px"><span class="note" style="align-self:center">Novo item:</span><button class="btn ghost sm" data-novo="letra">+ Letra caixa</button><button class="btn ghost sm" data-novo="branco">+ FP em branco</button><button class="btn ghost sm" data-novo="testeira">+ Testeira</button><button class="btn ghost sm" data-novo="estrutura">+ Estrutura por desenho</button><button class="btn ghost sm" data-novo="modelo3d">+ Modelo 3D</button><button class="btn ghost sm" data-novo="bobs">+ Bobs requadro</button><button class="btn ghost sm" data-novo="bobscomp">+ Bobs complemento 30x30</button><button class="btn ghost sm" data-novo="bobscant">+ Bobs cantoneira iluminada</button></div>
-      <div class="row" style="gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)"><button class="btn pink" id="pedGerar">Gerar FP completa do pedido</button><button class="btn acc" id="pedGerarSel" disabled>Gerar FP parcial (selecione os itens)</button><button class="btn ghost" id="pedBaixar" hidden>Baixar FP completa (PDF)</button><button class="btn" id="pedGeral" style="background:#2f9e44;color:#fff;font-weight:700">Gerar apenas FP geral</button><button class="btn" id="pedRM" style="background:#495057;color:#fff">Baixar RM + PI do pedido (por produto + total)</button><button class="btn ghost sm" id="pedExport" style="display:none">Exportar pedido (arquivo)</button><button class="btn danger sm" id="pedExcluir" style="margin-left:auto">Excluir pedido</button></div><div id="pedExpMsg" class="note" style="margin-top:6px"></div>
+      <div class="row" id="pedNovos" style="gap:6px;margin-top:10px"><span class="note" style="align-self:center">Novo item:</span><button class="btn ghost sm" data-novo="letra">+ Letra caixa</button><button class="btn ghost sm" data-novo="branco">+ FP em branco</button><button class="btn ghost sm" data-novo="testeira">+ Testeira</button><button class="btn ghost sm" data-novo="estrutura">+ Estrutura por desenho</button><button class="btn ghost sm" data-novo="modelo3d">+ Modelo 3D</button><button class="btn ghost sm" data-novo="bobs">+ Bobs requadro</button><button class="btn ghost sm" data-novo="bobscomp">+ Bobs complemento 30x30</button><button class="btn ghost sm" data-novo="bobscant">+ Bobs cantoneira iluminada</button></div>
+      <div class="row" id="pedAcoes" style="gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)"><button class="btn pink" id="pedGerar">Gerar FP completa do pedido</button><button class="btn acc" id="pedGerarSel" disabled>Gerar FP parcial (selecione os itens)</button><button class="btn ghost" id="pedBaixar" hidden>Baixar FP completa (PDF)</button><button class="btn" id="pedGeral" style="background:#2f9e44;color:#fff;font-weight:700">Gerar apenas FP geral</button><button class="btn" id="pedRM" style="background:#495057;color:#fff">Baixar RM + PI do pedido (por produto + total)</button><button class="btn ghost sm" id="pedExport" style="display:none">Exportar pedido (arquivo)</button><button class="btn danger sm" id="pedExcluir" style="margin-left:auto">Excluir pedido</button></div><div id="pedExpMsg" class="note" style="margin-top:6px"></div>
       <div id="pedMsg"></div>
       <div class="prev" id="pedPrev"></div>
     </div>
@@ -760,7 +785,7 @@ function typeCard(t,sel){
   const leds=(t.leds||[]).map(l=>`<span class="chip led">${l.toLocaleString('pt-BR')} K</span>`).join('');
   const pgs=pagesOf(t);
   const pp=pgs.length?pgs.map(p=>`<span class="chip set" style="background:${SETORES[setorNome(p.setor)]||'#666'}">${esc(setorNome(p.setor))} · ${esc(p.tipo==='led'?'LED':p.tipo==='pintura'?'PINTURA':p.tipo==='chapa'?'CHAPA C/ TRAVAS':(p.material||p.titulo))}</span>`).join(''):`<span class="chip">sem páginas configuradas</span>`;
-  return `<button class="type${sel?' sel':''}" data-id="${esc(t.id)}"><div class="ph" style="${t.foto?`background-image:url('${t.foto}')`:''}">${t.foto?'':'foto em breve'}</div><div><b>${esc(t.nome)}</b><div class="d">${esc(t.descricao)}</div><div class="chips">${pp}</div><div class="chips">${leds}</div></div></button>`;
+  return `<button class="type${sel?' sel':''}" data-id="${esc(t.id)}"><div class="ph${t.foto?'':' semFoto'}" style="${t.foto?`background-image:url('${t.foto}')`:''}">${t.foto?'':'foto em breve'}</div><div><b>${esc(t.nome)}</b><div class="d">${esc(t.descricao)}</div><div class="chips">${pp}</div><div class="chips">${leds}</div></div></button>`;
 }
 function renderTypes(){
   if(selType&&!types.find(t=>t.id===selType))selType=null;
@@ -826,7 +851,7 @@ $('#typeList').onclick=e=>{const b=e.target.closest('.type');if(b)openModal(type
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
   const tb=b.dataset.tab;$('#tab-pedidos').hidden=tb!=='pedidos';$('#tab-novo').hidden=tb!=='novo';$('#tab-tipos').hidden=tb!=='tipos';$('#tab-testeiras').hidden=tb!=='testeiras';$('#tab-modelo').hidden=tb!=='modelo';$('#tab-bobs').hidden=tb!=='bobs';if($('#tab-branco'))$('#tab-branco').hidden=tb!=='branco';if($('#osLerRow'))$('#osLerRow').hidden=tb!=='pedidos';{const noPed=tb==='pedidos';['#itemBox','#descBox','#vendaBox'].forEach(x=>{const e=$(x);if(e)e.hidden=noPed});const pt=$('#pedTotBox');if(pt)pt.hidden=!noPed;if(noPed&&typeof pedTotRender==='function')pedTotRender()}if(tb==='bobs')setTimeout(()=>{try{bobsEditor();bobs3D()}catch(e){console.error(e)}},30);if(tb==='modelo')setTimeout(()=>m3Draw(),30);
-  $('#osSec').hidden=tb==='tipos'||(tb==='pedidos'&&!pedAtual);if($('#refBox'))$('#refBox').hidden=tb==='pedidos';if($('#descBox'))$('#descBox').hidden=tb==='pedidos';if($('#vendaBox'))$('#vendaBox').hidden=tb==='pedidos';$('#instSec').hidden=!['novo','modelo','testeiras','bobs'].includes(tb);instColoca(tb);pedBarRender();if(tb==='testeiras')setTimeout(tRender,30);pickerCasa();$('#itemBox').hidden=tb==='pedidos';$('#descBox').hidden=tb==='testeiras'||tb==='pedidos';
+  $('#osSec').hidden=tb==='tipos'||(tb==='pedidos'&&!pedAtual);if($('#refBox'))$('#refBox').hidden=tb==='pedidos';if($('#descBox'))$('#descBox').hidden=tb==='pedidos';if($('#vendaBox'))$('#vendaBox').hidden=tb==='pedidos';$('#instSec').hidden=!['novo','modelo','testeiras','bobs'].includes(tb);instColoca(tb);pedBarRender();if(typeof osResumoSync==='function')osResumoSync();if(tb==='testeiras')setTimeout(tRender,30);pickerCasa();$('#itemBox').hidden=tb==='pedidos';$('#descBox').hidden=tb==='testeiras'||tb==='pedidos';
 });
 async function shrinkImage(f,max,type){
   const img=new Image();img.src=URL.createObjectURL(f);await img.decode();
@@ -4192,7 +4217,7 @@ function matAddPopup(prevId,pi){let M=$('#mpModal');if(M)M.remove();M=document.c
     if(b&&b.dataset.x==='custom'){const nome=M.querySelector('#maNome').value.trim().toUpperCase(),valor=numBR(M.querySelector('#maVal').value),un=M.querySelector('#maUn').value||'un';if(!nome){M.querySelector('#maNome').focus();return}const salva=M.querySelector('#maSalva').checked;escolhe({novo:true,nome,un,valor,salva},`<b>${esc(nome)}</b>${salva?NOVO_TAG.replace('CADASTRO NOVO','PROVISÓRIO • novo'):''}<div class="note" style="font-size:11px;margin:2px 0 0">${esc(un)} • ${(valor||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</div>`,un);return}
     if(it){const m=MP[+it.dataset.mp];escolhe({cod:m[0]},`<b>${m[0]}</b> ${esc(m[1])}${mpNovo(m[0])?novoTag(m[0]):''}<div class="note" style="font-size:11px;margin:2px 0 0">${m[2]} • ${(+m[3]||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</div>`,m[2])}}}
 function matCardRender(){const html=matUlt&&matUlt.length?`<div style="margin-top:14px;padding:12px;border:1.5px solid #495057;border-radius:12px;background:#f8f9fa"><div class="row" style="justify-content:space-between"><b>Relação de material (RM)</b><span class="note">total ${matUlt.reduce((s,r)=>s+r.tot,0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</span></div><div class="row" style="margin:6px 0 4px"><button class="btn ghost sm" type="button" data-mpadd="1" style="border-color:#2b8a3e;color:#2b8a3e">+ Adicionar matéria-prima (lista ou cadastrar nova)</button></div>
-  ${matUlt.map((r,i)=>`<div class="row" style="gap:8px;align-items:center;border-top:1px solid var(--line);padding:6px ${mpNovo(r)?'8px':'0'};font-size:13px${mpNovo(r)?';background:#fff4e6;border-left:4px solid #f08c00;border-radius:6px':''}"><div style="flex:1;min-width:0"><div style="font-weight:600;${r.cod==null||r.semPreco?'color:#c92a2a':mpNovo(r)?'color:#d9480f':''}">${r.cod==null?'SEM CÓDIGO — '+esc(r.desc):esc(r.cod+' — '+r.nome)+(r.semPreco?' (SEM PREÇO)':'')}${mpNovo(r)?novoTag(r.cod):''}</div><div class="note" style="font-size:11px">${esc(r.desc)} • ${String(r.q).replace('.',',')} ${esc(r.unMP)} x ${r.vu.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}${r.data?' (valor de '+esc(r.data)+')':''}${r.manual?' • produto escolhido à mão':''}${r.qtdManual?' • quantidade à mão':''}</div></div><button class="btn ghost sm" type="button" data-mpk="${i}">Trocar</button><button class="btn danger sm" type="button" data-mpdel="${i}" title="Excluir da RM">Excluir</button></div>`).join('')}${matUlt.some(r=>r.semPreco)?`<div style="margin-top:10px;padding:10px;border:1.5px solid #e03131;border-radius:10px;background:#fff5f5"><b style="color:#c92a2a">Sem preço no cadastro — informe o valor</b>${matUlt.filter(r=>r.semPreco).map(r=>`<div class="row" style="gap:6px;align-items:center;margin-top:6px;flex-wrap:nowrap"><span style="flex:1;min-width:0;font-size:12.5px">${esc(r.cod+' — '+r.nome)}</span><input type="text" inputmode="decimal" placeholder="R$ un." data-mppr="${r.cod}" style="max-width:96px"></div>`).join('')}<button class="btn pink sm" type="button" data-mpprok="1" style="margin-top:8px">Salvar valores e atualizar</button></div>`:''}</div>`:'';
+  ${matUlt.map((r,i)=>`<div class="row rmLin" style="gap:8px;align-items:center;border-top:1px solid var(--line);padding:6px ${mpNovo(r)?'8px':'0'};font-size:13px${mpNovo(r)?';background:#fff4e6;border-left:4px solid #f08c00;border-radius:6px':''}"><div style="flex:1;min-width:0"><div style="font-weight:600;${r.cod==null||r.semPreco?'color:#c92a2a':mpNovo(r)?'color:#d9480f':''}">${r.cod==null?'SEM CÓDIGO — '+esc(r.desc):esc(r.cod+' — '+r.nome)+(r.semPreco?' (SEM PREÇO)':'')}${mpNovo(r)?novoTag(r.cod):''}</div><div class="note" style="font-size:11px">${esc(r.desc)} • ${String(r.q).replace('.',',')} ${esc(r.unMP)} x ${r.vu.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}${r.data?' (valor de '+esc(r.data)+')':''}${r.manual?' • produto escolhido à mão':''}${r.qtdManual?' • quantidade à mão':''}</div></div><button class="btn ghost sm" type="button" data-mpk="${i}">Trocar</button><button class="btn danger sm" type="button" data-mpdel="${i}" title="Excluir da RM">Excluir</button></div>`).join('')}${matUlt.some(r=>r.semPreco)?`<div style="margin-top:10px;padding:10px;border:1.5px solid #e03131;border-radius:10px;background:#fff5f5"><b style="color:#c92a2a">Sem preço no cadastro — informe o valor</b>${matUlt.filter(r=>r.semPreco).map(r=>`<div class="row" style="gap:6px;align-items:center;margin-top:6px;flex-wrap:nowrap"><span style="flex:1;min-width:0;font-size:12.5px">${esc(r.cod+' — '+r.nome)}</span><input type="text" inputmode="decimal" placeholder="R$ un." data-mppr="${r.cod}" style="max-width:96px"></div>`).join('')}<button class="btn pink sm" type="button" data-mpprok="1" style="margin-top:8px">Salvar valores e atualizar</button></div>`:''}</div>`:'';
   const nx=Object.keys(matExcl).length;const html2=html+(nx?`<div class="row" style="gap:8px;margin-top:6px;align-items:center"><span class="note">${nx} material(is) excluído(s) da RM à mão.</span><button class="btn ghost sm" type="button" data-mprest="1">Voltar os excluídos</button></div>`:'');document.querySelectorAll('.matBox').forEach(b=>b.innerHTML=html2)}
 function matRodar(prevId){try{const t=typeof abaAtual==='function'?abaAtual():'';if(t==='novo')FPOBS_RUN.prev();else if(t==='testeiras'){if(tModo==='desenho')dRender3D();else tRender()}else if(t==='modelo')mFolhasRender();else if(t==='bobs'){const b=$('#bGerar');if(b&&!b.disabled)b.click()}else if(t==='branco')brRender();else (FPOBS_RUN[prevId]||(()=>{}))()}catch(e){console.error(e)}}
 function matPopup(i,prevId){const r=matUlt[i];let M=$('#mpModal');if(M)M.remove();M=document.createElement('div');M.id='mpModal';
@@ -5283,7 +5308,7 @@ function margemBox(custo,venda,titulo){const temC=custo!=null&&custo>0,temV=vend
     <div>Custo: <b>${temC?brlP(custo):'— (gerar FP)'}</b></div><div>Venda: <b>${temV?brlP(venda):'— (informar)'}</b></div>
     ${pc!=null?`<div style="margin-top:3px;font-size:15px;font-weight:800;color:${N[1]}">${pc.toFixed(1).replace('.',',')}% <span style="font-size:11px">${N[0]}</span></div>`:''}</div>`}
 // ---------- pedido aberto ----------
-function pedAbrir(p){pedSel=new Set();pedAtual=JSON.parse(JSON.stringify(p));itemAtual=null;pedPdf=null;OS_IDS.forEach(k=>$('#'+k).value=pedAtual[k]||'');$('#pedNome').value=pedAtual.nome||'';
+function pedAbrir(p){pedSel=new Set();setTimeout(()=>osResumoSync(),0);pedAtual=JSON.parse(JSON.stringify(p));itemAtual=null;pedPdf=null;OS_IDS.forEach(k=>$('#'+k).value=pedAtual[k]||'');$('#pedNome').value=pedAtual.nome||'';
   $('#pedListaCard').hidden=true;$('#pedCard').hidden=false;$('#osSec').hidden=false;{const noPed=!$('#tab-pedidos').hidden;['#itemBox','#descBox','#vendaBox','#refBox'].forEach(x=>{const e=$(x);if(e)e.hidden=noPed});const pt=$('#pedTotBox');if(pt)pt.hidden=!noPed}$('#pedPrev').innerHTML='';$('#pedMsg').innerHTML='';$('#pedBaixar').hidden=true;$('#pedGerar').textContent='Gerar FP completa do pedido';pedAbertoRender();pedBarRender()}
 function pedAbertoRender(){if(!pedAtual)return;$('#pedTitulo').innerHTML=`Pedido ${esc(pedAtual.os||'(sem número)')}${pedAtual.nome?' — '+esc(pedAtual.nome):''}<div style="font-size:13px;font-weight:400;margin-top:4px"><b>Cliente:</b> ${esc(pedAtual.cliente||'—')} &nbsp;•&nbsp; <b>Projetista:</b> ${esc(pedAtual.projetista||'—')}</div>`;
   const its=(pedAtual.itens||[]).slice().sort((a,b)=>a.n-b.n);const grupos=[];its.forEach(it=>{let g=grupos.find(g=>g.n===+it.n);if(!g){g={n:+it.n,its:[]};grupos.push(g)}g.its.push(it)});
@@ -5304,7 +5329,7 @@ function pedAbertoRender(){if(!pedAtual)return;$('#pedTitulo').innerHTML=`Pedido
   $('#pedItens').innerHTML=fora.length?(osNs.size?'<b style="display:block;margin-top:10px">Outros itens (fora da OS)</b>':'')+fora.map(grHtml).join(''):(osNs.size?'':'<p class="note">Nenhum item ainda. Use os botões abaixo para incluir letras, testeiras ou estruturas.</p>');pedSelBtn();if(typeof osListaRender==='function')osListaRender()}
 function novoComp(tipo,n){itemAtual={id:'i'+Date.now().toString(36),tipo,n,novo:true};limpaTipo(tipo);$('#item').value=n;irAba(TIPO_ABA[tipo]);if(typeof osPreenche==='function')osPreenche(tipo,n);if(tipo==='testeira')setModo('padrao');if(tipo==='estrutura')setModo('desenho');pedSujo=true;pedBarRender();window.scrollTo(0,0)}
 $('#pedItensBox').addEventListener('change',e=>{const i=e.target.closest('[data-prodnome]');if(!i||!pedAtual)return;pedAtual.produtos={...(pedAtual.produtos||{})};const v=i.value.trim();if(v)pedAtual.produtos[i.dataset.prodnome]=v;else delete pedAtual.produtos[i.dataset.prodnome];pedSalvar(pedAtual)});
-$('#pedFechar').onclick=()=>{pedAtual=null;itemAtual=null;$('#pedCard').hidden=true;$('#pedListaCard').hidden=false;$('#osSec').hidden=true;pedBarRender();pedListaRender()};
+$('#pedFechar').onclick=()=>{pedAtual=null;itemAtual=null;setTimeout(()=>osResumoSync(),0);$('#pedCard').hidden=true;$('#pedListaCard').hidden=false;$('#osSec').hidden=true;pedBarRender();pedListaRender()};
 let pedTimer=null;
 const pedHeader=()=>{if(!pedAtual)return;OS_IDS.forEach(k=>pedAtual[k]=$('#'+k).value.trim());pedAtual.nome=pedAtual.cliente||$('#pedNome').value.trim()||pedAtual.nome||'';pedAbertoRender();pedBarRender();clearTimeout(pedTimer);pedTimer=setTimeout(()=>pedSalvar(pedAtual),700)};
 OS_IDS.concat(['pedNome']).forEach(k=>$('#'+k).addEventListener('input',pedHeader));
@@ -5544,6 +5569,16 @@ async function pedGerarGeral(){let its=(pedAtual.itens||[]).slice().sort((a,b)=>
   finally{btn.disabled=false;$('#item').value=salvo.item;itemAtual=salvo.ia;pedBarRender()}}
 if($('#pedGeral'))$('#pedGeral').onclick=pedGerarGeral;
 
+// Dados da OS: com pedido aberto, nas abas de projeto, mostra só um resumo (os campos ficam no pedido)
+let osResAberto=false;
+function osResumoSync(){const c=$('#osCard'),r=$('#osResumo');if(!c||!r)return;const on=!!pedAtual&&abaAtual()!=='pedidos';
+  c.classList.toggle('resumo',on&&!osResAberto);r.hidden=!on;if(!on)return;
+  const d=$('#entrega').value?$('#entrega').value.split('-').reverse().join('/'):'';
+  r.querySelector('span').innerHTML=[$('#os').value?'<b>OS '+esc($('#os').value)+'</b>':'',esc($('#cliente').value),d?'entrega '+d:'',$('#vendedor').value?'vend. '+esc($('#vendedor').value):''].filter(Boolean).join(' · ')||'sem dados';
+  $('#osResBtn').textContent=osResAberto?'Ocultar dados do pedido ▴':'Editar dados do pedido ▾'}
+$('#osResBtn').onclick=()=>{osResAberto=!osResAberto;osResumoSync()};
+OS_IDS.forEach(k=>$('#'+k).addEventListener('input',()=>osResumoSync()));
+
 /* ===================== LER ORDEM DE SERVIÇO (PDF) =====================
    Lê nº da OS, cliente, vendedor, endereço, entrega e a lista de itens (com a foto de cada um).
    Os itens da OS ficam no pedido como lista: FINALIZADO quando já tem projeto, PENDENTE quando falta fazer. */
@@ -5681,7 +5716,7 @@ function osPerguntaJunta(a,t){const L=pedAtual.osItens||[],f=n=>{const o=L.find(
 // arrastar um item para dentro de outro (segure ~0,4 s e arraste) — ou segure, solte e toque no outro item
 (function(){const box=$('#osLista');if(!box)return;let st=null,tm=null,gh=null,alvo=null,esc1=null;
   const barra=$('#osEscBar')||(()=>{const d=document.createElement('div');d.id='osEscBar';d.hidden=true;d.innerHTML='<span></span><button class="btn ghost sm" type="button">Cancelar</button>';document.body.appendChild(d);d.querySelector('button').onclick=()=>fimEsc();return d})();
-  const fimEsc=()=>{if(esc1){const b=box.querySelector(`[data-osbox="${esc1}"]`);if(b)b.classList.remove('osPego')}esc1=null;barra.hidden=true};
+  const fimEsc=()=>{if(esc1){const b=box.querySelector(`[data-osbox="${esc1}"]`);if(b)b.classList.remove('osPego')}esc1=null;barra.hidden=true;document.body.classList.remove('osEscolhendo')};
   const limpa=()=>{clearTimeout(tm);tm=null;if(gh)gh.remove();gh=null;if(alvo)alvo.classList.remove('osAlvo');alvo=null;document.body.classList.remove('osArrastando');st=null};
   const pega=e=>{const b=e.target.closest&&e.target.closest('.osBox');if(!b||e.target.closest('button,input,label,.osSeta,a,select,textarea')||!e.target.closest('.osTop'))return null;return b};
   const inicia=(b,x,y,ms)=>{limpa();st={n:+b.dataset.osbox,b,x,y,ok:false,mov:false};
@@ -5691,7 +5726,7 @@ function osPerguntaJunta(a,t){const L=pedAtual.osItens||[],f=n=>{const o=L.find(
   const solta=()=>{if(!st)return;const ok=st.ok,mov=st.mov,a=st.n,t=alvo&&+alvo.dataset.osbox,b=st.b;limpa();if(!ok)return;
     if(t){osPerguntaJunta(a,t);return}
     if(!mov)escolhe(a)};
-  const escolhe=a=>{fimEsc();esc1=a;const b=box.querySelector(`[data-osbox="${a}"]`);if(b)b.classList.add('osPego');barra.querySelector('span').innerHTML=`<b>Item ${a}</b> selecionado — toque no item que vai junto com ele`;barra.hidden=false};
+  const escolhe=a=>{fimEsc();esc1=a;const b=box.querySelector(`[data-osbox="${a}"]`);if(b)b.classList.add('osPego');barra.querySelector('span').innerHTML=`<b>Item ${a}</b> selecionado — toque no item que vai junto com ele`;barra.hidden=false;document.body.classList.add('osEscolhendo')};
   // toque (celular)
   box.addEventListener('touchstart',e=>{if(e.touches.length>1){limpa();return}const b=pega(e);if(!b)return;const p=e.touches[0];inicia(b,p.clientX,p.clientY,400)},{passive:true});
   document.addEventListener('touchmove',e=>{if(!st)return;const p=e.touches[0];if(!st.ok){if(Math.hypot(p.clientX-st.x,p.clientY-st.y)>10)limpa();return}
