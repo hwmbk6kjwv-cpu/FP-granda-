@@ -238,6 +238,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
  #tEditor{padding:7px;margin-left:-4px;margin-right:-4px}.edVt .note{display:none}#tEdSlot #t3dInfo{font-size:11px}}
 .osAcoes{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.osCotaBtn{order:3;background:#fff0f6!important;color:#c2255c!important;border:1px solid #f783ac!important;font-weight:700}.osAcoes label{order:9}
 #ctCompBar[hidden]{display:none!important}
+#osLista .osTop{cursor:pointer}
 </style>
 </head>
 <body>
@@ -5966,7 +5967,7 @@ function osFazer(tipo,n){const it=(pedAtual.osItens||[]).find(i=>+i.n===+n);novo
       // o principal é o que já tem projeto (senão o de menor número); os outros seguem ele
       osJunta(ns);osAgrupando=false;osAgSel.clear();return}
     const sp=e.target.closest('[data-ossep]');if(sp){const o=(pedAtual.osItens||[]).find(i=>+i.n===+sp.dataset.ossep);if(o){delete o.grupo;osListaRender();pedSalvar(pedAtual)}return}
-    const se=e.target.closest('[data-osseta]');if(se){const n=+se.dataset.osseta;osAbertos.has(n)?osAbertos.delete(n):osAbertos.add(n);osListaRender();return}
+    const se=e.target.closest('[data-osseta]')||(()=>{const tp=e.target.closest('#osLista .osTop');if(!tp||e.target.closest('button,input,label,a,select,textarea,.osAcoes'))return null;const bx=tp.closest('.osBox');return bx?{dataset:{osseta:bx.dataset.osbox}}:null})();if(se){const n=+se.dataset.osseta;osAbertos.has(n)?osAbertos.delete(n):osAbertos.add(n);osListaRender();return}
     const fz=e.target.closest('[data-osfin]'),rb=e.target.closest('[data-osreab]');if(fz||rb){const n=+(fz?fz.dataset.osfin:rb.dataset.osreab);const o=(pedAtual.osItens||[]).find(i=>+i.n===n);if(o){o.fin=!!fz;osListaRender();pedSalvar(pedAtual)}return}
     const dl=e.target.closest('[data-osdel]');if(dl){pedAtual.osItens=(pedAtual.osItens||[]).filter(i=>+i.n!==+dl.dataset.osdel);osListaRender();pedSalvar(pedAtual);return}
     if(e.target.closest('#osmAdd')){const n=Math.round(num($('#osmN').value)),t=$('#osmT').value.trim();if(!(n>0)){$('#osmN').focus();return}if(!t){$('#osmT').focus();return}
