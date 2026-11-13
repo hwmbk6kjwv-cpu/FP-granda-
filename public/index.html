@@ -97,6 +97,8 @@ nav button{flex:none;display:inline-flex;align-items:center;gap:7px;border:0;bac
 nav button svg{width:17px;height:17px;flex:none}
 nav button:hover{background:#f1f3f5;color:var(--ink)}
 nav button.on{background:var(--acc);color:#fff}
+/* tipos de projeto saem do menu: abrem pelos itens do pedido */
+nav button[data-tab="novo"],nav button[data-tab="testeiras"],nav button[data-tab="modelo"],nav button[data-tab="bobs"],nav button[data-tab="branco"]{display:none}
 .pedHead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .pedHead h2{font-size:20px!important;margin:0!important}
 .pedHead .sub{font-size:13px;color:var(--mute);margin-top:2px}
