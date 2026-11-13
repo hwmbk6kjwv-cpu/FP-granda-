@@ -297,6 +297,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
           <div><label class="f">Borda além do desenho (mm)</label><input type="number" id="fdBorda" value="20" min="1" step="1" inputmode="decimal"></div>
           <div id="fdCorW" hidden><label class="f">Cor do ACM</label><input type="text" id="fdCor" value="BRANCO" placeholder="Ex.: BRANCO / PRETO FOSCO"></div>
           <label style="display:flex;gap:6px;align-items:center;font-size:13px;grid-column:1/-1"><input type="checkbox" id="fdJunta" checked> Juntar as letras numa peça só (ligadas no topo e na base)</label>
+          <div style="grid-column:1/-1"><canvas id="fdPrev" style="width:100%;height:auto;display:block;background:#fff;border:1px solid #a5d8ff;border-radius:8px"></canvas><div class="note" id="fdPrevInfo" style="margin:4px 0 0"></div></div>
           <p class="note" style="grid-column:1/-1;margin:0">Só o contorno de fora das letras (sem os furos do O, A, R…). Sem juntar, cada letra sai numa peça — se a borda for maior que a metade do espaço entre as letras, elas se encostam e viram uma peça.</p></div></div></div>
     <div class="card"><h2>4. LED</h2><div class="leds" id="ledPick"></div><label class="f" style="margin-top:12px">Potência do módulo de LED</label><div class="leds" id="ledWPick"></div>
       <div class="g2"><div><label class="f">Rabicho do fio por letra (mm)</label><input type="number" id="ledRab" value="3000" step="100" min="0"></div><div><label class="f">Saída do fio na letra</label><select id="ledSaida"><option value="inf">Inferior centralizado</option><option value="sup">Superior centralizado</option></select></div></div>
@@ -2344,7 +2345,7 @@ function toPDF(pages){
 
 /* ---------- Fluxo ---------- */
 let lastPdf=null,lastName='';
-function updateBtn(){$('#gerar').disabled=!(src&&src.polys.length&&selType&&selLed);if(typeof l3dPrevAgenda==='function')l3dPrevAgenda()}
+function updateBtn(){$('#gerar').disabled=!(src&&src.polys.length&&selType&&selLed);if(typeof fundoPrevAgenda==='function')fundoPrevAgenda();if(typeof l3dPrevAgenda==='function')l3dPrevAgenda()}
 let ledAdj={},lastLed=null,ledFoco=false;
 let ledPend=false;
 function renderLedAdj(R){const box=$('#ledAdj');if(!R||!R.letters||!R.letters.length){box.hidden=true;return}box.hidden=false;ledPend=false;
@@ -5790,9 +5791,26 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 <script>(function(){const f=()=>{const n=document.querySelector('nav');if(n)document.documentElement.style.setProperty('--navH',n.offsetHeight+'px')};f();addEventListener('resize',f);addEventListener('load',f)})()</script>
 <script>function fundoCfg(){const c=$('#l3dAcrF');if(!c||!c.checked)return null;const v=String($('#l3dAcrEsp').value||'4');const acm=v.startsWith('acm');
   return{mat:acm?'ACM':'ACR',es:+(v.replace('acm',''))||4,borda:Math.max(1,num($('#fdBorda').value)||(acm?100:20)),junta:$('#fdJunta').checked,cor:($('#fdCor').value||'BRANCO').trim().toUpperCase()}}
-function fundoUI(){const on=$('#l3dAcrF').checked,acm=String($('#l3dAcrEsp').value).startsWith('acm');$('#fdOpts').hidden=!on;$('#fdCorW').hidden=!acm}
+function fundoUI(){const on=$('#l3dAcrF').checked,acm=String($('#l3dAcrEsp').value).startsWith('acm');$('#fdOpts').hidden=!on;$('#fdCorW').hidden=!acm;fundoPrevAgenda()}
+// miniatura: arquivo original + contorno do fundo com as opções escolhidas
+let fdTm=null;function fundoPrevAgenda(){clearTimeout(fdTm);fdTm=setTimeout(fundoPrev,250)}
+function fundoPrev(){const cv=$('#fdPrev'),inf=$('#fdPrevInfo');if(!cv)return;const F=fundoCfg();
+  if(!F||$('#fdOpts').hidden){return}
+  if(typeof src==='undefined'||!src||!src.polys||!src.polys.length){cv.hidden=true;inf.textContent='Carregue o arquivo das letras para ver a miniatura do fundo.';return}
+  try{let b=bbox(src.polys);const lr=num($('#largReal').value);const k=lr>0&&b.w>0?lr/b.w:1;
+    const polys=src.paths?flattenPaths(src.paths,k,0.3):src.polys.map(p=>p.map(([x,y])=>[x*k,y*k]));const cp=unionEO(polys);
+    const fr=FRESA_R;FRESA_R=0;let f=offset(cp,F.borda,'ext');FRESA_R=fr;
+    const ar=q=>{let A=0;for(let i=0;i<q.length;i++){const[a,b2]=q[i],[c,d]=q[(i+1)%q.length];A+=a*d-c*b2}return A/2};const mx=f.reduce((m,q)=>Math.abs(ar(q))>Math.abs(ar(m))?q:m,f[0]||[]);const sg=Math.sign(ar(mx));f=f.filter(q=>Math.sign(ar(q))===sg);
+    if(F.junta)f=acrPecaUnica(f);
+    const B=bbox(f.length?f:polys),pad=Math.max(B.w,B.h)*0.04,W=Math.max(320,Math.round(cv.parentElement.clientWidth||600))*2,sc=(W-2*pad*0)/(B.w+2*pad),H=Math.round((B.h+2*pad)*sc);
+    cv.hidden=false;cv.width=W;cv.height=Math.min(H,W);const s2=Math.min(sc,cv.height/(B.h+2*pad));const ox=(W-(B.w)*s2)/2,oy=(cv.height-(B.h)*s2)/2;
+    const g=cv.getContext('2d');g.clearRect(0,0,W,cv.height);const P=(arr)=>{g.beginPath();arr.forEach(p=>{p.forEach(([x,y],i)=>{const X=ox+(x-B.x0)*s2,Y=cv.height-(oy+(y-B.y0)*s2);i?g.lineTo(X,Y):g.moveTo(X,Y)});g.closePath()})};
+    P(f);g.fillStyle=F.mat==='ACM'?'#dee2e6':'rgba(165,216,255,.55)';g.fill('evenodd');g.lineWidth=3;g.strokeStyle='#e6007e';g.stroke();
+    P(polys);g.fillStyle='#343a40';g.fill('evenodd');
+    const n=f.length,mm=v=>String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+    inf.innerHTML=`<b>${n} peça${n===1?'':'s'}</b> de ${F.mat==='ACM'?'ACM '+F.es+' mm '+esc(F.cor):'acrílico '+F.es+' mm cristal'} • ${mm(B.w)} × ${mm(B.h)} mm no total • borda ${F.borda} mm <span style="color:#e6007e">— linha rosa = corte</span>`}catch(e){console.error('miniatura do fundo',e);inf.textContent='Não foi possível desenhar a miniatura.'}}
 $('#l3dAcrEsp').addEventListener('change',()=>{const acm=String($('#l3dAcrEsp').value).startsWith('acm');const b=$('#fdBorda');if(!b.dataset.mexeu)b.value=acm?100:20;fundoUI();resetOut()});
-$('#fdBorda').addEventListener('input',()=>{$('#fdBorda').dataset.mexeu='1';resetOut()});['#l3dAcrF','#fdJunta','#fdCor'].forEach(s=>$(s).addEventListener('change',()=>{fundoUI();resetOut()}));fundoUI();
+$('#fdBorda').addEventListener('input',()=>{$('#fdBorda').dataset.mexeu='1';resetOut();fundoPrevAgenda()});$('#largReal').addEventListener('change',fundoPrevAgenda);['#l3dAcrF','#fdJunta','#fdCor'].forEach(s=>$(s).addEventListener('change',()=>{fundoUI();resetOut()}));fundoUI();
 </script>
 <script>function ledEspSync(aba){const u=!!($('#ledGap').value||$('#ledMarg').value);$('#ledEspUso').hidden=!u;if(aba)$('#ledEsp').open=u}
 ['ledGap','ledMarg'].forEach(k=>$('#'+k).addEventListener('input',()=>ledEspSync()));</script>
