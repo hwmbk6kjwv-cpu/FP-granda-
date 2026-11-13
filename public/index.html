@@ -5382,7 +5382,7 @@ function ctFolhas(){if(!ctSrc||!ctSrc.polys.length)throw new Error('Envie o arqu
   if(!FOOT_SKIP){pages.forEach((Q,i)=>footer(Q,ctx,i+1,pages.length))}
   return{pages,ctx,A}}
 function ctRender(){try{ctBuild=ct3?ct3Folhas():ctFolhas();$('#ctPrev').innerHTML=ctBuild.pages.map(P=>`<div class="pg">${toSVG(P)}</div>`).join('');
-    const A=ctBuild.A;$('#ctMsg').innerHTML=ctBuild.d3?`<div class="msg ok">Modelo 3D: ${ctFmt(ctBuild.d3.W)} × ${ctFmt(ctBuild.d3.H)} × ${ctFmt(ctBuild.d3.D)} mm (L × A × P) • ${ctBuild.d3.n} peça(s)</div>`:`<div class="msg ok">${ctFmt(A.B.w)} × ${ctFmt(A.B.h)} mm${ctModo==='detalhada'?` • ${A.grupos.length} detalhe(s) cotado(s)`:''}${semDuplicados.ult?` • ${semDuplicados.ult} linha(s) duplicada(s) ignorada(s)`:''}</div>`;$('#ctBaixar').hidden=false;$('#ctGerar').textContent='Atualizar'}
+    const A=ctBuild.A;$('#ctMsg').innerHTML=ctBuild.d3?`<div class="msg ok">Modelo 3D: ${ctFmt(ctBuild.d3.W)} × ${ctFmt(ctBuild.d3.H)} × ${ctFmt(ctBuild.d3.D)} mm (L × A × P) • ${ctBuild.d3.n} peça(s)${ctBuild.d3.el>1?` • ${ctBuild.d3.el} elementos separados (uma folha cada)`:''}</div>`:`<div class="msg ok">${ctFmt(A.B.w)} × ${ctFmt(A.B.h)} mm${ctModo==='detalhada'?` • ${A.grupos.length} detalhe(s) cotado(s)`:''}${semDuplicados.ult?` • ${semDuplicados.ult} linha(s) duplicada(s) ignorada(s)`:''}</div>`;$('#ctBaixar').hidden=false;$('#ctGerar').textContent='Atualizar'}
   catch(e){console.error(e);$('#ctMsg').innerHTML=`<div class="msg err">${esc(e.message)}</div>`}}
 async function ctCarrega(f){if(!f)return;$('#ctDropTxt').textContent='Lendo '+f.name+'…';
   const ext=f.name.toLowerCase().split('.').pop();
@@ -5406,7 +5406,7 @@ async function ctCarrega(f){if(!f)return;$('#ctDropTxt').textContent='Lendo '+f.
 
 /* ---------- COTAS de modelo 3D (STL / OBJ): vistas frontal, lateral, superior (aérea) e perspectiva ---------- */
 function ct3Mundo(v,k,zUp){return zUp?[v[0]*k,v[2]*k,-v[1]*k]:[v[0]*k,v[1]*k,v[2]*k]}
-function ct3Prep(){const k=num($('#ctUn').value)||1,zUp=$('#ctEixo').value==='z';const pcs=ct3.pecas.map(p=>{const tris=p.tris.map(t=>t.map(v=>ct3Mundo(v,k,zUp)));let lo=[1e18,1e18,1e18],hi=[-1e18,-1e18,-1e18];tris.forEach(t=>t.forEach(v=>{for(let i=0;i<3;i++){if(v[i]<lo[i])lo[i]=v[i];if(v[i]>hi[i])hi[i]=v[i]}}));return{tris,lo,hi}});
+function ct3Prep(){const k=num($('#ctUn').value)||1,zUp=$('#ctEixo').value==='z';const pcs=ct3.pecas.map(p=>{const nome=p.nome||'';const tris=p.tris.map(t=>t.map(v=>ct3Mundo(v,k,zUp)));let lo=[1e18,1e18,1e18],hi=[-1e18,-1e18,-1e18];tris.forEach(t=>t.forEach(v=>{for(let i=0;i<3;i++){if(v[i]<lo[i])lo[i]=v[i];if(v[i]>hi[i])hi[i]=v[i]}}));return{tris,lo,hi,nome}});
   let lo=[1e18,1e18,1e18],hi=[-1e18,-1e18,-1e18];pcs.forEach(p=>{for(let i=0;i<3;i++){lo[i]=Math.min(lo[i],p.lo[i]);hi[i]=Math.max(hi[i],p.hi[i])}});return{pcs,lo,hi}}
 // vista: frente olha para -z (x direita, y cima); lateral (direita) x→ profundidade; topo: x direita, z para baixo (frente embaixo)
 const CT3V={frente:{r:v=>v[0],u:v=>v[1],d:v=>-v[2]},lateral:{r:v=>-v[2],u:v=>v[1],d:v=>v[0]},topo:{r:v=>v[0],u:v=>-v[2],d:v=>v[1]},iso:{r:v=>(v[0]-v[2])*0.7071,u:v=>v[1]*0.8165+(v[0]+v[2])*0.4082,d:v=>-(v[0]+v[2])*0.577+v[1]*0.577}};
@@ -5419,18 +5419,35 @@ function ct3Img(G,nm,pxmm){const V=CT3V[nm];const T=[];G.pcs.forEach(p=>p.tris.f
     return{d:(V.d(t[0])+V.d(t[1])+V.d(t[2]))/3,p:t.map(v=>[2+(V.r(v)-x0)*sc,2+(y1-V.u(v))*sc]),c:k}});
   F.sort((a,b)=>a.d-b.d);F.forEach(f=>{g.beginPath();g.moveTo(f.p[0][0],f.p[0][1]);g.lineTo(f.p[1][0],f.p[1][1]);g.lineTo(f.p[2][0],f.p[2][1]);g.closePath();const c=`rgb(${f.c-25},${f.c-12},${f.c})`;g.fillStyle=c;g.strokeStyle=c;g.lineWidth=0.6;g.fill();g.stroke()});
   return{src:cv.toDataURL('image/jpeg',0.85),x0,x1,y0,y1,W,H}}
-function ct3Folhas(){const G=ct3Prep();const ctx=ctCtx();const det=ctModo==='detalhada';const W=G.hi[0]-G.lo[0],H=G.hi[1]-G.lo[1],D=G.hi[2]-G.lo[2];
-  const mat=($('#ctMat').value||'').trim().toUpperCase(),obs=($('#ctObs').value||'').trim(),qt=$('#ctQtd').value||'1';
+// elementos: objetos com nome diferente no arquivo; senão, partes que se tocam formam um elemento
+function ct3Elementos(G){const nomes=[...new Set(G.pcs.map(p=>p.nome))];
+  if(nomes.length>1&&nomes.length<=20)return nomes.map(n=>G.pcs.filter(p=>p.nome===n));
+  if(G.pcs.length>1500)return[G.pcs];
+  const n=G.pcs.length,par=[...Array(n).keys()],f=i=>{while(par[i]!==i){par[i]=par[par[i]];i=par[i]}return i};const t=1;
+  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const a=G.pcs[i],b=G.pcs[j];if(a.lo[0]-t<=b.hi[0]&&b.lo[0]-t<=a.hi[0]&&a.lo[1]-t<=b.hi[1]&&b.lo[1]-t<=a.hi[1]&&a.lo[2]-t<=b.hi[2]&&b.lo[2]-t<=a.hi[2])par[f(j)]=f(i)}
+  const m=new Map();G.pcs.forEach((p,i)=>{const r=f(i);if(!m.has(r))m.set(r,[]);m.get(r).push(p)});const L=[...m.values()];return L.length>20?[G.pcs]:L}
+function ct3Sub(pcs){let lo=[1e18,1e18,1e18],hi=[-1e18,-1e18,-1e18];pcs.forEach(p=>{for(let i=0;i<3;i++){lo[i]=Math.min(lo[i],p.lo[i]);hi[i]=Math.max(hi[i],p.hi[i])}});return{pcs,lo,hi}}
+function ct3Folhas(){const G=ct3Prep();const ctx=ctCtx();const det=ctModo==='detalhada';const qt=$('#ctQtd').value||'1';
+  const E=ct3Elementos(G).map(ct3Sub).sort((a,b)=>(b.hi[0]-b.lo[0])*(b.hi[1]-b.lo[1])-(a.hi[0]-a.lo[0])*(a.hi[1]-a.lo[1]));const pages=[];
+  if(E.length>1){const P=ct3Pagina(G,ctx,'CONJUNTO — VISTAS E MEDIDAS',det&&false,qt,E);pages.push(P);
+    E.slice(0,20).forEach((e,i)=>pages.push(ct3Pagina(e,ctx,`ELEMENTO ${i+1} DE ${E.length}${e.pcs[0].nome?' — '+e.pcs[0].nome.toUpperCase():''}`,det,qt,null)))}
+  else pages.push(ct3Pagina(G,ctx,'VISTAS E MEDIDAS',det,qt,null));
+  if(!FOOT_SKIP)pages.forEach((Q,i)=>footer(Q,ctx,i+1,pages.length));const W=G.hi[0]-G.lo[0],H=G.hi[1]-G.lo[1],D=G.hi[2]-G.lo[2];
+  return{pages,ctx,A:{B:{w:W,h:H},grupos:G.pcs},d3:{W,H,D,n:G.pcs.length,el:E.length}}}
+function ct3Pagina(G,ctx,titulo,det,qt,E){const W=G.hi[0]-G.lo[0],H=G.hi[1]-G.lo[1],D=G.hi[2]-G.lo[2];
+  const mat=($('#ctMat').value||'').trim().toUpperCase(),obs=($('#ctObs').value||'').trim();
   const P=[];frame(P,ctx,{setor:'GERAL'});ctTopo(P,ctx);P.push({t:'text',x:18,y:31,s:`${qt}X`,size:7,bold:true,italic:true,color:'#000000'});
-  P.push({t:'text',x:PW/2,y:30,s:fit(ctx.descItem+' — VISTAS E MEDIDAS',200,4.2),size:4.2,bold:true,color:'#000000',anchor:'middle'});
-  const areaW=det?150:190,areaH=96;const s=Math.min((areaW-20)/(W+D),(areaH-20)/(H+D));const cor='#1971c2',fs=2.8;
+  P.push({t:'text',x:PW/2,y:30,s:fit(ctx.descItem+' — '+titulo,200,4.2),size:4.2,bold:true,color:'#000000',anchor:'middle'});
+  const areaW=det||E?150:190,areaH=96;const s=Math.min((areaW-20)/(W+D),(areaH-20)/(H+D));const cor='#1971c2',fs=2.8;
   const fx=30,fy=46;const vx={frente:[fx,fy,W*s,H*s],lateral:[fx+W*s+22,fy,D*s,H*s],topo:[fx,fy+H*s+18,W*s,D*s]};
   const put=(nm,x,y,w,h)=>{const im=ct3Img(G,nm,Math.max(4,s*6));P.push({t:'img',x,y,w,h,src:im.src,fmt:'JPEG'});P.push({t:'rect',x,y,w,h,stroke:'#dee2e6',lw:0.1});return im};
   const [a,b,c,d]=vx.frente;put('frente',a,b,c,d);cotaH(P,a,a+c,b-5,b,ctFmt(W),fs,cor);cotaV(P,a-6,b,b+d,a,ctFmt(H),fs,cor);P.push({t:'text',x:a+c/2,y:b+d+5,s:'FRENTE',size:2.8,bold:true,color:'#000000',anchor:'middle'});
   {const [a,b,c,d]=vx.lateral;put('lateral',a,b,c,d);cotaH(P,a,a+c,b-5,b,ctFmt(D),fs,cor);cotaV(P,a+c+6,b,b+d,a+c,ctFmt(H),fs,cor);P.push({t:'text',x:a+c/2,y:b+d+5,s:'LATERAL',size:2.8,bold:true,color:'#000000',anchor:'middle'})}
   {const [a,b,c,d]=vx.topo;put('topo',a,b,c,d);cotaV(P,a-6,b,b+d,a,ctFmt(D),fs,cor);cotaH(P,a,a+c,b+d+5,b+d,ctFmt(W),fs,cor);P.push({t:'text',x:a+c+4,y:b+d/2+1,s:'SUPERIOR (AÉREA)',size:2.8,bold:true,color:'#000000'})}
   // perspectiva
-  {const im=ct3Img(G,'iso',3);const bx=det?150:205,by=det?118:100,bw=det?36:80,bh=det?26:42;const k=Math.min(bw/im.W,bh/im.H);P.push({t:'img',x:bx+(bw-im.W*k)/2,y:by+(bh-im.H*k)/2,w:im.W*k,h:im.H*k,src:im.src,fmt:'JPEG'});P.push({t:'text',x:bx+bw/2,y:by-1.5,s:'PERSPECTIVA',size:2.4,bold:true,color:'#868e96',anchor:'middle'})}
+  {const im=ct3Img(G,'iso',3);const bx=det||E?150:205,by=det||E?112:100,bw=det||E?36:80,bh=det||E?30:42;const k=Math.min(bw/im.W,bh/im.H);P.push({t:'img',x:bx+(bw-im.W*k)/2,y:by+(bh-im.H*k)/2,w:im.W*k,h:im.H*k,src:im.src,fmt:'JPEG'});P.push({t:'text',x:bx+bw/2,y:by-1.5,s:'PERSPECTIVA',size:2.4,bold:true,color:'#868e96',anchor:'middle'})}
+  if(E){const [a,b]=vx.frente;E.forEach((e,n)=>{const cx=a+((e.lo[0]+e.hi[0])/2-G.lo[0])*s,cy=b+(G.hi[1]-(e.lo[1]+e.hi[1])/2)*s;P.push({t:'circle',x:cx,y:cy,r:2.4,fill:'#2b3a8c'},{t:'text',x:cx,y:cy+1,s:String(n+1),size:2.6,bold:true,color:'#ffffff',anchor:'middle'})});
+    P.push({t:'text',x:192,y:44,s:`${E.length} ELEMENTOS — cada um nas folhas seguintes:`,size:2.6,bold:true,color:'#2b3a8c'});E.slice(0,14).forEach((e,n)=>P.push({t:'text',x:192,y:49.5+n*4.6,s:`${n+1}.  ${ctFmt(e.hi[0]-e.lo[0])} × ${ctFmt(e.hi[1]-e.lo[1])} × ${ctFmt(e.hi[2]-e.lo[2])} mm${e.pcs[0].nome?'  '+e.pcs[0].nome:''}`,size:2.5,color:'#000000'}))}
   P.push({t:'text',x:284,y:25,s:`ESCALA 1:${ctFmt(1/s)} — MEDIDAS EM MM — ${ctFmt(W)} × ${ctFmt(H)} × ${ctFmt(D)} (L × A × P)`,size:2.4,bold:true,color:'#2f6fa8',anchor:'end'});
   if(det){const L=G.pcs.map((p,i)=>({i,w:p.hi[0]-p.lo[0],h:p.hi[1]-p.lo[1],d:p.hi[2]-p.lo[2],x:p.lo[0]-G.lo[0],y:p.lo[1]-G.lo[1],z:G.hi[2]-p.hi[2]})).sort((a,b)=>(b.w*b.h*b.d)-(a.w*a.h*a.d));
     const [a,b]=vx.frente;L.slice(0,40).forEach((q,n)=>{const p=G.pcs[q.i];const cx=a+((p.lo[0]+p.hi[0])/2-G.lo[0])*s,cy=b+(G.hi[1]-(p.lo[1]+p.hi[1])/2)*s;P.push({t:'circle',x:cx,y:cy,r:1.8,fill:'#e8590c'},{t:'text',x:cx,y:cy+0.85,s:String(n+1),size:2,bold:true,color:'#ffffff',anchor:'middle'})});
@@ -5440,8 +5457,7 @@ function ct3Folhas(){const G=ct3Prep();const ctx=ctCtx();const det=ctModo==='det
   const yb=150;P.push({t:'rect',x:12,y:yb,w:120,h:14,stroke:'#adb5bd',lw:0.2},{t:'text',x:15,y:yb+4.5,s:'MATERIAL',size:2.3,bold:true,color:'#495057'},{t:'text',x:15,y:yb+10.5,s:fit(mat||'—',115,3.2),size:3.2,bold:true,color:'#000000'});
   P.push({t:'rect',x:136,y:yb,w:PW-12-136,h:14,stroke:'#adb5bd',lw:0.2},{t:'text',x:139,y:yb+4.5,s:'OBSERVAÇÃO',size:2.3,bold:true,color:'#495057'});
   {const Ls=[];String(obs||'—').split('\n').forEach(par=>{let l='';par.split(/\s+/).forEach(w=>{if((l+' '+w).trim().length>95){Ls.push(l);l=w}else l=(l+' '+w).trim()});Ls.push(l)});Ls.slice(0,2).forEach((l,i)=>P.push({t:'text',x:139,y:yb+9+i*3.6,s:l,size:2.7,color:'#000000'}))}
-  const pages=[P];if(!FOOT_SKIP)pages.forEach((Q,i)=>footer(Q,ctx,i+1,pages.length));
-  return{pages,ctx,A:{B:{w:W,h:H},grupos:G.pcs},d3:{W,H,D,n:G.pcs.length}}}
+  return P}
 
 /* ================= PEDIDOS: uma OS com vários itens (letras, testeiras, estruturas, modelos 3D), tudo salvo ================= */
 let pedidos=[],pedAtual=null,itemAtual=null,pedPdf=null,pedSujo=false;
