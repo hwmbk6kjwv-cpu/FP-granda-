@@ -106,14 +106,14 @@ nav button.on{background:var(--acc);color:#fff}
 .pedHead .sub{font-size:13px;color:var(--mute);margin-top:2px}
 .pedSearch{position:relative;margin-top:14px}.pedSearch svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:#adb5bd}
 .pedSearch input{padding-left:38px!important}
-.pedRow{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:8px;font:inherit;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.pedRow{display:flex;align-items:center;gap:12px;min-height:92px;box-sizing:border-box;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:8px;font:inherit;cursor:pointer;transition:border-color .15s,box-shadow .15s}
 .pedRow:hover{border-color:#c5cbe8;box-shadow:0 3px 12px #2b3a7a14}
 .pedOS{flex:none;min-width:64px;text-align:center;border-radius:10px;background:#f3f4fb;color:var(--acc);padding:8px 6px;line-height:1.1}
 .pedOS small{display:block;font-size:10px;font-weight:600;color:var(--mute);letter-spacing:.06em}.pedOS b{font-size:17px}
 .pedMain{flex:1;min-width:0}.pedMain .t{font-weight:700;font-size:15px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pedMain .m{font-size:12.5px;color:var(--mute);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pedChips{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.pedChips span{font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;background:#f1f3f5;color:#495057}
-.pedSide{flex:none;text-align:right;font-size:12px;color:var(--mute)}.pedSide .e{display:block;font-weight:600;color:#c2255c;margin-top:3px}
+.pedChips{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.pedChips[hidden]{display:none}.pedRes{display:flex;gap:8px;align-items:center;margin-top:5px;font-size:12px;color:var(--mute);white-space:nowrap}.pedRes>span:first-child{overflow:hidden;text-overflow:ellipsis}.pedMais{flex:none;font-weight:700;color:var(--acc);background:#eef0fb;border-radius:999px;padding:1px 12px;cursor:pointer;font-size:13px}.pedChips span{font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;background:#f1f3f5;color:#495057}
+.pedSide{flex:none;text-align:right;font-size:12px;color:var(--mute);line-height:1.25}.pedSide .e{display:block;font-weight:600;color:#c2255c;margin-top:3px}
 .pedSide svg{width:18px;height:18px;color:#adb5bd;margin-top:6px}
 .pedVazio{text-align:center;padding:34px 12px;color:var(--mute)}
 main{max-width:1000px;margin:0 auto;padding:14px}
@@ -180,6 +180,15 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
 .logoPrev{height:56px;min-width:140px;border:1px dashed var(--line);border-radius:8px;display:grid;place-items:center;background:#fff center/contain no-repeat;color:#aaa;font-size:12px}
 .colaZona{flex:1;min-width:150px;border:1.5px dashed var(--line);border-radius:10px;padding:8px 10px;font-size:13px;color:#868e96;outline:none;cursor:text;caret-color:transparent}.colaZona.on{border-color:#1c7ed6;background:#f8fbff}.colaZona.on:empty::before{content:'Agora aperte Ctrl+V (ou segure → Colar)';color:#1971c2}
 @keyframes onAutoFill{from{}to{}}#pedBusca:-webkit-autofill{animation-name:onAutoFill;animation-duration:1ms}
+.osBox{border-radius:10px;padding:9px 10px;margin-top:6px}.osTop{display:flex;gap:10px;align-items:center;min-height:52px}
+.osFoto{width:64px;height:48px;flex:none;border:1px solid #dee2e6;border-radius:6px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}.osFoto img{max-width:100%;max-height:100%}
+.osInfo{flex:1;min-width:0}.osTit{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}.osMeta{font-size:12px;color:var(--mute);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.osBadge{display:inline-block;padding:1px 8px;border-radius:999px;font-size:10.5px;font-weight:700;color:#fff;margin-right:6px}
+.osSeta{flex:none;font-weight:700;color:var(--acc);background:#eef0fb;border-radius:999px;padding:3px 13px;cursor:pointer;font-size:14px}
+.osAcoes{display:flex;gap:8px;align-items:center;margin-top:7px}
+.osComps{margin-top:8px;border-top:1px solid #0001;padding-top:4px}.osComp{display:flex;gap:6px;align-items:center;background:#fff;border:1px solid #dee2e6;border-radius:8px;padding:5px 7px;margin-top:5px}
+.osComp input{width:16px;height:16px;flex:none}.osCompT{flex:1;min-width:0;font-size:12.5px;line-height:1.25}.osCompT b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.osCompT span{display:block;font-size:11px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.osSelo{flex:none;font-size:10.5px;font-weight:700;border-radius:999px;padding:2px 7px;white-space:nowrap}.osComp .btn.sm{padding:4px 9px;min-height:0;font-size:12px}.osDet[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -218,7 +227,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
   <section id="tab-pedidos">
     <div class="card" id="pedListaCard">
       <div class="pedHead"><div><h2>Pedidos</h2><div class="sub" id="pedSub"></div></div><div class="row" style="gap:6px"><label class="btn sm" style="cursor:pointer;background:#2b3a8c;color:#fff">Novo pedido pela OS (PDF)<input type="file" accept=".pdf,application/pdf" id="osPdfNovo" hidden></label><label class="btn ghost sm" style="cursor:pointer">Importar pedido (arquivo)<input type="file" accept=".json,application/json" id="pedImport" hidden></label><button class="btn pink" id="pedNovo">+ Novo pedido</button></div></div><div id="pedImpMsg" class="note"></div>
-      <div class="pedSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="pedBusca" autocomplete="off" autocorrect="off" spellcheck="false" name="busca_pedidos_x" readonly onfocus="this.removeAttribute('readonly')" placeholder="Buscar por OS, nome, cliente ou projetista"></div>
+      <div class="pedSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="text" id="pedBusca" autocomplete="off" autocorrect="off" spellcheck="false" name="busca_pedidos_x" readonly onfocus="this.removeAttribute('readonly')" placeholder="Buscar por OS, nome, cliente ou projetista"></div>
       <div id="pedLista" style="margin-top:10px"></div>
       <p class="note" id="pedNota"></p>
     </div>
@@ -5230,17 +5239,24 @@ async function apagaJSON(id){if(!id)return;try{if(id.startsWith('ls:')){localSto
 const b64=u8=>{let s='';const c=0x8000;for(let i=0;i<u8.length;i+=c)s+=String.fromCharCode.apply(null,u8.subarray(i,i+c));return btoa(s)};
 const unb64=t=>{const s=atob(t);const u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u};
 // ---------- lista ----------
+const pedAbertos=new Set();
 function pedListaRender(){const q=($('#pedBusca').value||'').toLowerCase();
   const L=pedidos.slice().sort((a,b)=>(b.atualizado||0)-(a.atualizado||0)).filter(p=>!q||[p.os,p.nome,p.cliente,p.projetista].join(' ').toLowerCase().includes(q));
   const nI=pedidos.reduce((s,p)=>s+(p.itens||[]).length,0);$('#pedSub').textContent=`${pedidos.length} pedido${pedidos.length===1?'':'s'} • ${nI} ite${nI===1?'m':'ns'}`;
   const dt=v=>v?new Date(v).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'}):'';
   const chips=p=>{const c={};(p.itens||[]).forEach(i=>{const k=TIPO_NOME[i.tipo]||i.tipo;c[k]=(c[k]||0)+1});const e=Object.entries(c);return e.length?e.map(([k,n])=>`<span>${esc(k)}${n>1?' ×'+n:''}</span>`).join(''):'<span style="background:#fff5f5;color:#c92a2a">sem itens</span>'};
+  const resumo=p=>{const n=(p.itens||[]).length,o=p.osItens||[];if(!n&&!o.length)return'<b style="color:#c92a2a">sem itens</b>';const f=o.filter(i=>i.fin).length;
+    return `${n} ite${n===1?'m':'ns'}${o.length?` · <b style="color:${f===o.length?'#2b8a3e':'#e67700'}">${f}/${o.length} ✓</b>`:''}`};
   $('#pedLista').innerHTML=L.length?L.map(p=>`<button class="pedRow" data-ped="${esc(p.id)}"><div class="pedOS"><small>OS</small><b>${esc(p.os||'—')}</b></div>
-    <div class="pedMain"><div class="t">${esc(p.nome||p.cliente||'Pedido sem nome')}</div><div class="m">${esc(p.cliente||'sem cliente')}${p.projetista?' • proj. '+esc(p.projetista):''}</div><div class="pedChips">${chips(p)}</div></div>
-    <div class="pedSide">${dt(p.atualizado)}${p.entrega?`<span class="e">entrega ${esc(p.entrega.split('-').reverse().join('/'))}</span>`:''}<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div></div></button>`).join('')
+    <div class="pedMain"><div class="t">${esc(p.nome||p.cliente||'Pedido sem nome')}</div><div class="m">${esc(p.cliente||'sem cliente')}${p.projetista?' • proj. '+esc(p.projetista):''}</div>
+      <div class="pedRes"><span>${resumo(p)}</span>${(p.itens||[]).length?`<span class="pedMais" role="button" tabindex="0" data-pedmais="${esc(p.id)}" title="Ver os itens">${pedAbertos.has(p.id)?'▴':'▾'}</span>`:''}</div>
+      <div class="pedChips"${pedAbertos.has(p.id)?'':' hidden'}>${chips(p)}</div></div>
+    <div class="pedSide">${dt(p.atualizado)}${p.entrega?`<span class="e">entrega<br>${esc(p.entrega.split('-').reverse().join('/').replace(/\/(\d{2})(\d{2})$/,'/$2'))}</span>`:''}<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div></div></button>`).join('')
     :`<div class="pedVazio">${q?'Nenhum pedido encontrado.':'Nenhum pedido ainda. Toque em <b>+ Novo pedido</b> para começar.'}</div>`;
   $('#pedNota').textContent=local?'Modo local: os pedidos ficam só neste aparelho.':'Os pedidos ficam salvos no sistema e aparecem em todos os aparelhos.'}
 $('#pedBusca').addEventListener('input',pedListaRender);
+// seta do card: abre/fecha a lista de itens sem abrir o pedido
+$('#pedLista').addEventListener('click',e=>{const m=e.target.closest('[data-pedmais]');if(!m)return;e.preventDefault();e.stopPropagation();const id=m.dataset.pedmais;pedAbertos.has(id)?pedAbertos.delete(id):pedAbertos.add(id);pedListaRender()},true);
 // a busca sempre começa em branco (o navegador não preenche sozinho)
 {const b0=$('#pedBusca');if(b0){b0.name='q'+Math.random().toString(36).slice(2);b0.setAttribute('autocomplete','new-password')}
  let mexeu=false;b0&&b0.addEventListener('keydown',()=>{mexeu=true});
@@ -5587,23 +5603,36 @@ const osFormHtml=()=>{const L=(pedAtual&&pedAtual.osItens)||[];const prox=Math.m
   <div><label class="f">Medidas</label><input type="text" id="osmM" placeholder="ex.: 5.200 x 0.600 m"></div><div><label class="f">Quantidade</label><input type="number" id="osmQ" value="1" min="1"></div><div><label class="f">Valor de venda (R$)</label><input type="text" id="osmV" inputmode="decimal" placeholder="0,00"></div>
   <div style="grid-column:span 3"><label class="f">Descrição (opcional)</label><input type="text" id="osmD" placeholder="ex.: letra caixa em chapa galvanizada com face em acrílico"></div></div>
   <div class="row" style="gap:8px;align-items:center;margin-top:6px"><label class="btn ghost sm" style="cursor:pointer">Foto (opcional)<input type="file" accept="image/*" id="osmF" hidden></label><div class="colaZona" contenteditable="true" spellcheck="false">Colar print aqui (Ctrl+V)</div><span id="osmFok" class="note" style="margin:0"></span><button class="btn pink sm" type="button" id="osmAdd" style="margin-left:auto">Adicionar à lista</button></div></details>`};
-let osmImg=null;
+let osmImg=null;const osAbertos=new Set();
+// componentes do item em linhas pequenas (custo, venda e margem num selo)
+function osCompHtml(n){const cs=(pedAtual.itens||[]).filter(i=>+i.n===+n);if(!cs.length)return'';const v=cs.length>1;const r0=x=>'R$ '+Math.round(+x||0).toLocaleString('pt-BR');
+  return `<div class="osComps">${cs.map((it,k)=>{const c=it.custo,ve=+it.venda||0;let selo='<span class="osSelo" style="background:#f1f3f5;color:#868e96">sem custo</span>';
+      if(c!=null&&c>0&&ve>0){const pc=c/ve*100,[nv,cor,bg]=margemNivel(pc);selo=`<span class="osSelo" style="background:${bg};color:${cor}" title="Custo ${brlP(c)} • Venda ${brlP(ve)}">${pc.toFixed(1).replace('.',',')}% ${nv}</span>`}
+      else if(c!=null&&c>0)selo=`<span class="osSelo" style="background:#f1f3f5;color:#495057">custo ${r0(c)}</span>`;
+      return `<div class="osComp">${v?`<input type="checkbox" data-sel="${it.id}" title="FP parcial"${pedSel.has(it.id)?' checked':''}>`:''}<div class="osCompT"><b>${v?`${n}.${k+1}`:`${n}`} — ${esc(TIPO_NOME[it.tipo]||it.tipo)}</b><span>${esc(it.desc||'')}${c!=null&&c>0?` · C ${r0(c)}`:''}${ve?` · V ${r0(ve)}`:''}</span></div>${selo}<button class="btn acc sm" data-abrir="${it.id}">Abrir</button><button class="btn ghost sm" data-del="${it.id}" title="Excluir componente" style="color:#c92a2a;padding:4px 8px">✕</button></div>`}).join('')}
+    <div style="margin-top:6px"><button class="btn ghost sm" data-compmenu="${n}">+ Componente</button><div class="row" data-comptipos="${n}" style="gap:4px;margin-top:6px;flex-wrap:wrap" hidden>${OS_TIPOS.map(([t,l])=>`<button class="btn ghost sm" data-compnovo="${t}" data-compn="${n}">+ ${l}</button>`).join('')}</div></div></div>`}
 function osListaRender(){const box=$('#osLista');if(!box)return;const L=(pedAtual&&pedAtual.osItens)||[];if(!pedAtual){box.innerHTML='';return}
   if(osAplicaVenda()){setTimeout(()=>{pedAbertoRender();pedSalvar(pedAtual)},0);return}
   if(!L.length){box.innerHTML=`<div style="border:1.5px dashed #2b3a8c;border-radius:12px;padding:8px 12px;margin:10px 0;background:#f8f9ff"><span class="note" style="margin:0">Lista de itens do pedido: leia a OS em PDF ou adicione os itens à mão.</span>${osFormHtml()}</div>`;return}
   const nf=L.filter(i=>osStatus(i.n)==='fin').length,np=L.filter(i=>osStatus(i.n)==='parc').length;
   box.innerHTML=`<div style="border:1.5px solid #2b3a8c;border-radius:12px;padding:10px 12px;margin:10px 0;background:#f8f9ff"><div class="row" style="justify-content:space-between;align-items:center"><b style="font-size:15px">Itens do pedido${pedAtual.os?' (OS '+esc(pedAtual.os)+')':''}</b><span class="note" style="margin:0"><b style="color:#2b8a3e">${nf} finalizado(s)</b> • <b style="color:#e67700">${np} parcial(is)</b> • <b style="color:#e8590c">${L.length-nf-np} pendente(s)</b></span></div>
-  ${L.map(it=>{const st=osStatus(it.n);return `<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;${st==='fin'?'background:#d3f9d8;border:1.5px solid #2b8a3e':st==='parc'?'background:#fff3bf;border:1.5px solid #f59f00':'background:#fff;border:1.5px solid #ffd8a8'};border-radius:10px;padding:8px 10px;margin-top:6px">
-    <div style="width:64px;height:48px;flex:none;border:1px solid #dee2e6;border-radius:6px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden">${it.img?`<img src="${it.img.src}" style="max-width:100%;max-height:100%">`:'<span class="note" style="font-size:10px">sem foto</span>'}</div>
-    <div style="flex:1;min-width:180px"><b>Item ${it.n} — ${esc(it.titulo)}</b> <span style="display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;color:#fff;background:${st==='fin'?'#2b8a3e':st==='parc'?'#f08c00':'#e8590c'}">${st==='fin'?'FINALIZADO':st==='parc'?'PARCIAL':'PENDENTE'}</span>
-      <div class="note" style="margin:2px 0 0;font-size:11.5px">${esc(it.med||'')}${it.med?' • ':''}${String(it.q).replace('.',',')} un.${it.sub?' • '+brlP(it.sub):''}${it.desc?' • '+esc(it.desc.slice(0,140))+(it.desc.length>140?'…':''):''}</div></div>
-    ${st!=='pend'?`${st==='parc'?`<button class="btn sm" type="button" data-osfin="${it.n}" style="background:#2b8a3e;color:#fff;font-weight:700">✓ Finalizar</button>`:`<button class="btn ghost sm" type="button" data-osreab="${it.n}" title="Voltar para parcial">Reabrir</button>`}<input type="checkbox" data-selg="${it.n}" title="Selecionar para FP parcial" style="width:18px;height:18px"${(pedAtual.itens||[]).filter(i=>+i.n===+it.n).every(i=>pedSel.has(i.id))?' checked':''}>`:`<div><button class="btn pink sm" data-osfazer="${it.n}">Fazer projeto</button><div class="row" data-ostipos="${it.n}" hidden style="gap:4px;margin-top:6px;flex-wrap:wrap">${OS_TIPOS.map(([t,l])=>`<button class="btn ghost sm" data-osnovo="${t}" data-osn="${it.n}">${l}</button>`).join('')}</div></div>`}${it.manual&&st!=='fin'?`<button class="btn ghost sm" type="button" data-osdel="${it.n}" title="Tirar da lista">×</button>`:''}${st!=='pend'&&window.pedGrupoCorpo&&pedGrupoCorpo[it.n]?`<div class="osCorpo" style="flex-basis:100%;margin-top:2px">${pedGrupoCorpo[it.n]}</div>`:''}</div>`}).join('')}${osFormHtml()}</div>`}
+  ${L.map(it=>{const st=osStatus(it.n);const ab=osAbertos.has(+it.n);const cor=st==='fin'?'background:#d3f9d8;border:1.5px solid #2b8a3e':st==='parc'?'background:#fff3bf;border:1.5px solid #f59f00':'background:#fff;border:1.5px solid #ffd8a8';
+    const cp=(pedAtual.itens||[]).filter(i=>+i.n===+it.n);
+    return `<div class="osBox" style="${cor}">
+    <div class="osTop"><div class="osFoto">${it.img?`<img src="${it.img.src}">`:'<span class="note" style="font-size:10px">sem foto</span>'}</div>
+      <div class="osInfo"><div class="osTit"><b>Item ${it.n} — ${esc(it.titulo)}</b></div>
+        <div class="osMeta"><span class="osBadge" style="background:${st==='fin'?'#2b8a3e':st==='parc'?'#f08c00':'#e8590c'}">${st==='fin'?'FINALIZADO':st==='parc'?'PARCIAL':'PENDENTE'}</span>${String(it.q).replace('.',',')} un.${it.sub?' · '+brlP(it.sub):''}${cp.length?` · ${cp.length} comp.`:''}</div></div>
+      <span class="osSeta" role="button" tabindex="0" data-osseta="${it.n}" title="${ab?'Fechar':'Ver detalhes'}">${ab?'▴':'▾'}</span></div>
+    <div class="osAcoes">${st!=='pend'?`${st==='parc'?`<button class="btn sm" type="button" data-osfin="${it.n}" style="background:#2b8a3e;color:#fff;font-weight:700">✓ Finalizar</button>`:`<button class="btn ghost sm" type="button" data-osreab="${it.n}" title="Voltar para parcial">Reabrir</button>`}<label class="note" style="margin:0 0 0 auto;display:flex;gap:5px;align-items:center;font-size:11.5px"><input type="checkbox" data-selg="${it.n}" title="Selecionar para FP parcial" style="width:18px;height:18px"${cp.every(i=>pedSel.has(i.id))?' checked':''}>FP parcial</label>`:`<button class="btn pink sm" data-osfazer="${it.n}">Fazer projeto</button>${it.manual?`<button class="btn ghost sm" type="button" data-osdel="${it.n}" title="Tirar da lista" style="margin-left:auto">×</button>`:''}`}</div>
+    ${st==='pend'?`<div class="row" data-ostipos="${it.n}" hidden style="gap:4px;margin-top:6px;flex-wrap:wrap">${OS_TIPOS.map(([t,l])=>`<button class="btn ghost sm" data-osnovo="${t}" data-osn="${it.n}">${l}</button>`).join('')}</div>`:''}
+    <div class="osDet"${ab?'':' hidden'}><div class="note" style="margin:6px 0 0;font-size:12px">${it.med?'<b>Medidas:</b> '+esc(it.med)+'<br>':''}${it.desc?esc(it.desc):''}</div>${st!=='pend'?osCompHtml(it.n):''}</div></div>`}).join('')}${osFormHtml()}</div>`}
 // começa o projeto do item já com a descrição, a venda e a foto da OS
 const OS_DESC={letra:'#descItem',testeira:'#tDesc',estrutura:'#dDesc',bobs:'#bDesc',branco:'#brDesc',modelo3d:'#mDesc'};
 function osFazer(tipo,n){const it=(pedAtual.osItens||[]).find(i=>+i.n===+n);novoComp(tipo,n);if(!it)return;
   try{const d=$(OS_DESC[tipo]);if(d)d.value=it.titulo;const jaTem=(pedAtual.itens||[]).some(i=>+i.n===+n&&+i.venda>0);if($('#itemVenda')&&it.sub&&!jaTem)$('#itemVenda').value=String(it.sub.toFixed(2)).replace('.',',');if(it.img){refImg=it.img;if(typeof refRender==='function')refRender()}}catch(e){console.error(e)}}
 (function(){const L=$('#osLista');if(!L)return;L.addEventListener('click',e=>{const f=e.target.closest('[data-osfazer]');if(f){const r=L.querySelector(`[data-ostipos="${f.dataset.osfazer}"]`);r.hidden=!r.hidden;return}
     const b=e.target.closest('[data-osnovo]');if(b){osFazer(b.dataset.osnovo,+b.dataset.osn);return}
+    const se=e.target.closest('[data-osseta]');if(se){const n=+se.dataset.osseta;osAbertos.has(n)?osAbertos.delete(n):osAbertos.add(n);osListaRender();return}
     const fz=e.target.closest('[data-osfin]'),rb=e.target.closest('[data-osreab]');if(fz||rb){const n=+(fz?fz.dataset.osfin:rb.dataset.osreab);const o=(pedAtual.osItens||[]).find(i=>+i.n===n);if(o){o.fin=!!fz;osListaRender();pedSalvar(pedAtual)}return}
     const dl=e.target.closest('[data-osdel]');if(dl){pedAtual.osItens=(pedAtual.osItens||[]).filter(i=>+i.n!==+dl.dataset.osdel);osListaRender();pedSalvar(pedAtual);return}
     if(e.target.closest('#osmAdd')){const n=Math.round(num($('#osmN').value)),t=$('#osmT').value.trim();if(!(n>0)){$('#osmN').focus();return}if(!t){$('#osmT').focus();return}
