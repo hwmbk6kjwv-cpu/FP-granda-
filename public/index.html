@@ -512,11 +512,12 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
         <div style="display:flex;flex-direction:column;gap:2px"><label class="f">Perfil do quadro (contorno)</label><select id="tPerfil"><option>15x15</option><option>20x20</option><option>25x25</option><option>20x30</option><option selected>30x30</option><option value="20x40">40x20</option><option>40x40</option><option>80x80</option></select><label class="f" style="margin-top:8px">Parede do quadro (mm)</label><input type="text" id="tParede" value="1,25" inputmode="decimal"></div>
         <div style="display:flex;flex-direction:column;gap:2px"><label class="f">Perfil interno (travessas)</label><select id="tPerfilInt"><option>15x15</option><option>20x20</option><option>25x25</option><option>20x30</option><option value="30x20">30x20 (30 de face)</option><option>30x30</option><option value="20x40" selected>40x20</option><option>40x40</option><option>80x80</option></select><label class="f" style="margin-top:8px">Parede interna (mm)</label><input type="text" id="tParedeInt" value="1,25" inputmode="decimal"></div>
       </div>
+      <details class="ledEsp" id="tEsp"><summary>Configurações avançadas da estrutura <span class="seta">▾</span></summary>
       <div class="g3">
         <div><label class="f">Vão máx. entre verticais (mm)</label><input type="number" id="tVaoV" value="1400" inputmode="numeric"></div>
         <div><label class="f">Vão máx. entre horizontais (mm)</label><input type="number" id="tVaoH" value="1000" inputmode="numeric"></div>
         <div><label class="f">Barra (mm) / perda serra (mm)</label><div class="row" style="flex-wrap:nowrap;gap:6px"><input type="number" id="tBarra" value="6000" inputmode="numeric"><input type="number" id="tSerra" value="3" inputmode="numeric" style="max-width:70px"></div></div>
-      </div>
+      </div></details>
       <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;margin-top:12px;font-size:13px"><input type="checkbox" id="t40"> Travessa 20x40 de reforço</label>
       <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;margin-top:8px;font-size:13px"><input type="checkbox" id="tMeia"> Cantos em meia esquadria (45°)</label>
       <div id="tH40box" hidden><label class="f">Altura do centro da travessa 20x40 a partir da base (mm)</label><input type="number" id="tH40" value="150" inputmode="numeric"></div>
