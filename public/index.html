@@ -5366,7 +5366,7 @@ function ctAnalisa(polys,k,paths){
     return{tipo,med,b,cx:(circ?(b.x0+b.x1)/2:b.x0)-B.x0,cy:(circ?(b.y0+b.y1)/2:b.y0)-B.y0,ref:circ?'centro':'canto inf. esq.'}})
     .sort((a,b)=>(b.b.y1-a.b.y1)||(a.b.x0-b.b.x0));
   return{P,B,grupos,pecas:tops.length}}
-function ctTopo(P,ctx){const st=ctv('ctSetor')||'COTAS';if(st==='COTAS'){P._setorT.s='COTAS';P._setor='COTAS'}const t=P.find(q=>q.t==='text'&&q.y===15.5);if(t&&!ctNoPedido())t.s=(st+' - '+ctx.descItem).toUpperCase()}
+function ctTopo(P,ctx){P._ref=null;const st=ctv('ctSetor')||'COTAS';if(st==='COTAS'){P._setorT.s='COTAS';P._setor='COTAS'}const t=P.find(q=>q.t==='text'&&q.y===15.5);if(t&&!ctNoPedido())t.s=(st+' - '+ctx.descItem).toUpperCase()}
 function ctNoPedido(){return typeof pedAtual!=='undefined'&&!!pedAtual}
 function ctSetorUI(){const s=$('#ctSetor');if(!s)return;if(!s.options.length)s.innerHTML=['',...Object.keys(SETORES).filter(k=>!['RM','PI','GERAL','MATERIAL','EXPEDIÇÃO','QUALIDADE'].includes(k))].map(k=>`<option value="${k}">${k||'—'}</option>`).join('');
   const v=s.value;$('#ctSetores').innerHTML=[...s.options].filter(o=>o.value).map(o=>{const c=SETORES[o.value]||'#666';const on=o.value===v;return `<button type="button" data-cts="${o.value}" style="border:2px solid ${c};background:${on?c:'#fff'};color:${on?'#fff':c};border-radius:999px;padding:6px 12px;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer">${o.value.charAt(0)+o.value.slice(1).toLowerCase()}</button>`}).join('');
@@ -5478,14 +5478,19 @@ function ct3Pagina(G,ctx,titulo,det,qt,E){let yLivre=30;const W=G.hi[0]-G.lo[0],
   const mat=(ctv('ctMat')||'').trim().toUpperCase(),obs=(ctv('ctObs')||'').trim();
   const P=[];frame(P,ctx,{setor:(ctv('ctSetor')&&ctv('ctSetor')!=='COTAS')?ctv('ctSetor'):'GERAL'});ctTopo(P,ctx);P.push({t:'text',x:18,y:31,s:`${qt}X`,size:7,bold:true,italic:true,color:'#000000'});
   P.push({t:'text',x:PW/2,y:30,s:fit((CTO&&CTO.ctDesc?CTO.ctDesc.toUpperCase():ctx.descItem)+' — '+titulo,200,4.2),size:4.2,bold:true,color:'#000000',anchor:'middle'});
-  const areaW=det||E?150:190,areaH=96;const s=Math.min((areaW-(det?34:20))/(W+D),(areaH-(det?26:20))/(H+D));const cor='#1971c2',fs=2.8;
-  const gx=det?32:22,gy=det?24:18;const fx=30,fy=46;const vx={frente:[fx,fy,W*s,H*s],lateral:[fx+W*s+gx,fy,D*s,H*s],topo:[fx,fy+H*s+gy,W*s,D*s]};
+  // distribuição: testa 3 arranjos (lado a lado, frente+lateral em cima com topo embaixo, empilhado) e usa o que deixa as vistas maiores
+  const cor='#1971c2',fs=2.8;const AX=22,AY=42,AW=(det||E?194:200)-AX,AH=144-AY;const mx=det?30:16,my=det?24:15;
+  const ops=[{n:'linha',w:W+D+W,h:Math.max(H,D),gx:3*mx,gy:my},{n:'L',w:W+D,h:H+D,gx:2*mx,gy:2*my},{n:'coluna',w:Math.max(W,D),h:H+H+D,gx:mx,gy:3*my}].map(o=>({...o,s:Math.min((AW-o.gx)/(o.w||1),(AH-o.gy)/(o.h||1))}));
+  const op=ops.reduce((a,b)=>b.s>a.s?b:a);const s=op.s;const g=x=>x;
+  let vx;if(op.n==='linha'){const tw=(W+D+W)*s+2*mx,x0=AX+mx*0.6+Math.max(0,(AW-op.gx-(W+D+W)*s)/2),y0=AY+my*0.55+Math.max(0,(AH-op.gy-Math.max(H,D)*s)/2);vx={frente:[x0,y0,W*s,H*s],lateral:[x0+W*s+mx,y0,D*s,H*s],topo:[x0+(W+D)*s+2*mx,y0,W*s,D*s]};void tw}
+  else if(op.n==='L'){const x0=AX+mx*0.6+Math.max(0,(AW-op.gx-(W+D)*s)/2),y0=AY+my*0.55+Math.max(0,(AH-op.gy-(H+D)*s)/2);vx={frente:[x0,y0,W*s,H*s],lateral:[x0+W*s+mx,y0,D*s,H*s],topo:[x0,y0+H*s+my,W*s,D*s]}}
+  else{const x0=AX+mx*0.6+Math.max(0,(AW-op.gx-Math.max(W,D)*s)/2),y0=AY+my*0.55;vx={frente:[x0,y0,W*s,H*s],lateral:[x0,y0+H*s+my,D*s,H*s],topo:[x0,y0+2*H*s+2*my,W*s,D*s]}}
   const put=(nm,x,y,w,h)=>{const im=ct3Img(G,nm,Math.max(4,s*6));P.push({t:'img',x,y,w,h,src:im.src,fmt:'JPEG'});P.push({t:'rect',x,y,w,h,stroke:'#dee2e6',lw:0.1});return im};
-  const [a,b,c,d]=vx.frente;put('frente',a,b,c,d);cotaH(P,a,a+c,b-5,b,ctFmt(W),fs,cor);cotaV(P,a-6,b,b+d,a,ctFmt(H),fs,cor);P.push({t:'text',x:a+c/2,y:b+d+(det?11:5),s:'FRENTE',size:2.8,bold:true,color:'#000000',anchor:'middle'});
-  {const [a,b,c,d]=vx.lateral;put('lateral',a,b,c,d);cotaH(P,a,a+c,b-5,b,ctFmt(D),fs,cor);cotaV(P,a+c+6,b,b+d,a+c,ctFmt(H),fs,cor);P.push({t:'text',x:a+c/2,y:b+d+(det?11:5),s:'LATERAL',size:2.8,bold:true,color:'#000000',anchor:'middle'})}
-  {const [a,b,c,d]=vx.topo;put('topo',a,b,c,d);cotaV(P,a-6,b,b+d,a,ctFmt(D),fs,cor);cotaH(P,a,a+c,b+d+5,b+d,ctFmt(W),fs,cor);P.push({t:'text',x:a+c+4,y:b+d/2+1,s:'SUPERIOR (AÉREA)',size:2.8,bold:true,color:'#000000'})}
+  const [a,b,c,d]=vx.frente;put('frente',a,b,c,d);cotaH(P,a,a+c,b-5,b,ctFmt(W),fs,cor);cotaV(P,a-6,b,b+d,a,ctFmt(H),fs,cor);P.push({t:'text',x:a+c/2,y:b+d+(det?10:4.5),s:'FRENTE',size:2.8,bold:true,color:'#000000',anchor:'middle'});
+  {const [a,b,c,d]=vx.lateral;put('lateral',a,b,c,d);cotaH(P,a,a+c,b-5,b,ctFmt(D),fs,cor);cotaV(P,a+c+6,b,b+d,a+c,ctFmt(H),fs,cor);P.push({t:'text',x:a+c/2,y:b+d+(det?10:4.5),s:'LATERAL',size:2.8,bold:true,color:'#000000',anchor:'middle'})}
+  {const [a,b,c,d]=vx.topo;put('topo',a,b,c,d);cotaV(P,a-6,b,b+d,a,ctFmt(D),fs,cor);cotaH(P,a,a+c,b+d+5,b+d,ctFmt(W),fs,cor);P.push({t:'text',x:a+c/2,y:b+d+10.5,anchor:'middle',s:'SUPERIOR (AÉREA)',size:2.8,bold:true,color:'#000000'})}
   if(E){const [a,b]=vx.frente;E.forEach((e,n)=>{const cx=a+((e.lo[0]+e.hi[0])/2-G.lo[0])*s,cy=b+(G.hi[1]-(e.lo[1]+e.hi[1])/2)*s;P.push({t:'circle',x:cx,y:cy,r:2.4,fill:'#2b3a8c',stroke:'#2b3a8c',lw:0.1},{t:'text',x:cx,y:cy+1,s:String(n+1),size:2.6,bold:true,color:'#ffffff',anchor:'middle'})});
-    yLivre=49.5+Math.min(14,E.length)*4.6+4;P.push({t:'text',x:192,y:44,s:`${E.length} ELEMENTOS — cada um nas folhas seguintes:`,size:2.6,bold:true,color:'#2b3a8c'});E.slice(0,14).forEach((e,n)=>P.push({t:'text',x:192,y:49.5+n*4.6,s:`${n+1}.  ${ctFmt(e.hi[0]-e.lo[0])} × ${ctFmt(e.hi[1]-e.lo[1])} × ${ctFmt(e.hi[2]-e.lo[2])} mm${e.pcs[0].nome?'  '+e.pcs[0].nome:''}`,size:2.5,color:'#000000'}))}
+    yLivre=49.5+Math.min(14,E.length)*4.6+4;P.push({t:'text',x:198,y:44,s:`${E.length} ELEMENTOS — cada um nas folhas seguintes:`,size:2.6,bold:true,color:'#2b3a8c'});E.slice(0,14).forEach((e,n)=>P.push({t:'text',x:198,y:49.5+n*4.6,s:`${n+1}.  ${ctFmt(e.hi[0]-e.lo[0])} × ${ctFmt(e.hi[1]-e.lo[1])} × ${ctFmt(e.hi[2]-e.lo[2])} mm${e.pcs[0].nome?'  '+e.pcs[0].nome:''}`,size:2.5,color:'#000000'}))}
   P.push({t:'text',x:284,y:25,s:`ESCALA 1:${ctFmt(1/s)} — MEDIDAS EM MM — ${ctFmt(W)} × ${ctFmt(H)} × ${ctFmt(D)} (L × A × P)`,size:2.4,bold:true,color:'#2f6fa8',anchor:'end'});
   if(det){// cotas na própria imagem: correntes com o espaçamento das barras em cada vista + resumo dos perfis
     const VV={frente:{r:p=>[p.lo[0],p.hi[0]],u:p=>[p.lo[1],p.hi[1]],r0:G.lo[0],u1:G.hi[1]},lateral:{r:p=>[-p.hi[2],-p.lo[2]],u:p=>[p.lo[1],p.hi[1]],r0:-G.hi[2],u1:G.hi[1]},topo:{r:p=>[p.lo[0],p.hi[0]],u:p=>[-p.hi[2],-p.lo[2]],r0:G.lo[0],u1:-G.lo[2]}};
@@ -5496,11 +5501,11 @@ function ct3Pagina(G,ctx,titulo,det,qt,E){let yLivre=30;const W=G.hi[0]-G.lo[0],
       const xs=junta([V.r0,...vert.map(q=>(q.r0+q.r1)/2),V.r0+Wv],Math.max(3,Wv*0.006));const yc=nm==='topo'?b-5:b+h+5,yo=nm==='topo'?b:b+h;if(xs.length>2&&xs.length<40)for(let k=0;k+1<xs.length;k++)cotaH(P,X(xs[k]),X(xs[k+1]),yc,yo,ctFmt(xs[k+1]-xs[k]),fs,'#c2255c');
       const ys=junta([V.u1-Hv,...hor.map(q=>(q.u0+q.u1)/2),V.u1],Math.max(3,Hv*0.006)).reverse();if(ys.length>2&&ys.length<30)for(let k=0;k+1<ys.length;k++)cotaV(P,a+w+(nm==='lateral'?12:6),Y(ys[k]),Y(ys[k+1]),a+w,ctFmt(ys[k]-ys[k+1]),fs,'#c2255c')});
     const grp=new Map();G.pcs.forEach(p=>{const d=[p.hi[0]-p.lo[0],p.hi[1]-p.lo[1],p.hi[2]-p.lo[2]].sort((x,y)=>x-y);const kk=d.map(v=>Math.round(v)).join('x');if(!grp.has(kk))grp.set(kk,{d,n:0});grp.get(kk).n++});
-    const GL=[...grp.values()].sort((x,y)=>y.d[2]*y.n-x.d[2]*x.n);let y=44;P.push({t:'text',x:192,y,s:'PEÇAS (seção × comprimento)',size:2.6,bold:true,color:'#2b3a8c'});y+=5;
-    GL.slice(0,13).forEach(g=>{const d=g.d;const txt=d[1]>3*d[0]&&d[0]>=8?`${g.n}×  inclinada ${ctFmt(d[0])} — ≈ ${ctFmt(Math.hypot(d[1],d[2]))} mm`:d[1]>3*d[0]?`${g.n}×  chapa ${ctFmt(d[0])} — ${ctFmt(d[1])} × ${ctFmt(d[2])} mm`:`${g.n}×  ${ctFmt(d[0])} × ${ctFmt(d[1])}  —  ${ctFmt(d[2])} mm`;P.push({t:'text',x:192,y,s:txt,size:2.5,color:'#000000'});y+=4.4});if(GL.length>13)P.push({t:'text',x:192,y,s:`+ ${GL.length-13} medida(s)`,size:2.2,color:'#868e96'});
-    P.push({t:'text',x:192,y:y+5,s:'Cotas em rosa = espaço entre os eixos das barras.',size:2.1,color:'#c2255c'});yLivre=Math.max(yLivre,y+10)}
+    const GL=[...grp.values()].sort((x,y)=>y.d[2]*y.n-x.d[2]*x.n);let y=44;P.push({t:'text',x:198,y,s:'PEÇAS (seção × comprimento)',size:2.6,bold:true,color:'#2b3a8c'});y+=5;
+    GL.slice(0,13).forEach(g=>{const d=g.d;const txt=d[1]>3*d[0]&&d[0]>=8?`${g.n}×  inclinada ${ctFmt(d[0])} — ≈ ${ctFmt(Math.hypot(d[1],d[2]))} mm`:d[1]>3*d[0]?`${g.n}×  chapa ${ctFmt(d[0])} — ${ctFmt(d[1])} × ${ctFmt(d[2])} mm`:`${g.n}×  ${ctFmt(d[0])} × ${ctFmt(d[1])}  —  ${ctFmt(d[2])} mm`;P.push({t:'text',x:198,y,s:txt,size:2.4,color:'#000000'});y+=4.2});if(GL.length>13)P.push({t:'text',x:198,y,s:`+ ${GL.length-13} medida(s)`,size:2.2,color:'#868e96'});
+    P.push({t:'text',x:198,y:y+5,s:'Cotas em rosa = espaço entre os eixos das barras.',size:2.1,color:'#c2255c'});yLivre=Math.max(yLivre,y+10)}
   // perspectiva: ocupa todo o espaço livre da coluna da direita
-  {const im=ct3Img(G,'iso',4);const lx0=Math.max(vx.lateral[0]+vx.lateral[2]+(det?22:14),188),bx=Math.min(lx0,200),bw=PW-12-bx,by=Math.max(yLivre,34)+3,bh=146-by;const k=Math.min(bw/im.W,bh/im.H);
+  {const im=ct3Img(G,'iso',4);const xr=Math.max(...Object.values(vx).map(v=>v[0]+v[2]))+(det?24:12);const bx=Math.max(198,Math.min(xr,230)),bw=PW-12-bx,by=Math.max(yLivre,34)+3,bh=146-by;const k=Math.min(bw/im.W,bh/im.H);
    P.push({t:'img',x:bx+(bw-im.W*k)/2,y:by+(bh-im.H*k)/2+2,w:im.W*k,h:im.H*k,src:im.src,fmt:'JPEG'});P.push({t:'text',x:bx+bw/2,y:by+1,s:'PERSPECTIVA',size:2.4,bold:true,color:'#868e96',anchor:'middle'})}
   const yb=150;P.push({t:'rect',x:12,y:yb,w:120,h:14,stroke:'#adb5bd',lw:0.2},{t:'text',x:15,y:yb+4.5,s:'MATERIAL',size:2.3,bold:true,color:'#495057'},{t:'text',x:15,y:yb+10.5,s:fit(mat||'—',115,3.2),size:3.2,bold:true,color:'#000000'});
   P.push({t:'rect',x:136,y:yb,w:PW-12-136,h:14,stroke:'#adb5bd',lw:0.2},{t:'text',x:139,y:yb+4.5,s:'OBSERVAÇÃO',size:2.3,bold:true,color:'#495057'});
@@ -5830,7 +5835,7 @@ document.addEventListener('paste',e=>{const cd=e.clipboardData;if(!cd)return;con
   const nome=(alvo.closest('.card')&&alvo.closest('.card').querySelector('h2'))?alvo.closest('.card').querySelector('h2').textContent.trim():'';colaAviso(`Colado: ${dt.files.length>1?dt.files.length+' arquivos':dt.files[0].name}${nome?' → '+nome:''}`,true)});
 
 // logo / título do topo: volta para a página inicial (lista de pedidos)
-{const home=()=>{irAba('pedidos');if(pedAtual&&!pedSujo)$('#pedFechar').click();scrollTo({top:0,behavior:'smooth'})};
+{const home=()=>{if(pedAtual&&pedSujo&&itemAtual&&abaAtual()!=='pedidos'){let ok=true;try{ok=confirm('Há alterações no item que ainda não foram salvas. Ir para a página inicial mesmo assim?')}catch(e){}if(!ok)return}irAba('pedidos');if(pedAtual)$('#pedFechar').click();pedSujo=false;if(typeof ctVolta!=='undefined')ctVolta=null;scrollTo({top:0,behavior:'smooth'})};
  document.querySelectorAll('header #hdrLogo, header h1').forEach(el=>{el.style.cursor='pointer';el.title='Página inicial';el.addEventListener('click',home)})}
 
 /* ---------- FP GERAL: lista de todos os itens do pedido (todas as abas), 5 por folha, com foto grande ---------- */
