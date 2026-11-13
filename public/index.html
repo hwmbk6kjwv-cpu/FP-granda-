@@ -476,11 +476,12 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
     <div class="card"><div id="ctCompBar" hidden style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:-4px 0 10px;padding:9px 10px;border-radius:10px;background:#fff0f6;border:1.5px solid #f783ac"><b id="ctCompTit" style="color:#c2255c;flex:1;min-width:180px"></b><button class="btn ghost sm" type="button" id="ctCancelar">← Voltar ao projeto</button><button class="btn sm" type="button" id="ctGuardar" style="background:#c2255c;color:#fff">Salvar cota no item</button></div><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px"><button class="btn ghost sm" type="button" id="ctVoltar">← Voltar ao pedido</button></div><h2>Cotas de arquivo vetorial</h2>
       <p class="note" style="margin-top:0">Envie o vetor em PDF (textos em curvas) ou um modelo 3D (STL / OBJ). Sai uma folha com as medidas — no 3D, com as vistas de frente, lateral e superior —, o material e a observação.</p>
       <label class="drop" id="ctDrop" style="display:block"><input type="file" id="ctIn" accept="application/pdf,.pdf,.stl,.obj" hidden><span id="ctDropTxt">Toque para escolher o PDF, STL ou OBJ</span></label>
+      <div style="margin-top:12px;padding:10px;border:1.5px solid #f783ac;border-radius:10px;background:#fff0f6"><label class="f" style="margin:0 0 6px;color:#c2255c">Para qual setor é esta cota? <span id="ctSetorSel" style="text-transform:none"></span></label><div class="row" id="ctSetores" style="gap:6px"></div></div>
       <label class="f">Tipo de cota</label>
       <div class="leds" id="ctModo"><button type="button" data-ctm="padrao" class="sel"><b>Padrão</b><span>só largura e altura (no 3D: L × A × P nas vistas)</span></button><button type="button" data-ctm="detalhada"><b>Detalhada</b><span>furos, recortes e textos (no 3D: cada peça) numerados com medida e posição</span></button></div>
       <div class="g3"><div><label class="f">Descrição</label><input type="text" id="ctDesc" placeholder="Ex.: Placa fachada"></div><div id="ctLargW"><label class="f">Largura real (mm) <span class="badge">opcional</span></label><input type="number" id="ctLarg" inputmode="decimal" placeholder="Tamanho do arquivo"></div><div><label class="f">Quantidade</label><input type="number" id="ctQtd" value="1" min="1" inputmode="numeric"></div></div>
       <div class="g2" id="ct3Opts" hidden><div><label class="f">Unidade do arquivo</label><select id="ctUn"><option value="1">milímetros</option><option value="10">centímetros</option><option value="1000">metros</option><option value="25.4">polegadas</option></select></div><div><label class="f">Eixo vertical</label><select id="ctEixo"><option value="z">Z para cima (STL)</option><option value="y">Y para cima (OBJ)</option></select></div></div>
-      <div class="g2"><div><label class="f">Setor (folha vai para)</label><select id="ctSetor"></select></div><div><label class="f">Arquivos extras <span class="badge">vão no ZIP</span></label><div class="row" style="gap:6px;align-items:center"><label class="btn ghost sm" style="display:inline-flex;align-items:center">+ Adicionar arquivo<input type="file" id="ctArqIn" multiple hidden></label><span class="note" id="ctArqs" style="margin:0"></span></div></div></div>
+      <div class="g2"><div hidden><select id="ctSetor"></select></div><div><label class="f">Arquivos extras <span class="badge">vão no ZIP</span></label><div class="row" style="gap:6px;align-items:center"><label class="btn ghost sm" style="display:inline-flex;align-items:center">+ Adicionar arquivo<input type="file" id="ctArqIn" multiple hidden></label><span class="note" id="ctArqs" style="margin:0"></span></div></div></div>
       <label class="f">Material</label><input type="text" id="ctMat" placeholder="Ex.: ACM 3 mm branco / acrílico 4 mm cristal / chapa galvanizada #18">
       <label class="f">Observação</label><textarea id="ctObs" rows="2" placeholder="Ex.: cantos arredondados R20, furos para fixação"></textarea>
       <div class="row" style="gap:8px;margin-top:12px"><button class="btn pink" id="ctGerar" type="button">Gerar cotas</button><button class="btn ghost" id="ctBaixar" type="button" hidden>Baixar PDF</button><button class="btn ghost" id="ctZip" type="button" hidden>Baixar ZIP (PDF + arquivos)</button></div>
@@ -5367,10 +5368,12 @@ function ctAnalisa(polys,k,paths){
   return{P,B,grupos,pecas:tops.length}}
 function ctTopo(P,ctx){const st=ctv('ctSetor')||'COTAS';if(st==='COTAS'){P._setorT.s='COTAS';P._setor='COTAS'}const t=P.find(q=>q.t==='text'&&q.y===15.5);if(t&&!ctNoPedido())t.s=(st+' - '+ctx.descItem).toUpperCase()}
 function ctNoPedido(){return typeof pedAtual!=='undefined'&&!!pedAtual}
-function ctSetorUI(){const s=$('#ctSetor');if(!s||s.options.length)return;s.innerHTML=['COTAS',...Object.keys(SETORES).filter(k=>!['RM','PI','GERAL','MATERIAL','EXPEDIÇÃO','QUALIDADE'].includes(k))].map(k=>`<option>${k}</option>`).join('')}
+function ctSetorUI(){const s=$('#ctSetor');if(!s)return;if(!s.options.length)s.innerHTML=['',...Object.keys(SETORES).filter(k=>!['RM','PI','GERAL','MATERIAL','EXPEDIÇÃO','QUALIDADE'].includes(k))].map(k=>`<option value="${k}">${k||'—'}</option>`).join('');
+  const v=s.value;$('#ctSetores').innerHTML=[...s.options].filter(o=>o.value).map(o=>{const c=SETORES[o.value]||'#666';const on=o.value===v;return `<button type="button" data-cts="${o.value}" style="border:2px solid ${c};background:${on?c:'#fff'};color:${on?'#fff':c};border-radius:999px;padding:6px 12px;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer">${o.value.charAt(0)+o.value.slice(1).toLowerCase()}</button>`}).join('');
+  $('#ctSetorSel').textContent=v?'— '+v:'(escolha um)'}
 function ctModoUI(){document.querySelectorAll('#ctModo [data-ctm]').forEach(x=>x.classList.toggle('sel',x.dataset.ctm===ctModo))}
 function ctArqsUI(){const e=$('#ctArqs');if(!e)return;e.innerHTML=ctArqs.length?ctArqs.map((f,i)=>`${esc(f.name)} <a href="#" data-ctax="${i}" style="color:#c92a2a;text-decoration:none">✕</a>`).join(' • '):'nenhum'}
-function ctLimpa(){ctSrc=null;ct3=null;ctBytes=null;ctNome='';ctArqs=[];ctBuild=null;ctModo='padrao';['#ctDesc','#ctLarg','#ctMat','#ctObs'].forEach(x=>{if($(x))$(x).value=''});if($('#ctQtd'))$('#ctQtd').value='1';if($('#ctPrev'))$('#ctPrev').innerHTML='';if($('#ctMsg'))$('#ctMsg').innerHTML='';if($('#ctDrop')){$('#ctDrop').classList.remove('has');$('#ctDropTxt').textContent='Toque para escolher o PDF, STL ou OBJ'}if($('#ctBaixar')){$('#ctBaixar').hidden=true;$('#ctZip').hidden=true}ctSetorUI();ctModoUI();ctArqsUI()}
+function ctLimpa(){ctSrc=null;ct3=null;ctBytes=null;ctNome='';ctArqs=[];ctBuild=null;ctModo='padrao';['#ctDesc','#ctLarg','#ctMat','#ctObs'].forEach(x=>{if($(x))$(x).value=''});if($('#ctQtd'))$('#ctQtd').value='1';if($('#ctPrev'))$('#ctPrev').innerHTML='';if($('#ctMsg'))$('#ctMsg').innerHTML='';if($('#ctDrop')){$('#ctDrop').classList.remove('has');$('#ctDropTxt').textContent='Toque para escolher o PDF, STL ou OBJ'}if($('#ctBaixar')){$('#ctBaixar').hidden=true;$('#ctZip').hidden=true}if($('#ctSetor'))$('#ctSetor').value='';ctSetorUI();ctModoUI();ctArqsUI()}
 function ctCtx(){if(CTO&&CTO.ctx)return CTO.ctx;const d=$('#entrega').value;return{os:$('#os').value.trim(),item:ctNoPedido()?($('#item').value||'1'):'COTAS',descItem:(ctv('ctDesc')||'DESENHO COTADO').trim().toUpperCase(),cliente:$('#cliente').value,vendedor:$('#vendedor').value,projetista:$('#projetista').value,endereco:$('#endereco').value,entrega:d?d.split('-').reverse().join('/'):''}}
 function ctFolhas(){if(!ctSrc||!ctSrc.polys.length)throw new Error('Envie o arquivo vetorial (PDF).');
   const b0=bbox(ctSrc.polys);const lr=num(ctv('ctLarg'));const k=lr>0?lr/b0.w:1;
@@ -5400,7 +5403,8 @@ function ctFolhas(){if(!ctSrc||!ctSrc.polys.length)throw new Error('Envie o arqu
   pages.push(P);
   if(!FOOT_SKIP){pages.forEach((Q,i)=>footer(Q,ctx,i+1,pages.length))}
   return{pages,ctx,A}}
-function ctRender(){try{ctBuild=ct3?ct3Folhas():ctFolhas();$('#ctPrev').innerHTML=ctBuild.pages.map(P=>`<div class="pg">${toSVG(P)}</div>`).join('');
+let ctRT=null;function ctRender(){if(ct3&&!(ct3._img&&ct3._img.size)){$('#ctMsg').innerHTML='<div class="msg ok">Gerando as vistas do 3D…</div>';clearTimeout(ctRT);ctRT=setTimeout(ctRender0,40);return}ctRender0()}
+function ctRender0(){try{ctBuild=ct3?ct3Folhas():ctFolhas();$('#ctPrev').innerHTML=ctBuild.pages.map(P=>`<div class="pg">${toSVG(P)}</div>`).join('');
     const A=ctBuild.A;$('#ctMsg').innerHTML=ctBuild.d3?`<div class="msg ok">Modelo 3D: ${ctFmt(ctBuild.d3.W)} × ${ctFmt(ctBuild.d3.H)} × ${ctFmt(ctBuild.d3.D)} mm (L × A × P) • ${ctBuild.d3.n} peça(s)${ctBuild.d3.el>1?` • ${ctBuild.d3.el} elementos separados (uma folha cada)`:''}</div>`:`<div class="msg ok">${ctFmt(A.B.w)} × ${ctFmt(A.B.h)} mm${ctModo==='detalhada'?` • ${A.grupos.length} detalhe(s) cotado(s)`:''}${semDuplicados.ult?` • ${semDuplicados.ult} linha(s) duplicada(s) ignorada(s)`:''}</div>`;$('#ctBaixar').hidden=false;$('#ctZip').hidden=false;$('#ctGerar').textContent='Atualizar';if(typeof pedSujo!=='undefined'&&ctNoPedido())pedSujo=true}
   catch(e){console.error(e);$('#ctMsg').innerHTML=`<div class="msg err">${esc(e.message)}</div>`}}
 async function ctCarrega(f){if(!f)return;await ctCarregaBytes(f.name,new Uint8Array(await f.arrayBuffer()),true)}
@@ -5420,6 +5424,7 @@ async function ctCarregaBytes(nome,bytes,render){const f={name:nome};ctNome=nome
   $('#ctIn').onchange=e=>{ctCarrega(e.target.files[0]);e.target.value=''};
   $('#ctModo').onclick=e=>{const b=e.target.closest('[data-ctm]');if(!b)return;ctModo=b.dataset.ctm;document.querySelectorAll('#ctModo [data-ctm]').forEach(x=>x.classList.toggle('sel',x===b));if(ctSrc||ct3)ctRender()};
   ['#ctLarg','#ctMat','#ctObs','#ctQtd','#ctDesc','#ctUn','#ctEixo'].forEach(s=>$(s).addEventListener('change',()=>{if(ctSrc||ct3)ctRender()}));
+  $('#ctSetores').onclick=e=>{const b=e.target.closest('[data-cts]');if(!b)return;$('#ctSetor').value=b.dataset.cts;ctSetorUI();if(ctSrc||ct3)ctRender()};
   $('#ctVoltar').onclick=()=>{irAba('pedidos');window.scrollTo(0,0)};
   $('#ctGerar').onclick=ctRender;ctSetorUI();ctArqsUI();$('#ctSetor').addEventListener('change',()=>{if(ctSrc||ct3)ctRender()});
   $('#ctArqIn').onchange=async e=>{for(const f of e.target.files){const b=new Uint8Array(await f.arrayBuffer());ctArqs.push({name:f.name,b64:b64(b)})}e.target.value='';ctArqsUI();if(ctNoPedido())pedSujo=true};
@@ -5430,18 +5435,29 @@ async function ctCarregaBytes(nome,bytes,render){const f={name:nome};ctNome=nome
 
 /* ---------- COTAS de modelo 3D (STL / OBJ): vistas frontal, lateral, superior (aérea) e perspectiva ---------- */
 function ct3Mundo(v,k,zUp){return zUp?[v[0]*k,v[2]*k,-v[1]*k]:[v[0]*k,v[1]*k,v[2]*k]}
-function ct3Prep(){const k=num(ctv('ctUn'))||1,zUp=$('#ctEixo').value==='z';const pcs=ct3.pecas.map(p=>{const nome=p.nome||'';const tris=p.tris.map(t=>t.map(v=>ct3Mundo(v,k,zUp)));let lo=[1e18,1e18,1e18],hi=[-1e18,-1e18,-1e18];tris.forEach(t=>t.forEach(v=>{for(let i=0;i<3;i++){if(v[i]<lo[i])lo[i]=v[i];if(v[i]>hi[i])hi[i]=v[i]}}));return{tris,lo,hi,nome}});
+function ct3Prep(){const k=num(ctv('ctUn'))||1,zUp=ctv('ctEixo')==='z';const ck=k+'|'+zUp;if(ct3._prep&&ct3._prepK===ck)return ct3._prep;const out=ct3Prep0(k,zUp);ct3._prep=out;ct3._prepK=ck;return out}
+function ct3Prep0(k,zUp){const pcs=ct3.pecas.map(p=>{const nome=p.nome||'';const tris=p.tris.map(t=>t.map(v=>ct3Mundo(v,k,zUp)));let lo=[1e18,1e18,1e18],hi=[-1e18,-1e18,-1e18];tris.forEach(t=>t.forEach(v=>{for(let i=0;i<3;i++){if(v[i]<lo[i])lo[i]=v[i];if(v[i]>hi[i])hi[i]=v[i]}}));return{tris,lo,hi,nome}});
   let lo=[1e18,1e18,1e18],hi=[-1e18,-1e18,-1e18];pcs.forEach(p=>{for(let i=0;i<3;i++){lo[i]=Math.min(lo[i],p.lo[i]);hi[i]=Math.max(hi[i],p.hi[i])}});return{pcs,lo,hi}}
 // vista: frente olha para -z (x direita, y cima); lateral (direita) x→ profundidade; topo: x direita, z para baixo (frente embaixo)
 const CT3V={frente:{r:v=>v[0],u:v=>v[1],d:v=>-v[2]},lateral:{r:v=>-v[2],u:v=>v[1],d:v=>v[0]},topo:{r:v=>v[0],u:v=>-v[2],d:v=>v[1]},iso:{r:v=>(v[0]-v[2])*0.7071,u:v=>v[1]*0.8165+(v[0]+v[2])*0.4082,d:v=>-(v[0]+v[2])*0.577+v[1]*0.577}};
-function ct3Img(G,nm,pxmm){const V=CT3V[nm];const T=[];G.pcs.forEach(p=>p.tris.forEach(t=>T.push(t)));
-  let x0=1e18,x1=-1e18,y0=1e18,y1=-1e18;T.forEach(t=>t.forEach(v=>{const a=V.r(v),b=V.u(v);if(a<x0)x0=a;if(a>x1)x1=a;if(b<y0)y0=b;if(b>y1)y1=b}));
-  const W=x1-x0||1,H=y1-y0||1;const sc=Math.min(pxmm,1600/W,1600/H);const cv=document.createElement('canvas');cv.width=Math.max(2,Math.ceil(W*sc)+4);cv.height=Math.max(2,Math.ceil(H*sc)+4);const g=cv.getContext('2d');
-  g.fillStyle='#ffffff';g.fillRect(0,0,cv.width,cv.height);const L=[-0.35,0.75,-0.55];const ln=Math.hypot(...L);
-  const F=T.map(t=>{const a=V3a.sub(t[1],t[0]),b=V3a.sub(t[2],t[0]);let n=V3a.cross(a,b);const nl=V3a.len(n)||1;n=V3a.sc(n,1/nl);
-    const fwd=nm==='frente'?[0,0,-1]:nm==='lateral'?[1,0,0]:nm==='topo'?[0,1,0]:V3a.nrm([1,1,1]);const vis=Math.abs(V3a.dot(n,fwd));const lz=Math.abs(V3a.dot(n,L)/ln);const k=Math.round(150+80*(0.45*vis+0.55*lz));
-    return{d:(V.d(t[0])+V.d(t[1])+V.d(t[2]))/3,p:t.map(v=>[2+(V.r(v)-x0)*sc,2+(y1-V.u(v))*sc]),c:k}});
-  F.sort((a,b)=>a.d-b.d);F.forEach(f=>{g.beginPath();g.moveTo(f.p[0][0],f.p[0][1]);g.lineTo(f.p[1][0],f.p[1][1]);g.lineTo(f.p[2][0],f.p[2][1]);g.closePath();const c=`rgb(${f.c-25},${f.c-12},${f.c})`;g.fillStyle=c;g.strokeStyle=c;g.lineWidth=0.6;g.fill();g.stroke()});
+function ct3Img(G,nm,pxmm){const ck=nm+'|'+Math.round(pxmm*10)+'|'+G.lo.map(Math.round)+'|'+G.hi.map(Math.round)+'|'+G.pcs.length;const C=(ct3._img=ct3._img||new Map());if(C.has(ck))return C.get(ck);const r=ct3Img0(G,nm,pxmm);C.set(ck,r);return r}
+function ct3Img0(G,nm,pxmm){const V=CT3V[nm];
+  // rápido: arrays tipados, descarta faces de costas (quando a malha é fechada) e desenha em lotes da mesma cor
+  const view=nm==='frente'?[0,0,-1]:nm==='lateral'?[1,0,0]:nm==='topo'?[0,1,0]:[-0.577,0.577,-0.577];const L=[-0.35,0.75,-0.55],ln=Math.hypot(...L);
+  let N=0;G.pcs.forEach(p=>N+=p.tris.length);const PX=new Float32Array(N*6),D=new Float32Array(N),CI=new Uint8Array(N),OK=new Uint8Array(N);
+  let x0=1e18,x1=-1e18,y0=1e18,y1=-1e18,i=0;
+  G.pcs.forEach(p=>{if(p._vol==null){let v=0;p.tris.forEach(t=>{v+=V3a.dot(t[0],V3a.cross(t[1],t[2]))});p._vol=v/6}const fechada=Math.abs(p._vol)>1e-6,sg=p._vol<0?-1:1;
+    for(const t of p.tris){const ax=t[1][0]-t[0][0],ay=t[1][1]-t[0][1],az=t[1][2]-t[0][2],bx=t[2][0]-t[0][0],by=t[2][1]-t[0][1],bz=t[2][2]-t[0][2];let nx=ay*bz-az*by,ny=az*bx-ax*bz,nz=ax*by-ay*bx;const nl=Math.hypot(nx,ny,nz)||1;nx/=nl;ny/=nl;nz/=nl;
+      const fv=(nx*view[0]+ny*view[1]+nz*view[2])*sg;OK[i]=fechada&&fv<-0.02?0:1;
+      const k=150+80*(0.45*Math.abs(fv)+0.55*Math.abs(nx*L[0]+ny*L[1]+nz*L[2])/ln);CI[i]=Math.max(0,Math.min(31,Math.round((k-150)/80*31)));
+      let d=0;for(let q=0;q<3;q++){const v=t[q],a=V.r(v),b=V.u(v);PX[i*6+q*2]=a;PX[i*6+q*2+1]=b;d+=V.d(v);if(a<x0)x0=a;if(a>x1)x1=a;if(b<y0)y0=b;if(b>y1)y1=b}D[i]=d;i++}});
+  const W=x1-x0||1,H=y1-y0||1;const sc=Math.min(pxmm,1200/W,1200/H);const cv=document.createElement('canvas');cv.width=Math.max(2,Math.ceil(W*sc)+4);cv.height=Math.max(2,Math.ceil(H*sc)+4);const g=cv.getContext('2d');
+  g.fillStyle='#ffffff';g.fillRect(0,0,cv.width,cv.height);
+  const idx=[];for(let k=0;k<N;k++)if(OK[k])idx.push(k);idx.sort((a,b)=>D[a]-D[b]);
+  const cor=c=>{const k=Math.round(150+c/31*80);return`rgb(${k-25},${k-12},${k})`};g.lineWidth=0.6;g.lineJoin='round';
+  let cur=-1,n=0;const flush=()=>{if(cur<0||!n)return;const c=cor(cur);g.fillStyle=c;g.strokeStyle=c;g.fill();g.stroke();n=0};
+  for(const k of idx){if(CI[k]!==cur||n>400){flush();cur=CI[k];g.beginPath()}const o=k*6;g.moveTo(2+(PX[o]-x0)*sc,2+(y1-PX[o+1])*sc);g.lineTo(2+(PX[o+2]-x0)*sc,2+(y1-PX[o+3])*sc);g.lineTo(2+(PX[o+4]-x0)*sc,2+(y1-PX[o+5])*sc);g.closePath();n++}
+  flush();
   return{src:cv.toDataURL('image/jpeg',0.85),x0,x1,y0,y1,W,H}}
 // elementos: objetos com nome diferente no arquivo; senão, partes que se tocam formam um elemento
 function ct3Elementos(G){const nomes=[...new Set(G.pcs.map(p=>p.nome))];
@@ -5493,11 +5509,14 @@ function ct3Pagina(G,ctx,titulo,det,qt,E){let yLivre=30;const W=G.hi[0]-G.lo[0],
 
 /* ---------- COTAS DO COMPONENTE: feitas dentro do projeto, saem junto com as folhas do setor escolhido ---------- */
 let compCotas=[],ctEdit=-1,ctVolta=null;const CT_ABAS=['novo','testeiras','modelo','bobs','branco'];
-function ctSalvaveis(){return compCotas.map(c=>{const o={...c};delete o._src;delete o._3d;return o})}
-async function ctParse(c){try{const ext=(c.nome||'').toLowerCase().split('.').pop();const bytes=unb64(c.b64);
+function ctSalvaveis(){return compCotas.map(c=>{const o={...c};delete o._src;delete o._3d;delete o._bytes;if(o.ref){delete o.b64}if(o.arqs)o.arqs=o.arqs.map(f=>f.ref?{name:f.name,ref:f.ref}:f);return o})}
+async function ctBytesDe(c){if(c._bytes)return c._bytes;const u=c.b64?unb64(c.b64):c.ref?await lerGrande(c.ref):null;c._bytes=u;return u}
+async function ctParse(c){try{const ext=(c.nome||'').toLowerCase().split('.').pop();const bytes=await ctBytesDe(c);if(!bytes)return;
   if(ext==='stl'||ext==='obj'){const buf=bytes.slice().buffer;const objs=ext==='obj'?parseOBJ(new TextDecoder().decode(buf)):parseSTL(buf);let pecas=separaPecas(objs);if(!pecas.length)pecas=objs;c._3d={name:c.nome,pecas};c._src=null}
   else{c._src={name:c.nome,...(await readPdf(bytes.slice()))};c._3d=null}}catch(e){console.error('cota',c.nome,e)}}
-function ctGerarCota(c,ctx){const sv={ctSrc,ct3,ctModo,CTO};try{ctSrc=c._src||null;ct3=c._3d||null;ctModo=c.modo||'padrao';CTO={ctLarg:c.larg||'',ctMat:c.mat||'',ctObs:c.obs||'',ctQtd:c.qtd||'1',ctDesc:c.desc||'',ctUn:c.un||'1',ctEixo:c.eixo||'z',ctSetor:c.setor||'COTAS',ctx};
+const CT_PCACHE=new Map();function ctClonePg(P){const Q=P.map(o=>({...o}));for(const k of Object.keys(P))if(isNaN(+k))Q[k]=P[k];const i=P.indexOf(P._setorT);if(i>=0)Q._setorT=Q[i];return Q}
+function ctGerarCota(c,ctx){const ck=JSON.stringify([c.id,c.setor,c.modo,c.desc,c.mat,c.obs,c.qtd,c.larg,c.un,c.eixo,c.nome,ctx.os,ctx.item,ctx.descItem,ctx.cliente,ctx.entrega,c.n||(c.b64||'').length]);if(CT_PCACHE.has(ck))return CT_PCACHE.get(ck).map(ctClonePg);const ps=ctGerarCota0(c,ctx);CT_PCACHE.set(ck,ps.map(ctClonePg));if(CT_PCACHE.size>40)CT_PCACHE.delete(CT_PCACHE.keys().next().value);return ps}
+function ctGerarCota0(c,ctx){const sv={ctSrc,ct3,ctModo,CTO};try{ctSrc=c._src||null;ct3=c._3d||null;ctModo=c.modo||'padrao';CTO={ctLarg:c.larg||'',ctMat:c.mat||'',ctObs:c.obs||'',ctQtd:c.qtd||'1',ctDesc:c.desc||'',ctUn:c.un||'1',ctEixo:c.eixo||'z',ctSetor:c.setor||'COTAS',ctx};
     const fs=FOOT_SKIP;FOOT_SKIP=true;try{return(ct3?ct3Folhas():ctFolhas()).pages}finally{FOOT_SKIP=fs}}finally{ctSrc=sv.ctSrc;ct3=sv.ct3;ctModo=sv.ctModo;CTO=sv.CTO}}
 function ctComCotas(fn){const w=function(...a){if(!compCotas.length||(typeof abaAtual==='function'&&abaAtual()==='cotas'&&!ctVolta))return fn.apply(this,a);const fs=FOOT_SKIP;FOOT_SKIP=true;let r;try{r=fn.apply(this,a)}finally{FOOT_SKIP=fs}
   if(r&&r.pages){compCotas.forEach(c=>{if(!c._src&&!c._3d)return;let ps=[];try{ps=ctGerarCota(c,r.ctx)}catch(e){console.error('cota',e)}if(!ps.length)return;
@@ -5511,10 +5530,13 @@ function ctEntra(ant){if(CT_ABAS.includes(ant)){ctVolta={aba:ant,tipo:ctTipoDe(a
 function ctModoComp(){const on=!!ctVolta;$('#ctCompBar').hidden=!on;$('#ctVoltar').hidden=on;if(on)$('#ctCompTit').textContent=`Cota do item ${$('#item').value||''} — ${TIPO_NOME[ctVolta.tipo]||''}${ctEdit>=0?' (editando)':''}`}
 function ctSair(){const a=ctVolta?ctVolta.aba:'pedidos';ctVolta=null;ctEdit=-1;ctModoComp();irAba(a);ctListaRender();window.scrollTo(0,0)}
 async function ctEditar(i){const c=compCotas[i];if(!c)return;ctLimpa();ctEdit=i;
-  $('#ctSetor').value=c.setor||'COTAS';$('#ctDesc').value=c.desc||'';$('#ctMat').value=c.mat||'';$('#ctObs').value=c.obs||'';$('#ctQtd').value=c.qtd||'1';$('#ctLarg').value=c.larg||'';ctModo=c.modo||'padrao';ctModoUI();ctArqs=c.arqs||[];ctArqsUI();
-  irAba('cotas');ctModoComp();if(c.un)$('#ctUn').value=c.un;if(c.eixo)$('#ctEixo').value=c.eixo;await ctCarregaBytes(c.nome,unb64(c.b64),false);if(c.un)$('#ctUn').value=c.un;if(c.eixo)$('#ctEixo').value=c.eixo;ctRender()}
-function ctGuardar(){if(!ctBytes){$('#ctMsg').innerHTML='<div class="msg err">Envie o arquivo (PDF, STL ou OBJ) antes de salvar a cota.</div>';return}
-  const c={id:ctEdit>=0&&compCotas[ctEdit]?compCotas[ctEdit].id:'c'+Date.now().toString(36),setor:$('#ctSetor').value,modo:ctModo,desc:$('#ctDesc').value.trim(),mat:$('#ctMat').value.trim(),obs:$('#ctObs').value.trim(),qtd:$('#ctQtd').value||'1',larg:$('#ctLarg').value,un:$('#ctUn').value,eixo:$('#ctEixo').value,nome:ctNome,b64:b64(ctBytes),arqs:JSON.parse(JSON.stringify(ctArqs)),_src:ctSrc,_3d:ct3};
+  $('#ctSetor').value=c.setor||'';ctSetorUI();$('#ctDesc').value=c.desc||'';$('#ctMat').value=c.mat||'';$('#ctObs').value=c.obs||'';$('#ctQtd').value=c.qtd||'1';$('#ctLarg').value=c.larg||'';ctModo=c.modo||'padrao';ctModoUI();ctArqs=[];for(const f of (c.arqs||[]))ctArqs.push(f.b64?f:{name:f.name,b64:b64(await lerGrande(f.ref)),ref:f.ref});ctArqsUI();
+  irAba('cotas');ctModoComp();if(c.un)$('#ctUn').value=c.un;if(c.eixo)$('#ctEixo').value=c.eixo;await ctCarregaBytes(c.nome,await ctBytesDe(c),false);if(c.un)$('#ctUn').value=c.un;if(c.eixo)$('#ctEixo').value=c.eixo;ctRender()}
+async function ctGuardar(){if(!$('#ctSetor').value){$('#ctMsg').innerHTML='<div class="msg err">Escolha para qual setor é esta cota.</div>';$('#ctSetores').scrollIntoView({block:'center'});return}if(!ctBytes){$('#ctMsg').innerHTML='<div class="msg err">Envie o arquivo (PDF, STL ou OBJ) antes de salvar a cota.</div>';return}
+  $('#ctGuardar').disabled=true;$('#ctMsg').innerHTML='<div class="msg ok">Salvando a cota (arquivos grandes são comprimidos)…</div>';
+  let ref=null,arqs=[];try{ref=await guardaGrande(ctBytes);for(const f of ctArqs)arqs.push(f.ref?{name:f.name,ref:f.ref}:{name:f.name,ref:await guardaGrande(unb64(f.b64))})}catch(e){$('#ctGuardar').disabled=false;$('#ctMsg').innerHTML=`<div class="msg err">Não salvou: ${esc(e.message)}</div>`;return}$('#ctGuardar').disabled=false;
+  const velho=ctEdit>=0?compCotas[ctEdit]:null;if(velho&&velho.ref)apagaGrande(velho.ref);
+  const c={id:ctEdit>=0&&compCotas[ctEdit]?compCotas[ctEdit].id:'c'+Date.now().toString(36),setor:$('#ctSetor').value,modo:ctModo,desc:$('#ctDesc').value.trim(),mat:$('#ctMat').value.trim(),obs:$('#ctObs').value.trim(),qtd:$('#ctQtd').value||'1',larg:$('#ctLarg').value,un:$('#ctUn').value,eixo:$('#ctEixo').value,nome:ctNome,ref,n:ctBytes.length,arqs,_bytes:ctBytes,_src:ctSrc,_3d:ct3};
   if(ctEdit>=0&&compCotas[ctEdit])compCotas[ctEdit]=c;else compCotas.push(c);if(typeof pedSujo!=='undefined')pedSujo=true;ctSair()}
 document.addEventListener('DOMContentLoaded',()=>{
   ['buildDoc','buildTesteira','dFolhas','mFolhas','bobsFolhas','brFolhas'].forEach(n=>{if(typeof window[n]==='function'&&!window[n]._ct)window[n]=ctComCotas(window[n])});
@@ -5523,7 +5545,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.addEventListener('click',e=>{const n=e.target.closest('[data-ctnova]'),ed=e.target.closest('[data-cted]'),d=e.target.closest('[data-ctdel]');
     if(n){ctEdit=-1;irAba('cotas')}
     else if(ed)ctEditar(+ed.dataset.cted);
-    else if(d){const c=compCotas[+d.dataset.ctdel];if(c){compCotas.splice(+d.dataset.ctdel,1);if(typeof pedSujo!=='undefined')pedSujo=true;ctListaRender()}}});
+    else if(d){const c=compCotas[+d.dataset.ctdel];if(c){if(c.ref)apagaGrande(c.ref);(c.arqs||[]).forEach(f=>f.ref&&apagaGrande(f.ref));compCotas.splice(+d.dataset.ctdel,1);if(typeof pedSujo!=='undefined')pedSujo=true;ctListaRender()}}});
   $('#ctGuardar').onclick=ctGuardar;$('#ctCancelar').onclick=ctSair;});
 
 /* ================= PEDIDOS: uma OS com vários itens (letras, testeiras, estruturas, modelos 3D), tudo salvo ================= */
@@ -5543,6 +5565,12 @@ async function guardaJSON(obj){const A=await assetsNs();const txt=JSON.stringify
   const r=await A.upload(new Blob([txt],{type:'application/json'}));return r.id}
 async function lerJSON(id){if(!id)return null;if(id.startsWith('ls:'))return lsGet(id.slice(3));const r=await fetch('/_blob/'+id);if(!r.ok)throw new Error('não consegui abrir o arquivo salvo ('+r.status+')');return r.json()}
 async function apagaJSON(id){if(!id)return;try{if(id.startsWith('ls:')){localStorage.removeItem(id.slice(3));return}const A=await assetsNs();if(A)await A.delete(id)}catch(e){}}
+// arquivos grandes (STL etc.): comprime (gzip) e salva em partes de 3 MB — o servidor aceita até 5 MB por arquivo
+async function gzipU8(u8,modo){if(typeof CompressionStream==='undefined')return null;const s=new Blob([u8]).stream().pipeThrough(modo==='d'?new DecompressionStream('gzip'):new CompressionStream('gzip'));return new Uint8Array(await new Response(s).arrayBuffer())}
+async function guardaGrande(u8){let z=null;try{z=await gzipU8(u8)}catch(e){z=null}const dados=z&&z.length<u8.length?z:u8;const ids=[];const C=(await assetsNs())?3e6:1.4e6;
+  for(let i=0;i<dados.length;i+=C)ids.push(await guardaJSON({p:b64(dados.subarray(i,Math.min(dados.length,i+C)))}));return{ids,gz:dados===z,n:u8.length}}
+async function lerGrande(ref){const partes=[];for(const id of ref.ids){const j=await lerJSON(id);partes.push(unb64(j.p))}const tot=partes.reduce((a,x)=>a+x.length,0);const u=new Uint8Array(tot);let o=0;partes.forEach(x=>{u.set(x,o);o+=x.length});return ref.gz?await gzipU8(u,'d'):u}
+async function apagaGrande(ref){if(ref&&ref.ids)for(const id of ref.ids)apagaJSON(id)}
 const b64=u8=>{let s='';const c=0x8000;for(let i=0;i<u8.length;i+=c)s+=String.fromCharCode.apply(null,u8.subarray(i,i+c));return btoa(s)};
 const unb64=t=>{const s=atob(t);const u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u};
 // ---------- lista ----------
@@ -5669,7 +5697,7 @@ async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHT
     
     msg('Salvando…');const C=capturaEstado(tipo);C.estado.refImg=refImg;C.estado.fpObsPg=fpObsPg;C.estado.matQtd=matQtd;C.estado.matExcl=matExcl;C.estado.matAdd=matAdd;C.estado.inst=capInputs(['#instBox']);C.estado.instImg=instImg;C.estado.instImg2=instImg2;C.estado.instLocal=instLocal;C.estado.ancImg=ancImg;
     let it=itemAtual&&itemAtual.tipo===tipo?pedAtual.itens.find(i=>i.id===itemAtual.id):null;const velho=it?{e:it.estadoId,f:it.fonteId}:null;
-    const estadoId=await guardaJSON(C.estado);const fonteId=C.fonte?(it&&it.fonteNome===C.fonte.nome&&it.fonteTam===C.fonte.b64.length?it.fonteId:await guardaJSON(C.fonte)):null;
+    const estadoId=await guardaJSON(C.estado);const fonteId=C.fonte?(it&&it.fonteNome===C.fonte.nome&&it.fonteTam===C.fonte.b64.length?it.fonteId:await guardaJSON(C.fonte.b64.length>3.5e6?{nome:C.fonte.nome,grande:await guardaGrande(unb64(C.fonte.b64))}:C.fonte)):null;
     const reg={id:it?it.id:(itemAtual&&itemAtual.id)||'i'+Date.now().toString(36),n,tipo,desc:C.desc,resumo:C.resumo,estadoId,fonteId,fonteNome:C.fonte?C.fonte.nome:'',fonteTam:C.fonte?C.fonte.b64.length:0,atualizado:Date.now(),...(C.lens?{bobsLens:C.lens}:{}),venda:vendaNum(($('#itemVenda')||{}).value),custo:(typeof matUlt!=='undefined'&&matUlt&&matUlt.length)?Math.round(matUlt.reduce((a,r)=>a+(+r.tot||0),0)*100)/100:(it&&it.custo!=null?it.custo:null)};
     pedAtual.itens=(pedAtual.itens||[]).filter(i=>i.id!==reg.id).concat([reg]);await pedSalvar(pedAtual);
     if(velho){if(velho.e!==estadoId)apagaJSON(velho.e);if(velho.f&&velho.f!==fonteId)apagaJSON(velho.f)}
@@ -5677,7 +5705,7 @@ async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHT
     try{$('#pedListaCard').hidden=true;$('#pedCard').hidden=false;pedAbertoRender();pedBarRender()}catch(e){}}
   catch(e){console.error(e);msg(`<span style="color:#ffc9c9">Não salvou: ${esc(e.message)}</span>`)}}
 // abre um item: restaura tudo; se "mostrar", vai para a aba dele e gera
-async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)throw new Error('estado do item não encontrado');const F=it.fonteId?await lerJSON(it.fonteId):null;
+async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)throw new Error('estado do item não encontrado');const F=it.fonteId?await lerJSON(it.fonteId):null;if(F&&F.grande&&!F.b64)F.b64=b64(await lerGrande(F.grande));
   itemAtual={id:it.id,tipo:it.tipo,n:it.n};$('#item').value=it.n;if(it.tipo==='letra')limpaTipo('letra');refImg=E.refImg||null;matUlt=null;$('#itemVenda').value=it.venda?String((+it.venda).toFixed(2)).replace('.',','):'';fpObsPg={...(E.fpObsPg||{})};matQtd={...(E.matQtd||{})};matExcl={...(E.matExcl||{})};matAdd=(E.matAdd||[]).map(x=>({...x}));refRender();instReset();if(E.inst){if(E.inst.iAncT&&ANC_ANTIGO[E.inst.iAncT])E.inst.iAncT=ANC_ANTIGO[E.inst.iAncT];if(!E.inst.iUnid){['iHv','iVv','iPw','iPh'].forEach(k=>{if(E.inst[k])E.inst[k]=String(Math.round(numBR(E.inst[k])*10))});E.inst.iUnid='mm'}putInputs(E.inst);if($('#iAncTipo')){$('#iAncTipo').dataset.v=E.inst.iAncTipo||'';ancTiposRender()}}instImg=E.instImg||null;instImg2=E.instImg2||null;instLocal=E.instLocal||null;ancImg=E.ancImg||null;instRender();
   if(E.cor){selEsc=E.cor.selEsc||selEsc;renderEsc();putInputs(E.cor.inputs);escAberta=!!($('#pCode').value.trim()||(selEsc==='CMYK'||selEsc==='RGB')&&$('#pCor').value.trim());escVis();if(escAberta&&typeof renderGrid==='function')renderGrid()}
   if(it.tipo==='testeira'||it.tipo==='estrutura')xfPut('#xfT',E.xf||[]);if(it.tipo==='modelo3d')xfPut('#xfM',E.xf||[]);
