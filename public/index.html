@@ -99,6 +99,7 @@ nav button:hover{background:#f1f3f5;color:var(--ink)}
 nav button.on{background:var(--acc);color:#fff}
 /* tipos de projeto saem do menu: abrem pelos itens do pedido */
 nav button[data-tab="novo"],nav button[data-tab="testeiras"],nav button[data-tab="modelo"],nav button[data-tab="bobs"],nav button[data-tab="branco"],nav button[data-tab="cotas"]{display:none}
+body.comComp nav button[data-tab="cotas"]{display:inline-flex!important}
 .pedHead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .pedHead h2{font-size:20px!important;margin:0!important}
 .pedHead .sub{font-size:13px;color:var(--mute);margin-top:2px}
@@ -235,6 +236,8 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
 .edPerf{border-top:1px solid var(--line);margin-top:10px;padding-top:8px}.edTit{font-weight:700;font-size:14px;margin-bottom:2px}
 @media(max-width:620px){#tEdSlot .v3bar button{padding:3px 6px;font-size:10.5px}#tEdSlot .v3bar{gap:3px;padding:4px}#tEdSlot .bGrid>.card .v3wrap,#tEdSlot .bGrid>.card .v3wrap canvas{min-height:220px}
  #tEditor{padding:7px;margin-left:-4px;margin-right:-4px}.edVt .note{display:none}#tEdSlot #t3dInfo{font-size:11px}}
+.osAcoes{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.osCotaBtn{order:3;background:#fff0f6!important;color:#c2255c!important;border:1px solid #f783ac!important;font-weight:700}.osAcoes label{order:9}
+#ctCompBar[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -284,10 +287,9 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <input type="hidden" id="pedNome">
       <p class="note" id="pedAjuda" style="margin:6px 0 0">Os dados da OS (número, cliente, entrega…) ficam no quadro acima e valem para todos os itens. Tudo é salvo sozinho.</p>
       <label class="f" style="margin-top:14px">Itens do pedido</label>
-            <div id="pedCotasBar" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px;padding:9px 10px;border:1.5px solid #c2255c;border-radius:10px;background:#fff0f6"><b style="color:#c2255c;font-size:14px">📐 Cotas</b><span class="note" style="margin:0">arquivo vetorial (PDF) ou 3D (STL/OBJ) → folha cotada na FP do pedido</span><select id="pedCotasItem" style="width:auto;min-width:150px;margin-left:auto"></select><button class="btn sm" type="button" id="pedCotasBtn" style="background:#c2255c;color:#fff">+ Adicionar cotas</button></div>
             <div id="pedItensBox"><div id="osLista"></div>
       <div id="pedItens"></div></div>
-      <div class="row" id="pedNovos" style="gap:6px;margin-top:10px"><span class="note" style="align-self:center">Novo item:</span><button class="btn ghost sm" data-novo="letra">+ Letra caixa</button><button class="btn ghost sm" data-novo="branco">+ FP em branco</button><button class="btn ghost sm" data-novo="cotas">+ Cotas</button><button class="btn ghost sm" data-novo="testeira">+ Testeira</button><button class="btn ghost sm" data-novo="estrutura">+ Estrutura por desenho</button><button class="btn ghost sm" data-novo="modelo3d">+ Modelo 3D</button><button class="btn ghost sm" data-novo="bobs">+ Bobs requadro</button><button class="btn ghost sm" data-novo="bobscomp">+ Bobs complemento 30x30</button><button class="btn ghost sm" data-novo="bobscant">+ Bobs cantoneira iluminada</button></div>
+      <div class="row" id="pedNovos" style="gap:6px;margin-top:10px"><span class="note" style="align-self:center">Novo item:</span><button class="btn ghost sm" data-novo="letra">+ Letra caixa</button><button class="btn ghost sm" data-novo="branco">+ FP em branco</button><button class="btn ghost sm" data-novo="testeira">+ Testeira</button><button class="btn ghost sm" data-novo="estrutura">+ Estrutura por desenho</button><button class="btn ghost sm" data-novo="modelo3d">+ Modelo 3D</button><button class="btn ghost sm" data-novo="bobs">+ Bobs requadro</button><button class="btn ghost sm" data-novo="bobscomp">+ Bobs complemento 30x30</button><button class="btn ghost sm" data-novo="bobscant">+ Bobs cantoneira iluminada</button></div>
       <div class="row" id="pedAcoes" style="gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)"><button class="btn pink" id="pedGerar">Gerar FP completa do pedido</button><button class="btn acc" id="pedGerarSel" disabled>Gerar FP parcial (selecione os itens)</button><button class="btn ghost" id="pedBaixar" hidden>Baixar FP completa (PDF)</button><button class="btn" id="pedGeral" style="background:#2f9e44;color:#fff;font-weight:700">Gerar apenas FP geral</button><button class="btn" id="pedRM" style="background:#495057;color:#fff">Baixar RM + PI do pedido (por produto + total)</button><button class="btn ghost sm" id="pedExport" style="display:none">Exportar pedido (arquivo)</button><button class="btn danger sm" id="pedExcluir" style="margin-left:auto">Excluir pedido</button></div><div id="pedExpMsg" class="note" style="margin-top:6px"></div>
       <div id="pedMsg"></div>
       <div class="prev" id="pedPrev"></div>
@@ -470,7 +472,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
     <div class="card isbCard"><button class="btn pink isbBtn" type="button" style="width:100%;padding:14px;font-size:16px">Salvar item</button><div class="note isbMsg" style="margin-top:6px"></div></div>
   </section>
   <section id="tab-cotas" hidden>
-    <div class="card"><h2>Cotas de arquivo vetorial</h2>
+    <div class="card"><div id="ctCompBar" hidden style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:-4px 0 10px;padding:9px 10px;border-radius:10px;background:#fff0f6;border:1.5px solid #f783ac"><b id="ctCompTit" style="color:#c2255c;flex:1;min-width:180px"></b><button class="btn ghost sm" type="button" id="ctCancelar">← Voltar ao projeto</button><button class="btn sm" type="button" id="ctGuardar" style="background:#c2255c;color:#fff">Salvar cota no item</button></div><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px"><button class="btn ghost sm" type="button" id="ctVoltar">← Voltar ao pedido</button></div><h2>Cotas de arquivo vetorial</h2>
       <p class="note" style="margin-top:0">Envie o vetor em PDF (textos em curvas) ou um modelo 3D (STL / OBJ). Sai uma folha com as medidas — no 3D, com as vistas de frente, lateral e superior —, o material e a observação.</p>
       <label class="drop" id="ctDrop" style="display:block"><input type="file" id="ctIn" accept="application/pdf,.pdf,.stl,.obj" hidden><span id="ctDropTxt">Toque para escolher o PDF, STL ou OBJ</span></label>
       <label class="f">Tipo de cota</label>
@@ -907,7 +909,7 @@ $('#ledPick').onclick=e=>{const b=e.target.closest('button');if(!b)return;selLed
 $('#typeList').onclick=e=>{const b=e.target.closest('.type');if(b)openModal(types.find(t=>t.id===b.dataset.id))};
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
-  const tb=b.dataset.tab;$('#tab-pedidos').hidden=tb!=='pedidos';$('#tab-novo').hidden=tb!=='novo';$('#tab-tipos').hidden=tb!=='tipos';$('#tab-testeiras').hidden=tb!=='testeiras';$('#tab-modelo').hidden=tb!=='modelo';$('#tab-bobs').hidden=tb!=='bobs';if($('#tab-branco'))$('#tab-branco').hidden=tb!=='branco';if($('#tab-cotas'))$('#tab-cotas').hidden=tb!=='cotas';if(tb==='cotas'&&typeof ctSetorUI==='function')ctSetorUI();if($('#osLerRow'))$('#osLerRow').hidden=tb!=='pedidos';{const noPed=tb==='pedidos';['#itemBox','#descBox','#vendaBox'].forEach(x=>{const e=$(x);if(e)e.hidden=noPed});const pt=$('#pedTotBox');if(pt)pt.hidden=!noPed;if(noPed&&typeof pedTotRender==='function')pedTotRender()}if(tb==='bobs')setTimeout(()=>{try{bobsEditor();bobs3D()}catch(e){console.error(e)}},30);if(tb==='modelo')setTimeout(()=>m3Draw(),30);
+  const tb=b.dataset.tab;if(tb==='cotas'&&typeof ctEntra==='function'&&$('#tab-cotas').hidden)ctEntra(window.ctUltAba||'');if(['novo','testeiras','modelo','bobs','branco'].includes(tb))window.ctUltAba=tb;document.body.classList.toggle('comComp',['novo','testeiras','modelo','bobs','branco','cotas'].includes(tb));$('#tab-pedidos').hidden=tb!=='pedidos';$('#tab-novo').hidden=tb!=='novo';$('#tab-tipos').hidden=tb!=='tipos';$('#tab-testeiras').hidden=tb!=='testeiras';$('#tab-modelo').hidden=tb!=='modelo';$('#tab-bobs').hidden=tb!=='bobs';if($('#tab-branco'))$('#tab-branco').hidden=tb!=='branco';if($('#tab-cotas'))$('#tab-cotas').hidden=tb!=='cotas';if(tb==='cotas'&&typeof ctSetorUI==='function')ctSetorUI();if($('#osLerRow'))$('#osLerRow').hidden=tb!=='pedidos';{const noPed=tb==='pedidos';['#itemBox','#descBox','#vendaBox'].forEach(x=>{const e=$(x);if(e)e.hidden=noPed});const pt=$('#pedTotBox');if(pt)pt.hidden=!noPed;if(noPed&&typeof pedTotRender==='function')pedTotRender()}if(tb==='bobs')setTimeout(()=>{try{bobsEditor();bobs3D()}catch(e){console.error(e)}},30);if(tb==='modelo')setTimeout(()=>m3Draw(),30);
   $('#osSec').hidden=tb==='tipos'||(tb==='pedidos'&&!pedAtual);if($('#refBox'))$('#refBox').hidden=tb==='pedidos';if($('#descBox'))$('#descBox').hidden=tb==='pedidos';if($('#vendaBox'))$('#vendaBox').hidden=tb==='pedidos';$('#instSec').hidden=!['novo','modelo','testeiras','bobs'].includes(tb);instColoca(tb);pedBarRender();if(typeof osResumoSync==='function')osResumoSync();if(typeof ledEspSync==='function')setTimeout(()=>{ledEspSync(true);if(typeof fundoUI==='function')fundoUI()},60);if(tb==='testeiras')setTimeout(tRender,30);pickerCasa();$('#itemBox').hidden=tb==='pedidos';$('#descBox').hidden=tb==='testeiras'||tb==='pedidos';
 });
 async function shrinkImage(f,max,type){
@@ -5334,6 +5336,7 @@ function brLimpa(){brFichas=[];brArqs=[];brBuild=null;$('#brDesc').value='';$('#
   brUI()})();
 
 /* ---------- COTAS: manda um vetor (PDF) e sai uma folha cotada (padrão ou detalhada) ---------- */
+let CTO=null;function ctv(id){if(CTO&&id in CTO)return CTO[id];const e=$('#'+id);return e?e.value:''}
 let ctSrc=null,ctBuild=null,ctModo='padrao',ct3=null,ctBytes=null,ctNome='',ctArqs=[];
 const ctFmt=v=>{const r=Math.round(v*10)/10;return (Number.isInteger(r)?String(r):r.toFixed(1).replace('.',',')).replace(/\B(?=(\d{3})+(?!\d))/g,'.')};
 function ctArea(q){let A=0;for(let i=0;i<q.length;i++){const[a,b]=q[i],[c,d]=q[(i+1)%q.length];A+=a*d-c*b}return A/2}
@@ -5361,20 +5364,20 @@ function ctAnalisa(polys,k,paths){
     return{tipo,med,b,cx:(circ?(b.x0+b.x1)/2:b.x0)-B.x0,cy:(circ?(b.y0+b.y1)/2:b.y0)-B.y0,ref:circ?'centro':'canto inf. esq.'}})
     .sort((a,b)=>(b.b.y1-a.b.y1)||(a.b.x0-b.b.x0));
   return{P,B,grupos,pecas:tops.length}}
-function ctTopo(P,ctx){const st=($('#ctSetor')&&$('#ctSetor').value)||'COTAS';if(st==='COTAS'){P._setorT.s='COTAS';P._setor='COTAS'}const t=P.find(q=>q.t==='text'&&q.y===15.5);if(t&&!ctNoPedido())t.s=(st+' - '+ctx.descItem).toUpperCase()}
+function ctTopo(P,ctx){const st=ctv('ctSetor')||'COTAS';if(st==='COTAS'){P._setorT.s='COTAS';P._setor='COTAS'}const t=P.find(q=>q.t==='text'&&q.y===15.5);if(t&&!ctNoPedido())t.s=(st+' - '+ctx.descItem).toUpperCase()}
 function ctNoPedido(){return typeof pedAtual!=='undefined'&&!!pedAtual}
 function ctSetorUI(){const s=$('#ctSetor');if(!s||s.options.length)return;s.innerHTML=['COTAS',...Object.keys(SETORES).filter(k=>!['RM','PI','GERAL','MATERIAL','EXPEDIÇÃO','QUALIDADE'].includes(k))].map(k=>`<option>${k}</option>`).join('')}
 function ctModoUI(){document.querySelectorAll('#ctModo [data-ctm]').forEach(x=>x.classList.toggle('sel',x.dataset.ctm===ctModo))}
 function ctArqsUI(){const e=$('#ctArqs');if(!e)return;e.innerHTML=ctArqs.length?ctArqs.map((f,i)=>`${esc(f.name)} <a href="#" data-ctax="${i}" style="color:#c92a2a;text-decoration:none">✕</a>`).join(' • '):'nenhum'}
 function ctLimpa(){ctSrc=null;ct3=null;ctBytes=null;ctNome='';ctArqs=[];ctBuild=null;ctModo='padrao';['#ctDesc','#ctLarg','#ctMat','#ctObs'].forEach(x=>{if($(x))$(x).value=''});if($('#ctQtd'))$('#ctQtd').value='1';if($('#ctPrev'))$('#ctPrev').innerHTML='';if($('#ctMsg'))$('#ctMsg').innerHTML='';if($('#ctDrop')){$('#ctDrop').classList.remove('has');$('#ctDropTxt').textContent='Toque para escolher o PDF, STL ou OBJ'}if($('#ctBaixar')){$('#ctBaixar').hidden=true;$('#ctZip').hidden=true}ctSetorUI();ctModoUI();ctArqsUI()}
-function ctCtx(){const d=$('#entrega').value;return{os:$('#os').value.trim(),item:ctNoPedido()?($('#item').value||'1'):'COTAS',descItem:($('#ctDesc').value||'DESENHO COTADO').trim().toUpperCase(),cliente:$('#cliente').value,vendedor:$('#vendedor').value,projetista:$('#projetista').value,endereco:$('#endereco').value,entrega:d?d.split('-').reverse().join('/'):''}}
+function ctCtx(){if(CTO&&CTO.ctx)return CTO.ctx;const d=$('#entrega').value;return{os:$('#os').value.trim(),item:ctNoPedido()?($('#item').value||'1'):'COTAS',descItem:(ctv('ctDesc')||'DESENHO COTADO').trim().toUpperCase(),cliente:$('#cliente').value,vendedor:$('#vendedor').value,projetista:$('#projetista').value,endereco:$('#endereco').value,entrega:d?d.split('-').reverse().join('/'):''}}
 function ctFolhas(){if(!ctSrc||!ctSrc.polys.length)throw new Error('Envie o arquivo vetorial (PDF).');
-  const b0=bbox(ctSrc.polys);const lr=num($('#ctLarg').value);const k=lr>0?lr/b0.w:1;
+  const b0=bbox(ctSrc.polys);const lr=num(ctv('ctLarg'));const k=lr>0?lr/b0.w:1;
   const A=ctAnalisa(ctSrc.polys,k,ctSrc.paths);const ctx=ctCtx();const det=ctModo==='detalhada';const G=det?A.grupos:[];
-  const pages=[];const mat=($('#ctMat').value||'').trim().toUpperCase(),obs=($('#ctObs').value||'').trim(),qt=$('#ctQtd').value||'1';
-  const P=[];frame(P,ctx,{setor:($('#ctSetor')&&$('#ctSetor').value!=='COTAS')?$('#ctSetor').value:'GERAL'});ctTopo(P,ctx);
+  const pages=[];const mat=(ctv('ctMat')||'').trim().toUpperCase(),obs=(ctv('ctObs')||'').trim(),qt=ctv('ctQtd')||'1';
+  const P=[];frame(P,ctx,{setor:(ctv('ctSetor')&&ctv('ctSetor')!=='COTAS')?ctv('ctSetor'):'GERAL'});ctTopo(P,ctx);
   P.push({t:'text',x:18,y:31,s:`${qt}X`,size:7,bold:true,italic:true,color:'#000000'});
-  P.push({t:'text',x:PW/2,y:30,s:fit(ctx.descItem+(det?' — COTAS DETALHADAS':' — COTAS GERAIS'),200,4.2),size:4.2,bold:true,color:'#000000',anchor:'middle'});
+  P.push({t:'text',x:PW/2,y:30,s:fit((CTO&&CTO.ctDesc?CTO.ctDesc.toUpperCase():ctx.descItem)+(det?' — COTAS DETALHADAS':' — COTAS GERAIS'),200,4.2),size:4.2,bold:true,color:'#000000',anchor:'middle'});
   const temTab=det&&G.length>0;const ax0=22,ay0=44,aw=(temTab?250:262)-ax0,ah=temTab?90:96;
   const s=Math.min(aw/A.B.w,ah/A.B.h);const ox=ax0+(aw-A.B.w*s)/2,oy=ay0+(ah-A.B.h*s)/2;
   const X=x=>ox+(x-A.B.x0)*s,Y=y=>oy+(A.B.y1-y)*s;
@@ -5405,17 +5408,18 @@ async function ctCarregaBytes(nome,bytes,render){const f={name:nome};ctNome=nome
   if(ext==='stl'||ext==='obj'){try{const buf=bytes.slice().buffer;const objs=ext==='obj'?parseOBJ(new TextDecoder().decode(buf)):parseSTL(buf);let pecas=separaPecas(objs);if(!pecas.length)pecas=objs;if(!pecas.length)throw new Error('não encontrei triângulos no arquivo');
       let lo=[1e18,1e18,1e18],hi=[-1e18,-1e18,-1e18];pecas.forEach(p=>p.tris.forEach(t=>t.forEach(v=>{for(let i=0;i<3;i++){if(v[i]<lo[i])lo[i]=v[i];if(v[i]>hi[i])hi[i]=v[i]}})));const span=Math.max(hi[0]-lo[0],hi[1]-lo[1],hi[2]-lo[2]);
       if(render!==false||!$('#ctUn').value){$('#ctUn').value=span<30?'1000':span<300&&ext==='obj'?'10':'1';$('#ctEixo').value=ext==='stl'?'z':'y'}ct3={name:f.name,pecas};ctSrc=null;$('#ct3Opts').hidden=false;$('#ctLargW').hidden=true;
-      $('#ctDrop').classList.add('has');$('#ctDropTxt').textContent='✓ '+f.name;if(!$('#ctDesc').value)$('#ctDesc').value=f.name.replace(/\.(stl|obj)$/i,'');if(render!==false)ctRender()}
+      $('#ctDrop').classList.add('has');$('#ctDropTxt').textContent='✓ '+f.name;if(!ctv('ctDesc'))$('#ctDesc').value=f.name.replace(/\.(stl|obj)$/i,'');if(render!==false)ctRender()}
     catch(e){console.error(e);ct3=null;$('#ctDropTxt').textContent='Toque para escolher o arquivo';$('#ctMsg').innerHTML=`<div class="msg err">Não consegui ler: ${esc(e.message)}</div>`}return}
   ct3=null;$('#ct3Opts').hidden=true;$('#ctLargW').hidden=false;
   try{const r=await readPdf(bytes.slice());ctSrc={name:f.name,...r};$('#ctDrop').classList.add('has');$('#ctDropTxt').textContent='✓ '+f.name;
     if(!r.polys.length){$('#ctMsg').innerHTML='<div class="msg err">Não encontrei linhas vetoriais nesse PDF (texto precisa estar em curvas).</div>';return}
-    const b=bbox(r.polys);$('#ctLarg').placeholder=`Tamanho do arquivo: ${ctFmt(b.w)} mm`;if(!$('#ctDesc').value)$('#ctDesc').value=f.name.replace(/\.pdf$/i,'');if(render!==false)ctRender()}
+    const b=bbox(r.polys);$('#ctLarg').placeholder=`Tamanho do arquivo: ${ctFmt(b.w)} mm`;if(!ctv('ctDesc'))$('#ctDesc').value=f.name.replace(/\.pdf$/i,'');if(render!==false)ctRender()}
   catch(e){console.error(e);$('#ctDropTxt').textContent='Toque para escolher o PDF';$('#ctMsg').innerHTML=`<div class="msg err">Não consegui ler: ${esc(e.message)}</div>`}}
 (function(){if(!$('#tab-cotas'))return;
   $('#ctIn').onchange=e=>{ctCarrega(e.target.files[0]);e.target.value=''};
   $('#ctModo').onclick=e=>{const b=e.target.closest('[data-ctm]');if(!b)return;ctModo=b.dataset.ctm;document.querySelectorAll('#ctModo [data-ctm]').forEach(x=>x.classList.toggle('sel',x===b));if(ctSrc||ct3)ctRender()};
   ['#ctLarg','#ctMat','#ctObs','#ctQtd','#ctDesc','#ctUn','#ctEixo'].forEach(s=>$(s).addEventListener('change',()=>{if(ctSrc||ct3)ctRender()}));
+  $('#ctVoltar').onclick=()=>{irAba('pedidos');window.scrollTo(0,0)};
   $('#ctGerar').onclick=ctRender;ctSetorUI();ctArqsUI();$('#ctSetor').addEventListener('change',()=>{if(ctSrc||ct3)ctRender()});
   $('#ctArqIn').onchange=async e=>{for(const f of e.target.files){const b=new Uint8Array(await f.arrayBuffer());ctArqs.push({name:f.name,b64:b64(b)})}e.target.value='';ctArqsUI();if(ctNoPedido())pedSujo=true};
   $('#ctArqs').onclick=e=>{const a=e.target.closest('[data-ctax]');if(!a)return;e.preventDefault();ctArqs.splice(+a.dataset.ctax,1);ctArqsUI()};
@@ -5425,7 +5429,7 @@ async function ctCarregaBytes(nome,bytes,render){const f={name:nome};ctNome=nome
 
 /* ---------- COTAS de modelo 3D (STL / OBJ): vistas frontal, lateral, superior (aérea) e perspectiva ---------- */
 function ct3Mundo(v,k,zUp){return zUp?[v[0]*k,v[2]*k,-v[1]*k]:[v[0]*k,v[1]*k,v[2]*k]}
-function ct3Prep(){const k=num($('#ctUn').value)||1,zUp=$('#ctEixo').value==='z';const pcs=ct3.pecas.map(p=>{const nome=p.nome||'';const tris=p.tris.map(t=>t.map(v=>ct3Mundo(v,k,zUp)));let lo=[1e18,1e18,1e18],hi=[-1e18,-1e18,-1e18];tris.forEach(t=>t.forEach(v=>{for(let i=0;i<3;i++){if(v[i]<lo[i])lo[i]=v[i];if(v[i]>hi[i])hi[i]=v[i]}}));return{tris,lo,hi,nome}});
+function ct3Prep(){const k=num(ctv('ctUn'))||1,zUp=$('#ctEixo').value==='z';const pcs=ct3.pecas.map(p=>{const nome=p.nome||'';const tris=p.tris.map(t=>t.map(v=>ct3Mundo(v,k,zUp)));let lo=[1e18,1e18,1e18],hi=[-1e18,-1e18,-1e18];tris.forEach(t=>t.forEach(v=>{for(let i=0;i<3;i++){if(v[i]<lo[i])lo[i]=v[i];if(v[i]>hi[i])hi[i]=v[i]}}));return{tris,lo,hi,nome}});
   let lo=[1e18,1e18,1e18],hi=[-1e18,-1e18,-1e18];pcs.forEach(p=>{for(let i=0;i<3;i++){lo[i]=Math.min(lo[i],p.lo[i]);hi[i]=Math.max(hi[i],p.hi[i])}});return{pcs,lo,hi}}
 // vista: frente olha para -z (x direita, y cima); lateral (direita) x→ profundidade; topo: x direita, z para baixo (frente embaixo)
 const CT3V={frente:{r:v=>v[0],u:v=>v[1],d:v=>-v[2]},lateral:{r:v=>-v[2],u:v=>v[1],d:v=>v[0]},topo:{r:v=>v[0],u:v=>-v[2],d:v=>v[1]},iso:{r:v=>(v[0]-v[2])*0.7071,u:v=>v[1]*0.8165+(v[0]+v[2])*0.4082,d:v=>-(v[0]+v[2])*0.577+v[1]*0.577}};
@@ -5446,7 +5450,7 @@ function ct3Elementos(G){const nomes=[...new Set(G.pcs.map(p=>p.nome))];
   for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const a=G.pcs[i],b=G.pcs[j];if(a.lo[0]-t<=b.hi[0]&&b.lo[0]-t<=a.hi[0]&&a.lo[1]-t<=b.hi[1]&&b.lo[1]-t<=a.hi[1]&&a.lo[2]-t<=b.hi[2]&&b.lo[2]-t<=a.hi[2])par[f(j)]=f(i)}
   const m=new Map();G.pcs.forEach((p,i)=>{const r=f(i);if(!m.has(r))m.set(r,[]);m.get(r).push(p)});const L=[...m.values()];return L.length>20?[G.pcs]:L}
 function ct3Sub(pcs){let lo=[1e18,1e18,1e18],hi=[-1e18,-1e18,-1e18];pcs.forEach(p=>{for(let i=0;i<3;i++){lo[i]=Math.min(lo[i],p.lo[i]);hi[i]=Math.max(hi[i],p.hi[i])}});return{pcs,lo,hi}}
-function ct3Folhas(){const G=ct3Prep();const ctx=ctCtx();const det=ctModo==='detalhada';const qt=$('#ctQtd').value||'1';
+function ct3Folhas(){const G=ct3Prep();const ctx=ctCtx();const det=ctModo==='detalhada';const qt=ctv('ctQtd')||'1';
   const E=ct3Elementos(G).map(ct3Sub).sort((a,b)=>(b.hi[0]-b.lo[0])*(b.hi[1]-b.lo[1])-(a.hi[0]-a.lo[0])*(a.hi[1]-a.lo[1]));const pages=[];
   if(E.length>1){const P=ct3Pagina(G,ctx,'CONJUNTO — VISTAS E MEDIDAS',det&&false,qt,E);pages.push(P);
     E.slice(0,20).forEach((e,i)=>pages.push(ct3Pagina(e,ctx,`ELEMENTO ${i+1} DE ${E.length}${e.pcs[0].nome?' — '+e.pcs[0].nome.toUpperCase():''}`,det,qt,null)))}
@@ -5454,9 +5458,9 @@ function ct3Folhas(){const G=ct3Prep();const ctx=ctCtx();const det=ctModo==='det
   if(!FOOT_SKIP)pages.forEach((Q,i)=>footer(Q,ctx,i+1,pages.length));const W=G.hi[0]-G.lo[0],H=G.hi[1]-G.lo[1],D=G.hi[2]-G.lo[2];
   return{pages,ctx,A:{B:{w:W,h:H},grupos:G.pcs},d3:{W,H,D,n:G.pcs.length,el:E.length}}}
 function ct3Pagina(G,ctx,titulo,det,qt,E){let yLivre=30;const W=G.hi[0]-G.lo[0],H=G.hi[1]-G.lo[1],D=G.hi[2]-G.lo[2];
-  const mat=($('#ctMat').value||'').trim().toUpperCase(),obs=($('#ctObs').value||'').trim();
-  const P=[];frame(P,ctx,{setor:($('#ctSetor')&&$('#ctSetor').value!=='COTAS')?$('#ctSetor').value:'GERAL'});ctTopo(P,ctx);P.push({t:'text',x:18,y:31,s:`${qt}X`,size:7,bold:true,italic:true,color:'#000000'});
-  P.push({t:'text',x:PW/2,y:30,s:fit(ctx.descItem+' — '+titulo,200,4.2),size:4.2,bold:true,color:'#000000',anchor:'middle'});
+  const mat=(ctv('ctMat')||'').trim().toUpperCase(),obs=(ctv('ctObs')||'').trim();
+  const P=[];frame(P,ctx,{setor:(ctv('ctSetor')&&ctv('ctSetor')!=='COTAS')?ctv('ctSetor'):'GERAL'});ctTopo(P,ctx);P.push({t:'text',x:18,y:31,s:`${qt}X`,size:7,bold:true,italic:true,color:'#000000'});
+  P.push({t:'text',x:PW/2,y:30,s:fit((CTO&&CTO.ctDesc?CTO.ctDesc.toUpperCase():ctx.descItem)+' — '+titulo,200,4.2),size:4.2,bold:true,color:'#000000',anchor:'middle'});
   const areaW=det||E?150:190,areaH=96;const s=Math.min((areaW-(det?34:20))/(W+D),(areaH-(det?26:20))/(H+D));const cor='#1971c2',fs=2.8;
   const gx=det?32:22,gy=det?24:18;const fx=30,fy=46;const vx={frente:[fx,fy,W*s,H*s],lateral:[fx+W*s+gx,fy,D*s,H*s],topo:[fx,fy+H*s+gy,W*s,D*s]};
   const put=(nm,x,y,w,h)=>{const im=ct3Img(G,nm,Math.max(4,s*6));P.push({t:'img',x,y,w,h,src:im.src,fmt:'JPEG'});P.push({t:'rect',x,y,w,h,stroke:'#dee2e6',lw:0.1});return im};
@@ -5485,6 +5489,41 @@ function ct3Pagina(G,ctx,titulo,det,qt,E){let yLivre=30;const W=G.hi[0]-G.lo[0],
   P.push({t:'rect',x:136,y:yb,w:PW-12-136,h:14,stroke:'#adb5bd',lw:0.2},{t:'text',x:139,y:yb+4.5,s:'OBSERVAÇÃO',size:2.3,bold:true,color:'#495057'});
   {const Ls=[];String(obs||'—').split('\n').forEach(par=>{let l='';par.split(/\s+/).forEach(w=>{if((l+' '+w).trim().length>95){Ls.push(l);l=w}else l=(l+' '+w).trim()});Ls.push(l)});Ls.slice(0,2).forEach((l,i)=>P.push({t:'text',x:139,y:yb+9+i*3.6,s:l,size:2.7,color:'#000000'}))}
   return P}
+
+/* ---------- COTAS DO COMPONENTE: feitas dentro do projeto, saem junto com as folhas do setor escolhido ---------- */
+let compCotas=[],ctEdit=-1,ctVolta=null;const CT_ABAS=['novo','testeiras','modelo','bobs','branco'];
+function ctSalvaveis(){return compCotas.map(c=>{const o={...c};delete o._src;delete o._3d;return o})}
+async function ctParse(c){try{const ext=(c.nome||'').toLowerCase().split('.').pop();const bytes=unb64(c.b64);
+  if(ext==='stl'||ext==='obj'){const buf=bytes.slice().buffer;const objs=ext==='obj'?parseOBJ(new TextDecoder().decode(buf)):parseSTL(buf);let pecas=separaPecas(objs);if(!pecas.length)pecas=objs;c._3d={name:c.nome,pecas};c._src=null}
+  else{c._src={name:c.nome,...(await readPdf(bytes.slice()))};c._3d=null}}catch(e){console.error('cota',c.nome,e)}}
+function ctGerarCota(c,ctx){const sv={ctSrc,ct3,ctModo,CTO};try{ctSrc=c._src||null;ct3=c._3d||null;ctModo=c.modo||'padrao';CTO={ctLarg:c.larg||'',ctMat:c.mat||'',ctObs:c.obs||'',ctQtd:c.qtd||'1',ctDesc:c.desc||'',ctUn:c.un||'1',ctEixo:c.eixo||'z',ctSetor:c.setor||'COTAS',ctx};
+    const fs=FOOT_SKIP;FOOT_SKIP=true;try{return(ct3?ct3Folhas():ctFolhas()).pages}finally{FOOT_SKIP=fs}}finally{ctSrc=sv.ctSrc;ct3=sv.ct3;ctModo=sv.ctModo;CTO=sv.CTO}}
+function ctComCotas(fn){const w=function(...a){if(!compCotas.length||(typeof abaAtual==='function'&&abaAtual()==='cotas'&&!ctVolta))return fn.apply(this,a);const fs=FOOT_SKIP;FOOT_SKIP=true;let r;try{r=fn.apply(this,a)}finally{FOOT_SKIP=fs}
+  if(r&&r.pages){compCotas.forEach(c=>{if(!c._src&&!c._3d)return;let ps=[];try{ps=ctGerarCota(c,r.ctx)}catch(e){console.error('cota',e)}if(!ps.length)return;
+      let idx=-1;r.pages.forEach((P,i)=>{if(P._setor===c.setor)idx=i});if(idx<0){const f=r.pages.findIndex(P=>['RM','PI','EXPEDIÇÃO','QUALIDADE','INSTALAÇÃO'].includes(P._setor));idx=f>=0?f-1:r.pages.length-1}
+      r.pages.splice(idx+1,0,...ps);if(Array.isArray(r.tags))r.tags.splice(idx+1,0,...ps.map(P=>P._setor||c.setor))});
+    if(!fs){numeraSetores(r.pages);r.pages.forEach((P,i)=>footer(P,r.ctx,i+1,r.pages.length))}}return r};w._ct=true;return w}
+function ctListaRender(){document.querySelectorAll('.ctLista').forEach(el=>{el.innerHTML=`<div class="card" style="border:1.5px solid #f783ac;background:#fff0f6"><div class="row" style="justify-content:space-between;align-items:center"><b style="color:#c2255c">📐 Cotas deste item</b><button class="btn sm" type="button" data-ctnova style="background:#c2255c;color:#fff">+ Nova cota</button></div>`+
+  (compCotas.length?compCotas.map((c,i)=>`<div class="row" style="gap:8px;align-items:center;border-top:1px solid #fcc2d7;padding:7px 0;margin-top:6px"><div style="flex:1;min-width:0"><b>Cota ${esc(c.setor==='COTAS'?'':c.setor.toLowerCase())}</b> — ${esc(c.desc||c.nome)}<div class="note" style="margin:0">${c.modo==='detalhada'?'detalhada':'padrão'} • ${esc(c.nome)}${c.mat?' • '+esc(c.mat):''}</div></div><button class="btn ghost sm" type="button" data-cted="${i}">Editar</button><button class="btn ghost sm" type="button" data-ctdel="${i}" style="color:#c92a2a">✕</button></div>`).join(''):'<div class="note" style="margin:6px 0 0">Nenhuma cota ainda. As cotas saem junto com as folhas do setor escolhido (ex.: cota da serralheria junto com a serralheria).</div>')+'</div>'})}
+function ctTipoDe(a){return a==='novo'?'letra':a==='testeiras'?(tModo==='desenho'?'estrutura':'testeira'):a==='modelo'?'modelo3d':a==='bobs'?(bModo==='comp'?'bobscomp':bModo==='cant'?'bobscant':'bobs'):a==='branco'?'branco':null}
+function ctEntra(ant){if(CT_ABAS.includes(ant)){ctVolta={aba:ant,tipo:ctTipoDe(ant)};if(ctEdit<0){ctLimpa();$('#ctDesc').value=''}}ctModoComp()}
+function ctModoComp(){const on=!!ctVolta;$('#ctCompBar').hidden=!on;$('#ctVoltar').hidden=on;if(on)$('#ctCompTit').textContent=`Cota do item ${$('#item').value||''} — ${TIPO_NOME[ctVolta.tipo]||''}${ctEdit>=0?' (editando)':''}`}
+function ctSair(){const a=ctVolta?ctVolta.aba:'pedidos';ctVolta=null;ctEdit=-1;ctModoComp();irAba(a);ctListaRender();window.scrollTo(0,0)}
+async function ctEditar(i){const c=compCotas[i];if(!c)return;ctLimpa();ctEdit=i;
+  $('#ctSetor').value=c.setor||'COTAS';$('#ctDesc').value=c.desc||'';$('#ctMat').value=c.mat||'';$('#ctObs').value=c.obs||'';$('#ctQtd').value=c.qtd||'1';$('#ctLarg').value=c.larg||'';ctModo=c.modo||'padrao';ctModoUI();ctArqs=c.arqs||[];ctArqsUI();
+  irAba('cotas');ctModoComp();if(c.un)$('#ctUn').value=c.un;if(c.eixo)$('#ctEixo').value=c.eixo;await ctCarregaBytes(c.nome,unb64(c.b64),false);if(c.un)$('#ctUn').value=c.un;if(c.eixo)$('#ctEixo').value=c.eixo;ctRender()}
+function ctGuardar(){if(!ctBytes){$('#ctMsg').innerHTML='<div class="msg err">Envie o arquivo (PDF, STL ou OBJ) antes de salvar a cota.</div>';return}
+  const c={id:ctEdit>=0&&compCotas[ctEdit]?compCotas[ctEdit].id:'c'+Date.now().toString(36),setor:$('#ctSetor').value,modo:ctModo,desc:$('#ctDesc').value.trim(),mat:$('#ctMat').value.trim(),obs:$('#ctObs').value.trim(),qtd:$('#ctQtd').value||'1',larg:$('#ctLarg').value,un:$('#ctUn').value,eixo:$('#ctEixo').value,nome:ctNome,b64:b64(ctBytes),arqs:JSON.parse(JSON.stringify(ctArqs)),_src:ctSrc,_3d:ct3};
+  if(ctEdit>=0&&compCotas[ctEdit])compCotas[ctEdit]=c;else compCotas.push(c);if(typeof pedSujo!=='undefined')pedSujo=true;ctSair()}
+document.addEventListener('DOMContentLoaded',()=>{
+  ['buildDoc','buildTesteira','dFolhas','mFolhas','bobsFolhas','brFolhas'].forEach(n=>{if(typeof window[n]==='function'&&!window[n]._ct)window[n]=ctComCotas(window[n])});
+  if(typeof capturaEstado==='function'){const _c=capturaEstado;window.capturaEstado=function(t){const C=_c(t);if(C&&C.estado&&t!=='cotas')C.estado.cotas=ctSalvaveis();return C}}
+  document.querySelectorAll('.isbCard').forEach(c=>{if(!c.closest('#tab-cotas'))c.insertAdjacentHTML('beforebegin','<div class="ctLista"></div>')});ctListaRender();
+  document.addEventListener('click',e=>{const n=e.target.closest('[data-ctnova]'),ed=e.target.closest('[data-cted]'),d=e.target.closest('[data-ctdel]');
+    if(n){ctEdit=-1;irAba('cotas')}
+    else if(ed)ctEditar(+ed.dataset.cted);
+    else if(d){const c=compCotas[+d.dataset.ctdel];if(c){compCotas.splice(+d.dataset.ctdel,1);if(typeof pedSujo!=='undefined')pedSujo=true;ctListaRender()}}});
+  $('#ctGuardar').onclick=ctGuardar;$('#ctCancelar').onclick=ctSair;});
 
 /* ================= PEDIDOS: uma OS com vários itens (letras, testeiras, estruturas, modelos 3D), tudo salvo ================= */
 let pedidos=[],pedAtual=null,itemAtual=null,pedPdf=null,pedSujo=false;
@@ -5568,7 +5607,7 @@ function pedAbertoRender(){if(!pedAtual)return;$('#pedTitulo').innerHTML=`Pedido
   grupos.forEach(g=>{if(osNs.has(g.n)){const h=grHtml(g);const i=h.indexOf('</div>',h.indexOf('<div class="row"'))+6;window.pedGrupoCorpo[g.n]=h.slice(i,h.length-6)}});
   const fora=grupos.filter(g=>!osNs.has(g.n));
   $('#pedItens').innerHTML=fora.length?(osNs.size?'<b style="display:block;margin-top:10px">Outros itens (fora da OS)</b>':'')+fora.map(grHtml).join(''):(osNs.size?'':'<p class="note">Nenhum item ainda. Use os botões abaixo para incluir letras, testeiras ou estruturas.</p>');pedSelBtn();if(typeof osListaRender==='function')osListaRender()}
-function novoComp(tipo,n){itemAtual={id:'i'+Date.now().toString(36),tipo,n,novo:true};limpaTipo(tipo);if(typeof escVis==='function'){escAberta=false;escVis()}$('#item').value=n;irAba(TIPO_ABA[tipo]);if(typeof osPreenche==='function')osPreenche(tipo,n);if(tipo==='testeira')setModo('padrao');if(tipo==='estrutura')setModo('desenho');pedSujo=true;pedBarRender();window.scrollTo(0,0)}
+function novoComp(tipo,n){if(typeof compCotas!=='undefined'){compCotas=[];setTimeout(()=>ctListaRender&&ctListaRender(),0)}itemAtual={id:'i'+Date.now().toString(36),tipo,n,novo:true};limpaTipo(tipo);if(typeof escVis==='function'){escAberta=false;escVis()}$('#item').value=n;irAba(TIPO_ABA[tipo]);if(typeof osPreenche==='function')osPreenche(tipo,n);if(tipo==='testeira')setModo('padrao');if(tipo==='estrutura')setModo('desenho');pedSujo=true;pedBarRender();window.scrollTo(0,0)}
 $('#pedItensBox').addEventListener('change',e=>{const i=e.target.closest('[data-prodnome]');if(!i||!pedAtual)return;pedAtual.produtos={...(pedAtual.produtos||{})};const v=i.value.trim();if(v)pedAtual.produtos[i.dataset.prodnome]=v;else delete pedAtual.produtos[i.dataset.prodnome];pedSalvar(pedAtual)});
 $('#pedFechar').onclick=()=>{pedAtual=null;itemAtual=null;setTimeout(()=>osResumoSync(),0);$('#pedCard').hidden=true;$('#pedListaCard').hidden=false;$('#osSec').hidden=true;pedBarRender();pedListaRender()};
 let pedTimer=null;
@@ -5596,7 +5635,7 @@ function limpaTipo(tipo){matUlt=null;rmUlt=null;if(typeof bArtes!=='undefined'){
   if(tipo==='branco')brLimpa();if(tipo==='cotas'&&typeof ctLimpa==='function')ctLimpa();if(tipo==='modelo3d'){mSrc=null;mBytes=null;mPecas=[];$('#mInfo').innerHTML='';$('#mDropTxt').textContent='Toque para escolher o arquivo 3D (.stl ou .obj)';$('#mResCard').hidden=true}}
 // ---------- barra do pedido (aparece nas abas de trabalho) ----------
 function abaAtual(){const b=document.querySelector('nav button.on');return b?b.dataset.tab:''}
-function tipoDaAba(){const t=abaAtual();return t==='novo'?'letra':t==='testeiras'?(tModo==='desenho'?'estrutura':'testeira'):t==='modelo'?'modelo3d':t==='bobs'?(bModo==='comp'?'bobscomp':bModo==='cant'?'bobscant':'bobs'):t==='branco'?'branco':t==='cotas'?'cotas':null}
+function tipoDaAba(){const t=abaAtual();return t==='novo'?'letra':t==='testeiras'?(tModo==='desenho'?'estrutura':'testeira'):t==='modelo'?'modelo3d':t==='bobs'?(bModo==='comp'?'bobscomp':bModo==='cant'?'bobscant':'bobs'):t==='branco'?'branco':t==='cotas'?((typeof ctVolta!=='undefined'&&ctVolta)?ctVolta.tipo:'cotas'):null}
 function isbRender(){const tipo=tipoDaAba();const it=pedAtual&&itemAtual&&itemAtual.tipo===tipo?itemAtual:null;
   document.querySelectorAll('.isbBtn').forEach(b=>b.textContent=!pedAtual?'Salvar item (cria o pedido com os dados da OS)':it&&!it.novo?`Salvar alterações no item ${$('#item').value||it.n}`:`Salvar como item ${$('#item').value||''}`)}
 document.querySelectorAll('.isbBtn').forEach(b=>b.onclick=()=>{const tipo=tipoDaAba();if(!tipo)return;if(!pedAtual){const p={id:'p'+Date.now().toString(36),nome:'',itens:[],criado:Date.now()};OS_IDS.forEach(k=>p[k]=$('#'+k).value.trim());pedidos.push(p);pedAtual=JSON.parse(JSON.stringify(p));itemAtual={id:'i'+Date.now().toString(36),tipo,n:Math.max(1,Math.round(num($('#item').value))||1),novo:true}}itemSalvar(tipo)});
@@ -5659,6 +5698,7 @@ async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)th
   if(it.tipo==='branco'){brFichas=JSON.parse(JSON.stringify(E.brFichas||[]));putInputs(E.inputs);try{brArqs=F&&F.b64?JSON.parse(F.b64):[]}catch(e){brArqs=[]}brUI();if(mostrar){irAba('branco');brRender()}}
   if(it.tipo==='cotas'){ctLimpa();putInputs(E.inputs);ctModo=E.ctModo||'padrao';ctArqs=E.ctArqs||[];ctSetorUI();ctModoUI();ctArqsUI();if(F)await ctCarregaBytes(F.nome,unb64(F.b64),mostrar);if(mostrar)irAba('cotas')}
   if(it.tipo==='modelo3d'){putInputs(E.inputs);if(F)await mCarrega(F.nome,unb64(F.b64).buffer,true);if(mostrar)irAba('modelo')}
+  if(typeof compCotas!=='undefined'){compCotas=Array.isArray(E.cotas)?E.cotas:[];for(const c of compCotas)await ctParse(c);ctListaRender()}
   pedSujo=false;pedBarRender()}
 // ---------- FP completa do pedido ----------
 function buildItem(tipo){if(tipo==='letra')return buildDoc();if(tipo==='testeira')return buildTesteira();if(tipo==='estrutura')return dFolhas();if(tipo==='modelo3d')return mFolhas();if(tipo==='bobs'){setBModo('req');return bobsFolhas()}if(tipo==='bobscomp'){setBModo('comp');return bobsFolhas()}if(tipo==='bobscant'){setBModo('cant');return bobsFolhas()}if(tipo==='branco')return brFolhas();if(tipo==='cotas')return ct3?ct3Folhas():ctFolhas()}
@@ -5822,10 +5862,7 @@ function osResumoSync(){const c=$('#osCard'),r=$('#osResumo');if(!c||!r)return;c
 $('#osResBtn').onclick=()=>{osResAberto=!osResAberto;osResumoSync()};
 OS_IDS.forEach(k=>$('#'+k).addEventListener('input',()=>osResumoSync()));
 
-// atalho no topo do pedido: adicionar cotas a um item (da OS ou novo)
-function pedCotasUI(){const s=$('#pedCotasItem');if(!s||!pedAtual)return;const os=(pedAtual.osItens||[]).slice().sort((a,b)=>a.n-b.n);const nv=proximoN();
-  s.innerHTML=os.map(o=>`<option value="${o.n}">Item ${o.n} — ${esc(String(o.titulo||'').slice(0,40))}</option>`).join('')+`<option value="${Math.max(nv,os.reduce((m,o)=>Math.max(m,+o.n),0)+1)}">Novo item</option>`}
-$('#pedCotasBtn').onclick=()=>{if(!pedAtual)return;const n=+$('#pedCotasItem').value||proximoN();novoComp('cotas',n)};
+function pedCotasUI(){}
 
 /* ===================== LER ORDEM DE SERVIÇO (PDF) =====================
    Lê nº da OS, cliente, vendedor, endereço, entrega e a lista de itens (com a foto de cada um).
@@ -5883,7 +5920,7 @@ async function osImportar(file,noPedidoAberto){const msg=$('#pedMsg')||$('#pedLi
     const l=$('#osLista');if(l)l.scrollIntoView({behavior:'smooth',block:'start'})}
   catch(e){console.error(e);if(msg)msg.innerHTML=`<div class="msg err">Não consegui ler a OS: ${esc(e.message)}</div>`}}
 // lista dos itens da OS dentro do pedido
-const OS_TIPOS=[['letra','Letra caixa'],['branco','FP em branco'],['cotas','Cotas'],['testeira','Testeira'],['estrutura','Estrutura por desenho'],['modelo3d','Modelo 3D'],['bobs','Bobs']];
+const OS_TIPOS=[['letra','Letra caixa'],['branco','FP em branco'],['testeira','Testeira'],['estrutura','Estrutura por desenho'],['modelo3d','Modelo 3D'],['bobs','Bobs']];
 const osFormHtml=()=>{const L=(pedAtual&&pedAtual.osItens)||[];const prox=Math.max(0,...L.map(i=>+i.n||0),...((pedAtual&&pedAtual.itens)||[]).map(i=>+i.n||0))+1;
   return `<details id="osManual" style="margin-top:8px"><summary style="cursor:pointer;font-weight:600;font-size:13px;color:#2b3a8c">+ Adicionar item à lista (manual, sem a OS em PDF)</summary>
   <div class="g3" style="gap:6px;margin-top:6px"><div><label class="f">Nº do item</label><input type="number" id="osmN" value="${prox}" min="1"></div><div style="grid-column:span 2"><label class="f">Nome do item</label><input type="text" id="osmT" placeholder="ex.: LETREIRO OMODA"></div>
@@ -5990,6 +6027,8 @@ function osPerguntaJunta(a,t){const L=pedAtual.osItens||[],f=n=>{const o=L.find(
   // modo "toque no outro item"
   box.addEventListener('click',e=>{const g=e.target.closest('[data-osagcom]');if(g){e.preventDefault();e.stopPropagation();escolhe(+g.dataset.osagcom);return}if(!esc1)return;const b=e.target.closest('.osBox');if(!b)return;const t=+b.dataset.osbox;e.preventDefault();e.stopPropagation();
     if(t===esc1){fimEsc();return}const a=esc1;fimEsc();osPerguntaJunta(a,t)},true)})();
+
+document.addEventListener('click',e=>{const b=e.target.closest('#osLista [data-oscota]');if(!b||!pedAtual)return;e.preventDefault();e.stopPropagation();novoComp('cotas',+b.dataset.oscota)},true);
 
 renderTypes();renderLogo();initStore();
 
