@@ -214,6 +214,10 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
  .osBox.osAberto .osAcoes{margin-top:6px}
  .rmLin>div:first-child{flex:1 1 100%!important}.rmLin>button{padding:4px 10px!important;font-size:12px!important}.rmLin>button[data-mpk]{margin-left:auto}
 }
+.pedRow.pedFin{background:#ebfbee!important;border-color:#2b8a3e!important}.pedFin .pedOS{background:#d3f9d8!important;color:#2b8a3e}.pedFin .pedOS b{color:#2b8a3e!important}
+.pedFin .pedProgMini{color:#2b8a3e!important}.pedFin .pedProgMini u{background:#2b8a3e!important}
+.pedOk{display:block;margin-top:2px;font-size:18px;font-weight:800;color:#2b8a3e;line-height:1}
+.pedFinSep{display:flex;align-items:center;gap:10px;margin:16px 0 8px;color:#2b8a3e;font-weight:700;font-size:13px}.pedFinSep:before,.pedFinSep:after{content:"";flex:1;border-top:2px solid #b2f2bb}
 </style>
 </head>
 <body>
@@ -5274,11 +5278,14 @@ function pedListaRender(){const q=($('#pedBusca').value||'').toLowerCase();
   const chips=p=>{const c={};(p.itens||[]).forEach(i=>{const k=TIPO_NOME[i.tipo]||i.tipo;c[k]=(c[k]||0)+1});const e=Object.entries(c);return e.length?e.map(([k,n])=>`<span>${esc(k)}${n>1?' ×'+n:''}</span>`).join(''):'<span style="background:#fff5f5;color:#c92a2a">sem itens</span>'};
   const resumo=p=>{const n=(p.itens||[]).length,o=p.osItens||[];if(!n&&!o.length)return'<b style="color:#c92a2a">sem itens</b>';const f=o.filter(i=>i.fin).length;
     const g=typeof pedProgresso==='function'?pedProgresso(p):null;return `${n} ite${n===1?'m':'ns'}${g?` · <span class="pedProgMini" title="pronto: itens ${g.pi}% • valor ${g.pv}%">${g.pc}% <i><u style="width:${g.pc}%"></u></i></span>`:''}`};
-  $('#pedLista').innerHTML=L.length?L.map(p=>`<button class="pedRow" data-ped="${esc(p.id)}"><div class="pedOS"><small>OS</small><b>${esc(p.os||'—')}</b></div>
+  const fin=p=>{const g=typeof pedProgresso==='function'?pedProgresso(p):null;return !!g&&g.pc>=100};
+  const LA=L.filter(p=>!fin(p)),LF=L.filter(fin);
+  const card=p=>`<button class="pedRow${fin(p)?' pedFin':''}" data-ped="${esc(p.id)}"><div class="pedOS"><small>OS</small><b>${esc(p.os||'—')}</b>${fin(p)?'<span class="pedOk">✓</span>':''}</div>
     <div class="pedMain"><div class="t">${esc(p.nome||p.cliente||'Pedido sem nome')}</div><div class="m">${esc(p.cliente||'sem cliente')}${p.projetista?' • proj. '+esc(p.projetista):''}</div>
       <div class="pedRes"><span>${resumo(p)}</span>${(p.itens||[]).length?`<span class="pedMais" role="button" tabindex="0" data-pedmais="${esc(p.id)}" title="Ver os itens">${pedAbertos.has(p.id)?'▴':'▾'}</span>`:''}</div>
       <div class="pedChips"${pedAbertos.has(p.id)?'':' hidden'}>${chips(p)}</div></div>
-    <div class="pedSide">${dt(p.atualizado)}${p.entrega?`<span class="e">entrega<br>${esc(p.entrega.split('-').reverse().join('/').replace(/\/(\d{2})(\d{2})$/,'/$2'))}</span>`:''}<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div></div></button>`).join('')
+    <div class="pedSide">${dt(p.atualizado)}${p.entrega?`<span class="e">entrega<br>${esc(p.entrega.split('-').reverse().join('/').replace(/\/(\d{2})(\d{2})$/,'/$2'))}</span>`:''}<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div></div></button>`;
+  $('#pedLista').innerHTML=L.length?LA.map(card).join('')+(LF.length?`<div class="pedFinSep"><span>✓ Finalizados (${LF.length})</span></div>`+LF.map(card).join(''):'')
     :`<div class="pedVazio">${q?'Nenhum pedido encontrado.':'Nenhum pedido ainda. Toque em <b>+ Novo pedido</b> para começar.'}</div>`;
   $('#pedNota').textContent=local?'Modo local: os pedidos ficam só neste aparelho.':'Os pedidos ficam salvos no sistema e aparecem em todos os aparelhos.'}
 $('#pedBusca').addEventListener('input',pedListaRender);
