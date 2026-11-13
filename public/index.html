@@ -239,6 +239,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
 .osAcoes{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.osCotaBtn{order:3;background:#fff0f6!important;color:#c2255c!important;border:1px solid #f783ac!important;font-weight:700}.osAcoes label{order:9}
 #ctCompBar[hidden]{display:none!important}
 #osLista .osTop{cursor:pointer}
+.pgX{position:absolute;top:6px;right:6px;z-index:3;width:30px;height:30px;border-radius:50%;border:1.5px solid #c92a2a;background:#fff;color:#c92a2a;font-weight:800;font-size:15px;line-height:1;cursor:pointer;box-shadow:0 2px 6px #0002}.pgX:hover{background:#c92a2a;color:#fff}
 </style>
 </head>
 <body>
@@ -5532,7 +5533,7 @@ function ct3Pagina(G,ctx,titulo,det,qt,E){let yLivre=30;const W=G.hi[0]-G.lo[0],
   return P}
 
 /* ---------- COTAS DO COMPONENTE: feitas dentro do projeto, saem junto com as folhas do setor escolhido ---------- */
-let compCotas=[],ctEdit=-1,ctVolta=null;const CT_ABAS=['novo','testeiras','modelo','bobs','branco'];
+let compCotas=[],compExcl=[],ctEdit=-1,ctVolta=null;const CT_ABAS=['novo','testeiras','modelo','bobs','branco'];
 function ctSalvaveis(){return compCotas.map(c=>{const o={...c};delete o._src;delete o._3d;delete o._bytes;if(o.ref){delete o.b64}if(o.arqs)o.arqs=o.arqs.map(f=>f.ref?{name:f.name,ref:f.ref}:f);return o})}
 async function ctBytesDe(c){if(c._bytes)return c._bytes;const u=c.b64?unb64(c.b64):c.ref?await lerGrande(c.ref):null;c._bytes=u;return u}
 async function ctParse(c){try{const ext=(c.nome||'').toLowerCase().split('.').pop();const bytes=await ctBytesDe(c);if(!bytes)return;
@@ -5542,13 +5543,18 @@ const CT_PCACHE=new Map();function ctClonePg(P){const Q=P.map(o=>({...o}));for(c
 function ctGerarCota(c,ctx){const ck=JSON.stringify([c.id,c.setor,c.modo,c.desc,c.mat,c.obs,c.qtd,c.larg,c.un,c.eixo,c.nome,ctx.os,ctx.item,ctx.descItem,ctx.cliente,ctx.entrega,c.n||(c.b64||'').length]);if(CT_PCACHE.has(ck))return CT_PCACHE.get(ck).map(ctClonePg);const ps=ctGerarCota0(c,ctx);CT_PCACHE.set(ck,ps.map(ctClonePg));if(CT_PCACHE.size>40)CT_PCACHE.delete(CT_PCACHE.keys().next().value);return ps}
 function ctGerarCota0(c,ctx){const sv={ctSrc,ct3,ctModo,CTO};try{ctSrc=c._src||null;ct3=c._3d||null;ctModo=c.modo||'padrao';CTO={ctLarg:c.larg||'',ctMat:c.mat||'',ctObs:c.obs||'',ctQtd:c.qtd||'1',ctDesc:c.desc||'',ctUn:c.un||'1',ctEixo:c.eixo||'z',ctSetor:c.setor||'COTAS',ctx};
     const fs=FOOT_SKIP;FOOT_SKIP=true;try{return(ct3?ct3Folhas():ctFolhas()).pages}finally{FOOT_SKIP=fs}}finally{ctSrc=sv.ctSrc;ct3=sv.ct3;ctModo=sv.ctModo;CTO=sv.CTO}}
-function ctComCotas(fn){const w=function(...a){if(!compCotas.length||(typeof abaAtual==='function'&&abaAtual()==='cotas'&&!ctVolta))return fn.apply(this,a);const fs=FOOT_SKIP;FOOT_SKIP=true;let r;try{r=fn.apply(this,a)}finally{FOOT_SKIP=fs}
-  if(r&&r.pages){compCotas.forEach(c=>{if(!c._src&&!c._3d)return;let ps=[];try{ps=ctGerarCota(c,r.ctx)}catch(e){console.error('cota',e)}if(!ps.length)return;
+function ctComCotas(fn){const w=function(...a){if(typeof abaAtual==='function'&&abaAtual()==='cotas'&&!ctVolta)return fn.apply(this,a);
+  const mexe=compCotas.length||compExcl.length;const fs=FOOT_SKIP;if(mexe)FOOT_SKIP=true;let r;try{r=fn.apply(this,a)}finally{FOOT_SKIP=fs}
+  if(!r||!r.pages)return r;
+  if(compCotas.length)compCotas.forEach(c=>{if(!c._src&&!c._3d)return;let ps=[];try{ps=ctGerarCota(c,r.ctx)}catch(e){console.error('cota',e)}if(!ps.length)return;
       let idx=-1;r.pages.forEach((P,i)=>{if(P._setor===c.setor)idx=i});if(idx<0){const f=r.pages.findIndex(P=>['RM','PI','EXPEDIÇÃO','QUALIDADE','INSTALAÇÃO'].includes(P._setor));idx=f>=0?f-1:r.pages.length-1}
       r.pages.splice(idx+1,0,...ps);if(Array.isArray(r.tags))r.tags.splice(idx+1,0,...ps.map(P=>P._setor||c.setor))});
-    if(!fs){numeraSetores(r.pages);r.pages.forEach((P,i)=>footer(P,r.ctx,i+1,r.pages.length))}}return r};w._ct=true;return w}
+  // chave de cada folha (setor + ordem) — usada pelo X de excluir folha
+  {const cnt={};r.pages.forEach(P=>{const st=P._setor||'FP';cnt[st]=(cnt[st]||0)+1;P._key=st+'#'+cnt[st]})}
+  if(compExcl.length){const keep=r.pages.map(P=>!compExcl.includes(P._key));const tg=Array.isArray(r.tags)?r.tags.filter((t,i)=>keep[i]):r.tags;r.pages=r.pages.filter((P,i)=>keep[i]);if(Array.isArray(r.tags))r.tags=tg}
+  if(mexe&&!fs){numeraSetores(r.pages);r.pages.forEach((P,i)=>footer(P,r.ctx,i+1,r.pages.length))}return r};w._ct=true;return w}
 function ctListaRender(){document.querySelectorAll('.ctLista').forEach(el=>{el.innerHTML=`<div class="card" style="border:1.5px solid #f783ac;background:#fff0f6"><div class="row" style="justify-content:space-between;align-items:center"><b style="color:#c2255c">📐 Cotas deste item</b><button class="btn sm" type="button" data-ctnova style="background:#c2255c;color:#fff">+ Nova cota</button></div>`+
-  (compCotas.length?compCotas.map((c,i)=>`<div class="row" style="gap:8px;align-items:center;border-top:1px solid #fcc2d7;padding:7px 0;margin-top:6px"><div style="flex:1;min-width:0"><b>Cota ${esc(c.setor==='COTAS'?'':c.setor.toLowerCase())}</b> — ${esc(c.desc||c.nome)}<div class="note" style="margin:0">${c.modo==='detalhada'?'detalhada':'padrão'} • ${esc(c.nome)}${c.mat?' • '+esc(c.mat):''}</div></div><button class="btn ghost sm" type="button" data-cted="${i}">Editar</button><button class="btn ghost sm" type="button" data-ctdel="${i}" style="color:#c92a2a">✕</button></div>`).join(''):'<div class="note" style="margin:6px 0 0">Nenhuma cota ainda. As cotas saem junto com as folhas do setor escolhido (ex.: cota da serralheria junto com a serralheria).</div>')+'</div>'})}
+  (compCotas.length?compCotas.map((c,i)=>`<div class="row" style="gap:8px;align-items:center;border-top:1px solid #fcc2d7;padding:7px 0;margin-top:6px"><div style="flex:1;min-width:0"><b>Cota ${esc(c.setor==='COTAS'?'':c.setor.toLowerCase())}</b> — ${esc(c.desc||c.nome)}<div class="note" style="margin:0">${c.modo==='detalhada'?'detalhada':'padrão'} • ${esc(c.nome)}${c.mat?' • '+esc(c.mat):''}</div></div><button class="btn ghost sm" type="button" data-cted="${i}">Editar</button><button class="btn ghost sm" type="button" data-ctdel="${i}" style="color:#c92a2a">✕</button></div>`).join(''):'<div class="note" style="margin:6px 0 0">Nenhuma cota ainda. As cotas saem junto com as folhas do setor escolhido (ex.: cota da serralheria junto com a serralheria).</div>')+'</div>'+(compExcl.length?`<div class="card" style="border:1.5px solid #ffc9c9;background:#fff5f5"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div><b style="color:#c92a2a">Folhas excluídas desta FP:</b> ${compExcl.map(k=>esc(k.replace('#',' '))).join(', ')}</div><button class="btn ghost sm" type="button" data-exrest>Restaurar todas</button></div></div>`:'')})}
 function ctTipoDe(a){return a==='novo'?'letra':a==='testeiras'?(tModo==='desenho'?'estrutura':'testeira'):a==='modelo'?'modelo3d':a==='bobs'?(bModo==='comp'?'bobscomp':bModo==='cant'?'bobscant':'bobs'):a==='branco'?'branco':null}
 function ctEntra(ant){if(CT_ABAS.includes(ant)){ctVolta={aba:ant,tipo:ctTipoDe(ant)};if(ctEdit<0){ctLimpa();$('#ctDesc').value=''}}ctModoComp()}
 function ctModoComp(){const on=!!ctVolta;$('#ctCompBar').hidden=!on;$('#ctVoltar').hidden=on;if(on)$('#ctCompTit').textContent=`Cota do item ${$('#item').value||''} — ${TIPO_NOME[ctVolta.tipo]||''}${ctEdit>=0?' (editando)':''}`}
@@ -5567,13 +5573,25 @@ async function ctPosSalvar(tp){try{if(tp&&typeof pedAtual!=='undefined'&&pedAtua
   try{const a=abaAtual();const btn={novo:'#gerar',bobs:'#bGerar',branco:'#brGerar'}[a];if(btn&&$(btn)&&!$(btn).disabled&&document.querySelector('#tab-'+a+' .pg'))$(btn).click();else if(a==='testeiras'&&typeof tRender==='function')tRender();else if(a==='modelo'&&typeof mFolhasRender==='function')mFolhasRender()}catch(e){console.error(e)}}
 document.addEventListener('DOMContentLoaded',()=>{
   ['buildDoc','buildTesteira','dFolhas','mFolhas','bobsFolhas','brFolhas'].forEach(n=>{if(typeof window[n]==='function'&&!window[n]._ct)window[n]=ctComCotas(window[n])});
-  if(typeof capturaEstado==='function'){const _c=capturaEstado;window.capturaEstado=function(t){const C=_c(t);if(C&&C.estado&&t!=='cotas')C.estado.cotas=ctSalvaveis();return C}}
+  if(typeof capturaEstado==='function'){const _c=capturaEstado;window.capturaEstado=function(t){const C=_c(t);if(C&&C.estado&&t!=='cotas'){C.estado.cotas=ctSalvaveis();C.estado.excl=compExcl.slice()}return C}}
   document.querySelectorAll('.isbCard').forEach(c=>{if(!c.closest('#tab-cotas'))c.insertAdjacentHTML('beforebegin','<div class="ctLista"></div>')});ctListaRender();
   document.addEventListener('click',e=>{const n=e.target.closest('[data-ctnova]'),ed=e.target.closest('[data-cted]'),d=e.target.closest('[data-ctdel]');
     if(n){ctEdit=-1;irAba('cotas')}
     else if(ed)ctEditar(+ed.dataset.cted);
     else if(d){const c=compCotas[+d.dataset.ctdel];if(c){if(c.ref)apagaGrande(c.ref);(c.arqs||[]).forEach(f=>f.ref&&apagaGrande(f.ref));compCotas.splice(+d.dataset.ctdel,1);if(typeof pedSujo!=='undefined')pedSujo=true;ctListaRender();ctPosSalvar(ctTipoDe(abaAtual()))}}});
   $('#ctGuardar').onclick=ctGuardar;$('#ctCancelar').onclick=ctSair;});
+
+// ---------- X em cada folha: excluir a folha da FP (com confirmação) ----------
+function fpExclPergunta(key,rotulo){let m=$('#exModal');if(m)m.remove();m=document.createElement('div');m.id='exModal';m.className='modal on';m.style.zIndex=10001;
+  m.innerHTML=`<div class="sheet" style="max-width:420px"><div style="font-weight:700;font-size:16px;margin-bottom:6px">Excluir esta folha da FP?</div><div class="note" style="margin:0 0 12px">Folha: <b>${esc(rotulo)}</b>. Ela deixa de sair na FP deste item (e na FP completa do pedido). Dá para restaurar depois no quadro "Folhas excluídas".</div><div class="row" style="gap:8px;justify-content:flex-end"><button class="btn ghost" type="button" data-ex="n">Cancelar</button><button class="btn" type="button" data-ex="s" style="background:#c92a2a;color:#fff">Excluir folha</button></div></div>`;
+  m.addEventListener('click',async e=>{const b=e.target.closest('[data-ex]');if(!b&&e.target!==m)return;m.remove();if(b&&b.dataset.ex==='s'){if(!compExcl.includes(key))compExcl.push(key);if(typeof pedSujo!=='undefined')pedSujo=true;ctListaRender();await ctPosSalvar(ctTipoDe(abaAtual()))}});document.body.appendChild(m)}
+document.addEventListener('DOMContentLoaded',()=>{
+  if(typeof toSVG==='function'){const _t=toSVG;window.toSVG=function(P){const s=_t(P);return P&&P._key?s.replace('<svg','<svg data-pgkey="'+String(P._key).replace(/"/g,'')+'"'):s}}
+  const marca=()=>{if(!CT_ABAS.includes(abaAtual()))return;document.querySelectorAll('#tab-'+abaAtual()+' .pg').forEach(pg=>{const sv=pg.querySelector('svg[data-pgkey]');if(!sv||pg.querySelector('.pgX'))return;pg.style.position='relative';
+    const b=document.createElement('button');b.type='button';b.className='pgX';b.title='Excluir esta folha da FP';b.textContent='✕';b.dataset.key=sv.dataset.pgkey;pg.appendChild(b)})};
+  new MutationObserver(()=>{clearTimeout(marca.t);marca.t=setTimeout(marca,60)}).observe(document.body,{childList:true,subtree:true});
+  document.addEventListener('click',e=>{const x=e.target.closest('.pgX');if(x){e.preventDefault();e.stopPropagation();const k=x.dataset.key,[st,n]=k.split('#');fpExclPergunta(k,`${st.charAt(0)+st.slice(1).toLowerCase()} — folha ${n}`);return}
+    if(e.target.closest('[data-exrest]')){compExcl=[];if(typeof pedSujo!=='undefined')pedSujo=true;ctListaRender();ctPosSalvar(ctTipoDe(abaAtual()))}},true)});
 
 /* ================= PEDIDOS: uma OS com vários itens (letras, testeiras, estruturas, modelos 3D), tudo salvo ================= */
 let pedidos=[],pedAtual=null,itemAtual=null,pedPdf=null,pedSujo=false;
@@ -5663,7 +5681,7 @@ function pedAbertoRender(){if(!pedAtual)return;$('#pedTitulo').innerHTML=`Pedido
   grupos.forEach(g=>{if(osNs.has(g.n)){const h=grHtml(g);const i=h.indexOf('</div>',h.indexOf('<div class="row"'))+6;window.pedGrupoCorpo[g.n]=h.slice(i,h.length-6)}});
   const fora=grupos.filter(g=>!osNs.has(g.n));
   $('#pedItens').innerHTML=fora.length?(osNs.size?'<b style="display:block;margin-top:10px">Outros itens (fora da OS)</b>':'')+fora.map(grHtml).join(''):(osNs.size?'':'<p class="note">Nenhum item ainda. Use os botões abaixo para incluir letras, testeiras ou estruturas.</p>');pedSelBtn();if(typeof osListaRender==='function')osListaRender()}
-function novoComp(tipo,n){if(typeof compCotas!=='undefined'){compCotas=[];setTimeout(()=>ctListaRender&&ctListaRender(),0)}itemAtual={id:'i'+Date.now().toString(36),tipo,n,novo:true};limpaTipo(tipo);if(typeof escVis==='function'){escAberta=false;escVis()}$('#item').value=n;irAba(TIPO_ABA[tipo]);if(typeof osPreenche==='function')osPreenche(tipo,n);if(tipo==='testeira')setModo('padrao');if(tipo==='estrutura')setModo('desenho');pedSujo=true;pedBarRender();window.scrollTo(0,0)}
+function novoComp(tipo,n){setTimeout(projMarcaSalvo,900);if(typeof compCotas!=='undefined'){compCotas=[];compExcl=[];setTimeout(()=>ctListaRender&&ctListaRender(),0)}itemAtual={id:'i'+Date.now().toString(36),tipo,n,novo:true};limpaTipo(tipo);if(typeof escVis==='function'){escAberta=false;escVis()}$('#item').value=n;irAba(TIPO_ABA[tipo]);if(typeof osPreenche==='function')osPreenche(tipo,n);if(tipo==='testeira')setModo('padrao');if(tipo==='estrutura')setModo('desenho');pedSujo=true;pedBarRender();window.scrollTo(0,0)}
 $('#pedItensBox').addEventListener('change',e=>{const i=e.target.closest('[data-prodnome]');if(!i||!pedAtual)return;pedAtual.produtos={...(pedAtual.produtos||{})};const v=i.value.trim();if(v)pedAtual.produtos[i.dataset.prodnome]=v;else delete pedAtual.produtos[i.dataset.prodnome];pedSalvar(pedAtual)});
 $('#pedFechar').onclick=()=>{pedAtual=null;itemAtual=null;setTimeout(()=>osResumoSync(),0);$('#pedCard').hidden=true;$('#pedListaCard').hidden=false;$('#osSec').hidden=true;pedBarRender();pedListaRender()};
 let pedTimer=null;
@@ -5728,7 +5746,7 @@ async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHT
     const reg={id:it?it.id:(itemAtual&&itemAtual.id)||'i'+Date.now().toString(36),n,tipo,desc:C.desc,resumo:C.resumo,estadoId,fonteId,fonteNome:C.fonte?C.fonte.nome:'',fonteTam:C.fonte?C.fonte.b64.length:0,atualizado:Date.now(),...(C.lens?{bobsLens:C.lens}:{}),venda:vendaNum(($('#itemVenda')||{}).value),custo:(typeof matUlt!=='undefined'&&matUlt&&matUlt.length)?Math.round(matUlt.reduce((a,r)=>a+(+r.tot||0),0)*100)/100:(it&&it.custo!=null?it.custo:null)};
     pedAtual.itens=(pedAtual.itens||[]).filter(i=>i.id!==reg.id).concat([reg]);await pedSalvar(pedAtual);
     if(velho){if(velho.e!==estadoId)apagaJSON(velho.e);if(velho.f&&velho.f!==fonteId)apagaJSON(velho.f)}
-    itemAtual={id:reg.id,tipo,n};pedSujo=false;pedBarRender();msg(`<span style="color:#b2f2bb">✓ Item ${n} salvo no pedido.</span>`);
+    itemAtual={id:reg.id,tipo,n};pedSujo=false;pedBarRender();msg(`<span style="color:#b2f2bb">✓ Item ${n} salvo no pedido.</span>`);projMarcaSalvo();
     try{$('#pedListaCard').hidden=true;$('#pedCard').hidden=false;pedAbertoRender();pedBarRender()}catch(e){}}
   catch(e){console.error(e);msg(`<span style="color:#ffc9c9">Não salvou: ${esc(e.message)}</span>`)}}
 // abre um item: restaura tudo; se "mostrar", vai para a aba dele e gera
@@ -5754,8 +5772,8 @@ async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)th
   if(it.tipo==='branco'){brFichas=JSON.parse(JSON.stringify(E.brFichas||[]));putInputs(E.inputs);try{brArqs=F&&F.b64?JSON.parse(F.b64):[]}catch(e){brArqs=[]}brUI();if(mostrar){irAba('branco');brRender()}}
   if(it.tipo==='cotas'){ctLimpa();putInputs(E.inputs);ctModo=E.ctModo||'padrao';ctArqs=E.ctArqs||[];ctSetorUI();ctModoUI();ctArqsUI();if(F)await ctCarregaBytes(F.nome,unb64(F.b64),mostrar);if(mostrar)irAba('cotas')}
   if(it.tipo==='modelo3d'){putInputs(E.inputs);if(F)await mCarrega(F.nome,unb64(F.b64).buffer,true);if(mostrar)irAba('modelo')}
-  if(typeof compCotas!=='undefined'){compCotas=Array.isArray(E.cotas)?E.cotas:[];for(const c of compCotas)await ctParse(c);ctListaRender()}
-  pedSujo=false;pedBarRender()}
+  if(typeof compCotas!=='undefined'){compExcl=Array.isArray(E.excl)?E.excl:[];compCotas=Array.isArray(E.cotas)?E.cotas:[];for(const c of compCotas)await ctParse(c);ctListaRender()}
+  pedSujo=false;pedBarRender();if(mostrar)setTimeout(projMarcaSalvo,900)}
 // ---------- FP completa do pedido ----------
 function buildItem(tipo){if(tipo==='letra')return buildDoc();if(tipo==='testeira')return buildTesteira();if(tipo==='estrutura')return dFolhas();if(tipo==='modelo3d')return mFolhas();if(tipo==='bobs'){setBModo('req');return bobsFolhas()}if(tipo==='bobscomp'){setBModo('comp');return bobsFolhas()}if(tipo==='bobscant'){setBModo('cant');return bobsFolhas()}if(tipo==='branco')return brFolhas();if(tipo==='cotas')return ct3?ct3Folhas():ctFolhas()}
 let pedSel=new Set(),pedParcial=false;
@@ -5919,6 +5937,22 @@ $('#osResBtn').onclick=()=>{osResAberto=!osResAberto;osResumoSync()};
 OS_IDS.forEach(k=>$('#'+k).addEventListener('input',()=>osResumoSync()));
 
 function pedCotasUI(){}
+
+// ---------- proteção: ao sair de um projeto com alterações não salvas, perguntar ----------
+const PROJ_ABAS=['novo','testeiras','modelo','bobs','branco'];let projBase=null,projPassa=false;
+function projSig(){const t=tipoDaAba();if(!t||t==='cotas')return null;try{const C=capturaEstado(t);return JSON.stringify([C.estado,C.desc,C.fonte?C.fonte.nome+'|'+C.fonte.b64.length:'',$('#item').value,$('#itemVenda')?$('#itemVenda').value:''])}catch(e){return 'vazio:'+String(e.message||'')}}
+function projMarcaSalvo(){projBase=projSig()}
+function projSujo(){const a=abaAtual();if(!PROJ_ABAS.includes(a)||!pedAtual)return false;const s=projSig();return s!==null&&projBase!==null&&s!==projBase}
+function projPergunta(seguir){let m=$('#projModal');if(m)m.remove();m=document.createElement('div');m.id='projModal';m.className='modal on';m.style.zIndex=10001;
+  m.innerHTML=`<div class="sheet" style="max-width:440px"><div style="font-weight:700;font-size:16px;margin-bottom:6px">Salvar as alterações do item?</div><div class="note" style="margin:0 0 12px">Você mexeu no projeto deste item e ainda não salvou. Se sair sem salvar, as alterações serão perdidas.</div>
+  <div class="row" style="gap:8px;justify-content:flex-end;flex-wrap:wrap"><button class="btn ghost" type="button" data-pm="c">Continuar editando</button><button class="btn ghost" type="button" data-pm="n" style="color:#c92a2a">Sair sem salvar</button><button class="btn pink" type="button" data-pm="s">Salvar e sair</button></div><div class="note" id="projModalMsg" style="margin:8px 0 0"></div></div>`;
+  m.addEventListener('click',async e=>{const b=e.target.closest('[data-pm]');if(!b)return;const k=b.dataset.pm;if(k==='c'){m.remove();return}
+    if(k==='s'){b.disabled=true;$('#projModalMsg').textContent='Salvando…';try{await itemSalvar(tipoDaAba())}catch(err){}if(projSujo()){b.disabled=false;$('#projModalMsg').innerHTML='<span style="color:#c92a2a">Não consegui salvar — confira a mensagem na barra azul.</span>';return}}
+    m.remove();projBase=null;projPassa=true;try{seguir()}finally{projPassa=false}});document.body.appendChild(m)}
+document.addEventListener('click',e=>{if(projPassa)return;const el=e.target.closest('nav button[data-tab],#pbVer,header #hdrLogo,header h1');if(!el)return;
+  if(el.matches('nav button[data-tab]')&&(PROJ_ABAS.includes(el.dataset.tab)||el.dataset.tab==='cotas'))return;
+  if(!projSujo())return;e.preventDefault();e.stopImmediatePropagation();projPergunta(()=>el.click())},true);
+window.addEventListener('beforeunload',e=>{if(projSujo()){e.preventDefault();e.returnValue='';return ''}});
 
 /* ===================== LER ORDEM DE SERVIÇO (PDF) =====================
    Lê nº da OS, cliente, vendedor, endereço, entrega e a lista de itens (com a foto de cada um).
