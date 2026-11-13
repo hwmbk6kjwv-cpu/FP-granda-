@@ -240,6 +240,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
 #ctCompBar[hidden]{display:none!important}
 #osLista .osTop{cursor:pointer}
 .pgX{position:absolute;top:6px;right:6px;z-index:3;width:30px;height:30px;border-radius:50%;border:1.5px solid #c92a2a;background:#fff;color:#c92a2a;font-weight:800;font-size:15px;line-height:1;cursor:pointer;box-shadow:0 2px 6px #0002}.pgX:hover{background:#c92a2a;color:#fff}
+main img:not(.pg img):not(header img){cursor:zoom-in}
 </style>
 </head>
 <body>
@@ -5861,7 +5862,9 @@ function colaAviso(t,ok){let d=$('#colaToast');if(!d){d=document.createElement('
 document.addEventListener('focusin',e=>{const z=e.target.closest&&e.target.closest('.colaZona');if(z){z.dataset.txt=z.dataset.txt||z.textContent;z.textContent='';z.classList.add('on')}});
 document.addEventListener('focusout',e=>{const z=e.target.closest&&e.target.closest('.colaZona');if(z){z.textContent=z.dataset.txt||'Colar print aqui (toque e segure → Colar, ou Ctrl+V)';z.classList.remove('on')}});
 document.addEventListener('input',e=>{const z=e.target.closest&&e.target.closest('.colaZona');if(z)z.textContent=''},true);
-document.addEventListener('paste',e=>{const cd=e.clipboardData;if(!cd)return;const zz=e.target&&e.target.closest&&e.target.closest('.colaZona');if(zz){const i=zz.parentElement.querySelector('input[type=file]');if(i){colaAlvo=i;colaSel=colaSeletor(i);colaT=Date.now()}e.preventDefault();zz.blur()}let fs=[...(cd.files||[])];
+document.addEventListener('paste',e=>{const cd=e.clipboardData;if(!cd)return;const zz=e.target&&e.target.closest&&e.target.closest('.colaZona');
+  // colando texto num campo (busca, nome, preço…) ou com uma janela aberta: é só texto, não vira arquivo
+  if(!zz){const t=e.target,ed=t&&(t.isContentEditable||(t.tagName==='TEXTAREA')||(t.tagName==='INPUT'&&!['file','checkbox','radio','button'].includes(t.type)));if(ed)return;if(document.querySelector('.modal.on, #projModal, #exModal, #osPopup'))return}if(zz){const i=zz.parentElement.querySelector('input[type=file]');if(i){colaAlvo=i;colaSel=colaSeletor(i);colaT=Date.now()}e.preventDefault();zz.blur()}let fs=[...(cd.files||[])];
   if(!fs.length)fs=[...(cd.items||[])].filter(x=>x.kind==='file').map(x=>x.getAsFile()).filter(Boolean);if(!fs.length)return;
   fs=fs.map((f,k)=>f.name&&f.name!=='image.png'?f:new File([f],`colado-${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}${k?'-'+k:''}.${(f.type.split('/')[1]||'png').replace('jpeg','jpg')}`,{type:f.type}));
   const ca=colaResolve();let alvo=ca&&Date.now()-colaT<10*60*1000&&colaVisivel(ca)&&colaAceita(ca,fs[0])?ca:null;
@@ -5953,6 +5956,15 @@ document.addEventListener('click',e=>{if(projPassa)return;const el=e.target.clos
   if(el.matches('nav button[data-tab]')&&(PROJ_ABAS.includes(el.dataset.tab)||el.dataset.tab==='cotas'))return;
   if(!projSujo())return;e.preventDefault();e.stopImmediatePropagation();projPergunta(()=>el.click())},true);
 window.addEventListener('beforeunload',e=>{if(projSujo()){e.preventDefault();e.returnValue='';return ''}});
+
+// ---------- toque numa miniatura → abre a imagem grande ----------
+function imgAmplia(src){let m=$('#imgZoom');if(m)m.remove();m=document.createElement('div');m.id='imgZoom';
+  m.style.cssText='position:fixed;inset:0;z-index:10050;background:rgba(10,14,30,.88);display:flex;align-items:center;justify-content:center;padding:16px;cursor:zoom-out';
+  m.innerHTML=`<img src="${src}" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;background:#fff;box-shadow:0 10px 40px #0008"><button type="button" style="position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:50%;border:0;background:#fff;font-size:20px;font-weight:800;cursor:pointer">✕</button>`;
+  m.addEventListener('click',()=>m.remove());document.body.appendChild(m)}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#imgZoom'))$('#imgZoom').remove()});
+document.addEventListener('click',e=>{const im=e.target.closest&&e.target.closest('img');if(!im||im.closest('#imgZoom,header,nav,.pg,.osGhost,button,a,label'))return;
+  const r=im.getBoundingClientRect();if(r.width>260&&r.height>260)return;if(!im.src||im.closest('.osTop'))return;e.preventDefault();e.stopPropagation();imgAmplia(im.src)},true);
 
 /* ===================== LER ORDEM DE SERVIÇO (PDF) =====================
    Lê nº da OS, cliente, vendedor, endereço, entrega e a lista de itens (com a foto de cada um).
