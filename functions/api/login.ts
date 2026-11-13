@@ -5,12 +5,8 @@ export const onRequest: PagesFunction<Env> = async ({ request: req, env }) => {
   if (req.method === "DELETE") return new Response(null, { status: 204, headers: { "set-cookie": cookie("", 0) } });
   if (req.method !== "POST") return new Response(null, { status: 405 });
   const body: any = await req.json().catch(() => ({}));
-  if (body.nova !== undefined) {
-    if (!(await autorizado(req, env)) || !(await senhaConfere(env, body.atual))) return Response.json({ ok: false, erro: "senha atual incorreta" }, { status: 401 });
-    if (String(body.nova).length < 6) return Response.json({ ok: false, erro: "a nova senha precisa de pelo menos 6 caracteres" }, { status: 400 });
-    await trocaSenha(env, String(body.nova));
-    return Response.json({ ok: true }, { headers: { "set-cookie": cookie(await token(env), 60 * 60 * 24 * 30) } });
-  }
+  // troca de senha pelo site desativada: só pelo painel do Cloudflare (cfg 'senha_nova'='1')
+  if (body.nova !== undefined) return Response.json({ ok: false, erro: "troca de senha desativada" }, { status: 403 });
   // troca liberada pelo painel do Cloudflare (cfg 'senha_nova'='1'): a primeira senha enviada vira a senha nova
   if (body.definir && (await pedeSenhaNova(env))) {
     if (String(body.senha || "").length < 6) return Response.json({ ok: false, erro: "a senha precisa de pelo menos 6 caracteres" }, { status: 400 });
