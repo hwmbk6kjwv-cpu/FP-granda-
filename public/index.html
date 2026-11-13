@@ -189,6 +189,8 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
 .osComps{margin-top:8px;border-top:1px solid #0001;padding-top:4px}.osComp{display:flex;gap:6px;align-items:center;background:#fff;border:1px solid #dee2e6;border-radius:8px;padding:5px 7px;margin-top:5px}
 .osComp input{width:16px;height:16px;flex:none}.osCompT{flex:1;min-width:0;font-size:12.5px;line-height:1.25}.osCompT b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.osCompT span{display:block;font-size:11px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .osSelo{flex:none;font-size:10.5px;font-weight:700;border-radius:999px;padding:2px 7px;white-space:nowrap}.osComp .btn.sm{padding:4px 9px;min-height:0;font-size:12px}.osDet[hidden]{display:none}
+.progBox{border:1.5px solid #1971c2;background:#e7f5ff;border-radius:10px;padding:8px 12px;min-width:150px;text-align:right}.progBox b.pc{font-size:26px;color:#1864ab;line-height:1}.progBar{height:7px;border-radius:9px;background:#d0ebff;overflow:hidden;margin:5px 0}.progBar>i{display:block;height:100%;background:#1971c2;border-radius:9px}
+.pedProgMini{display:inline-flex;align-items:center;gap:5px;font-weight:700;color:#1864ab}.pedProgMini i{display:inline-block;width:46px;height:6px;border-radius:9px;background:#d0ebff;overflow:hidden;position:relative}.pedProgMini i>u{position:absolute;left:0;top:0;bottom:0;background:#1971c2}
 </style>
 </head>
 <body>
@@ -206,6 +208,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
         <div><label class="f">Data de entrega</label><input type="date" id="entrega"></div>
       </div>
       <div id="descBox"><label class="f">Descrição do item</label><input type="text" id="descItem" value="LETRA CAIXA FACHADA"></div>
+      <div id="pedTotBox" hidden><label class="f">Valor total do pedido (R$) <span class="note" style="font-weight:400">— soma dos produtos, sem logística</span></label><div id="pedTotV" style="padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#f8f9fa;font-weight:700;font-size:16px">—</div></div>
       <div id="vendaBox"><label class="f">Valor de venda do item (R$) <span class="note" style="font-weight:400">— compara com o custo da RM no pedido</span></label><input type="text" id="itemVenda" inputmode="decimal" placeholder="Ex.: 4.500,00"></div>
       <div class="g2">
         <div><label class="f">Cliente</label><input type="text" id="cliente"></div>
@@ -232,7 +235,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <p class="note" id="pedNota"></p>
     </div>
     <div class="card" id="pedCard" hidden>
-      <div class="row" style="justify-content:space-between;align-items:flex-start"><div><span class="note">PEDIDO</span><h2 style="margin:2px 0 0" id="pedTitulo"></h2></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px"><button class="btn ghost sm" id="pedFechar">Voltar à lista</button><div id="pedTotal"></div></div></div>
+      <div class="row" style="justify-content:space-between;align-items:flex-start"><div><span class="note">PEDIDO</span><h2 style="margin:2px 0 0" id="pedTitulo"></h2></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px"><button class="btn ghost sm" id="pedFechar">Voltar à lista</button><div style="display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;justify-content:flex-end"><div id="pedProg"></div><div id="pedTotal"></div></div></div></div>
       <input type="hidden" id="pedNome">
       <p class="note" style="margin:6px 0 0">Os dados da OS (número, cliente, entrega…) ficam no quadro acima e valem para todos os itens. Tudo é salvo sozinho.</p>
       <label class="f" style="margin-top:14px">Itens do pedido</label>
@@ -821,7 +824,7 @@ $('#ledPick').onclick=e=>{const b=e.target.closest('button');if(!b)return;selLed
 $('#typeList').onclick=e=>{const b=e.target.closest('.type');if(b)openModal(types.find(t=>t.id===b.dataset.id))};
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
-  const tb=b.dataset.tab;$('#tab-pedidos').hidden=tb!=='pedidos';$('#tab-novo').hidden=tb!=='novo';$('#tab-tipos').hidden=tb!=='tipos';$('#tab-testeiras').hidden=tb!=='testeiras';$('#tab-modelo').hidden=tb!=='modelo';$('#tab-bobs').hidden=tb!=='bobs';if($('#tab-branco'))$('#tab-branco').hidden=tb!=='branco';if($('#osLerRow'))$('#osLerRow').hidden=tb!=='pedidos';if(tb==='bobs')setTimeout(()=>{try{bobsEditor();bobs3D()}catch(e){console.error(e)}},30);if(tb==='modelo')setTimeout(()=>m3Draw(),30);
+  const tb=b.dataset.tab;$('#tab-pedidos').hidden=tb!=='pedidos';$('#tab-novo').hidden=tb!=='novo';$('#tab-tipos').hidden=tb!=='tipos';$('#tab-testeiras').hidden=tb!=='testeiras';$('#tab-modelo').hidden=tb!=='modelo';$('#tab-bobs').hidden=tb!=='bobs';if($('#tab-branco'))$('#tab-branco').hidden=tb!=='branco';if($('#osLerRow'))$('#osLerRow').hidden=tb!=='pedidos';{const noPed=tb==='pedidos';['#itemBox','#descBox','#vendaBox'].forEach(x=>{const e=$(x);if(e)e.hidden=noPed});const pt=$('#pedTotBox');if(pt)pt.hidden=!noPed;if(noPed&&typeof pedTotRender==='function')pedTotRender()}if(tb==='bobs')setTimeout(()=>{try{bobsEditor();bobs3D()}catch(e){console.error(e)}},30);if(tb==='modelo')setTimeout(()=>m3Draw(),30);
   $('#osSec').hidden=tb==='tipos'||(tb==='pedidos'&&!pedAtual);if($('#refBox'))$('#refBox').hidden=tb==='pedidos';if($('#descBox'))$('#descBox').hidden=tb==='pedidos';if($('#vendaBox'))$('#vendaBox').hidden=tb==='pedidos';$('#instSec').hidden=!['novo','modelo','testeiras','bobs'].includes(tb);instColoca(tb);pedBarRender();if(tb==='testeiras')setTimeout(tRender,30);pickerCasa();$('#itemBox').hidden=tb==='pedidos';$('#descBox').hidden=tb==='testeiras'||tb==='pedidos';
 });
 async function shrinkImage(f,max,type){
@@ -5246,7 +5249,7 @@ function pedListaRender(){const q=($('#pedBusca').value||'').toLowerCase();
   const dt=v=>v?new Date(v).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'}):'';
   const chips=p=>{const c={};(p.itens||[]).forEach(i=>{const k=TIPO_NOME[i.tipo]||i.tipo;c[k]=(c[k]||0)+1});const e=Object.entries(c);return e.length?e.map(([k,n])=>`<span>${esc(k)}${n>1?' ×'+n:''}</span>`).join(''):'<span style="background:#fff5f5;color:#c92a2a">sem itens</span>'};
   const resumo=p=>{const n=(p.itens||[]).length,o=p.osItens||[];if(!n&&!o.length)return'<b style="color:#c92a2a">sem itens</b>';const f=o.filter(i=>i.fin).length;
-    return `${n} ite${n===1?'m':'ns'}${o.length?` · <b style="color:${f===o.length?'#2b8a3e':'#e67700'}">${f}/${o.length} ✓</b>`:''}`};
+    const g=typeof pedProgresso==='function'?pedProgresso(p):null;return `${n} ite${n===1?'m':'ns'}${g?` · <span class="pedProgMini" title="pronto: itens ${g.pi}% • valor ${g.pv}%">${g.pc}% <i><u style="width:${g.pc}%"></u></i></span>`:''}`};
   $('#pedLista').innerHTML=L.length?L.map(p=>`<button class="pedRow" data-ped="${esc(p.id)}"><div class="pedOS"><small>OS</small><b>${esc(p.os||'—')}</b></div>
     <div class="pedMain"><div class="t">${esc(p.nome||p.cliente||'Pedido sem nome')}</div><div class="m">${esc(p.cliente||'sem cliente')}${p.projetista?' • proj. '+esc(p.projetista):''}</div>
       <div class="pedRes"><span>${resumo(p)}</span>${(p.itens||[]).length?`<span class="pedMais" role="button" tabindex="0" data-pedmais="${esc(p.id)}" title="Ver os itens">${pedAbertos.has(p.id)?'▴':'▾'}</span>`:''}</div>
@@ -5280,7 +5283,7 @@ function margemBox(custo,venda,titulo){const temC=custo!=null&&custo>0,temV=vend
     ${pc!=null?`<div style="margin-top:3px;font-size:15px;font-weight:800;color:${N[1]}">${pc.toFixed(1).replace('.',',')}% <span style="font-size:11px">${N[0]}</span></div>`:''}</div>`}
 // ---------- pedido aberto ----------
 function pedAbrir(p){pedSel=new Set();pedAtual=JSON.parse(JSON.stringify(p));itemAtual=null;pedPdf=null;OS_IDS.forEach(k=>$('#'+k).value=pedAtual[k]||'');$('#pedNome').value=pedAtual.nome||'';
-  $('#pedListaCard').hidden=true;$('#pedCard').hidden=false;$('#osSec').hidden=false;$('#pedPrev').innerHTML='';$('#pedMsg').innerHTML='';$('#pedBaixar').hidden=true;$('#pedGerar').textContent='Gerar FP completa do pedido';pedAbertoRender();pedBarRender()}
+  $('#pedListaCard').hidden=true;$('#pedCard').hidden=false;$('#osSec').hidden=false;{const noPed=!$('#tab-pedidos').hidden;['#itemBox','#descBox','#vendaBox','#refBox'].forEach(x=>{const e=$(x);if(e)e.hidden=noPed});const pt=$('#pedTotBox');if(pt)pt.hidden=!noPed}$('#pedPrev').innerHTML='';$('#pedMsg').innerHTML='';$('#pedBaixar').hidden=true;$('#pedGerar').textContent='Gerar FP completa do pedido';pedAbertoRender();pedBarRender()}
 function pedAbertoRender(){if(!pedAtual)return;$('#pedTitulo').innerHTML=`Pedido ${esc(pedAtual.os||'(sem número)')}${pedAtual.nome?' — '+esc(pedAtual.nome):''}<div style="font-size:13px;font-weight:400;margin-top:4px"><b>Cliente:</b> ${esc(pedAtual.cliente||'—')} &nbsp;•&nbsp; <b>Projetista:</b> ${esc(pedAtual.projetista||'—')}</div>`;
   const its=(pedAtual.itens||[]).slice().sort((a,b)=>a.n-b.n);const grupos=[];its.forEach(it=>{let g=grupos.find(g=>g.n===+it.n);if(!g){g={n:+it.n,its:[]};grupos.push(g)}g.its.push(it)});
   const prod=pedAtual.produtos||{};const tipos=[['letra','Letra caixa'],['testeira','Testeira'],['estrutura','Estrutura por desenho'],['modelo3d','Modelo 3D'],['bobs','Bobs requadro'],['bobscomp','Bobs complemento 30x30'],['bobscant','Bobs cantoneira iluminada'],['branco','FP em branco']];
@@ -5611,7 +5614,7 @@ function osCompHtml(n){const cs=(pedAtual.itens||[]).filter(i=>+i.n===+n);if(!cs
       else if(c!=null&&c>0)selo=`<span class="osSelo" style="background:#f1f3f5;color:#495057">custo ${r0(c)}</span>`;
       return `<div class="osComp">${v?`<input type="checkbox" data-sel="${it.id}" title="FP parcial"${pedSel.has(it.id)?' checked':''}>`:''}<div class="osCompT"><b>${v?`${n}.${k+1}`:`${n}`} — ${esc(TIPO_NOME[it.tipo]||it.tipo)}</b><span>${esc(it.desc||'')}${c!=null&&c>0?` · C ${r0(c)}`:''}${ve?` · V ${r0(ve)}`:''}</span></div>${selo}<button class="btn acc sm" data-abrir="${it.id}">Abrir</button><button class="btn ghost sm" data-del="${it.id}" title="Excluir componente" style="color:#c92a2a;padding:4px 8px">✕</button></div>`}).join('')}
     <div style="margin-top:6px"><button class="btn ghost sm" data-compmenu="${n}">+ Componente</button><div class="row" data-comptipos="${n}" style="gap:4px;margin-top:6px;flex-wrap:wrap" hidden>${OS_TIPOS.map(([t,l])=>`<button class="btn ghost sm" data-compnovo="${t}" data-compn="${n}">+ ${l}</button>`).join('')}</div></div></div>`}
-function osListaRender(){const box=$('#osLista');if(!box)return;const L=(pedAtual&&pedAtual.osItens)||[];if(!pedAtual){box.innerHTML='';return}
+function osListaRender(){pedTotRender();pedProgRender();const box=$('#osLista');if(!box)return;const L=(pedAtual&&pedAtual.osItens)||[];if(!pedAtual){box.innerHTML='';return}
   if(osAplicaVenda()){setTimeout(()=>{pedAbertoRender();pedSalvar(pedAtual)},0);return}
   if(!L.length){box.innerHTML=`<div style="border:1.5px dashed #2b3a8c;border-radius:12px;padding:8px 12px;margin:10px 0;background:#f8f9ff"><span class="note" style="margin:0">Lista de itens do pedido: leia a OS em PDF ou adicione os itens à mão.</span>${osFormHtml()}</div>`;return}
   const nf=L.filter(i=>osStatus(i.n)==='fin').length,np=L.filter(i=>osStatus(i.n)==='parc').length;
@@ -5640,6 +5643,20 @@ function osFazer(tipo,n){const it=(pedAtual.osItens||[]).find(i=>+i.n===+n);novo
       pedAtual.produtos={...(pedAtual.produtos||{})};if(!pedAtual.produtos[n])pedAtual.produtos[n]=t.toUpperCase();osListaRender();pedSalvar(pedAtual);const m=$('#osManual');if(m)m.open=true;setTimeout(()=>{const x=$('#osmT');if(x)x.focus()},50)}});
   L.addEventListener('change',async e=>{if(e.target.id==='osmF'&&e.target.files[0]){const r=await shrinkImage(e.target.files[0],900,'image/jpeg');osmImg={src:r.url,w:r.w,h:r.h};$('#osmFok').textContent='✓ foto anexada'}});
   const i1=$('#osPdfNovo'),i2=$('#osPdfPed');if(i1)i1.onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)osImportar(f,false)};if(i2)i2.onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)osImportar(f,true)}})();
+
+// valor total do pedido: soma dos itens (produtos) da OS — a OS lista a logística à parte ("Outros"), que não entra
+function pedTotRender(){const el=$('#pedTotV');if(!el)return;if(!pedAtual){el.textContent='—';return}
+  const o=pedAtual.osItens||[];let t=o.reduce((a,i)=>a+(+i.sub||0),0),orig='produtos da OS';
+  if(!t){t=(pedAtual.itens||[]).reduce((a,i)=>a+(+i.venda||0),0);orig='soma das vendas dos itens'}
+  el.innerHTML=t?`${brlP(t)} <span class="note" style="font-weight:400;font-size:12px">(${orig}${o.length?' • '+o.length+' itens':''})</span>`:'—'}
+
+// quanto do pedido está pronto: média entre itens (finalizado = 1, parcial = ½) e valor (mesmo peso, pelo valor de cada item na OS)
+function pedProgresso(p){const L=(p&&p.osItens)||[];if(!L.length)return null;const st=o=>{const tem=(p.itens||[]).some(i=>+i.n===+o.n);return !tem?0:o.fin?1:0.5};
+  const n=L.length,pi=L.reduce((a,o)=>a+st(o),0)/n;const tv=L.reduce((a,o)=>a+(+o.sub||0),0);const pv=tv?L.reduce((a,o)=>a+st(o)*(+o.sub||0),0)/tv:pi;
+  const fin=L.filter(o=>st(o)===1).length,parc=L.filter(o=>st(o)===0.5).length;return{pc:Math.round((pi+pv)/2*100),pi:Math.round(pi*100),pv:Math.round(pv*100),fin,parc,falta:n-fin-parc,n,tv}}
+function pedProgRender(){const el=$('#pedProg');if(!el)return;const g=pedAtual&&pedProgresso(pedAtual);if(!g){el.innerHTML='';return}
+  el.innerHTML=`<div class="progBox"><div class="note" style="margin:0;font-weight:700;color:#1864ab;font-size:11px">PROJETO PRONTO</div><b class="pc">${g.pc}%</b><div class="progBar"><i style="width:${g.pc}%"></i></div>
+  <div class="note" style="margin:0;font-size:11px;line-height:1.35">itens: ${g.fin} ✓ • ${g.parc} parcial • ${g.falta} faltam (${g.pi}%)<br>valor: ${g.pv}% de ${brlP(g.tv)}</div></div>`}
 
 renderTypes();renderLogo();initStore();
 
