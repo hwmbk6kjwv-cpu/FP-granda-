@@ -439,8 +439,8 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div class="g4">
         <div><label class="f">Ripado — cor (PU semi brilho)</label><input type="text" id="bCorRip" value="LARANJA BOBS"></div>
         <div><label class="f">Ripado — RAL</label><input type="text" id="bRalRip" placeholder="ex.: 2004"></div>
-        <div><label class="f">ACM quadriculado — cor</label><input type="text" id="bCorAcm" value="ROXO BOBS"></div>
-        <div><label class="f">ACM quadriculado — RAL</label><input type="text" id="bRalAcm" placeholder="ex.: 4005"></div>
+        <div hidden><input type="text" id="bCorAcm" value="ROXO BOBS"><input type="text" id="bRalAcm"></div>
+        <div style="grid-column:1/-1"><p class="note" style="margin:6px 0 0"><b style="color:#862e9c">ACM quadriculado:</b> ACM roxo brilho 3 mm HP822 (Alumbrasil) — já vem na cor, sem pintura.</p></div>
       </div>
     </div>
     <div class="card bm-comp" id="bCompCard" hidden>
@@ -4476,7 +4476,7 @@ function dFolhas(){const un=Math.max(1,Math.round(num($('#dUn').value))||1);cons
    else{let i=0;const per=Math.floor((160-36)/rh)-1;while(i<L.length){const Q=[];frame(Q,ctx,pg);Q.push({t:'text',x:PW/2,y:30,s:'LISTA DE CORTE',size:4.2,bold:true,color:'#000000',anchor:'middle'});tabela(Q,L.slice(i,i+per),36);i+=per;pages.push(Q);tags.push('LISTA')}}
   }
   // VISTAS: frente (x,y) e lateral (z,y) com cotas no padrão da testeira
-  {const P=[];frame(P,ctx,pg);P.push({t:'text',x:PW/2,y:30,s:'VISTAS E MEDIDAS',size:4.2,bold:true,color:'#000000',anchor:'middle'});
+  {const P=[];frame(P,ctx,pg);P._ref=null;P.push({t:'text',x:PW/2,y:30,s:'VISTAS E MEDIDAS',size:4.2,bold:true,color:'#000000',anchor:'middle'});
    const W=bb.x1-bb.x0,H=bb.y1-bb.y0,D=bb.z1-bb.z0;
    const nCor=new Set(dModel.pecas.filter(p=>p.tipo!=='chapa').map(p=>p.cor)).size;const legH=Math.max(30,5+4.4*nCor+1);
    const sW=Math.min(214/(W+D),92/H);const largo=48+H*sW+18<=167-legH-3;const s=largo?sW:Math.min(150/(W+D),104/H);
@@ -4722,10 +4722,17 @@ function mFolhas(){const un=Math.max(1,Math.round(num($('#mQt').value))||1);cons
    if(!cabe){let i=0;const per=Math.floor((160-36)/rh)-1;while(i<L.length){const Q=[];frame(Q,ctx,pg);Q.push({t:'text',x:PW/2,y:30,s:'LISTA DE CORTE',size:4.2,bold:true,color:'#000000',anchor:'middle'});tabela(Q,L.slice(i,i+per),36);i+=per;pages.push(Q);tags.push('LISTA')}}}
   // VISTAS com cotas: frente, lateral e topo
   {const P=[];frame(P,ctx,pg);P.push({t:'text',x:PW/2,y:30,s:'VISTAS E MEDIDAS',size:4.2,bold:true,color:'#000000',anchor:'middle'});
-   const W=bb.x1-bb.x0,H=bb.y1-bb.y0,Dp=bb.z1-bb.z0;const s=Math.min(150/(W+Dp),62/(H+Dp)*1.0,90/H);
-   const vistas=[['frente',{x:34,y:44,w:W*s,h:H*s}],['lateral',{x:34+W*s+30,y:44,w:Dp*s,h:H*s}],['topo',{x:34,y:44+H*s+26,w:W*s,h:Dp*s}]];
+   P._ref=null;// sem a imagem de referência aqui: ela encolhia a folha toda
+   const W=bb.x1-bb.x0,H=bb.y1-bb.y0,Dp=bb.z1-bb.z0;
+   // escolhe o arranjo que deixa as vistas maiores (lado a lado, em L ou empilhado)
+   const AX=24,AY=44,AW=214-AX,AH=164-AY,mx=26,my=24;
+   const ops=[{n:'linha',w:W+Dp+W,h:Math.max(H,Dp),gx:3*mx,gy:my},{n:'L',w:W+Dp,h:H+Dp,gx:2*mx,gy:2*my},{n:'coluna',w:Math.max(W,Dp),h:2*H+Dp,gx:mx,gy:3*my}].map(o=>({...o,s:Math.min((AW-o.gx)/(o.w||1),(AH-o.gy)/(o.h||1))}));
+   const op=ops.reduce((a,b)=>b.s>a.s?b:a);const s=op.s;const x0=AX+12,y0=AY+6;
+   const vistas=op.n==='linha'?[['frente',{x:x0,y:y0,w:W*s,h:H*s}],['lateral',{x:x0+W*s+mx,y:y0,w:Dp*s,h:H*s}],['topo',{x:x0+(W+Dp)*s+2*mx,y:y0,w:W*s,h:Dp*s}]]
+     :op.n==='L'?[['frente',{x:x0,y:y0,w:W*s,h:H*s}],['lateral',{x:x0+W*s+mx,y:y0,w:Dp*s,h:H*s}],['topo',{x:x0,y:y0+H*s+my,w:W*s,h:Dp*s}]]
+     :[['frente',{x:x0,y:y0,w:W*s,h:H*s}],['lateral',{x:x0,y:y0+H*s+my,w:Dp*s,h:H*s}],['topo',{x:x0,y:y0+2*H*s+2*my,w:W*s,h:Dp*s}]];
    const junta=(arr,tol)=>{const a=arr.slice().sort((p,q)=>p-q);const out=[];a.forEach(v=>{if(!out.length||v-out[out.length-1]>tol)out.push(v)});return out};
-   vistas.forEach(([nm,R])=>{if(R.y+R.h>165)return;const D=desenhaPecas(P,mPecas,nm,R,{s});
+   vistas.forEach(([nm,R])=>{if(R.y+R.h>167)return;const D=desenhaPecas(P,mPecas,nm,R,{s});
      const X=u=>D.ox+(u-D.bx0)*s,Y=v=>D.oy+(D.by1-v)*s;const fs=2.8;
      cotaH(P,X(D.bx0),X(D.bx1),Y(D.by1)-6,Y(D.by1),fmm(D.bx1-D.bx0),fs);cotaV(P,X(D.bx0)-7,Y(D.by1),Y(D.by0),X(D.bx0),fmm(D.by1-D.by0),fs);
      // correntes pelas bordas das peças (só nesta vista)
@@ -4899,7 +4906,7 @@ function bobsFolhas(){if(bModo==='comp')return bobsCompFolhas();if(bModo==='cant
   // ===== ROUTER: ACMs =====
   const acms=C.pecas.flatMap(p=>p.elems.filter(e=>e.tipo!=='ripado'));bobsFiles=[];
   if(acms.length){let P=null,i=0;const per=4;
-    acms.forEach((el,k)=>{if(k%per===0){P=[];frame(P,ctx,{setor:'ROUTER'});tit(P,'ACM 3 MM — VÃOS (2 MM MENOR QUE O VÃO)',`ACM BRANCO FOSCO 3 MM • QUADRICULADO: QUADRADOS DE ${BOBS.quad.q} MM (CORTE INTERNO), ${BOBS.quad.mg} MM DA BORDA • ARQUIVOS 1:1 SEPARADOS`);add(P,'ACM');i=0}
+    acms.forEach((el,k)=>{if(k%per===0){P=[];frame(P,ctx,{setor:'ROUTER'});tit(P,'ACM 3 MM — VÃOS (2 MM MENOR QUE O VÃO)',`INTEIRO: ACM BRANCO FOSCO 3 MM • QUADRICULADO: ACM ROXO BRILHO 3 MM HP822 (JÁ NA COR), QUADRADOS DE ${BOBS.quad.q} MM (CORTE INTERNO), ${BOBS.quad.mg} MM DA BORDA • ARQUIVOS 1:1 SEPARADOS`);add(P,'ACM');i=0}
       const cx=14+(i%2)*138,cy=42+Math.floor(i/2)*62;i++;const s=Math.min(110/el.W,46/el.H);const ox=cx+8+(110-el.W*s)/2,oy=cy+6+(46-el.H*s)/2;const X=x=>ox+x*s,Y=y=>oy+(el.H-y)*s;
       P.push({t:'text',x:cx,y:cy+2,s:`VÃO ${vid(el)} — ${BOBS_TIPOS[el.tipo].toUpperCase()} — ${f1(el.W)} x ${f1(el.H)} MM${un>1?` — ${un} UN.`:''}`,size:2.5,bold:true,color:'#000000'});
       P.push({t:'rect',x:X(0),y:Y(el.H),w:el.W*s,h:el.H*s,fill:'#ffffff',stroke:RC['CORTE EXTERNO'],lw:0.3});
@@ -4949,14 +4956,13 @@ function bobsFolhas(){if(bModo==='comp')return bobsCompFolhas();if(bModo==='cant
   const areas=(()=>{const per30=0.12,mm=(a)=>a/1000;let preto=0,lar=0,rox=0;
     C.pecas.forEach(p=>p.cortes30.forEach(c=>preto+=mm(c.len*c.q)*per30));C.comp.forEach(c=>preto+=mm(c.len*(c.q||1))*per30);
     rips.forEach(el=>{lar+=mm(2*el.W+2*(el.H-2*BOBS.bc.e))*2*(BOBS.bc.l+BOBS.bc.e)/1000+mm(el.ripLen*el.rip.n)*0.06});
-    acms.filter(e=>e.tipo==='quad').forEach(el=>{const Q=BOBS.quad;rox+=(el.W*el.H-el.qx.n*el.qy.n*Q.q*Q.q)/1e6+el.qx.n*el.qy.n*4*Q.q*3/1e6});
     return{preto:preto*un,lar:lar*un,rox:rox*un}})();C.areas=areas;
   {const P=[];frame(P,ctx,{setor:'PINTURA'});tit(P,'PINTURA — REQUADRO DO BALCÃO BOBS','CANTONEIRAS DE ALUMÍNIO NÃO SÃO PINTADAS (JÁ VÊM PRETAS)');
    const bx=(x,y,w,h,cor,fundo,t1,t2,t3,t4)=>{P.push({t:'rect',x,y,w,h,r:2,fill:fundo,stroke:cor,lw:0.6},{t:'rect',x:x+4,y:y+5,w:18,h:h-10,r:1.5,fill:cor,stroke:'#000000',lw:0.2},{t:'text',x:x+27,y:y+8,s:t1,size:3.4,bold:true,color:'#000000'},{t:'text',x:x+27,y:y+14,s:fit(t2,w-30,2.6),size:2.6,color:'#000000'},{t:'text',x:x+27,y:y+19.5,s:fit(t3,w-30,2.6),size:2.6,bold:true,color:cor},{t:'text',x:x+27,y:y+25,s:fit(t4,w-30,2.4),size:2.4,color:'#555555'})};
    bx(14,42,270,30,'#212529','#f1f3f5','PRETO — PINTURA A PÓ (TERCEIRIZADA)','Estrutura externa em metalon 30x30 de todas as peças + complementos 30x30',`ÁREA APROX.: ${f2(areas.preto)} m²  •  ENVIAR PARA A PINTURA ELETROSTÁTICA`,'Mandar a estrutura soldada e limpa. Proteger as roscas / furos.');
    bx(14,78,270,30,'#f76707','#fff4e6',`${corRip} — PU SEMI BRILHO${$('#bRalRip').value.trim()?' • RAL '+$('#bRalRip').value.trim():''}`,`Requadros ripados (barra chata 1" x 1/8" + ripas metalon 15x15): ${rips.length} vão(s)`,`ÁREA APROX.: ${f2(areas.lar)} m²`,'Wash primer antes da PU. Pintar as ripas por inteiro (frente, laterais e cantos).');
-   bx(14,114,270,30,'#862e9c','#f8f0fc',`${corAcm} — PU SEMI BRILHO${$('#bRalAcm').value.trim()?' • RAL '+$('#bRalAcm').value.trim():''}`,`ACM quadriculado: ${acms.filter(e=>e.tipo==='quad').length} vão(s) — pintar a frente e as bordas dos quadrados`,`ÁREA APROX.: ${f2(areas.rox)} m²`,'Lixar leve e aplicar wash primer no ACM antes da PU.');
-   P.push({t:'text',x:14,y:152,s:'ACM INTEIRO: não pinta — vai ADESIVADO (ver IMPRESSÃO e P1).   CANTONEIRAS DE ALUMÍNIO 12x12 E 25x25: não pintar.',size:2.8,bold:true,color:'#c92a2a'});
+
+   P.push({t:'text',x:14,y:152,s:'ACM: NÃO PINTA — quadriculado já vem ROXO (ACM roxo brilho HP822) e o inteiro vai ADESIVADO. Cantoneiras 12x12 e 25x25: não pintar.',size:2.8,bold:true,color:'#c92a2a'});
    add(P,'PINTURA')}
   // ===== ELÉTRICA: LED COB =====
   let led=null;if(B.led){const m=Math.round(C.ledM*un*100)/100;const W=m*BOBS.cobW;const fs=fontes(W*LED_FOLGA);led={m,W,fs};
@@ -4977,7 +4983,7 @@ function bobsFolhas(){if(bModo==='comp')return bobsCompFolhas();if(bModo==='cant
     const st=[`1. ESTRUTURA preta (pintada a pó) e elementos pintados conferidos.`,
       `2. ACM (vãos ${p.elems.filter(e=>e.tipo!=='ripado').map(vid).join(', ')||'—'}): fixar a CANTONEIRA DE ALUMÍNIO 12x12 PRETA no fundo de cada vão com brocante philips 4,2 x 13 (1/2"), ~1 a cada ${BOBS.paraf} mm.`,
       `3. Passar FITA VHB 15 mm na face da cantoneira e colar o ACM (2 mm menor que o vão).`,
-      `4. ACM INTEIRO: chega da P1 já com o ADESIVO FOSCO aplicado e refilado. ACM QUADRICULADO: pintado (PU ${corAcm}).`,
+      `4. ACM INTEIRO: chega da P1 já com o ADESIVO FOSCO aplicado e refilado. ACM QUADRICULADO: ACM roxo brilho HP822 (já na cor — não pintar).`,
       `5. RIPADO (vãos ${p.elems.filter(e=>e.tipo==='ripado').map(vid).join(', ')||'—'}): encaixar o requadro (2 mm menor) e fixar pela barra chata com brocante.`,
       ...(B.led?[`6. CANTONEIRA 25x25 com o LED COB 3000K colado embaixo, na largura da peça (${f0(p.W)} mm).`]:[])];
     {let yy=46;const wrap=(t,n)=>{const ws=t.split(' '),L=[];let l='';ws.forEach(w=>{if((l+' '+w).trim().length>n){L.push(l);l=w}else l=(l+' '+w).trim()});if(l)L.push(l);return L};
@@ -4996,7 +5002,8 @@ function bobsProd(C,un,ctx,X){const N=[];const nm=v=>String(v).replace('.',',');
   if(bars['METALON 30x30 #1,55'])N.push({k:'bobs|m30',desc:'Metalon galvanizado 30x30 #1,55 — barra 6 m',q:bars['METALON 30x30 #1,55'],un:'un',uso:'estrutura externa + complementos (plano de corte)',busca:{must:['METALON GALVANIZADO 30X30','1,55MM']}});
   if(bars['BARRA CHATA 1" x 1/8"'])N.push({k:'bobs|bc',desc:'Barra chata 1" x 1/8" — barra 6 m',q:bars['BARRA CHATA 1" x 1/8"'],un:'un',uso:'requadro dos ripados',busca:{must:['BARRA CHATA','1/8 X 1']}});
   if(bars['METALON 15x15 #0,95'])N.push({k:'bobs|m15',desc:'Metalon galvanizado 15x15 #0,95 — barra 6 m',q:bars['METALON 15x15 #0,95'],un:'un',uso:'ripas dos ripados',busca:{must:['METALON GALVANIZADO 15X15','0,95MM']}});
-  const aQ=X.acms.reduce((a,e)=>a+e.W*e.H,0)/1e6*un;if(aQ>0)N.push({k:'bobs|acm',desc:'ACM branco fosco 3 mm 1500 x 5000',m2:aQ*1.15,un:'un',uso:`vãos de ACM: ${f2(aQ)} m² + 15% de perda`,busca:{must:['ACM BRANCO FOSCO','1500 X 5000','03MM']}});
+  const aQ=X.acms.filter(e=>e.tipo!=='quad').reduce((a,e)=>a+e.W*e.H,0)/1e6*un;if(aQ>0)N.push({k:'bobs|acm',desc:'ACM branco fosco 3 mm 1500 x 5000',m2:aQ*1.15,un:'un',uso:`ACM inteiro (adesivado): ${f2(aQ)} m² + 15% de perda`,busca:{must:['ACM BRANCO FOSCO','1500 X 5000','03MM']}});
+  const aR=X.acms.filter(e=>e.tipo==='quad').reduce((a,e)=>a+e.W*e.H,0)/1e6*un;if(aR>0)N.push({k:'bobs|acmroxo',desc:'ACM roxo brilho 3 mm 1220 x 5000 — ref. de cor HP822 (Alumbrasil)',m2:aR*1.15,un:'un',uso:`ACM quadriculado (já na cor, sem pintura): ${f2(aR)} m² + 15% de perda`,busca:{must:['ACM ROXO BRILHO','1220 X 5000','03MM'],want:['HP822']}});
   const aA=X.acms.filter(e=>e.tipo==='acm').reduce((a,e)=>a+e.W*e.H,0)/1e6*un;if(aA>0)N.push({k:'bobs|ades',desc:'Adesivo impresso FOSCO (ACM inteiro)',q:Math.round(X.acms.filter(e=>e.tipo==='acm').reduce((a,e)=>a+(e.W+2*BOBS.sangria)*(e.H+2*BOBS.sangria),0)/1e6*un*100)/100,un:'m²',uso:`ACM inteiro: ${f2(aA)} m² + sangria de ${BOBS.sangria} mm`,busca:{must:['ADESIVO IMPRESSO']}});
   N.push({k:'bobs|cant12',desc:`Cantoneira de alumínio 12x12 x 0,90 preta — barra ${BOBS.cantBarra/1000} m`,q:Math.ceil(X.fix.cant/(BOBS.cantBarra/1000)),un:'un',uso:`fundo dos vãos de ACM: ${nm(X.fix.cant.toFixed(2))} m`,busca:{must:['CANTONEIRA DE ALUMINIO 12X12','0,90MM','PRETA']}});
   if(X.fix.vhb>0)N.push({k:'bobs|vhb',desc:'Fita VHB 4910 15 mm (rolo 33 m)',q:Math.round(X.fix.vhb/33*100)/100,un:'un',uso:`face das cantoneiras: ${nm(X.fix.vhb.toFixed(2))} m`,busca:{must:['VHB 4910','15MM']}});
@@ -5009,7 +5016,6 @@ function bobsProd(C,un,ctx,X){const N=[];const nm=v=>String(v).replace('.',',');
     const Wl=area/MPP.washRend;N.push({k:'tinta|bobs|wash'+k,desc:'Wash primer',litros:Wl,un:'un',uso:`fundo: ${f2(area)} m²`,busca:{must:['WASH PRIMER'],want:['600ML']}})};
   const rr=$('#bRalRip').value.trim(),ra=$('#bRalAcm').value.trim();
   tPU(C.areas.lar,X.corRip+(rr?' RAL '+rr:''),'lar',['TINTA PU',rr?'RAL'+rr.replace(/\D/g,''):'LARANJA'],['SEMI','BRILHO']);
-  tPU(C.areas.rox,X.corAcm+(ra?' RAL '+ra:''),'rox',['TINTA PU',ra?'RAL'+ra.replace(/\D/g,''):'ROXO'],['BOBS','259C']);
   if(C.areas.preto>0)N.push({k:'bobs|po',desc:'Pintura eletrostática a pó PRETA (terceirizada)',q:Math.round(C.areas.preto*100)/100,un:'m²',uso:'estrutura externa + complementos — informar o valor do serviço',busca:{must:['PINTURA ELETROSTATICA']}});
   if(X.led){const L=X.led;N.push({k:'bobs|cant25',desc:'Cantoneira de alumínio 25x25 x 1,00 preta — barra 3 m',q:(C.bars||{})['CANTONEIRA ALUMÍNIO 25x25 PRETA (LED)']||Math.ceil(L.m/3),un:'un',uso:`LED: ${nm(L.m.toFixed(2))} m`,busca:{must:['CANTONEIRA DE ALUMINIO 25X25','1,00MM','PRETA']}});
     N.push({k:'bobs|cob',desc:'Fita LED COB 12 V 12 W/m 3000K',q:Math.round(L.m*100)/100,un:'m',uso:`embaixo da cantoneira 25x25 — ${nm(L.W.toFixed(1))} W`,busca:{must:['FITA LED','COB','3000K']}});
