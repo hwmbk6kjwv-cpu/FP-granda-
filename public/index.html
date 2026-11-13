@@ -218,6 +218,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
 .pedFin .pedProgMini{color:#2b8a3e!important}.pedFin .pedProgMini u{background:#2b8a3e!important}
 .pedOk{display:block;margin-top:2px;font-size:18px;font-weight:800;color:#2b8a3e;line-height:1}
 .pedFinSep{display:flex;align-items:center;gap:10px;margin:16px 0 8px;color:#2b8a3e;font-weight:700;font-size:13px}.pedFinSep:before,.pedFinSep:after{content:"";flex:1;border-top:2px solid #b2f2bb}
+.ledEsp{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:0 12px}.ledEsp summary{list-style:none;cursor:pointer;padding:11px 0;font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px}.ledEsp summary::-webkit-details-marker{display:none}.ledEsp .seta{margin-left:auto;transition:transform .15s;color:var(--mute)}.ledEsp[open] .seta{transform:rotate(180deg)}.ledEsp[open]{padding-bottom:12px}.ledEsp .g2 label.f{margin-top:0}
 </style>
 </head>
 <body>
@@ -292,9 +293,10 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
       <div id="acrFBox" style="margin-top:12px;padding:10px;border:1.5px solid #74c0fc;background:#e7f5ff;border-radius:10px"><b style="color:#1864ab">Acrílico no fundo</b><div class="row" style="gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap"><label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="l3dAcrF"> Colocar fundo em acrílico (20 mm maior que o desenho, peça única ligando as letras no topo e na base)</label><label class="f" style="margin:0">Espessura</label><select id="l3dAcrEsp" style="max-width:90px"><option value="4">4 mm</option><option value="6">6 mm</option><option value="8">8 mm</option></select><span class="note" style="margin:0">acrílico transparente (cristal)</span></div></div></div>
     <div class="card"><h2>4. LED</h2><div class="leds" id="ledPick"></div><label class="f" style="margin-top:12px">Potência do módulo de LED</label><div class="leds" id="ledWPick"></div>
       <div class="g2"><div><label class="f">Rabicho do fio por letra (mm)</label><input type="number" id="ledRab" value="3000" step="100" min="0"></div><div><label class="f">Saída do fio na letra</label><select id="ledSaida"><option value="inf">Inferior centralizado</option><option value="sup">Superior centralizado</option></select></div></div>
+      <details id="ledEsp" class="ledEsp"><summary>Configurações especiais de LED <span class="badge" id="ledEspUso" hidden>em uso</span><span class="seta">▾</span></summary>
       <div class="g2"><div><label class="f">Distância centro a centro (mm) <span class="badge">opcional</span></label><input type="number" step="1" id="ledGap" placeholder="Padrão do tipo: 80" inputmode="decimal"></div>
       <div><label class="f">Borda até a 1ª fileira (mm) <span class="badge">opcional</span></label><input type="number" step="1" id="ledMarg" placeholder="Padrão do tipo: 45" inputmode="decimal"></div></div>
-      <p class="note" style="margin:6px 0 0">Use para diminuir o espaçamento só neste pedido. O mínimo é o comprimento do módulo + 2 mm (77 mm).</p></div>
+      <p class="note" style="margin:6px 0 0">Use para diminuir o espaçamento só neste pedido. O mínimo é o comprimento do módulo + 2 mm (77 mm).</p></details></div>
     <div class="card" id="pintCard"><h2>Pintura</h2>
       <div id="pPicker">
       <label class="f">Escala de cor</label>
@@ -853,7 +855,7 @@ $('#typeList').onclick=e=>{const b=e.target.closest('.type');if(b)openModal(type
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
   const tb=b.dataset.tab;$('#tab-pedidos').hidden=tb!=='pedidos';$('#tab-novo').hidden=tb!=='novo';$('#tab-tipos').hidden=tb!=='tipos';$('#tab-testeiras').hidden=tb!=='testeiras';$('#tab-modelo').hidden=tb!=='modelo';$('#tab-bobs').hidden=tb!=='bobs';if($('#tab-branco'))$('#tab-branco').hidden=tb!=='branco';if($('#osLerRow'))$('#osLerRow').hidden=tb!=='pedidos';{const noPed=tb==='pedidos';['#itemBox','#descBox','#vendaBox'].forEach(x=>{const e=$(x);if(e)e.hidden=noPed});const pt=$('#pedTotBox');if(pt)pt.hidden=!noPed;if(noPed&&typeof pedTotRender==='function')pedTotRender()}if(tb==='bobs')setTimeout(()=>{try{bobsEditor();bobs3D()}catch(e){console.error(e)}},30);if(tb==='modelo')setTimeout(()=>m3Draw(),30);
-  $('#osSec').hidden=tb==='tipos'||(tb==='pedidos'&&!pedAtual);if($('#refBox'))$('#refBox').hidden=tb==='pedidos';if($('#descBox'))$('#descBox').hidden=tb==='pedidos';if($('#vendaBox'))$('#vendaBox').hidden=tb==='pedidos';$('#instSec').hidden=!['novo','modelo','testeiras','bobs'].includes(tb);instColoca(tb);pedBarRender();if(typeof osResumoSync==='function')osResumoSync();if(tb==='testeiras')setTimeout(tRender,30);pickerCasa();$('#itemBox').hidden=tb==='pedidos';$('#descBox').hidden=tb==='testeiras'||tb==='pedidos';
+  $('#osSec').hidden=tb==='tipos'||(tb==='pedidos'&&!pedAtual);if($('#refBox'))$('#refBox').hidden=tb==='pedidos';if($('#descBox'))$('#descBox').hidden=tb==='pedidos';if($('#vendaBox'))$('#vendaBox').hidden=tb==='pedidos';$('#instSec').hidden=!['novo','modelo','testeiras','bobs'].includes(tb);instColoca(tb);pedBarRender();if(typeof osResumoSync==='function')osResumoSync();if(typeof ledEspSync==='function')setTimeout(()=>ledEspSync(true),60);if(tb==='testeiras')setTimeout(tRender,30);pickerCasa();$('#itemBox').hidden=tb==='pedidos';$('#descBox').hidden=tb==='testeiras'||tb==='pedidos';
 });
 async function shrinkImage(f,max,type){
   const img=new Image();img.src=URL.createObjectURL(f);await img.decode();
@@ -5774,5 +5776,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
   document.querySelectorAll('.prev,#pedMsg,#pedPrev,.matBox,#tInfo,#mInfo,#dInfo,#lInfo,#msg').forEach(el=>obs.observe(el,{childList:true,subtree:true}))}
 </script>
 <script>(function(){const f=()=>{const n=document.querySelector('nav');if(n)document.documentElement.style.setProperty('--navH',n.offsetHeight+'px')};f();addEventListener('resize',f);addEventListener('load',f)})()</script>
+<script>function ledEspSync(aba){const u=!!($('#ledGap').value||$('#ledMarg').value);$('#ledEspUso').hidden=!u;if(aba)$('#ledEsp').open=u}
+['ledGap','ledMarg'].forEach(k=>$('#'+k).addEventListener('input',()=>ledEspSync()));</script>
 </body>
 </html>
