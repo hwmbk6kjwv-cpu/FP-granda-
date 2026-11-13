@@ -317,6 +317,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
     </div>
     <div class="card">
       <h2>5. Observações e páginas extras <span class="badge">só deste pedido</span></h2>
+      <details class="ledEsp" id="routerEsp"><summary>Configurações avançadas da router <span class="seta">▾</span></summary>
       <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;font-size:13px"><input type="checkbox" id="nestOn" checked> Aproveitamento de chapa do acrílico (router)</label>
       <div class="g3"><div><label class="f">Fresa da router (Ø mm)</label><input type="number" id="fresaD" value="3" step="0.5" inputmode="decimal"></div>
         <div style="grid-column:span 2;align-self:end"><p class="note" style="margin:0 0 10px">Cada linha é arredondada pelo lado onde a fresa passa: corte externo (fresa por fora) arredonda os cantos negativos e deixa os positivos vivos; corte interno, rebaixo e desbaste (fresa por dentro) arredondam os cantos positivos. Raio = metade da fresa.</p></div></div>
@@ -324,7 +325,7 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
         <div><label class="f">Chapas (mm)</label><input type="text" id="nestSheets" value="2000x1000, 3000x2000"></div>
         <div><label class="f">Espaço entre peças (mm)</label><input type="number" id="nestGap" value="10" inputmode="numeric"></div>
         <div><label class="f">Margem da chapa (mm)</label><input type="number" id="nestMargin" value="10" inputmode="numeric"></div>
-      </div>
+      </div></details>
       <div id="galvBox"><label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;font-size:13px;margin-top:8px"><input type="checkbox" id="nestGalvOn" checked> Aproveitamento da chapa galvanizada (filetada)</label>
       <div><label class="f">Chapa galvanizada (mm)</label><input type="text" id="nestGalvSheets" value="3000x1200"></div></div>
       <label class="f">Observações (saem em todas as folhas)</label><textarea id="obs" placeholder="Ex.: conferir medida na obra antes de cortar"></textarea>
