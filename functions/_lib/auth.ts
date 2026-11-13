@@ -45,3 +45,7 @@ export const cookie = (valor: string, maxAge: number) => `${COOKIE}=${valor}; Pa
 export const negado = () => Response.json({ erro: "acesso negado" }, { status: 401 });
 export const semBanco = (env: Env) => !env.DB || !env.ARQ;
 export const avisoBanco = () => Response.json({ erro: "Banco não ligado: crie o D1 (variável DB) e o KV (variável ARQ) em Settings > Bindings" }, { status: 503 });
+
+// troca de senha liberada pelo painel do Cloudflare: no console do D1 rodar  INSERT OR REPLACE INTO cfg (k,v) VALUES ('senha_nova','1');
+export async function pedeSenhaNova(env: Env) { await prepara(env); const r = await env.DB.prepare("SELECT v FROM cfg WHERE k='senha_nova'").first<{ v: string }>(); return !!(r && r.v === "1"); }
+export async function limpaPedido(env: Env) { await env.DB.prepare("DELETE FROM cfg WHERE k='senha_nova'").run(); }

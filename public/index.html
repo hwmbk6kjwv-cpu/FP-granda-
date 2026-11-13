@@ -18,20 +18,24 @@
   const api=async(p,o)=>{const r=await fetch(p,Object.assign({credentials:'same-origin'},o||{}));if(r.status===401){mostraLogin();throw Object.assign(new Error('sessão expirada'),{code:'not_granted'})}
     if(!r.ok){let t='';try{t=(await r.json()).erro}catch(e){}throw Object.assign(new Error(t||('erro '+r.status)),{code:'http_'+r.status})}return r};
   let logado;const pronto=new Promise(res=>{logado=res});
+  let definir=false;
   function mostraLogin(){if(document.getElementById('grLogin'))return;const d=document.createElement('div');d.id='grLogin';
     d.innerHTML=`<div style="position:fixed;inset:0;z-index:9999;background:#2b3a7a;display:flex;align-items:center;justify-content:center;padding:20px;font-family:system-ui,sans-serif">
       <form style="background:#fff;border-radius:16px;padding:26px 22px;width:100%;max-width:360px;box-shadow:0 10px 40px #0004">
         <img src="${typeof GRANDA_LOGO!=='undefined'?GRANDA_LOGO:''}" alt="Granda" style="height:56px;display:block;margin:0 auto 14px">
         <div style="font-weight:700;font-size:17px;text-align:center;margin-bottom:4px">Ajustes de Arquivo</div>
-        <div style="color:#666;font-size:13px;text-align:center;margin-bottom:16px">Digite a senha da Granda para entrar</div>
-        <input type="password" name="s" autocomplete="current-password" placeholder="Senha" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccd;border-radius:10px;font-size:16px">
-        <button style="width:100%;margin-top:12px;padding:12px;border:0;border-radius:10px;background:#d6336c;color:#fff;font-weight:700;font-size:15px">Entrar</button>
+        <div style="color:#666;font-size:13px;text-align:center;margin-bottom:16px">${definir?'<b style="color:#2b8a3e">Cadastre a nova senha da Granda</b> (mínimo 6 caracteres)':'Digite a senha da Granda para entrar'}</div>
+        <input type="password" name="s" autocomplete="${definir?'new-password':'current-password'}" placeholder="${definir?'Nova senha':'Senha'}" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccd;border-radius:10px;font-size:16px">
+        ${definir?'<input type="password" name="s2" autocomplete="new-password" placeholder="Repita a nova senha" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccd;border-radius:10px;font-size:16px;margin-top:8px">':''}
+        <button style="width:100%;margin-top:12px;padding:12px;border:0;border-radius:10px;background:${definir?'#2b8a3e':'#d6336c'};color:#fff;font-weight:700;font-size:15px">${definir?'Salvar senha nova e entrar':'Entrar'}</button>
         <div class="m" style="color:#c92a2a;font-size:13px;text-align:center;margin-top:10px"></div></form></div>`;
     document.body.appendChild(d);const f=d.querySelector('form');f.s.focus();
     f.onsubmit=async e=>{e.preventDefault();f.querySelector('.m').textContent='Entrando…';
-      const r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({senha:f.s.value})});
-      if(r.ok)location.reload();else f.querySelector('.m').textContent='Senha incorreta.'}}
-  window.addEventListener('DOMContentLoaded',async()=>{try{const r=await fetch('/api/login');if(r.ok)logado();else mostraLogin()}catch(e){mostraLogin()}});
+      if(definir){if(f.s.value.length<6){f.querySelector('.m').textContent='A senha precisa de pelo menos 6 caracteres.';return}if(f.s.value!==f.s2.value){f.querySelector('.m').textContent='As duas senhas não são iguais.';return}}
+      let r;try{r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({senha:f.s.value,definir})})}catch(err){f.querySelector('.m').textContent='Sem conexão com o servidor. Tente de novo.';return}
+      if(r.ok){location.reload();return}let er='';try{er=(await r.json()).erro||''}catch(x){}
+      f.querySelector('.m').textContent=r.status===401?'Senha incorreta.':('Erro no servidor ('+r.status+')'+(er?': '+er:''))}}
+  window.addEventListener('DOMContentLoaded',async()=>{try{const r=await fetch('/api/login');if(r.ok){logado();return}try{definir=!!(await r.json()).definir}catch(x){}mostraLogin()}catch(e){mostraLogin()}});
   // senha e sair (em Cadastros)
   window.addEventListener('DOMContentLoaded',()=>{const tb=document.getElementById('tab-tipos');if(!tb)return;const c=document.createElement('div');c.className='card';
     c.innerHTML=`<h2>Acesso ao sistema</h2><p class="note" style="margin-top:0">Todos entram com a mesma senha da Granda. Trocar a senha desconecta os outros aparelhos.</p>
