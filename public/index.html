@@ -1852,7 +1852,8 @@ function obsBox(P,ctx){
 let fpObsPg={};
 // observações da folha: uma ou várias (cada uma num box verde, empilhados de baixo para cima no canto inferior direito)
 const obsLista=v=>(Array.isArray(v)?v:v?[v]:[]).map(x=>String(x||'').replace(/\s+/g,' ').trim()).filter(Boolean);
-function obsFPDraw(P,n){P._n=n;const lista=obsLista(P._obs!==undefined?P._obs:fpObsPg[n]);if(!lista.length)return;const maxc=50,lh=4.2,x1=PW-9;let yb=169.4;
+function obsChave(P,n){if(P&&P._key&&typeof fpObsPg!=='undefined'){if(fpObsPg[P._key]===undefined&&fpObsPg[n]!==undefined){fpObsPg[P._key]=fpObsPg[n];delete fpObsPg[n]}return P._key}return n}
+function obsFPDraw(P,n){P._n=n;const lista=obsLista(P._obs!==undefined?P._obs:fpObsPg[obsChave(P,n)]);if(!lista.length)return;const maxc=50,lh=4.2,x1=PW-9;let yb=169.4;
   lista.forEach((s,k)=>{const ws=s.toUpperCase().split(' ');const ls=[];let c='';ws.forEach(w=>{if((c+' '+w).trim().length>maxc){ls.push(c);c=w}else c=(c+' '+w).trim()});if(c)ls.push(c);
     const L=ls.slice(0,5);if(ls.length>5)L[4]=L[4].slice(0,maxc-1)+'…';const w=Math.max(30,Math.max(...L.map(l=>l.length))*1.95+8),h=L.length*lh+8.4,y0=yb-h;
     P.push({t:'rect',x:x1-w,y:y0,w,h,r:2,fill:'#d3f9d8',stroke:'#2b8a3e',lw:0.6},{t:'text',x:x1-w+3,y:y0+4.2,s:lista.length>1?`OBSERVAÇÃO ${k+1}`:'OBSERVAÇÃO',size:2.7,bold:true,color:'#2b8a3e'});
@@ -4013,7 +4014,7 @@ if($('#instIn')){
   instRender()}
 
 /* ---------- observação por folha da FP (campo fino abaixo de cada folha na prévia) ---------- */
-function fpObsLinha(pg){const n=+pg.querySelector('svg[data-pg]').dataset.pg;const d=document.createElement('div');d.className='fpObsRow';
+function fpObsLinha(pg){const n0=+pg.querySelector('svg[data-pg]').dataset.pg;const sk=pg.querySelector('svg[data-pgkey]');const n=sk&&sk.dataset.pgkey?sk.dataset.pgkey:n0;const d=document.createElement('div');d.className='fpObsRow';
   d.style.cssText='display:flex;gap:8px;align-items:center;margin:6px 0 14px;flex-wrap:wrap';const lista=obsLista(fpObsPg[n]);
   d.innerHTML=`<button class="btn ghost sm" type="button" style="padding:6px 12px;border-color:#e03131;color:#c92a2a;white-space:nowrap">+ Add observação</button>`+lista.map((v,k)=>`<span data-obsk="${k}" style="display:inline-flex;gap:4px;align-items:center;max-width:100%;border:1px solid #ffc9c9;background:#fff5f5;border-radius:999px;padding:3px 4px 3px 10px;font-size:12px;color:#c92a2a"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:260px">${lista.length>1?(k+1)+'. ':''}${esc(v)}</span><button type="button" data-obsed="${k}" title="Editar" style="border:0;background:none;cursor:pointer;color:#c92a2a">✎</button><button type="button" data-obsdel="${k}" title="Remover" style="border:0;background:none;cursor:pointer;color:#c92a2a;font-weight:700">×</button></span>`).join('');
   const pid=pg.closest('.prev').id;d.querySelector('button').onclick=()=>fpObsPopup(n,pid);
@@ -4027,7 +4028,7 @@ function fpObsLinha(pg){const n=+pg.querySelector('svg[data-pg]').dataset.pg;con
 function fpObsPopup(n,prevId,idx){const novo=idx==null;let M=$('#fpObsModal');if(M)M.remove();M=document.createElement('div');M.id='fpObsModal';
   M.style.cssText='position:fixed;inset:0;background:#0007;z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
   M.innerHTML=`<div style="background:#fff;border-radius:14px;padding:16px;width:100%;max-width:420px;box-shadow:0 10px 40px #0004">
-    <div style="font-weight:700;margin-bottom:4px">${novo?'Nova observação':'Editar observação '+(idx+1)} — folha ${n}</div><div class="note" style="margin-bottom:8px">Sai num box verde no canto inferior direito desta folha.</div>
+    <div style="font-weight:700;margin-bottom:4px">${novo?'Nova observação':'Editar observação '+(idx+1)} — folha ${typeof n==='number'?n:String(n).replace('#',' ')}</div><div class="note" style="margin-bottom:8px">Sai num box verde no canto inferior direito desta folha.</div>
     <textarea id="fpObsTxt" rows="4" style="width:100%;box-sizing:border-box" placeholder="Ex.: conferir medida na obra"></textarea>
     <div class="row" style="gap:8px;margin-top:10px;justify-content:flex-end"><button class="btn ghost sm" type="button" data-x="limpar">Remover</button><button class="btn ghost sm" type="button" data-x="cancelar">Cancelar</button><button class="btn pink sm" type="button" data-x="ok">Atualizar FP</button></div></div>`;
   document.body.appendChild(M);const ta=M.querySelector('#fpObsTxt');ta.value=novo?'':(obsLista(fpObsPg[n])[idx]||'');setTimeout(()=>ta.focus(),50);
@@ -5555,7 +5556,7 @@ function ctGerarCota(c,ctx){const ck=JSON.stringify([c.id,c.setor,c.modo,c.desc,
 function ctGerarCota0(c,ctx){const sv={ctSrc,ct3,ctModo,CTO};try{ctSrc=c._src||null;ct3=c._3d||null;ctModo=c.modo||'padrao';CTO={ctLarg:c.larg||'',ctMat:c.mat||'',ctObs:c.obs||'',ctQtd:c.qtd||'1',ctDesc:c.desc||'',ctUn:c.un||'1',ctEixo:c.eixo||'z',ctSetor:c.setor||'COTAS',ctx};
     const fs=FOOT_SKIP;FOOT_SKIP=true;try{return(ct3?ct3Folhas():ctFolhas()).pages}finally{FOOT_SKIP=fs}}finally{ctSrc=sv.ctSrc;ct3=sv.ct3;ctModo=sv.ctModo;CTO=sv.CTO}}
 function ctComCotas(fn){const w=function(...a){if(typeof abaAtual==='function'&&abaAtual()==='cotas'&&!ctVolta)return fn.apply(this,a);
-  const mexe=compCotas.length||compExcl.length;const fs=FOOT_SKIP;if(mexe)FOOT_SKIP=true;let r;try{r=fn.apply(this,a)}finally{FOOT_SKIP=fs}
+  const mexe=compCotas.length||compExcl.length||(typeof fpObsPg!=='undefined'&&Object.keys(fpObsPg).length);const fs=FOOT_SKIP;if(mexe)FOOT_SKIP=true;let r;try{r=fn.apply(this,a)}finally{FOOT_SKIP=fs}
   if(!r||!r.pages)return r;
   if(compCotas.length)compCotas.forEach(c=>{if(!c._src&&!c._3d)return;let ps=[];try{ps=ctGerarCota(c,r.ctx)}catch(e){console.error('cota',e)}if(!ps.length)return;
       let idx=-1;r.pages.forEach((P,i)=>{if(P._setor===c.setor)idx=i});if(idx<0){const f=r.pages.findIndex(P=>['RM','PI','EXPEDIÇÃO','QUALIDADE','INSTALAÇÃO'].includes(P._setor));idx=f>=0?f-1:r.pages.length-1}
@@ -5804,7 +5805,7 @@ $('#pedGerarSel').onclick=()=>pedGerarFP(true);
 async function pedGerarFP(parcial){let its=(pedAtual.itens||[]).slice().sort((a,b)=>a.n-b.n);if(parcial)its=its.filter(i=>pedSel.has(i.id));if(!its.length){$('#pedMsg').innerHTML=`<div class="msg err">${parcial?'Selecione ao menos um item.':'O pedido ainda não tem itens.'}</div>`;return}
   pedParcial=parcial;const btn=parcial?$('#pedGerarSel'):$('#pedGerar');btn.disabled=true;const todas=[],geralL=[];const salvo={item:$('#item').value,ia:itemAtual};
   try{for(const [k,it] of its.entries()){$('#pedMsg').innerHTML=`<div class="msg ok">Gerando item ${it.n} (${k+1} de ${its.length}) — ${TIPO_NOME[it.tipo]}…</div>`;await new Promise(r=>setTimeout(r,30));
-      await itemAbrir(it,false);FOOT_SKIP=true;let r;try{r=buildItem(it.tipo)}finally{FOOT_SKIP=false}r.pages.forEach((P,j)=>{P._obs=fpObsPg[j+1]||'';todas.push({P,ctx:r.ctx})});if(!parcial)geralL.push(await geralInfo(it,r))}
+      await itemAbrir(it,false);FOOT_SKIP=true;let r;try{r=buildItem(it.tipo)}finally{FOOT_SKIP=false}r.pages.forEach((P,j)=>{P._obs=fpObsPg[obsChave(P,j+1)]||'';todas.push({P,ctx:r.ctx})});if(!parcial)geralL.push(await geralInfo(it,r))}
     if(!parcial&&geralL.length){const c0=todas[0].ctx;const ctxG={...c0,item:'GERAL',descItem:'TODOS OS ITENS DO PEDIDO'};folhasGeral(ctxG,geralL).reverse().forEach(P=>todas.unshift({P,ctx:ctxG}))}
     numeraSetores(todas.map(x=>x.P));todas.forEach((x,i)=>footer(x.P,x.ctx,i+1,todas.length));
     pedPdf=toPDF(todas.map(x=>x.P));$('#pedPrev').innerHTML=todas.map(x=>`<div class="pg">${toSVG(x.P)}</div>`).join('');
