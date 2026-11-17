@@ -294,7 +294,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
             <div id="pedItensBox"><div id="osLista"></div>
       <div id="pedItens"></div></div>
       <div class="row" id="pedNovos" style="gap:6px;margin-top:10px"><span class="note" style="align-self:center">Novo item:</span><button class="btn ghost sm" data-novo="letra">+ Letra caixa</button><button class="btn ghost sm" data-novo="branco">+ FP em branco</button><button class="btn ghost sm" data-novo="testeira">+ Testeira</button><button class="btn ghost sm" data-novo="modelo3d">+ 3D (STL, OBJ, DXF ou PDF)</button><button class="btn ghost sm" data-novo="bobs">+ Bobs requadro</button><button class="btn ghost sm" data-novo="bobscomp">+ Bobs complemento 30x30</button><button class="btn ghost sm" data-novo="bobscant">+ Bobs cantoneira iluminada</button></div>
-      <div class="row" id="pedAcoes" style="gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)"><button class="btn pink" id="pedGerar">Gerar FP completa do pedido</button><button class="btn acc" id="pedGerarSel" disabled>Gerar FP parcial (selecione os itens)</button><button class="btn ghost" id="pedBaixar" hidden>Baixar FP completa (PDF)</button><button class="btn" id="pedGeral" style="background:#2f9e44;color:#fff;font-weight:700">Gerar apenas FP geral</button><button class="btn" id="pedRM" style="background:#495057;color:#fff">Baixar RM + PI do pedido (por produto + total)</button><button class="btn ghost sm" id="pedExport" style="display:none">Exportar pedido (arquivo)</button><button class="btn danger sm" id="pedExcluir" style="margin-left:auto">Excluir pedido</button></div><div id="pedExpMsg" class="note" style="margin-top:6px"></div>
+      <div class="row" id="pedAcoes" style="gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)"><button class="btn pink" id="pedGerar">Gerar FP completa do pedido</button><button class="btn acc" id="pedGerarSel" disabled>Gerar FP parcial (selecione os itens)</button><button class="btn ghost" id="pedBaixar" hidden>Baixar FP completa (PDF)</button><button class="btn" id="pedGeral" style="background:#2f9e44;color:#fff;font-weight:700">Gerar apenas FP geral</button><button class="btn" id="pedRM" style="background:#495057;color:#fff">Baixar RM + PI do pedido (por produto + total)</button><button class="btn" id="pedArqs" type="button" style="background:#2b8a3e;color:#fff">Baixar arquivos de produção (todos)</button><button class="btn ghost sm" id="pedExport" style="display:none">Exportar pedido (arquivo)</button><button class="btn danger sm" id="pedExcluir" style="margin-left:auto">Excluir pedido</button></div><div id="pedExpMsg" class="note" style="margin-top:6px"></div>
       <div id="pedMsg"></div>
       <div class="prev" id="pedPrev"></div>
     </div>
@@ -2768,6 +2768,22 @@ function vecPDF(vec,M=10){
   const buf=doc.output('arraybuffer');try{const dx=vecDXF(vec);if(dx)DXF_DE.set(buf,dx)}catch(e){console.error('DXF',e)}
   return {buf,w:b.w,h:b.h};
 }
+function letraArqs(d,msg){const out=[];
+    const base=`OS ${d.ctx.os||'sem número'} - item ${d.ctx.item}`;const cnt={};
+    {const v=vecPDF([{color:'#000000',polys:d.orig}]);if(v)out.push({name:nomeArq(`${base} - ORIGINAL.pdf`),label:'ORIGINAL (arquivo do cliente em linha preta)',buf:v.buf,dim:`${fmt(v.w)} × ${fmt(v.h)} mm`})}
+    {const b=bbox(d.orig),MG=50;const rect=[[b.x0-MG,b.y0-MG],[b.x1+MG,b.y0-MG],[b.x1+MG,b.y1+MG],[b.x0-MG,b.y1+MG]];
+     const v=vecPDF([{color:'#000000',polys:[rect]},{color:'#000000',polys:d.orig},...(d.furos?[{color:'#e03131',polys:d.furos.map(f=>circ(f.c,FURO_D/2))}]:[])],1);if(v)out.push({name:nomeArq(`${base} - MOLDE KRAFT (P1).pdf`),label:'MOLDE KRAFT — setor P1 (arte + margem de 5 cm)',buf:v.buf,dim:`${fmt(v.w)} × ${fmt(v.h)} mm`})}
+    d.info.forEach(inf=>{const v=vecPDF(inf.vec||[]);if(!v)return;const pg=inf.pg;
+      const semZip=pg.tipo==='led';let nm=(pg.tipo==='led'?'ELETRICA - posicao dos LEDs':(pg.tipo==='chapa'?'FILETE - '+(pg.material||'chapa'):(pg.material||pg.titulo||'peca')+(pg.espessura&&pg.espessura!=='----'?' '+pg.espessura:'')));
+      cnt[nm]=(cnt[nm]||0)+1;if(cnt[nm]>1)nm+=' '+cnt[nm];
+      out.push({name:nomeArq(`${base} - ${nm}.pdf`),label:nm,buf:v.buf,dim:`${fmt(v.w)} × ${fmt(v.h)} mm`,semZip})});
+    d.info.forEach(inf=>{if(inf.l3d)try{out.push(...l3dArquivos(inf.l3d,base))}catch(er){console.error('STL',er)}});
+    for(const N of d.nests){if(N.semQual)continue;const B=N.best;const wm=(B.w/1000).toLocaleString('pt-BR'),hm=(B.h/1000).toLocaleString('pt-BR');
+      B.sheets.forEach((sh,k)=>{const vec=[{color:'#adb5bd',polys:[[[0,0],[B.w,0],[B.w,B.h],[0,B.h]]]}];
+        sh.items.forEach(it=>{const pc=pieceAt(N.pieces[it.i],it);pc.lines.forEach(l=>vec.push(l))});
+        const v=vecPDF(vec);if(v)out.push({name:nomeArq(`${base} - ${N.nome} CHAPA ${k+1} de ${B.sheets.length} (${B.w}x${B.h}).pdf`),label:`${N.nome==='ACRILICO FUNDO'?'Acrílico do fundo':N.nome==='ACM FUNDO'?'ACM do fundo':N.nome==='ACRILICO'?'Acrílico':'Chapa galvanizada'} — chapa ${k+1} de ${B.sheets.length} (${wm}x${hm} m, encaixe pronto)`,buf:v.buf,dim:`${sh.items.length} peças`})});
+      if(msg)$('#outMsg').insertAdjacentHTML('beforeend',`<div class="msg ok"><b>${N.nome==='ACRILICO FUNDO'?'Acrílico do fundo':N.nome==='ACM FUNDO'?'ACM do fundo':N.nome==='ACRILICO'?'Acrílico':'Chapa galvanizada'}: ${B.sheets.length} chapa(s) de ${wm}x${hm} m</b> (${(B.util*100).toFixed(1).replace('.',',')}% de aproveitamento).${N.opts.filter(o=>o!==B).map(o=>` Com ${(o.w/1000).toLocaleString('pt-BR')}x${(o.h/1000).toLocaleString('pt-BR')} m seriam ${o.sheets.length} chapa(s), ${(o.util*100).toFixed(1).replace('.',',')}%.`).join('')}${B.naoCabe.length?` ${B.naoCabe.length} peça(s) maiores que a chapa — precisam de emenda.`:''}</div>`)}
+    return out}
 let prodFiles=[];
 function nomeArq(s){return s.replace(/[\\/:*?"<>|]/g,'-').replace(/\s+/g,' ').trim()}
 async function salvar(name,data){const dl=window.claude&&claude.use?await claude.use('downloads'):null;
@@ -2784,20 +2800,7 @@ $('#gerar').onclick=()=>{
     $('#outMsg').innerHTML=`<div class="msg ok">${d.pages.length} página(s) gerada(s). Original: ${fmt(d.W)} × ${fmt(d.H)} mm. FP em A4; arquivos de produção em tamanho real.${d.ledInfo?` LED: ${d.ledInfo.mods.length} módulos, ${d.ledInfo.watts.toLocaleString('pt-BR',{maximumFractionDigits:1})} W (+25% = ${(d.ledInfo.watts*LED_FOLGA).toLocaleString('pt-BR',{maximumFractionDigits:1})} W) → ${d.ledInfo.circ?d.ledInfo.circ.lista.map(c=>'F'+c.n+' '+c.fonte+'W').join(', '):reatorTxt(d.ledInfo.watts*LED_FOLGA)}.`:''}</div>`+(d.W+20>5080||d.H+20>5080?'<div class="msg warn">A peça passa de 5,08 m: alguns leitores de PDF cortam páginas desse tamanho. Abra os arquivos de produção no Corel ou Illustrator.</div>':'')+(thin.length?`<div class="msg warn">Linhas que sumiram (letra fina demais para a medida): ${esc(thin.join(', '))}</div>`:'')+(pagesOf(types.find(x=>x.id===selType)).length?'':'<div class="msg warn">Esse tipo ainda não tem páginas configuradas — gerei só o original. Configure em "Cadastros".</div>');
     $('#baixar').hidden=false;$('#gerar').textContent='Atualizar FP';
     // arquivos de produção separados
-    const base=`OS ${d.ctx.os||'sem número'} - item ${d.ctx.item}`;prodFiles=[];const cnt={};
-    {const v=vecPDF([{color:'#000000',polys:d.orig}]);if(v)prodFiles.push({name:nomeArq(`${base} - ORIGINAL.pdf`),label:'ORIGINAL (arquivo do cliente em linha preta)',buf:v.buf,dim:`${fmt(v.w)} × ${fmt(v.h)} mm`})}
-    {const b=bbox(d.orig),MG=50;const rect=[[b.x0-MG,b.y0-MG],[b.x1+MG,b.y0-MG],[b.x1+MG,b.y1+MG],[b.x0-MG,b.y1+MG]];
-     const v=vecPDF([{color:'#000000',polys:[rect]},{color:'#000000',polys:d.orig},...(d.furos?[{color:'#e03131',polys:d.furos.map(f=>circ(f.c,FURO_D/2))}]:[])],1);if(v)prodFiles.push({name:nomeArq(`${base} - MOLDE KRAFT (P1).pdf`),label:'MOLDE KRAFT — setor P1 (arte + margem de 5 cm)',buf:v.buf,dim:`${fmt(v.w)} × ${fmt(v.h)} mm`})}
-    d.info.forEach(inf=>{const v=vecPDF(inf.vec||[]);if(!v)return;const pg=inf.pg;
-      const semZip=pg.tipo==='led';let nm=(pg.tipo==='led'?'ELETRICA - posicao dos LEDs':(pg.tipo==='chapa'?'FILETE - '+(pg.material||'chapa'):(pg.material||pg.titulo||'peca')+(pg.espessura&&pg.espessura!=='----'?' '+pg.espessura:'')));
-      cnt[nm]=(cnt[nm]||0)+1;if(cnt[nm]>1)nm+=' '+cnt[nm];
-      prodFiles.push({name:nomeArq(`${base} - ${nm}.pdf`),label:nm,buf:v.buf,dim:`${fmt(v.w)} × ${fmt(v.h)} mm`,semZip})});
-    d.info.forEach(inf=>{if(inf.l3d)try{prodFiles.push(...l3dArquivos(inf.l3d,base))}catch(er){console.error('STL',er)}});
-    for(const N of d.nests){if(N.semQual)continue;const B=N.best;const wm=(B.w/1000).toLocaleString('pt-BR'),hm=(B.h/1000).toLocaleString('pt-BR');
-      B.sheets.forEach((sh,k)=>{const vec=[{color:'#adb5bd',polys:[[[0,0],[B.w,0],[B.w,B.h],[0,B.h]]]}];
-        sh.items.forEach(it=>{const pc=pieceAt(N.pieces[it.i],it);pc.lines.forEach(l=>vec.push(l))});
-        const v=vecPDF(vec);if(v)prodFiles.push({name:nomeArq(`${base} - ${N.nome} CHAPA ${k+1} de ${B.sheets.length} (${B.w}x${B.h}).pdf`),label:`${N.nome==='ACRILICO FUNDO'?'Acrílico do fundo':N.nome==='ACM FUNDO'?'ACM do fundo':N.nome==='ACRILICO'?'Acrílico':'Chapa galvanizada'} — chapa ${k+1} de ${B.sheets.length} (${wm}x${hm} m, encaixe pronto)`,buf:v.buf,dim:`${sh.items.length} peças`})});
-      $('#outMsg').insertAdjacentHTML('beforeend',`<div class="msg ok"><b>${N.nome==='ACRILICO FUNDO'?'Acrílico do fundo':N.nome==='ACM FUNDO'?'ACM do fundo':N.nome==='ACRILICO'?'Acrílico':'Chapa galvanizada'}: ${B.sheets.length} chapa(s) de ${wm}x${hm} m</b> (${(B.util*100).toFixed(1).replace('.',',')}% de aproveitamento).${N.opts.filter(o=>o!==B).map(o=>` Com ${(o.w/1000).toLocaleString('pt-BR')}x${(o.h/1000).toLocaleString('pt-BR')} m seriam ${o.sheets.length} chapa(s), ${(o.util*100).toFixed(1).replace('.',',')}%.`).join('')}${B.naoCabe.length?` ${B.naoCabe.length} peça(s) maiores que a chapa — precisam de emenda.`:''}</div>`)}
+    prodFiles=letraArqs(d,true);
     $('#prodFiles').hidden=!prodFiles.length;
     $('#prodFiles').innerHTML=`<label class="f">Arquivos de produção (tamanho real 1:1)</label>`+prodFiles.map((f,i)=>`<div class="row" style="justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:6px"><div><b style="font-size:14px">${esc(f.label)}</b><div class="note">${f.dim}</div></div><div class="row" style="gap:6px">${DXF_DE.has(f.buf)?`<button class="btn ghost sm" data-pfdxf="${i}" style="border-color:#2b8a3e;color:#2b8a3e">DXF</button>`:''}<button class="btn ghost sm" data-pf="${i}">${DXF_DE.has(f.buf)?'PDF':'Baixar'}</button></div></div>`).join('')+(prodFiles.length>1&&window.JSZip?`<button class="btn acc sm" id="pfZip">Baixar todos (ZIP) — corte, instalação, expedição e RM</button>`:'');
   }catch(err){$('#outMsg').innerHTML=`<div class="msg err">Erro ao gerar: ${esc(err.message)}</div>`;console.error(err)}
@@ -4221,7 +4224,7 @@ function folhasQualidade(ctx,prod){const pages=[];const V=(prod.volumes||[]).con
   last.push({t:'text',x:12,y:yy+8,s:'Conferido por: ______________________________   Data: ____/____/______   Assinatura: ______________________',size:2.8,color:'#000000'});
   return pages}
 
-function paginasFinais(pages,tags,ctx,prod){try{
+function paginasFinais(pages,tags,ctx,prod){window.ultProd=prod;try{
   const a=folhaInstalacao(ctx,prod);pages.push(a);if(tags)tags.push(setorInst());
   if(prod.exp3d&&typeof folhaExplodida==='function'){try{const ex=folhaExplodida(ctx,prod);if(ex){pages.push(ex);if(tags)tags.push(setorInst())}}catch(e){console.error('vista explodida',e)}}
   const temLig=prod.tipo==='letra'&&prod.circ&&prod.circ.lista&&prod.circ.lista.length&&prod.letras&&prod.letras[0]&&prod.letras[0].ps;
@@ -6160,15 +6163,21 @@ async function itemAbrir(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)th
 // ---------- FP completa do pedido ----------
 function buildItem(tipo){if(tipo==='letra')return buildDoc();if(tipo==='testeira')return buildTesteira();if(tipo==='estrutura')return dFolhas();if(tipo==='modelo3d')return mFolhas();if(tipo==='bobs'){setBModo('req');return bobsFolhas()}if(tipo==='bobscomp'){setBModo('comp');return bobsFolhas()}if(tipo==='bobscant'){setBModo('cant');return bobsFolhas()}if(tipo==='branco')return brFolhas();if(tipo==='cotas')return ct3?ct3Folhas():ctFolhas()}
 let pedSel=new Set(),pedParcial=false;
-function pedSelBtn(){const ids=new Set((pedAtual&&pedAtual.itens||[]).map(i=>i.id));[...pedSel].forEach(x=>{if(!ids.has(x))pedSel.delete(x)});const n=pedSel.size;const b=$('#pedGerarSel');if(!b)return;b.disabled=!n;b.textContent=n?`Gerar FP parcial (${n} selecionado${n>1?'s':''})`:'Gerar FP parcial (selecione os itens)'}
+function pedSelBtn(){const ids=new Set((pedAtual&&pedAtual.itens||[]).map(i=>i.id));[...pedSel].forEach(x=>{if(!ids.has(x))pedSel.delete(x)});const n=pedSel.size;{const a=$('#pedArqs');if(a)a.textContent=n?`Baixar arquivos de produção (${n} selecionado${n>1?'s':''})`:'Baixar arquivos de produção (todos)'}const b=$('#pedGerarSel');if(!b)return;b.disabled=!n;b.textContent=n?`Gerar FP parcial (${n} selecionado${n>1?'s':''})`:'Gerar FP parcial (selecione os itens)'}
 $('#pedItensBox').addEventListener('change',e=>{const t=e.target;if(t.dataset.selg!=null){const n=+t.dataset.selg;(pedAtual.itens||[]).filter(i=>+i.n===n).forEach(i=>t.checked?pedSel.add(i.id):pedSel.delete(i.id));pedAbertoRender();return}
   if(t.dataset.sel!=null){t.dataset.sel.split(',').forEach(id=>t.checked?pedSel.add(id):pedSel.delete(id));pedAbertoRender()}});
 $('#pedGerar').onclick=()=>pedGerarFP(false);
 $('#pedGerarSel').onclick=()=>pedGerarFP(true);
 async function pedGerarFP(parcial){let its=(pedAtual.itens||[]).slice().sort((a,b)=>a.n-b.n);if(parcial)its=its.filter(i=>pedSel.has(i.id));if(!its.length){$('#pedMsg').innerHTML=`<div class="msg err">${parcial?'Selecione ao menos um item.':'O pedido ainda não tem itens.'}</div>`;return}
-  pedParcial=parcial;const btn=parcial?$('#pedGerarSel'):$('#pedGerar');btn.disabled=true;const todas=[],geralL=[];const salvo={item:$('#item').value,ia:itemAtual};
+  pedParcial=parcial;const btn=parcial?$('#pedGerarSel'):$('#pedGerar');btn.disabled=true;const todas=[],geralL=[],grpExp={};const salvo={item:$('#item').value,ia:itemAtual};
   try{for(const [k,it] of its.entries()){$('#pedMsg').innerHTML=`<div class="msg ok">Gerando item ${it.n} (${k+1} de ${its.length}) — ${TIPO_NOME[it.tipo]}…</div>`;await new Promise(r=>setTimeout(r,30));
-      await itemAbrir(it,false);FOOT_SKIP=true;let r;try{r=buildItem(it.tipo)}finally{FOOT_SKIP=false}r.pages.forEach((P,j)=>{P._obs=fpObsPg[obsChave(P,j+1)]||'';todas.push({P,ctx:r.ctx})});if(!parcial)geralL.push(await geralInfo(it,r))}
+      await itemAbrir(it,false);FOOT_SKIP=true;window.ultProd=null;let r;try{r=buildItem(it.tipo)}finally{FOOT_SKIP=false}
+      // componentes juntos: a expedição sai UMA linha por grupo (a peça montada); a qualidade continua com todos
+      let pgs=r.pages.map((P,j)=>({P,j}));if(it.junto){const pr=window.ultProd;const G=grpExp[it.junto]||(grpExp[it.junto]={ctx:r.ctx,n:it.n,desc:it.desc||TIPO_NOME[it.tipo],partes:[],kg:0,pos:0});
+        G.partes.push(`${TIPO_NOME[it.tipo]||it.tipo}${it.desc&&it.desc!==G.desc?' ('+it.desc+')':''}`);if(pr&&pr.volumes)G.kg+=pr.volumes.reduce((s,v)=>s+(v.kg||0)*(v.q||1),0);pgs=pgs.filter(o=>o.P._setor!=='EXPEDIÇÃO')}
+      pgs.forEach(({P,j})=>{P._obs=fpObsPg[obsChave(P,j+1)]||'';todas.push({P,ctx:r.ctx})});if(it.junto)grpExp[it.junto].pos=todas.length;if(!parcial)geralL.push(await geralInfo(it,r))}
+    Object.values(grpExp).sort((a,b)=>b.pos-a.pos).forEach(G=>{try{const oi=((pedAtual&&pedAtual.osItens)||[]).find(o=>+o.n===+G.n);const q=(oi&&+oi.q)||1;
+      const fl=folhasExpedicao({...G.ctx},{nome:G.desc,volumes:[{desc:G.desc,cont:'Peça montada — '+G.partes.join(' + '),dims:'',q,kg:G.kg/q||0,draw:null}]});todas.splice(G.pos,0,...fl.map(P=>({P,ctx:G.ctx})))}catch(e){console.error('expedição do grupo',e)}});
     if(!parcial&&geralL.length){const c0=todas[0].ctx;const ctxG={...c0,item:'GERAL',descItem:'TODOS OS ITENS DO PEDIDO'};folhasGeral(ctxG,geralL).reverse().forEach(P=>todas.unshift({P,ctx:ctxG}))}
     numeraSetores(todas.map(x=>x.P));todas.forEach((x,i)=>footer(x.P,x.ctx,i+1,todas.length));
     pedPdf=toPDF(todas.map(x=>x.P));$('#pedPrev').innerHTML=todas.map(x=>`<div class="pg">${toSVG(x.P)}</div>`).join('');
@@ -6347,6 +6356,27 @@ function imgAmplia(src){let m=$('#imgZoom');if(m)m.remove();m=document.createEle
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#imgZoom'))$('#imgZoom').remove()});
 document.addEventListener('click',e=>{const im=e.target.closest&&e.target.closest('img');if(!im||im.closest('#imgZoom,header,nav,.pg,.osGhost,button,a,label'))return;
   const r=im.getBoundingClientRect();if(r.width>260&&r.height>260)return;if(!im.src||im.closest('.osTop'))return;e.preventDefault();e.stopPropagation();imgAmplia(im.src)},true);
+
+// arquivos de produção (corte, DXF, STL, anexos) de todos os componentes do pedido — ou só dos selecionados
+async function pedArquivos(){if(!pedAtual)return;let its=(pedAtual.itens||[]).slice().sort((a,b)=>a.n-b.n);const sel=pedSel.size>0;if(sel)its=its.filter(i=>pedSel.has(i.id));if(!its.length)return;
+  const btn=$('#pedArqs');btn.disabled=true;const salvo={item:$('#item').value,ia:itemAtual};const z=new JSZip();let tot=0;const cnt={};
+  try{for(const [k,it] of its.entries()){$('#pedMsg').innerHTML=`<div class="msg ok">Arquivos de produção: item ${it.n} (${k+1} de ${its.length}) — ${TIPO_NOME[it.tipo]}…</div>`;await new Promise(r=>setTimeout(r,30));
+      cnt[it.n]=(cnt[it.n]||0)+1;const pasta=nomeArq(`Item ${it.n}.${cnt[it.n]} - ${TIPO_NOME[it.tipo]||it.tipo}${it.desc?' - '+it.desc:''}`).replace(/\.+$/,'');
+      await itemAbrir(it,false);FOOT_SKIP=true;let r=null;try{r=buildItem(it.tipo)}catch(e){console.error('arquivos',it.n,e)}finally{FOOT_SKIP=false}if(!r)continue;
+      const base=`OS ${pedAtual.os||'sem número'} - item ${it.n}`;let fs=[];
+      try{if(it.tipo==='letra')fs=letraArqs(r,false).filter(f=>f.buf).map(f=>({name:f.name,buf:f.buf}));
+        else if(it.tipo==='testeira'){const L=typeof lastBuild!=='undefined'&&lastBuild&&lastBuild.M&&lastBuild.M.acm?lastBuild:r;if(L&&L.M&&L.M.acm)fs=acmArquivos(L.M.acm,base)}
+        else if(/^bobs/.test(it.tipo))fs=(bobsFiles||[]).map(f=>{const v=vecPDF(f.vec);return v?{name:nomeArq(`${base} - ${f.name}`),buf:v.buf}:null}).filter(Boolean);
+        else if(it.tipo==='branco')fs=(brArqs||[]).map(f=>({name:nomeArq(`${base} - ${f.name}`),buf:unb64(f.b64)}));
+        else if(it.tipo==='modelo3d'&&typeof mBytes!=='undefined'&&mBytes)fs=[{name:nomeArq(`${base} - ${(typeof mNomeArq!=='undefined'&&mNomeArq)||'modelo 3D.stl'}`),buf:mBytes}];
+      }catch(e){console.error('arquivos do componente',it.n,e)}
+      fs.forEach(f=>{z.file(pasta+'/'+f.name,f.buf instanceof ArrayBuffer?f.buf.slice(0):f.buf);tot++;const dx=typeof DXF_DE!=='undefined'&&f.buf&&DXF_DE.get(f.buf);if(dx){z.file(pasta+'/'+f.name.replace(/\.pdf$/i,'')+'.dxf',dx);tot++}})}
+    if(!tot){$('#pedMsg').innerHTML='<div class="msg err">Nenhum arquivo de produção nesses componentes.</div>';return}
+    const blob=await z.generateAsync({type:'blob'});await salvar(nomeArq(`OS ${pedAtual.os||'sem número'} - arquivos de producao${sel?' (selecionados)':''}.zip`),blob);
+    $('#pedMsg').innerHTML=`<div class="msg ok">Arquivos de produção: ${tot} arquivo(s) de ${its.length} componente(s)${sel?' selecionado(s)':''}, uma pasta por componente.</div>`}
+  catch(e){console.error(e);$('#pedMsg').innerHTML=`<div class="msg err">Erro: ${esc(e.message)}</div>`}
+  finally{btn.disabled=false;$('#item').value=salvo.item;itemAtual=salvo.ia;pedBarRender();pedSelBtn()}}
+document.addEventListener('click',e=>{if(e.target&&e.target.id==='pedArqs')pedArquivos()});
 
 /* ===================== LER ORDEM DE SERVIÇO (PDF) =====================
    Lê nº da OS, cliente, vendedor, endereço, entrega e a lista de itens (com a foto de cada um).
