@@ -681,6 +681,8 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
     <div class="card">
       <div id="instBox"><input type="hidden" id="iUnid" value="mm">
         <h2>Projeto de instalação <span class="badge">vale para este item</span></h2>
+        <label class="f">Onde é instalado</label><div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:8px"><button type="button" class="chip on" data-iloc="externa" style="padding:7px 12px;font-size:13px">🏢 Externa — no local do cliente</button><button type="button" class="chip" data-iloc="interna" style="padding:7px 12px;font-size:13px">🏭 Interna — na fábrica</button><input type="hidden" id="iLocal" value="externa"></div>
+        <p class="note" id="iLocalNota" style="margin:-4px 0 10px">A FP de instalação vai para o setor <b>INSTALAÇÃO</b>.</p>
         <div class="g2">
           <div><label class="f">Na largura</label><select id="iHm"><option value="centro">Centralizado</option><option value="esquerda">A partir da esquerda</option><option value="direita">A partir da direita</option></select></div>
           <div><label class="f">Saída na largura (mm)</label><input type="text" id="iHv" inputmode="decimal" placeholder="ex.: 300"></div>
@@ -2066,7 +2068,7 @@ function l3dSnapInst(R){if(!window.THREE||!R)return null;try{const W=1400,Hh=820
   const pr=p=>{const v=new THREE.Vector3(p[0]-ox,p[1]-oy,p[2]).project(cam);return[(v.x+1)/2,(1-v.y)/2]};const pts={};(o.pts||[]).forEach(([k,p])=>{if(!pts[k])pts[k]=pr(p)});
   const src=l3dSnapR.domElement.toDataURL('image/jpeg',0.9);g.traverse(x=>{if(x.geometry)x.geometry.dispose()});l3dSnapR.setSize(1200,700,false);return{src,w:W,h:Hh,pts}}catch(e){console.error('3D instalação',e);return null}}
 function folhaExplodida(ctx,prod){const X=prod&&prod.exp3d;if(!X)return null;const R=l3dCaixa({orig:X.orig,info:X.info,ledInfo:X.ledInfo,ctx,semLed:!X.ledInfo});if(!R||!R.temPvc)return null;const sn=l3dSnapInst(R);if(!sn)return null;
-  const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'});P._ref=null;P.push({t:'text',x:PW/2,y:30,s:'MONTAGEM NA PAREDE — VISTA EXPLODIDA',size:4.4,bold:true,color:'#000000',anchor:'middle'});
+  const P=[];frame(P,ctx,{setor:setorInst()});P._ref=null;P.push({t:'text',x:PW/2,y:30,s:'MONTAGEM NA PAREDE — VISTA EXPLODIDA',size:4.4,bold:true,color:'#000000',anchor:'middle'});
   const iw=196,ih=Math.min(122,iw*sn.h/sn.w),ix=12,iy=37;P.push({t:'rect',x:ix-1,y:iy-1,w:iw+2,h:ih+2,r:1.5,fill:'#ffffff',stroke:'#ced4da',lw:0.25},{t:'img',x:ix,y:iy,w:iw,h:ih,src:sn.src,fmt:'JPEG'});
   const frente=R.filete?'LETRA (FRENTE EM CHAPA + LATERAL, COM O ACRÍLICO POR DENTRO)':'LETRA (ACRÍLICO DA FRENTE + LATERAL, JÁ MONTADOS)';
   const passos=[['pvc','1','FIXAR O FUNDO DE PVC NA PAREDE',`Pelos furos do PVC (${(R.pvcRegs||[]).reduce((a,r)=>a+r.length-1,0)} furos), com bucha e parafuso. Conferir nível antes.`,'#1971c2'],
@@ -3913,6 +3915,9 @@ const KG={acr4:4.76,galv26:3.6,pvc10:5.5,acm:{3:4.5,4:5.6}}; // kg/m² aproximad
 const tuboKgM=(f,p,t)=>Math.max(0,(2*(f+p)-4*t)*t*0.00785);   // kg por metro de tubo
 const numBR=v=>parseFloat(String(v||'').replace(',','.'))||0;
 const kgTxt=v=>v>0&&v<0.1?'< 0,1 kg':v>0?`${v<10?v.toLocaleString('pt-BR',{maximumFractionDigits:1}):Math.round(v).toLocaleString('pt-BR')} kg`:'—';
+const setorInst=()=>(($('#iLocal')||{}).value==='interna')?'ACABAMENTO':'INSTALAÇÃO';
+function iLocalSync(){const v=($('#iLocal')||{}).value||'externa';document.querySelectorAll('[data-iloc]').forEach(b=>b.classList.toggle('on',b.dataset.iloc===v));const n=$('#iLocalNota');if(n)n.innerHTML=v==='interna'?'Instalação interna: a FP de instalação vai para o setor <b>ACABAMENTO</b>.':'A FP de instalação vai para o setor <b>INSTALAÇÃO</b>.'}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-iloc]');if(!b)return;$('#iLocal').value=b.dataset.iloc;iLocalSync();try{resetOut()}catch(err){}});setInterval(()=>{try{iLocalSync()}catch(e){}},1500);
 function instLer(){const g=id=>$('#'+id);if(!g('iHm'))return{hm:'centro',vm:'centro'};
   return{hm:g('iHm').value,hv:numBR(g('iHv').value),vm:g('iVm').value,vv:numBR(g('iVv').value),pw:numBR(g('iPw').value),ph:numBR(g('iPh').value),ancT:g('iAncT')?g('iAncT').value:'alvenaria',ancB:g('iAncB')?g('iAncB').value.trim():'',ancQ:g('iAncQ')?numBR(g('iAncQ').value):0,ancTipo:g('iAncTipo')?g('iAncTipo').value:'',ancPos:g('iAncPos')?g('iAncPos').value:'superior',ancTQ:g('iAncTQ')?numBR(g('iAncTQ').value):0,ancObs:g('iAncObs')?g('iAncObs').value.trim():''}}
 const ANC={alvenaria:{nome:'BUCHA 8 + PARAFUSO SEXTAVADO ROSCA SOBERBA 1/4 x 70 MM',base:'PAREDE DE ALVENARIA',bit:'Bucha 8 mm + parafuso sext. rosca soberba 1/4 x 70 mm',broca:'Broca 8 mm (vídea)',draw:'bucha',
@@ -3957,7 +3962,7 @@ function ancExplodida(P,R,A){const cy=R.y+R.h*0.46,s=Math.min(R.h/42,R.w/150);co
     lab(x+sl/2,'PARAFUSO',A.bit.length>34?'':A.bit);x+=sl+4*s}
   // eixo e setas
   L(eixo0,cy,x+4,cy,'#d6336c',0.18,[1.6,1]);P.push({t:'text',x:(eixo0+x)/2,y:R.y+3,s:'VISTA EXPLODIDA — AS PEÇAS ENCAIXAM DA DIREITA PARA A ESQUERDA (EM DIREÇÃO À PAREDE)',size:2.4,bold:true,color:'#d6336c',anchor:'middle'})}
-function folhaAncoragem(ctx,prod){const I=instLer();const A=ancInfo(I,prod);if(!A)return null;const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'});P._ref=null;
+function folhaAncoragem(ctx,prod){const I=instLer();const A=ancInfo(I,prod);if(!A)return null;const P=[];frame(P,ctx,{setor:setorInst()});P._ref=null;
   P.push({t:'text',x:PW/2,y:30,s:'ANCORAGEM — COMO FIXAR NA PAREDE',size:4.4,bold:true,color:'#000000',anchor:'middle'});
   P.push({t:'text',x:PW/2,y:35,s:`ITEM ${ctx.item} — ${fit(prod.nome,120,2.6)}`,size:2.6,color:'#555555',anchor:'middle'});
   // foto da ancoragem (enviada) ou ilustração
@@ -3999,7 +4004,7 @@ const PANELA='parafuso auto-atarraxante cabeça panela Phillips (DIN 7981, 5,5 x
 // parafusos cabeça panela na lateral: um a cada 20 cm do contorno externo de cada letra
 function panelaPorLetra(ps){const per=chainLen(ps[0].concat([ps[0][0]]));return Math.max(2,Math.ceil(per/200*0.6-1e-9))} // 40% a menos que 1 a cada 200 mm
 /* ---------- PROJETO DE INSTALAÇÃO ---------- */
-function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'});P._ref=null; // a folha de instalação não leva a imagem de referência, só a foto da instalação
+function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:setorInst()});P._ref=null; // a folha de instalação não leva a imagem de referência, só a foto da instalação
   const I=instLer();
   const temF=!!(instImg||instImg2||instLocal);
   const IX=temF?176:20;const XR=temF?286:150;let y=31;
@@ -4074,7 +4079,7 @@ function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'}
   return P}
 
 /* ---------- INSTALAÇÃO: logo em proporção real com as medidas e o que vai em cada letra ---------- */
-function folhaLogoInst(ctx,prod){const perso=instLer().ancT==='perso';const Ls=perso?prod.letras.map(l=>({...l,broc:null,pan:null})):prod.letras;const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'});P._ref=null;
+function folhaLogoInst(ctx,prod){const perso=instLer().ancT==='perso';const Ls=perso?prod.letras.map(l=>({...l,broc:null,pan:null})):prod.letras;const P=[];frame(P,ctx,{setor:setorInst()});P._ref=null;
   const all=[];Ls.forEach(l=>l.ps.forEach(p=>all.push(p)));const b=bbox(all);const CR='#d6336c';
   P.push({t:'text',x:PW/2,y:29,s:'PROJETO DE INSTALAÇÃO — LOGO COM AS MEDIDAS REAIS',size:4.4,bold:true,color:CR,anchor:'middle'});
   const RX=22,RW=PW-44,RY=40,RH=72;const s=Math.min(RW/b.w,RH/b.h);const ox=RX+(RW-b.w*s)/2,oy=RY+(RH-b.h*s)/2;
@@ -4202,11 +4207,11 @@ function folhasQualidade(ctx,prod){const pages=[];const V=(prod.volumes||[]).con
   return pages}
 
 function paginasFinais(pages,tags,ctx,prod){try{
-  const a=folhaInstalacao(ctx,prod);pages.push(a);if(tags)tags.push('INSTALAÇÃO');
-  if(prod.exp3d&&typeof folhaExplodida==='function'){try{const ex=folhaExplodida(ctx,prod);if(ex){pages.push(ex);if(tags)tags.push('INSTALAÇÃO')}}catch(e){console.error('vista explodida',e)}}
+  const a=folhaInstalacao(ctx,prod);pages.push(a);if(tags)tags.push(setorInst());
+  if(prod.exp3d&&typeof folhaExplodida==='function'){try{const ex=folhaExplodida(ctx,prod);if(ex){pages.push(ex);if(tags)tags.push(setorInst())}}catch(e){console.error('vista explodida',e)}}
   const temLig=prod.tipo==='letra'&&prod.circ&&prod.circ.lista&&prod.circ.lista.length&&prod.letras&&prod.letras[0]&&prod.letras[0].ps;
-  if(!temLig&&prod.tipo==='letra'&&prod.letras&&prod.letras.length&&prod.letras[0].ps){const lg=folhaLogoInst(ctx,prod);if(lg){pages.push(lg);if(tags)tags.push('INSTALAÇÃO')}}
-  if(prod.tipo==='letra'&&prod.circ&&prod.circ.lista&&prod.circ.lista.length&&prod.letras&&prod.letras[0].ps){['INSTALAÇÃO','ELÉTRICA'].forEach(st=>{try{const q=folhaLigacao(ctx,prod,st);if(q){pages.push(q);if(tags)tags.push(st)}}catch(e){console.error('ligação',e)}})}
+  if(!temLig&&prod.tipo==='letra'&&prod.letras&&prod.letras.length&&prod.letras[0].ps){const lg=folhaLogoInst(ctx,prod);if(lg){pages.push(lg);if(tags)tags.push(setorInst())}}
+  if(prod.tipo==='letra'&&prod.circ&&prod.circ.lista&&prod.circ.lista.length&&prod.letras&&prod.letras[0].ps){[setorInst(),'ELÉTRICA'].forEach(st=>{try{const q=folhaLigacao(ctx,prod,st);if(q){pages.push(q);if(tags)tags.push(st)}}catch(e){console.error('ligação',e)}})}
   folhasExpedicao(ctx,prod).forEach(P=>{pages.push(P);if(tags)tags.push('EXPEDIÇÃO')});
   folhasQualidade(ctx,prod).forEach(P=>{pages.push(P);if(tags)tags.push('QUALIDADE')});
   try{const anc=prod.semAnc?[]:needsAncoragem(ancInfo(instLer(),prod));const X=piPrep(prod,[...(prod.mat||[]),...anc]);
@@ -4519,7 +4524,7 @@ function matResolve(N){return N.filter(n=>n.q>0||n.m2>0||n.litros>0).map(n=>{con
     if(!m&&(n.m2>0||n.litros>0)&&!q)q=n.m2>0?Math.round(n.m2*100)/100:Math.round(n.litros*100)/100;
     let vu=m?+m[3]||0:0,data=m?m[5]||'':'',semPreco=false;if(m&&!(vu>0)){const pp=mpPreco[m[0]];if(pp&&pp.valor>0){vu=pp.valor;data=pp.data+' (manual)'}else semPreco=true}
     const qm=matQtd[n.k]!=null;if(qm)q=matQtd[n.k];
-    return{...n,q,qtdManual:qm,uso:(n.uso||'')+(qm?' • qtd. manual':extra),cod:m?m[0]:null,nome:m?m[1]:null,unMP:m?m[2]:n.un,vu,tot:vu*q,data,semPreco,manual:r&&r.manual}})}
+    return{...n,q,qtdManual:qm,uso:(n.uso||'')+(qm?' • qtd. manual':extra),cod:m?m[0]:null,nome:m?m[1]:null,unMP:(n.un==='m'&&/^fitaled\|/.test(n.k||''))?'m':m?m[2]:n.un,vu,tot:vu*q,data,semPreco,manual:r&&r.manual}})}
 const mpData=d=>{const m=String(d||'').match(/(\d{2})\/(\d{2})\/(\d{4})/);return m?+(m[3]+m[2]+m[1]):0};
 // cor (hex) de cada tinta do cadastro, pela referência escrita no nome: Pantone, RAL, Oracal ou nome da cor
 const TINTA_COR=[['AZUL MARINHO','#1b2a5c'],['AZUL CLARO','#5aa9e6'],['VERDE LIMAO','#9bcb3b'],['VERDE ESCURO','#0b4a2e'],['CINZA CLARO','#c3c5c4'],['CINZA ESCURO','#4f5254'],['BRANCO','#f4f5f2'],['PRETO','#141414'],['GRAFITE','#3a3d40'],['CINZA','#8a8e8f'],['PRATA','#b0b4b8'],['ALUMINIO','#a9adb1'],['AMARELO','#f5c400'],['LARANJA','#f07800'],['VERMELHO','#c8102e'],['VINHO','#6b0f1f'],['BORDO','#6b0f1f'],['ROSA','#e88fb4'],['PINK','#e0407e'],['MAGENTA','#c2186b'],['ROXO','#5d2c68'],['LILAS','#b893bc'],['VIOLETA','#5d2c68'],['AZUL','#0050a0'],['TURQUESA','#00a19a'],['VERDE','#00843d'],['MARROM','#5c3a21'],['BEGE','#d8c7a0'],['CREME','#efe0b4'],['DOURADO','#c9a43b'],['OURO','#b8963e'],['COBRE','#9a5a2e'],['BRONZE','#8c6a3f']];
