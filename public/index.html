@@ -170,10 +170,10 @@ button.chip{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:1
 .v3wrap{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#f3f4f7}
 #t3d{display:block;width:100%;height:380px;touch-action:none;cursor:grab}
 .v3bar{position:absolute;top:8px;left:8px;display:flex;gap:4px;flex-wrap:wrap}.v3bar button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:5px 9px;font:inherit;font-size:12px;cursor:pointer}
-.bGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;align-items:stretch}.bGrid>.card{display:flex;flex-direction:column}.bGrid>.card .v3wrap{flex:1;min-height:380px}.bGrid>.card .v3wrap canvas{height:100%!important;min-height:380px}.bGrid:has(>.card[hidden]){grid-template-columns:1fr}@media(max-width:900px){.bGrid{grid-template-columns:1fr}}
-#tEd .edim,#bEd .edim{position:absolute;transform:translate(-50%,-50%);width:92px;padding:3px 4px;text-align:center;font-size:13px;color:#2a6f97;border:1px solid #b9d3e3;border-radius:6px;background:#fff}
+.bGrid:has(>.card[hidden]){grid-template-columns:1fr!important}.bGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;align-items:stretch}.bGrid>.card{display:flex;flex-direction:column}.bGrid>.card .v3wrap{flex:1;min-height:380px}.bGrid>.card .v3wrap canvas{height:100%!important;min-height:380px}.bGrid:has(>.card[hidden]){grid-template-columns:1fr}@media(max-width:900px){.bGrid{grid-template-columns:1fr}}
+#tEd .edim,#bEd .edim,.tEdBox .edim{position:absolute;transform:translate(-50%,-50%);width:92px;padding:3px 4px;text-align:center;font-size:13px;color:#2a6f97;border:1px solid #b9d3e3;border-radius:6px;background:#fff}
 #tEd .edim:focus{outline:2px solid var(--pink);border-color:var(--pink)}
-@media(max-width:620px){#tEd .edim,#bEd .edim{width:70px;font-size:11px;padding:2px}}
+@media(max-width:620px){#tEd .edim,#bEd .edim,.tEdBox .edim{width:70px;font-size:11px;padding:2px}}
 #t3dInfo{font-size:12.5px;color:var(--mute);margin-top:6px}
 .badge{display:inline-block;font-size:10px;padding:1px 7px;border-radius:20px;background:#eef0f3;color:var(--mute);margin-left:4px;text-transform:none}
 .logoPrev{height:56px;min-width:140px;border:1px dashed var(--line);border-radius:8px;display:grid;place-items:center;background:#fff center/contain no-repeat;color:#aaa;font-size:12px}
@@ -293,7 +293,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
       <label class="f" style="margin-top:14px">Itens do pedido</label>
             <div id="pedItensBox"><div id="osLista"></div>
       <div id="pedItens"></div></div>
-      <div class="row" id="pedNovos" style="gap:6px;margin-top:10px"><span class="note" style="align-self:center">Novo item:</span><button class="btn ghost sm" data-novo="letra">+ Letra caixa</button><button class="btn ghost sm" data-novo="branco">+ FP em branco</button><button class="btn ghost sm" data-novo="testeira">+ Testeira</button><button class="btn ghost sm" data-novo="modelo3d">+ 3D (STL, OBJ, DXF ou PDF)</button><button class="btn ghost sm" data-novo="bobs">+ Bobs requadro</button><button class="btn ghost sm" data-novo="bobscomp">+ Bobs complemento 30x30</button><button class="btn ghost sm" data-novo="bobscant">+ Bobs cantoneira iluminada</button></div>
+      <div class="row" id="pedNovos" style="gap:6px;margin-top:10px"><span class="note" style="align-self:center">Novo item:</span><button class="btn ghost sm" data-novo="letra">+ Letra caixa</button><button class="btn ghost sm" data-novo="branco">+ FP em branco</button><button class="btn ghost sm" data-novo="testeira">+ Testeira</button><button class="btn ghost sm" data-novo="modelo3d">+ 3D (STL, OBJ, DXF ou PDF)</button><button class="btn ghost sm" data-novo="bobs">+ Bobs requadro</button><button class="btn ghost sm" data-novo="bobscomp">+ Bobs complemento 30x30</button><button class="btn ghost sm" data-novo="bobscant">+ Bobs cantoneira iluminada</button><button class="btn ghost sm" data-novo="bobstela">+ Bobs testeira em tela</button></div>
       <div class="row" id="pedAcoes" style="gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)"><button class="btn pink" id="pedGerar">Gerar FP completa do pedido</button><button class="btn acc" id="pedGerarSel" disabled>Gerar FP parcial (selecione os itens)</button><button class="btn ghost" id="pedBaixar" hidden>Baixar FP completa (PDF)</button><button class="btn" id="pedGeral" style="background:#2f9e44;color:#fff;font-weight:700">Gerar apenas FP geral</button><button class="btn" id="pedRM" style="background:#495057;color:#fff">Baixar RM + PI do pedido (PDF + XLSX)</button><button class="btn" id="pedArqs" type="button" style="background:#2b8a3e;color:#fff">Baixar arquivos de produção (todos)</button><button class="btn ghost sm" id="pedExport" style="display:none">Exportar pedido (arquivo)</button><button class="btn danger sm" id="pedExcluir" style="margin-left:auto">Excluir pedido</button></div><div id="pedExpMsg" class="note" style="margin-top:6px"></div>
       <div id="pedMsg"></div>
       <div class="prev" id="pedPrev"></div>
@@ -421,7 +421,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
     <div class="card isbCard"><button class="btn pink isbBtn" type="button" style="width:100%;padding:14px;font-size:16px">Salvar item</button><div class="note isbMsg" style="margin-top:6px"></div></div>
   </section>
   <section id="tab-bobs" hidden>
-    <div class="leds" id="bModo" style="margin-bottom:14px"><button data-bm="req" class="sel"><b>Requadro do balcão</b><span class="note" style="display:block">estrutura + ripado / ACM</span></button><button data-bm="comp"><b>Complemento 30x30</b><span class="note" style="display:block">tubo avulso pintado</span></button><button data-bm="cant"><b>Cantoneira com iluminação</b><span class="note" style="display:block">25x25 + LED COB 3000K — soma tudo</span></button></div>
+    <div class="leds" id="bModo" style="margin-bottom:14px"><button data-bm="req" class="sel"><b>Requadro do balcão</b><span class="note" style="display:block">estrutura + ripado / ACM</span></button><button data-bm="comp"><b>Complemento 30x30</b><span class="note" style="display:block">tubo avulso pintado</span></button><button data-bm="cant"><b>Cantoneira com iluminação</b><span class="note" style="display:block">25x25 + LED COB 3000K — soma tudo</span></button><button data-bm="tela"><b>Testeira em tela</b><span class="note" style="display:block">quadro 40x30 + tela 5x5, pintura a pó</span></button></div>
     <div class="card bm-req" id="bCard">
       <h2>Bobs — requadro do balcão</h2>
       <div class="g3">
@@ -433,8 +433,8 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
       <div id="bPecas"></div>
       <button class="btn ghost sm" id="bAddL" style="margin-top:10px">+ Peça em L</button>
     </div>
-    <div class="bGrid bm-req">
-    <div class="card" style="margin:0">
+    <div class="bGrid bm-req bm-tela">
+    <div class="card bm-req" style="margin:0">
       <h2>Medidas da peça <span class="note" style="font-weight:400">— toque numa medida para mudar ou arraste a divisão / trava</span></h2>
       <div class="row" id="bEdPick" style="gap:6px;margin-bottom:8px"></div>
       <div id="bEd"></div><div id="bEdMsg"></div>
@@ -463,6 +463,17 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
       </div>
       <p class="note" style="margin:6px 0 0">Tubo metalon 30x30 avulso, cortado na medida e pintado de preto (pó, terceirizado). Entra na soma da cantoneira com iluminação.</p>
       <div id="bComp"></div><button class="btn ghost sm" id="bAddComp" style="margin-top:8px">+ Tubo 30x30</button>
+    </div>
+    <div class="card bm-tela" id="bTelaCard" hidden>
+      <h2>Bobs — testeira em tela</h2>
+      <div class="g3">
+        <div><label class="f">Descrição</label><input type="text" id="btDesc" value="TESTEIRAS EM TELA BOBS"></div>
+        <div><label class="f">Cor (pintura eletrostática a pó)</label><input type="text" id="btCor" value="PRETO"></div>
+        <div><label class="f">Acabamento</label><select id="btAcab"><option>FOSCO</option><option>SEMI BRILHO</option><option>BRILHO</option></select></div>
+      </div>
+      <p class="note" style="margin:6px 0 0">Quadro em metalon 40x30 #1,55 com tela soldada lisa 5x5 (malha 50x50, fio 2 mm). Recorte em degrau opcional; a lateral de junção das metades sai em 30x30. Logo ainda não entra.</p>
+      <div id="bTelaLista"></div>
+      <div class="row" style="gap:8px;margin-top:8px"><button class="btn ghost sm" id="bTelaAdd">+ Tela principal</button><button class="btn ghost sm" id="bTelaComp" style="border-color:#f76707;color:#d9480f">+ Complemento (parte estreita)</button></div>
     </div>
     <div class="card bm-cant" id="bCantCard" hidden>
       <h2>Bobs — cantoneira com iluminação</h2>
@@ -5226,7 +5237,7 @@ function bobsDesenha(P,p,R,o={}){const s=Math.min(R.w/p.W,R.h/p.H);const ox=R.x+
     if(o.num)P.push({t:'circle',x:X(el.x+el.w/2),y:Y(el.y+el.h/2)-(el.tipo==='acm'?4:0),r:2,fill:'#ffffff',stroke:'#000000',lw:0.25},{t:'text',x:X(el.x+el.w/2),y:Y(el.y+el.h/2)-(el.tipo==='acm'?4:0)+0.8,s:o.num(el),size:2,bold:true,color:'#000000',anchor:'middle'})});
   return{s,X,Y,ox,oy}}
 // ---------- folhas ----------
-function bobsFolhas(){if(bModo==='comp')return bobsCompFolhas();if(bModo==='cant')return bobsCantFolhas();const B={pecas:bobs.pecas,comp:[],led:false};const un=Math.max(1,Math.round(num($('#bUn').value))||1);const d=$('#entrega').value;
+function bobsFolhas(){if(bModo==='tela')return bobsTelaFolhas();if(bModo==='comp')return bobsCompFolhas();if(bModo==='cant')return bobsCantFolhas();const B={pecas:bobs.pecas,comp:[],led:false};const un=Math.max(1,Math.round(num($('#bUn').value))||1);const d=$('#entrega').value;
   const ctx={obsBelow:true,os:$('#os').value.trim(),item:$('#item').value||'1',descItem:$('#bDesc').value.trim()||'REQUADRO DO BALCÃO BOBS',cliente:$('#cliente').value.trim(),vendedor:$('#vendedor').value.trim(),projetista:$('#projetista').value.trim(),endereco:$('#endereco').value.trim(),entrega:d?d.split('-').reverse().join('/'):''};
   const C=bobsCalc(B);const pages=[],tags=[];const corRip=($('#bCorRip').value.trim()||'LARANJA BOBS').toUpperCase(),corAcm=($('#bCorAcm').value.trim()||'ROXO BOBS').toUpperCase();
   const add=(P,t)=>{pages.push(P);tags.push(t)};const nm=v=>String(v).replace('.',',');const vid=(el)=>`${el.pi+1}.${el.k+1}`;
@@ -5403,7 +5414,7 @@ function bobsProd(C,un,ctx,X){const N=[];const nm=v=>String(v).replace('.',',');
   if(X.led)vols.push({desc:'CANTONEIRAS 25x25 COM LED + REATORES',cont:`${String(X.led.m.toFixed(2)).replace('.',',')} m de cantoneira com LED COB 3000K e ${X.led.fs.length} reator(es)`,dims:'—',q:1,kg:0,draw:null});
   return{tipo:'estrutura',mat:N,anc:{peca:'REQUADRO',auto:4*C.pecas.length*un,onde:'fixação no balcão (estimado)'},nome:ctx.descItem,W,H,D:30,un,volumes:vols,contornoRects:rects,contorno:[[[0,0],[W,0],[W,H],[0,H]]],checks:['MEDIDAS','PINTURA','MONTAGEM','LED ACENDE']}}
 // ---------- interface ----------
-function bobsUI(){bobsUI0();if(bModo==='cant')try{bobsCantUI()}catch(e){console.error(e)}try{bobsEditor()}catch(e){console.error(e)}try{if(!$('#tab-bobs').hidden)bobs3D()}catch(e){console.error(e)}}
+function bobsUI(){bobsUI0();if(bModo==='tela')try{bobsTelaUI()}catch(e){console.error(e)}if(bModo==='cant')try{bobsCantUI()}catch(e){console.error(e)}try{bobsEditor()}catch(e){console.error(e)}try{if(!$('#tab-bobs').hidden)bobs3D()}catch(e){console.error(e)}}
 function bobsUI0(){const B=bobs;
   $('#bPecas').innerHTML=B.pecas.map((p,pi)=>{const G=bobsEspacos(p);return`<div class="fcard" data-p="${pi}">
     <div class="row" style="justify-content:space-between"><b>PEÇA ${pi+1}${pi?` <span class="note">(em L com a peça ${pi})</span>`:' (início)'}</b>${pi?`<button class="btn danger sm" data-bdel="${pi}">Remover</button>`:''}</div>
@@ -5526,7 +5537,7 @@ function bobsCaixas(q,led){const M=BOBS.mold,out=[],F=BOBS.folga/2,e=BOBS.bc.e,K
     if(el.tipo!=='ripado'){const z=5,c='#111111';bx(el.x,el.y,z,el.x+el.w,el.y+1.5,z+12,c);bx(el.x,el.y+el.h-1.5,z,el.x+el.w,el.y+el.h,z+12,c)}});
   if(led){bx(0,-25,0,q.W,0,25,'#1a1a1a');bx(0,-26.5,2,q.W,-25,23,'#ffd43b')}
   return out}
-function bobs3D(){if(!b3Init()){$('#b3dInfo').textContent='Visualizador 3D indisponível neste aparelho.';return}
+function bobs3D(){if(!b3Init()){$('#b3dInfo').textContent='Visualizador 3D indisponível neste aparelho.';return}if(bModo==='tela')return tela3D();
   const C=bobsCalc({pecas:bobs.pecas,comp:[]});const all=[];let xEnd=0;
   C.pecas.forEach((q,i)=>{const cx=bobsCaixas(q,false);
     if(i===0){cx.forEach(b=>all.push(b));xEnd=q.W}
@@ -5546,10 +5557,10 @@ document.querySelectorAll('[data-b3]').forEach(b=>b.onclick=()=>{const v={iso:[-
 
 /* ---------- modos: requadro / complemento 30x30 / cantoneira com iluminação ---------- */
 function setBModo(m){bModo=m;document.querySelectorAll('#bModo [data-bm]').forEach(b=>b.classList.toggle('sel',b.dataset.bm===m));
-  ['req','comp','cant'].forEach(k=>document.querySelectorAll('#tab-bobs .bm-'+k).forEach(e=>e.hidden=k!==m));
+  document.querySelectorAll('#tab-bobs .bm-req,#tab-bobs .bm-comp,#tab-bobs .bm-cant,#tab-bobs .bm-tela').forEach(e=>e.hidden=!e.classList.contains('bm-'+m));{const g=document.querySelector('#tab-bobs .bGrid'),tc=$('#bTelaCard'),c2=$('#bCard2');if(g&&tc&&c2){if(m==='tela'){if(tc.nextElementSibling!==g)tc.after(g)}else if(c2.previousElementSibling!==g)c2.before(g)}}if(m==='tela'||m==='req'){B3.fit=true;setTimeout(()=>{try{bobs3D()}catch(e){}},30)}
   bobsSujo();bobsUI();if(typeof pedBarRender==='function')try{pedBarRender()}catch(e){}}
 $('#bModo').onclick=e=>{const b=e.target.closest('[data-bm]');if(!b)return;setBModo(b.dataset.bm)};
-const bobsDesc=()=>({req:$('#bDesc').value.trim()||'REQUADRO DO BALCÃO BOBS',comp:$('#bcDesc').value.trim()||'COMPLEMENTO 30X30 BOBS',cant:$('#bkDesc').value.trim()||'CANTONEIRA COM ILUMINAÇÃO BOBS'}[bModo]);
+const bobsDesc=()=>({req:$('#bDesc').value.trim()||'REQUADRO DO BALCÃO BOBS',comp:$('#bcDesc').value.trim()||'COMPLEMENTO 30X30 BOBS',cant:$('#bkDesc').value.trim()||'CANTONEIRA COM ILUMINAÇÃO BOBS',tela:$('#btDesc').value.trim()||'TESTEIRAS EM TELA BOBS'}[bModo]);
 function bobsCtx(desc){const d=$('#entrega').value;return{obsBelow:true,os:$('#os').value.trim(),item:$('#item').value||'1',descItem:desc,cliente:$('#cliente').value.trim(),vendedor:$('#vendedor').value.trim(),projetista:$('#projetista').value.trim(),endereco:$('#endereco').value.trim(),entrega:d?d.split('-').reverse().join('/'):''}}
 // medidas que entram na cantoneira (gravadas no item do pedido ao salvar)
 function bobsLens(tipo){if(tipo==='bobs'){const un=Math.max(1,Math.round(num($('#bUn').value))||1);return bobs.pecas.flatMap(p=>Array(un).fill(p.W))}
@@ -5659,6 +5670,156 @@ function bobsCantDetalhe(ctx){const st=(typeof setorInst==='function')?setorInst
   const L=['PASSO A PASSO','1. Colar a FITA LED COB embaixo da aba de cima da','    cantoneira, perto da aba que desce, em toda a peça.','2. Apoiar a cantoneira em cima do tubo 30x30 com a aba que desce','    para o lado de fora, deixando 10 mm de vão entre a aba e o tubo.','3. Parafusar com brocante pela aba de cima, no meio do tubo,','    ~1 a cada 250 mm (sem furar a fita).','4. Passar os fios pelo vão até o reator; vermelho (+) e preto (−).','5. Ligar e conferir: a luz sai pelo vão de 10 mm, para baixo.'];
   L.forEach((t,i)=>P.push({t:'text',x:200,y:60+i*6.4,s:t,size:i?2.6:3.2,bold:!i,color:'#000000'}));
   return P}
+
+/* ===================== TESTEIRA EM TELA (Bobs) =====================
+   Quadro em metalon 40x30 #1,55 galvanizado (perímetro) com recorte opcional em degrau curvo,
+   tela soldada lisa malha 50x50 fio 2 mm (TELA 5x5), pintura eletrostática a pó. */
+const TELA={perfil:30,malha:50,ptPerda:1.10};
+let bTela=[{tipo:'princ',nome:'TESTEIRA EM TELA',q:1,L:3000,H:800,rec:true,Hb:600,La:2200,Lt:200,junta:'nao'}];
+function telaCurva(q,n){// degrau: dois quartos de arco (horizontal → vertical → horizontal), de (La+Lt,Hb) até (La,H); n = recuo para dentro
+  const rx=q.Lt/2,ry=(q.H-q.Hb)/2,c=[];const N=10;
+  for(let i=0;i<=N;i++){const t=i/N*Math.PI/2;c.push([q.La+q.Lt-rx*Math.sin(t),q.Hb+ry-ry*Math.cos(t),-rx*Math.cos(t),ry*Math.sin(t)])}
+  for(let i=1;i<=N;i++){const t=i/N*Math.PI/2;c.push([q.La+rx*Math.cos(t),q.Hb+ry+ry*Math.sin(t),-rx*Math.sin(t),ry*Math.cos(t)])}
+  return c.map(([x,y,tx,ty])=>{if(!n)return[x,y];const l=Math.hypot(tx,ty)||1;return[x-ty/l*n,y+tx/l*n]})}
+function telaPts(q,n){// contorno (y para baixo), n = recuo (0 externo, 30 interno)
+  const {L,H}=q;if(!q.rec)return[[n,n],[L-n,n],[L-n,H-n],[n,H-n]];
+  return[[n,n],[L-n,n],[L-n,q.Hb-n],...telaCurva(q,n),[n,H-n]]}
+function telaNorm(){let pr=null;bTela.forEach(q=>{if(q.tipo==='comp'){q.rec=false;const hb=pr?(pr.rec?pr.Hb:pr.H):q.H;q.H=hb;q.Hb=hb;if(!q.junta||q.junta==='nao')q.junta='esq';q.pai=pr?bTela.indexOf(pr):-1}else{q.tipo='princ';pr=q}})}
+function telaCalc(q){const {L,H}=q;const p40=[],p30=[];const lado=(len,j)=>(j?p30:p40).push({len,q:1,nome:j?'lateral 30x30 (junção)':'lateral'});
+  p40.push({len:L,q:1,nome:'topo'});
+  if(q.rec){p40.push({len:q.La,q:1,nome:'base (parte alta)'});const lb=Math.max(0,L-q.La-q.Lt);if(lb>0)p40.push({len:lb,q:1,nome:'base (parte baixa)'});
+    const cc=telaCurva(q,15);let lc=0;for(let k=1;k<cc.length;k++)lc+=Math.hypot(cc[k][0]-cc[k-1][0],cc[k][1]-cc[k-1][1]);p40.push({len:Math.round(lc+60),q:1,nome:'degrau curvo (calandrar)',curva:true})}
+  else p40.push({len:L,q:1,nome:'base'});
+  lado(H-2*TELA.perfil,q.junta==='esq');lado((q.rec?q.Hb:H)-2*TELA.perfil,q.junta==='dir');
+  const area=q.rec?(L*H-(L-q.La-q.Lt)*(H-q.Hb)-q.Lt*(H-q.Hb)/2)/1e6:L*H/1e6;
+  const rolo=(H<=1000)?1.0:1.5;const telaM=L/1000*TELA.ptPerda;
+  return{p40,p30,area,rolo,telaM,per:(p40.concat(p30)).reduce((a,c)=>a+c.len,0)}}
+function telaDesenha(P,q,bx,o){o=o||{};const s=Math.min(bx.w/q.L,bx.h/q.H);const X=x=>bx.x+x*s,Y=y=>bx.y+y*s;const T=pts=>pts.map(([x,y])=>[X(x),Y(y)]);
+  const out=telaPts(q,0),inn=telaPts(q,TELA.perfil);
+  P.push({t:'polyf',pts:T(out),fill:o.cor||'#2f9e44',stroke:'#000000',lw:0.25},{t:'polyf',pts:T(inn),fill:'#ffffff',stroke:'#000000',lw:0.2});
+  // tubo 30x30 de junção (laranja)
+  const jx=q.junta==='esq'?0:q.junta==='dir'?q.L-TELA.perfil:null;if(jx!=null){const hh=q.junta==='dir'&&q.rec?q.Hb:q.H;P.push({t:'rect',x:X(jx),y:Y(TELA.perfil),w:TELA.perfil*s,h:(hh-2*TELA.perfil)*s,fill:'#f76707',stroke:'#000000',lw:0.2})}
+  if(o.tela){const c='#868e96',m=TELA.malha,n=TELA.perfil;const cv=q.rec?telaCurva(q,n):[];const fundo=x=>{if(!q.rec)return q.H-n;let best=null;for(let k=0;k<cv.length-1;k++){const [x1,y1]=cv[k],[x2,y2]=cv[k+1];if((x-x1)*(x-x2)<=0&&x1!==x2){const y=y1+(y2-y1)*(x-x1)/(x2-x1);best=best==null?y:Math.max(best,y)}}if(best!=null)return best;return x<cv[cv.length-1][0]?q.H-n:q.Hb-n};
+    const passo=Math.max(m,Math.ceil(q.L/s/1.2/m)*0+m*(s*m<0.9?Math.ceil(0.9/(s*m)):1));
+    for(let x=n+passo;x<q.L-n;x+=passo)P.push({t:'line',x1:X(x),y1:Y(n),x2:X(x),y2:Y(fundo(x)),color:c,w:0.1});
+    for(let y=n+passo;y<q.H-n;y+=passo){let xr=q.L-n;if(q.rec&&y>q.Hb-n){let x=q.La+q.Lt;while(x>0&&fundo(x)<y)x-=1;xr=x}P.push({t:'line',x1:X(n),y1:Y(y),x2:X(xr),y2:Y(y),color:c,w:0.1})}}
+  if(o.cotas){const f=o.fs||2.3,k=f/2.3;
+    cotaH(P,X(0),X(q.L),Y(0)-6*k,Y(0),`${f0(q.L)}`,f);cotaV(P,X(0)-6*k,Y(0),Y(q.H),X(0),`${f0(q.H)}`,f);
+    if(q.rec){cotaH(P,X(0),X(q.La),Y(q.H)+5*k,Y(q.H),`${f0(q.La)}`,f);cotaH(P,X(q.La),X(q.La+q.Lt),Y(q.H)+5*k,null,`${f0(q.Lt)}`,f*0.85);cotaH(P,X(q.La+q.Lt),X(q.L),Y(q.H)+5*k,Y(q.Hb),`${f0(q.L-q.La-q.Lt)}`,f);
+      cotaV(P,X(q.L)+6*k,Y(0),Y(q.Hb),X(q.L),`${f0(q.Hb)}`,f);cotaV(P,X(q.La+q.Lt)+3*k,Y(q.Hb),Y(q.H),null,`${f0(q.H-q.Hb)}`,f*0.85)}
+    else cotaV(P,X(q.L)+6*k,Y(0),Y(q.H),X(q.L),`${f0(q.H)}`,f)}
+  return s}
+function bobsTelaFolhas(){telaNorm();const ctx=bobsCtx(bobsDesc());const pages=[],tags=[];const Q=bTela.filter(q=>q.L>0&&q.H>0);if(!Q.length)throw new Error('informe ao menos um quadro de tela');
+  Q.forEach(q=>{if(q.rec){q.Hb=Math.min(q.Hb,q.H-60);q.La=Math.min(q.La,q.L-q.Lt-60)}});
+  const cor=($('#btCor').value.trim()||'PRETO').toUpperCase(),acab=($('#btAcab').value||'FOSCO').toUpperCase();const C=Q.map(telaCalc);
+  // páginas de desenho: até 3 quadros por folha
+  const desenho=(setor,tit,sub,op,extra)=>{for(let i=0;i<Q.length;i+=3){const P=[];frame(P,ctx,{setor});bobsTit(P,tit,sub);const grp=Q.slice(i,i+3);const hh=(150-42)/grp.length;
+    grp.forEach((q,k)=>{const y0=44+k*hh;P.push({t:'text',x:16,y:y0+hh/2,s:`${q.q||1}x`,size:6,bold:true,italic:true,color:'#000000'});P.push({t:'text',x:34,y:y0+1,s:q.nome||'QUADRO '+(i+k+1),size:2.8,bold:true,color:'#000000'});
+      telaDesenha(P,q,{x:40,y:y0+9,w:158,h:hh-20},op);if(extra)extra(P,q,C[Q.indexOf(q)],y0,hh)});pages.push(P);tags.push(setor)}};
+  // SOLDA / SERRALHERIA
+  desenho('SERRALHERIA','SOLDA — TESTEIRAS EM TELA','QUADRO EM METALON 40x30 #1,55 GALVANIZADO • DEGRAU CURVO CALANDRADO • JUNÇÃO EM 30x30',{cotas:true,cor:'#2f9e44'},(P,q,c,y0,hh)=>{
+    const ls=[...c.p40.map(p=>`40x30 — ${p.nome}: ${f0(p.len)} mm`),...c.p30.map(p=>`30x30 — ${p.nome}: ${f0(p.len)} mm`)];ls.forEach((t,j)=>P.push({t:'text',x:205,y:y0+3+j*3.4,s:t,size:2.2,color:/30x30/.test(t.slice(0,6))?'#d9480f':'#000000'}))});
+  {const P=pages[pages.length-1];if(Q.some(q=>q.junta!=='nao'))P.push({t:'rect',x:205,y:140,w:80,h:22,r:1.5,fill:'#fff4e6',stroke:'#f76707',lw:0.4},{t:'text',x:208,y:145,s:'JUNÇÃO DAS METADES',size:2.8,bold:true,color:'#d9480f'},
+    {t:'text',x:208,y:150,s:'A lateral da junção é em 30x30 (laranja).',size:2.2,color:'#000000'},{t:'text',x:208,y:154,s:'Encaixar as duas metades lado a lado e',size:2.2,color:'#000000'},{t:'text',x:208,y:158,s:'parafusar / soldar pelos tubos 30x30.',size:2.2,color:'#000000'});
+   P.push({t:'rect',x:14,y:38,w:4,h:3,fill:'#2f9e44'},{t:'text',x:20,y:40.6,s:'40x30 #1,55',size:2.2,color:'#000000'},{t:'rect',x:42,y:38,w:4,h:3,fill:'#f76707'},{t:'text',x:48,y:40.6,s:'30x30 #1,55 (junção)',size:2.2,color:'#000000'})}
+  const g40=Q.flatMap((q,i)=>C[i].p40.flatMap(p=>Array((q.q||1)).fill({len:p.len}))),g30=Q.flatMap((q,i)=>C[i].p30.flatMap(p=>Array((q.q||1)).fill({len:p.len})));
+  const bars=bobsPlano(null,ctx,pages,tags,[['METALON 40x30 #1,55',g40,'#2f9e44',BOBS.barra],['METALON 30x30 #1,55',g30,'#f76707',BOBS.barra]],'PLANO DE CORTE — TESTEIRAS EM TELA');
+  const area=Q.reduce((a,q,i)=>a+C[i].area*(q.q||1),0);
+  {const P=[];frame(P,ctx,{setor:'PINTURA'});bobsTit(P,'PINTURA — TESTEIRAS EM TELA','');P.push({t:'rect',x:14,y:44,w:270,h:30,r:2,fill:'#f1f3f5',stroke:'#212529',lw:0.6},{t:'rect',x:18,y:49,w:18,h:20,r:1.5,fill:cor==='PRETO'?'#212529':'#adb5bd'},{t:'text',x:41,y:52,s:`TINTA: PINTURA ELETROSTÁTICA A PÓ • COR: ${cor} • ACABAMENTO: ${acab}`,size:3.2,bold:true,color:'#000000'},{t:'text',x:41,y:58,s:`${Q.reduce((a,q)=>a+(q.q||1),0)} quadro(s) com a tela já soldada — área aprox. ${f2(area)} m² (face)`,size:2.8,color:'#000000'},{t:'text',x:41,y:64,s:'Quadro + tela pintados juntos (pintura terceirizada). Limpar respingos de solda antes.',size:2.5,color:'#555555'});
+   let x=20,y=84;Q.forEach(q=>{const w=Math.min(85,q.L/q.H*28);if(x+w>284){x=20;y+=42}telaDesenha(P,q,{x,y,w,h:28},{cor:'#212529',tela:true});P.push({t:'text',x,y:y+33,s:`${q.q||1}x ${q.nome||''}`,size:2.3,bold:true,color:'#000000'});x+=w+12});pages.push(P);tags.push('PINTURA')}
+  // ACABAMENTO: tela
+  desenho('ACABAMENTO','TESTEIRAS EM TELA — TELA SOLDADA','TELA METÁLICA SOLDADA LISA FIO 2 MM • MALHA 50x50 MM (TELA 5x5)',{cotas:true,cor:'#212529',tela:true},(P,q,c,y0)=>{
+    P.push({t:'text',x:205,y:y0+3,s:`Tela: rolo de ${String(c.rolo.toFixed(2)).replace('.',',')} m de largura`,size:2.4,bold:true,color:'#000000'},{t:'text',x:205,y:y0+7,s:`${String((q.L/1000).toFixed(2)).replace('.',',')} m de rolo por quadro (+10% de perda)`,size:2.2,color:'#000000'},{t:'text',x:205,y:y0+11,s:'Cortar rente ao recorte e soldar em todo o quadro.',size:2.2,color:'#555555'})});
+  xfPaginas(ctx,'#xfB',pages,tags);
+  const N=[];const nm=v=>String(v).replace('.',',');
+  if(bars['METALON 40x30 #1,55'])N.push({k:'bobs|m4030',desc:'Metalon galvanizado 30x40 #1,55 — barra 6 m',q:bars['METALON 40x30 #1,55'],un:'un',uso:'quadro das testeiras em tela (plano de corte)',busca:{must:['METALON GALVANIZADO 30X40','1,55MM']}});
+  if(bars['METALON 30x30 #1,55'])N.push({k:'bobs|m30',desc:'Metalon galvanizado 30x30 #1,55 — barra 6 m',q:bars['METALON 30x30 #1,55'],un:'un',uso:'lateral de junção das metades',busca:{must:['METALON GALVANIZADO 30X30','1,55MM']}});
+  const tm={};Q.forEach((q,i)=>{const r=C[i].rolo;tm[r]=(tm[r]||0)+C[i].telaM*(q.q||1)});
+  Object.entries(tm).forEach(([r,m])=>N.push({k:'bobs|tela'+r,desc:`Tela soldada lisa 5x5 — malha 50x50 mm fio 2 mm, rolo ${nm((+r).toFixed(2))} m`,q:Math.round(m*100)/100,un:'m',uso:`testeiras em tela: ${nm(m.toFixed(2))} m (com 10% de perda)`,busca:{must:['TELA SOLDADA','50X50','2MM',+r===1?'1,00MT':'1,50MT']}}));
+  N.push({k:'bobs|po',desc:`Pintura eletrostática a pó ${cor} ${acab} (terceirizada)`,q:Math.round(area*100)/100,un:'m²',uso:'testeiras em tela (quadro + tela) — informar o valor do serviço',busca:{must:['PINTURA ELETROSTATICA']}});
+  const qF=Q.reduce((a,q)=>a+(Math.ceil(q.L/500)+1)*2*(q.q||1),0);
+  const mx=Math.max(...Q.map(q=>q.L)),mH=Math.max(...Q.map(q=>q.H));
+  const prod={tipo:'estrutura',mat:N,anc:{peca:'TESTEIRA EM TELA',auto:qF,onde:'fixação da testeira (estimado)'},nome:ctx.descItem,W:mx,H:mH,D:40,un:1,
+    volumes:Q.map((q,i)=>({desc:q.nome||'TESTEIRA EM TELA',cont:`Quadro 40x30 com tela 5x5 pintado ${cor.toLowerCase()}`,dims:`${f0(q.L)} x ${f0(q.H)} x 40`,q:q.q||1,kg:C[i].per/1000*tuboKgM(40,30,1.55)+C[i].area*2.5,draw:{rects:[{x0:0,y0:0,x1:q.L,y1:q.H,cor:'#212529'}]}})),
+    contornoRects:[{x0:0,y0:0,x1:mx,y1:mH,cor:'#212529'}],contorno:[telaPts(Q[0],0).map(([x,y])=>[x,Q[0].H-y])],checks:['MEDIDAS','SOLDA','PINTURA','TELA']};
+  paginasFinais(pages,tags,ctx,prod);if(!FOOT_SKIP){numeraSetores(pages);pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length))}bobsFiles=[];
+  return{pages,tags,ctx,resumo:`${Q.reduce((a,q)=>a+(q.q||1),0)} quadro(s) em tela • ${f2(area)} m²`}}
+function bobsTelaUI(){const el=$('#bTelaLista');if(!el)return;telaNorm();
+  const mini=q=>{try{const P=[];const bw=160,bh=40,s=Math.min(bw/q.L,bh/q.H);telaDesenha(P,q,{x:28+(bw-q.L*s)/2,y:16,w:bw,h:bh},{cor:'#212529',tela:true,cotas:true,fs:5});
+    return toSVG(P).replace(/viewBox="[^"]*"/,`viewBox="0 0 222 ${Math.round(16+q.H*s+22)}"`).replace('<svg ','<svg style="width:100%;max-width:560px;height:auto;background:#fff;border:1px solid var(--line);border-radius:8px" ')}catch(e){console.error(e);return''}};
+  const inp=(i,k,v,lab,w,dis)=>`<div style="min-width:${w||90}px;flex:1"><label class="f" style="margin:0 0 2px">${lab}</label><input type="${k==='nome'?'text':'number'}" inputmode="decimal" data-tl="${i}" data-tk="${k}" value="${esc(String(v??''))}"${dis?' disabled title="igual à parte estreita da tela principal"':''}></div>`;
+  const jsel=(i,q)=>`<div><label class="f" style="margin:0 0 2px">Junção (30x30)</label><select data-tl="${i}" data-tk="junta">${[['nao','sem junção'],['esq','lado esquerdo'],['dir','lado direito']].map(([k,l])=>`<option value="${k}"${q.junta===k?' selected':''}>${l}</option>`).join('')}</select></div>`;
+  el.innerHTML=bTela.map((q,i)=>{const cp=q.tipo==='comp';return `<div style="border:1.5px solid ${cp?'#f76707':'var(--line)'};border-radius:10px;padding:10px;margin-top:10px;${cp?'margin-left:22px;background:#fffaf5':''}">
+    <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:${cp?'#d9480f':'#1c2541'}">${cp?'↳ COMPLEMENTO (sem curva — altura da parte estreita da principal)':'TELA PRINCIPAL'}</div>
+    <div class="row" style="gap:8px;flex-wrap:wrap;align-items:flex-end">${inp(i,'nome',q.nome,'Nome',200)}${inp(i,'q',q.q,'Qtd.',60)}${inp(i,'L',q.L,'Comprimento (mm)')}${inp(i,'H',q.H,'Altura (mm)',90,cp)}${jsel(i,q)}
+      <button class="btn ghost sm" data-tldel="${i}" style="color:#c92a2a">✕</button></div>
+    ${cp?'':`<label style="display:flex;gap:6px;align-items:center;font-size:13px;margin-top:8px"><input type="checkbox" data-tl="${i}" data-tk="rec"${q.rec?' checked':''}> recorte em degrau (parte estreita no fim)</label>
+    ${q.rec?`<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:4px">${inp(i,'La',q.La,'Compr. da parte alta (mm)')}${inp(i,'Lt',q.Lt,'Largura da curva (mm)')}${inp(i,'Hb',q.Hb,'Altura da parte estreita (mm)')}</div>`:''}`}
+    <div class="tEdBox" data-tei="${i}" style="margin-top:8px;max-width:620px;border:1px solid var(--line);border-radius:8px;background:#fff;touch-action:none">${telaEditor(q)}</div></div>`}).join('');}
+$('#bTelaAdd').onclick=()=>{bTela.push({tipo:'princ',nome:'TESTEIRA EM TELA',q:1,L:3000,H:800,rec:true,Hb:600,La:2200,Lt:200,junta:'nao'});bobsTelaUI();bobsSujo();bobs3D()};
+$('#bTelaComp').onclick=()=>{let pi=-1;bTela.forEach((q,i)=>{if(q.tipo!=='comp')pi=i});if(pi<0){bTela.push({tipo:'princ',nome:'TESTEIRA EM TELA',q:1,L:3000,H:800,rec:true,Hb:600,La:2200,Lt:200,junta:'nao'});pi=bTela.length-1}
+  const pr=bTela[pi];if(pr.junta==='nao')pr.junta='dir';let at=pi+1;while(at<bTela.length&&bTela[at].tipo==='comp')at++;bTela.splice(at,0,{tipo:'comp',nome:'COMPLEMENTO TESTEIRA EM TELA',q:pr.q||1,L:3000,H:pr.rec?pr.Hb:pr.H,rec:false,junta:'esq'});bobsTelaUI();bobsSujo();bobs3D()};
+$('#bTelaLista').addEventListener('change',e=>{const i=e.target.dataset.tl;if(i==null)return;const q=bTela[+i],k=e.target.dataset.tk;q[k]=k==='nome'||k==='junta'?e.target.value:k==='rec'?e.target.checked:num(e.target.value);bobsTelaUI();bobsSujo();bobs3D()});
+$('#bTelaLista').addEventListener('click',e=>{const i=e.target.dataset.tldel;if(i==null)return;bTela.splice(+i,1);bobsTelaUI();bobsSujo();bobs3D()});
+['#btDesc','#btCor','#btAcab'].forEach(s=>$(s).addEventListener('change',()=>bobsSujo()));
+
+// 3D da testeira em tela: quadro 40x30 extrudado + tela (malha) no meio; complemento encostado à direita da principal, alinhado em cima
+function tela3D(){telaNorm();const g=new THREE.Group();const D=40;const Hm=Math.max(...bTela.map(q=>q.H),1);
+  const mF=new THREE.MeshLambertMaterial({color:'#2b2b2b'}),mJ=new THREE.MeshLambertMaterial({color:'#f76707'}),lT=new THREE.LineBasicMaterial({color:0x6c727a,transparent:true,opacity:0.8});
+  let x=0,y=0,bx0=1e9,bx1=-1e9,by0=1e9,by1=-1e9;const pos=[];
+  bTela.forEach((q,i)=>{if(q.tipo==='comp'){const pr=bTela[q.pai];const P0=pos[q.pai];if(P0){pos[i]={x:P0.x+pr.L+(P0.extra||0),y:P0.y};P0.extra=(P0.extra||0)+q.L;return}}
+    if(i>0){y-=Hm+250}pos[i]={x:0,y}});
+  bTela.forEach((q,i)=>{if(!(q.L>0&&q.H>0))return;const o=pos[i];const sh=pts=>{const s=new THREE.Shape();pts.forEach(([a,b],k)=>{const X=o.x+a,Y=o.y-b;k?s.lineTo(X,Y):s.moveTo(X,Y)});return s};
+    const out=sh(telaPts(q,0));out.holes.push(new THREE.Path(telaPts(q,TELA.perfil).map(([a,b])=>new THREE.Vector2(o.x+a,o.y-b))));
+    const geo=new THREE.ExtrudeGeometry(out,{depth:D,bevelEnabled:false,curveSegments:8});const m=new THREE.Mesh(geo,mF);m.position.z=-D;g.add(m);
+    if(q.junta!=='nao'){const jx=q.junta==='esq'?0:q.L-TELA.perfil;const hh=(q.junta==='dir'&&q.rec?q.Hb:q.H)-2*TELA.perfil;const bxg=new THREE.BoxGeometry(TELA.perfil,hh,D+1);const jm=new THREE.Mesh(bxg,mJ);jm.position.set(o.x+jx+TELA.perfil/2,o.y-TELA.perfil-hh/2,-D/2);g.add(jm)}
+    // malha
+    const P=[];telaDesenha(P,q,{x:0,y:0,w:q.L,h:q.H},{tela:true,cor:'#000'});const v=[];P.filter(e=>e.t==='line').forEach(e=>v.push(o.x+e.x1,o.y-e.y1,-D/2,o.x+e.x2,o.y-e.y2,-D/2));
+    const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.Float32BufferAttribute(v,3));g.add(new THREE.LineSegments(lg,lT));
+    bx0=Math.min(bx0,o.x);bx1=Math.max(bx1,o.x+q.L);by0=Math.min(by0,o.y-q.H);by1=Math.max(by1,o.y)});
+  if(B3.grp){B3.scene.remove(B3.grp);B3.grp.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
+  if(bx1<bx0){bx0=0;bx1=1000;by0=0;by1=1000}const span=Math.max(bx1-bx0,by1-by0);
+  B3.scene.add(B3.grp=g);B3.tg=[(bx0+bx1)/2,(by0+by1)/2,-D/2];if(B3.fit!==false||!B3.R)B3.R=span*2.1;B3.fit=false;b3Draw();
+  $('#b3dInfo').textContent=`${bTela.length} quadro(s) em tela • complemento encostado na parte estreita da principal`}
+
+// editor de medidas da tela (igual ao da testeira): toque numa medida para mudar, arraste a curva (←→) ou a parte estreita (↑↓)
+function telaEditor(q){const VW=1000,m=95;const s=Math.min((VW-2*m)/q.L,330/q.H);const VH=q.H*s+2*m;const ox=(VW-q.L*s)/2,oy=m-10;const X=x=>ox+x*s,Y=y=>oy+y*s;
+  const P=[];telaDesenha(P,q,{x:ox,y:oy,w:q.L*s,h:q.H*s},{cor:'#212529',tela:true});
+  let svg=`<svg viewBox="0 0 ${VW} ${VH}" style="display:block;width:100%;height:auto">`;
+  P.forEach(o=>{if(o.t==='polyf')svg+=`<polygon points="${o.pts.map(p=>p.map(v=>v.toFixed(1)).join(',')).join(' ')}" fill="${o.fill}" stroke="#111" stroke-width="1"/>`;
+    else if(o.t==='rect')svg+=`<rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" fill="${o.fill}"/>`;else if(o.t==='line')svg+=`<line x1="${o.x1}" y1="${o.y1}" x2="${o.x2}" y2="${o.y2}" stroke="#adb5bd" stroke-width="0.7"/>`});
+  const C='#2a6f97',ln=(a,b,c,d)=>svg+=`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="${C}" stroke-width="1.2"/>`;
+  const yT=Y(0)-40,xL=X(0)-45,xR=X(q.L)+45,yB=Y(q.H)+40;
+  ln(X(0),yT,X(q.L),yT);[0,q.L].forEach(x=>ln(X(x),Y(0)-6,X(x),yT-8));ln(xL,Y(0),xL,Y(q.H));[0,q.H].forEach(y=>ln(X(0)-6,Y(y),xL-8,Y(y)));
+  const inp=(x,y,val,k,rot)=>`<input class="edim" style="left:${x/VW*100}%;top:${y/VH*100}%${rot?';transform:translate(-50%,-50%) rotate(-90deg)':''}" type="text" inputmode="decimal" value="${f0(val)}" data-te="${k}"${q.tipo==='comp'&&k==='H'?' disabled':''}>`;
+  let h=inp(X(q.L/2),yT,q.L,'L')+inp(xL,Y(q.H/2),q.H,'H',1);
+  if(q.rec){const xs=[0,q.La,q.La+q.Lt,q.L];ln(X(0),yB,X(q.L),yB);xs.forEach(x=>ln(X(x),Y(x<=q.La?q.H:q.Hb)+6,X(x),yB+8));
+    ln(xR,Y(0),xR,Y(q.Hb));[0,q.Hb].forEach(y=>ln(X(q.L)+6,Y(y),xR+8,Y(y)));
+    h+=inp(X(q.La/2),yB,q.La,'La')+inp(X(q.La+q.Lt/2),yB+(q.Lt*s<95?32:0),q.Lt,'Lt')+inp(X((q.La+q.Lt+q.L)/2),yB,q.L-q.La-q.Lt,'Lb')+inp(xR,Y(q.Hb/2),q.Hb,'Hb',1);
+    // alças de arrastar
+    svg+=`<rect data-tdrag="La" x="${X(q.La)-12}" y="${Y(q.Hb)}" width="${q.Lt*s+24}" height="${(q.H-q.Hb)*s}" fill="#1971c2" fill-opacity="0.08" stroke="#1971c2" stroke-dasharray="6 4" style="cursor:ew-resize"/>`;
+    svg+=`<rect data-tdrag="Hb" x="${X(q.La+q.Lt)}" y="${Y(q.Hb)-14}" width="${(q.L-q.La-q.Lt)*s}" height="28" fill="#f76707" fill-opacity="0.08" stroke="#f76707" stroke-dasharray="6 4" style="cursor:ns-resize"/>`}
+  else{ln(xR,Y(0),xR,Y(q.H));[0,q.H].forEach(y=>ln(X(q.L)+6,Y(y),xR+8,Y(y)))}
+  svg+='</svg>';return `<div style="position:relative">${svg}${h}</div><div class="note tEdMsg" style="margin:2px 8px 6px">${q.rec?'Toque numa medida para mudar • arraste a curva (azul) para os lados ou a parte estreita (laranja) para cima/baixo':'Toque numa medida para mudar'}</div>`}
+function telaSet(q,k,v){if(!(v>0))return;if(k==='L'){const lb=q.L-q.La-q.Lt;q.L=v;if(q.rec)q.La=Math.max(60,v-q.Lt-lb)}else if(k==='H'){const d=q.H-q.Hb;q.H=v;if(q.rec)q.Hb=Math.max(60,v-d)}
+  else if(k==='Lb')q.La=q.L-q.Lt-v;else q[k]=v;
+  if(q.rec){q.Lt=Math.min(q.Lt,q.L-120);q.La=Math.min(Math.max(30,q.La),q.L-q.Lt-30);q.Hb=Math.min(Math.max(60,q.Hb),q.H-20)}}
+let telaRedraw=0;const tela3DLazy=()=>{clearTimeout(telaRedraw);telaRedraw=setTimeout(()=>{try{bobs3D()}catch(e){}},120)};
+function telaEdRefresh(i){telaNorm();bTela.forEach((q,j)=>{if(j===i||q.pai===i){const b=document.querySelector(`.tEdBox[data-tei="${j}"]`);if(b)b.innerHTML=telaEditor(q)}});
+  document.querySelectorAll('#bTelaLista [data-tl]').forEach(el=>{const q=bTela[+el.dataset.tl];const k=el.dataset.tk;if(!q||document.activeElement===el||el.type==='checkbox'||el.tagName==='SELECT')return;if(['L','H','La','Lt','Hb'].includes(k))el.value=Math.round(q[k])});tela3DLazy();bobsSujo()}
+$('#bTelaLista').addEventListener('change',e=>{const t=e.target;if(!t.dataset.te)return;e.stopPropagation();const box=t.closest('.tEdBox');const i=+box.dataset.tei;const raw=t.value.trim();telaSet(bTela[i],t.dataset.te,num(raw.includes(',')?raw.replace(/\./g,''):raw));telaEdRefresh(i)},true);
+$('#bTelaLista').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset.te)e.target.blur()});
+$('#bTelaLista').addEventListener('focusin',e=>{if(e.target.dataset.te)setTimeout(()=>e.target.select(),0)});
+// medidas dos campos também em tempo real (enquanto digita)
+$('#bTelaLista').addEventListener('input',e=>{const t=e.target;if(t.dataset.tl==null||!['L','H','La','Lt','Hb','q'].includes(t.dataset.tk))return;const v=num(t.value);if(!(v>0))return;const i=+t.dataset.tl;const q=bTela[i];if(t.dataset.tk==='q'){q.q=v;return}q[t.dataset.tk]=v;
+  const b=document.querySelector(`.tEdBox[data-tei="${i}"]`);telaNorm();bTela.forEach((x,j)=>{if(j===i||x.pai===i){const bb=document.querySelector(`.tEdBox[data-tei="${j}"]`);if(bb)bb.innerHTML=telaEditor(x)}});tela3DLazy();bobsSujo()});
+let teDrag=null;
+$('#bTelaLista').addEventListener('pointerdown',e=>{const r=e.target.closest('[data-tdrag]');if(!r)return;const box=r.closest('.tEdBox');e.preventDefault();box.setPointerCapture(e.pointerId);teDrag={box,i:+box.dataset.tei,k:r.dataset.tdrag,x0:e.clientX,y0:e.clientY,v0:bTela[+box.dataset.tei][r.dataset.tdrag]}});
+$('#bTelaLista').addEventListener('pointermove',e=>{if(!teDrag)return;const {box,i,k,x0,y0,v0}=teDrag;const q=bTela[i];const svg=box.querySelector('svg');if(!svg)return;
+  const VW=1000,m=95;const s=Math.min((VW-2*m)/q.L,330/q.H);const pxu=svg.getBoundingClientRect().width/VW;const d=(k==='La'?e.clientX-x0:e.clientY-y0)/pxu/s;
+  telaSet(q,k,Math.round((v0+d)/10)*10);box.innerHTML=telaEditor(q);const mm=box.querySelector('.tEdMsg');if(mm)mm.innerHTML=`<b style="color:#1971c2">${k==='La'?'Parte alta':'Parte estreita'}: ${f0(q[k])} mm</b>`;
+  bTela.forEach((x,j)=>{if(x.pai===i){telaNorm();const bb=document.querySelector(`.tEdBox[data-tei="${j}"]`);if(bb)bb.innerHTML=telaEditor(x)}});tela3DLazy()});
+const teSolta=()=>{if(!teDrag)return;const i=teDrag.i;teDrag=null;telaEdRefresh(i)};$('#bTelaLista').addEventListener('pointerup',teSolta);$('#bTelaLista').addEventListener('pointercancel',teSolta);
 
 /* ===================== FP EM BRANCO (tudo manual) =====================
    Fichas por setor com foto, instruções e quantitativo; RM/PI à mão; arquivos que vão no ZIP. */
@@ -5960,7 +6121,7 @@ function ctComCotas(fn){const w=function(...a){if(typeof abaAtual==='function'&&
   if(mexe&&!fs){numeraSetores(r.pages);r.pages.forEach((P,i)=>footer(P,r.ctx,i+1,r.pages.length))}return r};w._ct=true;return w}
 function ctListaRender(){document.querySelectorAll('.ctLista').forEach(el=>{el.innerHTML=`<div class="card" style="border:1.5px solid #f783ac;background:#fff0f6"><div class="row" style="justify-content:space-between;align-items:center"><b style="color:#c2255c">📐 Cotas deste item</b><button class="btn sm" type="button" data-ctnova style="background:#c2255c;color:#fff">+ Nova cota</button></div>`+
   (compCotas.length?compCotas.map((c,i)=>`<div class="row" style="gap:8px;align-items:center;border-top:1px solid #fcc2d7;padding:7px 0;margin-top:6px"><div style="flex:1;min-width:0"><b>Cota ${esc(c.setor==='COTAS'?'':c.setor.toLowerCase())}</b> — ${esc(c.desc||c.nome)}<div class="note" style="margin:0">${c.modo==='detalhada'?'detalhada':'padrão'} • ${esc(c.nome)}${c.mat?' • '+esc(c.mat):''}</div></div><button class="btn ghost sm" type="button" data-cted="${i}">Editar</button><button class="btn ghost sm" type="button" data-ctdel="${i}" style="color:#c92a2a">✕</button></div>`).join(''):'<div class="note" style="margin:6px 0 0">Nenhuma cota ainda. As cotas saem junto com as folhas do setor escolhido (ex.: cota da serralheria junto com a serralheria).</div>')+'</div>'+(compExcl.length?`<div class="card" style="border:1.5px solid #ffc9c9;background:#fff5f5"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div><b style="color:#c92a2a">Folhas excluídas desta FP:</b> ${compExcl.map(k=>esc(k.replace('#',' '))).join(', ')}</div><button class="btn ghost sm" type="button" data-exrest>Restaurar todas</button></div></div>`:'')})}
-function ctTipoDe(a){return a==='novo'?'letra':a==='testeiras'?(tModo==='desenho'?'estrutura':'testeira'):a==='modelo'?'modelo3d':a==='bobs'?(bModo==='comp'?'bobscomp':bModo==='cant'?'bobscant':'bobs'):a==='branco'?'branco':null}
+function ctTipoDe(a){return a==='novo'?'letra':a==='testeiras'?(tModo==='desenho'?'estrutura':'testeira'):a==='modelo'?'modelo3d':a==='bobs'?(bModo==='comp'?'bobscomp':bModo==='cant'?'bobscant':bModo==='tela'?'bobstela':'bobs'):a==='branco'?'branco':null}
 let ctBase=null;const ctSig=()=>JSON.stringify([ctNome,ctBytes?ctBytes.length:0,$('#ctSetor').value,$('#ctDesc').value,$('#ctMat').value,$('#ctObs').value,$('#ctQtd').value,$('#ctLarg').value,ctModo,ctArqs.length]);
 function ctPendente(){return !!(ctVolta&&ctBytes&&ctSig()!==ctBase)}
 function ctPergunta(seguir){let m=$('#ctPModal');if(m)m.remove();m=document.createElement('div');m.id='ctPModal';m.className='modal on';m.style.zIndex=10001;
@@ -6007,8 +6168,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 /* ================= PEDIDOS: uma OS com vários itens (letras, testeiras, estruturas, modelos 3D), tudo salvo ================= */
 let pedidos=[],pedAtual=null,itemAtual=null,pedPdf=null,pedSujo=false;
-const TIPO_NOME={letra:'Letra caixa',testeira:'Testeira',estrutura:'3D — estrutura por desenho',modelo3d:'3D — modelo (STL/OBJ/DXF)',bobs:'Bobs — requadro do balcão',bobscomp:'Bobs — complemento 30x30',bobscant:'Bobs — cantoneira com iluminação',branco:'FP em branco',cotas:'Cotas'};
-const TIPO_ABA={letra:'novo',testeira:'testeiras',estrutura:'testeiras',modelo3d:'modelo',bobs:'bobs',bobscomp:'bobs',bobscant:'bobs',branco:'branco',cotas:'cotas'};
+const TIPO_NOME={letra:'Letra caixa',testeira:'Testeira',estrutura:'3D — estrutura por desenho',modelo3d:'3D — modelo (STL/OBJ/DXF)',bobs:'Bobs — requadro do balcão',bobscomp:'Bobs — complemento 30x30',bobstela:'Bobs — testeira em tela',bobscant:'Bobs — cantoneira com iluminação',branco:'FP em branco',cotas:'Cotas'};
+const TIPO_ABA={letra:'novo',testeira:'testeiras',estrutura:'testeiras',modelo3d:'modelo',bobs:'bobs',bobscomp:'bobs',bobscant:'bobs',bobstela:'bobs',branco:'branco',cotas:'cotas'};
 const OS_IDS=['os','entrega','cliente','vendedor','projetista','endereco'];
 // ---------- armazenamento ----------
 function pedLocal(){pedidos=lsGet('granda_pedidos')||[];pedListaRender()}
@@ -6078,7 +6239,7 @@ function pedAbrir(p){pedSel=new Set();setTimeout(()=>{osResumoSync();pedCotasUI(
   $('#pedListaCard').hidden=true;$('#pedCard').hidden=false;$('#osSec').hidden=false;{const noPed=!$('#tab-pedidos').hidden;['#itemBox','#descBox','#vendaBox','#refBox'].forEach(x=>{const e=$(x);if(e)e.hidden=noPed});const pt=$('#pedTotBox');if(pt)pt.hidden=!noPed}$('#pedPrev').innerHTML='';$('#pedMsg').innerHTML='';$('#pedBaixar').hidden=true;$('#pedGerar').textContent='Gerar FP completa do pedido';pedAbertoRender();pedBarRender()}
 function pedAbertoRender(){if(!pedAtual)return;$('#pedTitulo').innerHTML=`Pedido ${esc(pedAtual.os||'(sem número)')}${pedAtual.nome?' — '+esc(pedAtual.nome):''}<div style="font-size:13px;font-weight:400;margin-top:4px"><b>Cliente:</b> ${esc(pedAtual.cliente||'—')} &nbsp;•&nbsp; <b>Projetista:</b> ${esc(pedAtual.projetista||'—')}</div>`;
   const its=(pedAtual.itens||[]).slice().sort((a,b)=>a.n-b.n);const grupos=[];its.forEach(it=>{let g=grupos.find(g=>g.n===+it.n);if(!g){g={n:+it.n,its:[]};grupos.push(g)}g.its.push(it)});
-  const prod=pedAtual.produtos||{};const tipos=[['letra','Letra caixa'],['testeira','Testeira'],['modelo3d','3D (STL, OBJ, DXF ou PDF)'],['bobs','Bobs requadro'],['bobscomp','Bobs complemento 30x30'],['bobscant','Bobs cantoneira iluminada'],['branco','FP em branco']];
+  const prod=pedAtual.produtos||{};const tipos=[['letra','Letra caixa'],['testeira','Testeira'],['modelo3d','3D (STL, OBJ, DXF ou PDF)'],['bobs','Bobs requadro'],['bobscomp','Bobs complemento 30x30'],['bobscant','Bobs cantoneira iluminada'],['bobstela','Bobs testeira em tela'],['branco','FP em branco']];
   {const cs=its.map(i=>i.custo);const falta=cs.filter(x=>x==null).length;const c=cs.some(x=>x!=null)?cs.reduce((a,x)=>a+(+x||0),0):null;
    const ns=[...new Set(its.map(i=>+i.n))];const vI=n=>typeof vendaItem==='function'?vendaItem(n):its.filter(i=>+i.n===n).reduce((a,i)=>a+(+i.venda||0),0);
    const vt=ns.reduce((a,n)=>a+vI(n),0),vc=ns.filter(n=>its.some(i=>+i.n===n&&i.custo!=null)).reduce((a,n)=>a+vI(n),0);$('#pedTotal').innerHTML=its.length?margemBox(c,falta&&c!=null?vc:vt,'TOTAL DO PEDIDO'+(falta?`<br><span style="font-weight:400;color:#c92a2a">${falta} item(ns) sem custo — fora da conta</span>`:'')):''}
@@ -6119,14 +6280,15 @@ function limpaTipo(tipo){matUlt=null;rmUlt=null;if(typeof bArtes!=='undefined'){
   if(tipo==='bobs'){bobs={pecas:[bobsModelo('m1')]};xfPut('#xfB',[]);setBModo('req')}
   if(tipo==='bobscomp'){bComp=[{len:1000,q:1}];xfPut('#xfB',[]);setBModo('comp')}
   if(tipo==='bobscant'){bCantExtra=[];xfPut('#xfB',[]);setBModo('cant')}
+  if(tipo==='bobstela'){bTela=[{nome:'TESTEIRA EM TELA',q:1,L:3000,H:800,rec:true,Hb:600,La:2200,Lt:200,junta:'nao'}];xfPut('#xfB',[]);setBModo('tela')}
   if(tipo==='branco')brLimpa();if(tipo==='cotas'&&typeof ctLimpa==='function')ctLimpa();if(tipo==='modelo3d'){mSrc=null;mBytes=null;mPecas=[];$('#mInfo').innerHTML='';$('#mDropTxt').textContent='Toque para escolher o arquivo 3D (.stl ou .obj)';$('#mResCard').hidden=true}}
 // ---------- barra do pedido (aparece nas abas de trabalho) ----------
 function abaAtual(){const b=document.querySelector('nav button.on');return b?b.dataset.tab:''}
-function tipoDaAba(){const t=abaAtual();return t==='novo'?'letra':t==='testeiras'?(tModo==='desenho'?'estrutura':'testeira'):t==='modelo'?'modelo3d':t==='bobs'?(bModo==='comp'?'bobscomp':bModo==='cant'?'bobscant':'bobs'):t==='branco'?'branco':t==='cotas'?((typeof ctVolta!=='undefined'&&ctVolta)?ctVolta.tipo:'cotas'):null}
+function tipoDaAba(){const t=abaAtual();return t==='novo'?'letra':t==='testeiras'?(tModo==='desenho'?'estrutura':'testeira'):t==='modelo'?'modelo3d':t==='bobs'?(bModo==='comp'?'bobscomp':bModo==='cant'?'bobscant':bModo==='tela'?'bobstela':'bobs'):t==='branco'?'branco':t==='cotas'?((typeof ctVolta!=='undefined'&&ctVolta)?ctVolta.tipo:'cotas'):null}
 function isbRender(){const tipo=tipoDaAba();const it=pedAtual&&itemAtual&&itemAtual.tipo===tipo?itemAtual:null;
   document.querySelectorAll('.isbBtn').forEach(b=>b.textContent=!pedAtual?'Salvar item (cria o pedido com os dados da OS)':it&&!it.novo?`Salvar alterações no item ${$('#item').value||it.n}`:`Salvar como item ${$('#item').value||''}`)}
 document.querySelectorAll('.isbBtn').forEach(b=>b.onclick=()=>{const tipo=tipoDaAba();if(!tipo)return;if(!pedAtual){const p={id:'p'+Date.now().toString(36),nome:'',itens:[],criado:Date.now()};OS_IDS.forEach(k=>p[k]=$('#'+k).value.trim());pedidos.push(p);pedAtual=JSON.parse(JSON.stringify(p));itemAtual={id:'i'+Date.now().toString(36),tipo,n:Math.max(1,Math.round(num($('#item').value))||1),novo:true}}itemSalvar(tipo)});
-const TROCA_TIPOS=['letra','testeira','modelo3d','bobs','bobscomp','bobscant','branco'];
+const TROCA_TIPOS=['letra','testeira','modelo3d','bobs','bobscomp','bobscant','bobstela','branco'];
 function tipoTrocaRender(){const el=$('#tipoTroca');if(!el)return;const tp=tipoDaAba();const on=!!(pedAtual&&itemAtual&&itemAtual.novo&&tp&&tp!=='cotas');el.hidden=!on;if(!on)return;
   el.innerHTML=`<div class="note" style="margin:0 0 5px;font-weight:600">Tipo de produto deste ${(pedAtual.itens||[]).some(i=>+i.n===+itemAtual.n)?'componente':'item'} — toque para trocar:</div><div class="row" style="gap:6px;flex-wrap:wrap">`+TROCA_TIPOS.map(k=>`<button type="button" class="btn sm ${(k===tp||(k==='modelo3d'&&tp==='estrutura'))?'pink':'ghost'}" data-trtipo="${k}"${(k===tp||(k==='modelo3d'&&tp==='estrutura'))?' disabled style="opacity:1"':''}>${esc(k==='modelo3d'?'3D':TIPO_NOME[k])}</button>`).join('')+'</div>'}
 document.addEventListener('click',e=>{const b=e.target.closest('#tipoTroca [data-trtipo]');if(!b||b.disabled)return;const tipo=b.dataset.trtipo,n=+($('#item').value||itemAtual.n),d=$('#descItem').value;
@@ -6152,6 +6314,7 @@ function capturaEstado(tipo){
   if(tipo==='estrutura'){if(!dModel)throw new Error('monte o 3D antes de salvar');return{estado:{xf:xfLer('#xfT'),inputs:capInputs(['#dCard']),cor,dSrc,dModel,dHist,dPint},desc:$('#dDesc').value.trim()||'ESTRUTURA',resumo:dModel.titulo}}
   if(tipo==='bobs')return{estado:{bobs:JSON.parse(JSON.stringify(bobs)),inputs:capInputs(['#bCard','#bCard2']),xf:xfLer('#xfB')},desc:$('#bDesc').value.trim()||'REQUADRO DO BALCÃO BOBS',resumo:bobs.pecas.map(p=>f0(p.W)+'x'+f0(p.H)).join(' + '),lens:bobsLens('bobs')};
   if(tipo==='bobscomp')return{estado:{bComp:JSON.parse(JSON.stringify(bComp)),inputs:capInputs(['#bCompCard']),xf:xfLer('#xfB')},desc:$('#bcDesc').value.trim()||'COMPLEMENTO 30X30 BOBS',resumo:bComp.filter(c=>c.len>0).map(c=>`${c.q||1}x ${f0(c.len)}`).join(' + ')+' mm',lens:bobsLens('bobscomp')};
+  if(tipo==='bobstela')return{estado:{bTela:JSON.parse(JSON.stringify(bTela)),inputs:capInputs(['#bTelaCard']),xf:xfLer('#xfB')},desc:$('#btDesc').value.trim()||'TESTEIRAS EM TELA BOBS',resumo:bTela.map(q=>`${q.q||1}x ${f0(q.L)}x${f0(q.H)}`).join(' + ')+' (tela 5x5)'};
   if(tipo==='bobscant'){const T=bobsTrechos();const tot=T.reduce((a,t)=>a+t.lens.reduce((x,v)=>x+v,0),0);return{estado:{bCantExtra:JSON.parse(JSON.stringify(bCantExtra)),inputs:capInputs(['#bCantCard']),xf:xfLer('#xfB')},desc:$('#bkDesc').value.trim()||'CANTONEIRA COM ILUMINAÇÃO BOBS',resumo:`${String((tot/1000).toFixed(2)).replace('.',',')} m com LED COB 3000K`}}
   if(tipo==='branco'){if(!brFichas.length&&!(matAdd||[]).length)throw new Error('adicione ao menos uma ficha ou material');return{estado:{brFichas:JSON.parse(JSON.stringify(brFichas)),inputs:capInputs(['#tab-branco'])},fonte:brArqs.length?{nome:'arquivos ('+brArqs.length+')',b64:JSON.stringify(brArqs)}:null,desc:$('#brDesc').value.trim()||'FP EM BRANCO',resumo:`${brFichas.length} ficha(s): ${[...new Set(brFichas.map(f=>f.setor))].join(', ')}`}}
   if(tipo==='cotas'){if(!ctBytes)throw new Error('envie o arquivo (PDF, STL ou OBJ) antes de salvar');return{estado:{inputs:capInputs(['#tab-cotas']),ctModo,ctArqs:JSON.parse(JSON.stringify(ctArqs))},fonte:{nome:ctNome,b64:b64(ctBytes)},desc:$('#ctDesc').value.trim()||'COTAS',resumo:`${ctModo==='detalhada'?'detalhada':'padrão'} • ${$('#ctSetor').value}`}}
@@ -6169,7 +6332,7 @@ async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHT
     try{$('#pedListaCard').hidden=true;$('#pedCard').hidden=false;pedAbertoRender();pedBarRender()}catch(e){}}
   catch(e){console.error(e);msg(`<span style="color:#ffc9c9">Não salvou: ${esc(e.message)}</span>`)}}
 // abre um item: restaura tudo; se "mostrar", vai para a aba dele e gera
-const DESC_IN={letra:'#descItem',testeira:'#tDesc',estrutura:'#dDesc',modelo3d:'#mDesc',bobs:'#bDesc',bobscomp:'#bcDesc',bobscant:'#bkDesc',branco:'#brDesc',cotas:'#ctDesc'};
+const DESC_IN={letra:'#descItem',testeira:'#tDesc',estrutura:'#dDesc',modelo3d:'#mDesc',bobs:'#bDesc',bobscomp:'#bcDesc',bobscant:'#bkDesc',bobstela:'#btDesc',branco:'#brDesc',cotas:'#ctDesc'};
 async function itemAbrir(it,mostrar){const r=await itemAbrir0(it,mostrar);try{const el=it.desc&&$(DESC_IN[it.tipo]);if(el)el.value=it.desc}catch(e){}return r}
 async function itemAbrir0(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)throw new Error('estado do item não encontrado');const F=it.fonteId?await lerJSON(it.fonteId):null;if(F&&F.grande&&!F.b64)F.b64=b64(await lerGrande(F.grande));
   itemAtual={id:it.id,tipo:it.tipo,n:it.n};if(typeof compCotas!=='undefined'){compExcl=Array.isArray(E.excl)?E.excl:[];compCotas=Array.isArray(E.cotas)?E.cotas:[];for(const c of compCotas)await ctParse(c);ctListaRender()}$('#item').value=it.n;if(it.tipo==='letra')limpaTipo('letra');refImg=E.refImg||null;matUlt=null;$('#itemVenda').value=it.venda?String((+it.venda).toFixed(2)).replace('.',','):'';fpObsPg={...(E.fpObsPg||{})};matQtd={...(E.matQtd||{})};matExcl={...(E.matExcl||{})};matAdd=(E.matAdd||[]).map(x=>({...x}));refRender();instReset();if(E.inst){if(E.inst.iAncT&&ANC_ANTIGO[E.inst.iAncT])E.inst.iAncT=ANC_ANTIGO[E.inst.iAncT];if(!E.inst.iUnid){['iHv','iVv','iPw','iPh'].forEach(k=>{if(E.inst[k])E.inst[k]=String(Math.round(numBR(E.inst[k])*10))});E.inst.iUnid='mm'}putInputs(E.inst);if($('#iAncTipo')){$('#iAncTipo').dataset.v=E.inst.iAncTipo||'';ancTiposRender()}}instImg=E.instImg||null;instImg2=E.instImg2||null;instLocal=E.instLocal||null;ancImg=E.ancImg||null;instRender();
@@ -6189,6 +6352,7 @@ async function itemAbrir0(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)t
     $('#dAltBox').hidden=!dModel;dBotao();if(mostrar){irAba('testeiras');setModo('desenho')}}
   if(it.tipo==='bobs'){bobs=JSON.parse(JSON.stringify(E.bobs||{pecas:[bobsModelo('m1')]}));if(E.bobs&&E.bobs.comp&&E.bobs.comp.length&&!(E.bComp))bComp=JSON.parse(JSON.stringify(E.bobs.comp));putInputs(E.inputs);xfPut('#xfB',E.xf||[]);setBModo('req');if(mostrar){irAba('bobs');bobsRender()}}
   if(it.tipo==='bobscomp'){bComp=JSON.parse(JSON.stringify(E.bComp||[{len:1000,q:1}]));putInputs(E.inputs);xfPut('#xfB',E.xf||[]);setBModo('comp');if(mostrar){irAba('bobs');bobsRender()}}
+  if(it.tipo==='bobstela'){bTela=JSON.parse(JSON.stringify(E.bTela||[]));putInputs(E.inputs);xfPut('#xfB',E.xf||[]);setBModo('tela');if(mostrar){irAba('bobs');bobsRender()}}
   if(it.tipo==='bobscant'){bCantExtra=JSON.parse(JSON.stringify(E.bCantExtra||[]));putInputs(E.inputs);xfPut('#xfB',E.xf||[]);setBModo('cant');if(mostrar){irAba('bobs');bobsRender()}}
   if(it.tipo==='branco'){brFichas=JSON.parse(JSON.stringify(E.brFichas||[]));putInputs(E.inputs);try{brArqs=F&&F.b64?JSON.parse(F.b64):[]}catch(e){brArqs=[]}brUI();if(mostrar){irAba('branco');brRender()}}
   if(it.tipo==='cotas'){ctLimpa();putInputs(E.inputs);ctModo=E.ctModo||'padrao';ctArqs=E.ctArqs||[];ctSetorUI();ctModoUI();ctArqsUI();if(F)await ctCarregaBytes(F.nome,unb64(F.b64),mostrar);if(mostrar)irAba('cotas')}
@@ -6196,7 +6360,7 @@ async function itemAbrir0(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)t
   if(typeof compCotas!=='undefined')ctListaRender();
   pedSujo=false;pedBarRender();if(mostrar)setTimeout(projMarcaSalvo,900)}
 // ---------- FP completa do pedido ----------
-function buildItem(tipo){if(tipo==='letra')return buildDoc();if(tipo==='testeira')return buildTesteira();if(tipo==='estrutura')return dFolhas();if(tipo==='modelo3d')return mFolhas();if(tipo==='bobs'){setBModo('req');return bobsFolhas()}if(tipo==='bobscomp'){setBModo('comp');return bobsFolhas()}if(tipo==='bobscant'){setBModo('cant');return bobsFolhas()}if(tipo==='branco')return brFolhas();if(tipo==='cotas')return ct3?ct3Folhas():ctFolhas()}
+function buildItem(tipo){if(tipo==='letra')return buildDoc();if(tipo==='testeira')return buildTesteira();if(tipo==='estrutura')return dFolhas();if(tipo==='modelo3d')return mFolhas();if(tipo==='bobs'){setBModo('req');return bobsFolhas()}if(tipo==='bobscomp'){setBModo('comp');return bobsFolhas()}if(tipo==='bobscant'){setBModo('cant');return bobsFolhas()}if(tipo==='bobstela'){setBModo('tela');return bobsFolhas()}if(tipo==='branco')return brFolhas();if(tipo==='cotas')return ct3?ct3Folhas():ctFolhas()}
 let pedSel=new Set(),pedParcial=false;
 function pedSelBtn(){const ids=new Set((pedAtual&&pedAtual.itens||[]).map(i=>i.id));[...pedSel].forEach(x=>{if(!ids.has(x))pedSel.delete(x)});const n=pedSel.size;{const a=$('#pedArqs');if(a)a.textContent=n?`Baixar arquivos de produção (${n} selecionado${n>1?'s':''})`:'Baixar arquivos de produção (todos)'}const b=$('#pedGerarSel');if(!b)return;b.disabled=!n;b.textContent=n?`Gerar FP parcial (${n} selecionado${n>1?'s':''})`:'Gerar FP parcial (selecione os itens)'}
 $('#pedItensBox').addEventListener('change',e=>{const t=e.target;if(t.dataset.selg!=null){const n=+t.dataset.selg;(pedAtual.itens||[]).filter(i=>+i.n===n).forEach(i=>t.checked?pedSel.add(i.id):pedSel.delete(i.id));pedAbertoRender();return}
