@@ -5345,7 +5345,7 @@ function bobsFolhas(){if(bModo==='comp')return bobsCompFolhas();if(bModo==='cant
    const rows=[...C.pecas.map(p=>[`Peça ${p.pi+1}`,f0(p.W),String(un),nm((p.W*un/1000).toFixed(2))+' m']),...C.comp.map((c,i)=>[`Complemento 30x30 ${i+1}`,f0(c.len),String((c.q||1)*un),nm((c.len*(c.q||1)*un/1000).toFixed(2))+' m'])];
    const ye=tabela(P,[['TRECHO',60],['LARGURA (MM)',26],['QTD.',14],['LED',26]],rows,14,44);
    const c={};fs.forEach(w=>c[w]=(c[w]||0)+1);
-   [['TOTAL DE LED COB',`${nm(m.toFixed(2))} m`],['POTÊNCIA',`${nm(W.toFixed(1))} W (+25% = ${nm((W*LED_FOLGA).toFixed(1))} W)`],['REATORES 12 V',Object.entries(c).map(([w,q])=>`${q} x ${w} W`).join(' + ')],['CANTONEIRA 25x25',`${nm(m.toFixed(2))} m (barras de ${f0(BOBS.cantBarra)} mm)`]]
+   [['TOTAL DE LED COB (+20% SOBRA)',`${nm((m*1.2).toFixed(2))} m  (medida ${nm(m.toFixed(2))} m)`],['POTÊNCIA',`${nm(W.toFixed(1))} W (+25% = ${nm((W*LED_FOLGA).toFixed(1))} W)`],['REATORES 12 V',Object.entries(c).map(([w,q])=>`${q} x ${w} W`).join(' + ')],['CANTONEIRA 25x25',`${nm(m.toFixed(2))} m (barras de ${f0(BOBS.cantBarra)} mm)`]]
      .forEach(([a,b],i)=>P.push({t:'rect',x:160,y:44+i*13,w:124,h:11,r:1.5,fill:i===2?'#fff4e6':'#f8f9fa',stroke:i===2?'#e8590c':'#adb5bd',lw:0.4},{t:'text',x:164,y:48.6+i*13,s:a,size:2.4,bold:true,color:'#495057'},{t:'text',x:164,y:53.2+i*13,s:b,size:3.4,bold:true,color:'#000000'}));
    P.push({t:'text',x:14,y:Math.max(ye+8,110),s:'Reator escolhido pela potência do LED + 25% (60 / 100 / 150 W). Reator em local ventilado e de fácil acesso.',size:2.6,color:'#000000'},
      {t:'text',x:14,y:Math.max(ye+14,116),s:'Ligar a fita em trechos de no máximo 5 m por alimentação (queda de tensão). Vermelho (+) e preto (−) no lado 12 V do reator.',size:2.6,color:'#000000'});
@@ -5393,7 +5393,7 @@ function bobsProd(C,un,ctx,X){const N=[];const nm=v=>String(v).replace('.',',');
   tPU(C.areas.lar,X.corRip+(rr?' RAL '+rr:''),'lar',['TINTA PU',rr?'RAL'+rr.replace(/\D/g,''):'LARANJA'],['SEMI','BRILHO']);
   if(C.areas.preto>0)N.push({k:'bobs|po',desc:'Pintura eletrostática a pó PRETA (terceirizada)',q:Math.round(C.areas.preto*100)/100,un:'m²',uso:'estrutura externa + complementos — informar o valor do serviço',busca:{must:['PINTURA ELETROSTATICA']}});
   if(X.led){const L=X.led;N.push({k:'bobs|cant25',desc:'Cantoneira de alumínio 25x25 x 1,00 preta — barra 3 m',q:(C.bars||{})['CANTONEIRA ALUMÍNIO 25x25 PRETA (LED)']||Math.ceil(L.m/3),un:'un',uso:`LED: ${nm(L.m.toFixed(2))} m`,busca:{must:['CANTONEIRA DE ALUMINIO 25X25','1,00MM','PRETA']}});
-    N.push({k:'bobs|cob',desc:'Fita LED COB 12 V 12 W/m 3000K',q:Math.round(L.m*100)/100,un:'m',uso:`embaixo da cantoneira 25x25 — ${nm(L.W.toFixed(1))} W`,busca:{must:['FITA LED','COB','3000K']}});
+    N.push({k:'bobs|cob',desc:'Fita LED COB 12 V 12 W/m 3000K',q:Math.round(L.m*1.2*100)/100,un:'m',uso:`embaixo da cantoneira 25x25 — ${nm(L.W.toFixed(1))} W`,busca:{must:['FITA LED','COB','3000K']}});
     const c={};L.fs.forEach(w=>c[w]=(c[w]||0)+1);Object.entries(c).forEach(([w,q])=>N.push({k:`fonte|${w}`,desc:`Fonte blindada ${w} W 12 V IP67`,q,un:'un',uso:`LED COB ${nm(L.W.toFixed(1))} W + 25%`,busca:{must:['REATOR',`${w}W`,'IP67']}}));
     N.push({k:'fio|1.5|preto',desc:'Cabo flexível 1,5 mm preto',q:Math.round(L.m*100)/100,un:'m',uso:'alimentação do LED',busca:{must:['CABO FLEXIVEL','PRETO','01.50MM']}},{k:'fio|1.5|verm',desc:'Cabo flexível 1,5 mm vermelho',q:Math.round(L.m*100)/100,un:'m',uso:'alimentação do LED',busca:{must:['CABO FLEXIVEL','VERMELHO','01.50MM']}})}
   const offs=C.pecas.map((p,i)=>C.pecas.slice(0,i).reduce((a,q)=>a+q.W+100,0));const rects=C.pecas.flatMap((p,i)=>bobsRects(p,offs[i]));const rectsW=C.pecas.length?offs[offs.length-1]+C.pecas[C.pecas.length-1].W:0;
@@ -5555,7 +5555,8 @@ function bobsCtx(desc){const d=$('#entrega').value;return{obsBelow:true,os:$('#o
 function bobsLens(tipo){if(tipo==='bobs'){const un=Math.max(1,Math.round(num($('#bUn').value))||1);return bobs.pecas.flatMap(p=>Array(un).fill(p.W))}
   if(tipo==='bobscomp'){const un=Math.max(1,Math.round(num($('#bcUn').value))||1);return bComp.filter(c=>c.len>0).flatMap(c=>Array((c.q||1)*un).fill(c.len))}return null}
 function bobsTrechos(){const out=[];const its=(typeof pedAtual!=='undefined'&&pedAtual&&pedAtual.itens)||[];
-  its.slice().sort((a,b)=>a.n-b.n).forEach(it=>{if(!it.bobsLens||!it.bobsLens.length)return;if(typeof itemAtual!=='undefined'&&itemAtual&&it.id===itemAtual.id)return;
+  const nA=(typeof itemAtual!=='undefined'&&itemAtual&&itemAtual.n!=null)?+itemAtual.n:(+($('#item')&&$('#item').value)||null);
+  its.slice().sort((a,b)=>a.n-b.n).forEach(it=>{if(!it.bobsLens||!it.bobsLens.length)return;if(nA!=null&&+it.n!==nA)return;/* só os requadros/complementos do MESMO item */if(typeof itemAtual!=='undefined'&&itemAtual&&it.id===itemAtual.id)return;
     out.push({nome:`Item ${it.n} — ${it.desc||TIPO_NOME[it.tipo]}`,lens:it.bobsLens,auto:true})});
   bCantExtra.filter(x=>x.len>0).forEach(x=>out.push({nome:x.nome||'Trecho avulso',lens:Array(Math.max(1,x.q||1)).fill(x.len),extra:true}));return out}
 function bobsCantUI(){const T=bobsTrechos();const tot=T.reduce((a,t)=>a+t.lens.reduce((s2,v)=>s2+v,0),0);
@@ -5599,24 +5600,25 @@ function bobsCompFolhas(){const un=Math.max(1,Math.round(num($('#bcUn').value))|
   return{pages,tags,ctx,resumo:`${L.reduce((a,c)=>a+(c.q||1),0)*un} tubo(s), ${String((tot/1000).toFixed(2)).replace('.',',')} m no total.`}}
 // ===== CANTONEIRA COM ILUMINAÇÃO =====
 function bobsCantFolhas(){const ctx=bobsCtx(bobsDesc());const pages=[],tags=[];const T=bobsTrechos();const lens=T.flatMap(t=>t.lens);
-  if(!lens.length)throw new Error('nenhum trecho: salve os requadros e complementos do pedido antes (ou adicione um trecho avulso)');
+  if(!lens.length)throw new Error('nenhum trecho: salve antes os requadros e complementos DESTE item (ou adicione um trecho avulso)');
   const m=Math.round(lens.reduce((a,v)=>a+v,0)/10)/100;const W=m*BOBS.cobW;const fs=fontes(W*LED_FOLGA);const c={};fs.forEach(w=>c[w]=(c[w]||0)+1);const nm=v=>String(v).replace('.',',');
   {const P=[];frame(P,ctx,{setor:'ELÉTRICA'});bobsTit(P,'CANTONEIRA COM ILUMINAÇÃO — LED COB 3000K',`FITA LED COB 12 V ${BOBS.cobW} W/m • 3000K (BRANCO QUENTE) • COLADA EMBAIXO DA CANTONEIRA DE ALUMÍNIO 25x25 PRETA`);
    let y=44,x=14;const cols=[['TRECHO',90],['MEDIDAS (MM)',50],['LED',22]];cols.forEach(([h,w])=>{P.push({t:'rect',x,y,w,h:4.6,fill:'#495057',stroke:'#000000',lw:0.15},{t:'text',x:x+w/2,y:y+3.3,s:h,size:2.1,bold:true,color:'#ffffff',anchor:'middle'});x+=w});
    T.forEach((t,i)=>{if(y>150)return;y+=4.6;let x2=14;const v=[t.nome,t.lens.map(f0).join(' + '),nm((t.lens.reduce((a,b)=>a+b,0)/1000).toFixed(2))+' m'];cols.forEach(([h,w],k)=>{P.push({t:'rect',x:x2,y,w,h:4.6,fill:i%2?'#ffffff':'#f8f9fa',stroke:'#000000',lw:0.1},{t:'text',x:k?x2+w/2:x2+1.2,y:y+3.3,s:fit(v[k],w-2,2.2),size:2.2,bold:k===2,color:'#000000',anchor:k?'middle':undefined});x2+=w})});
-   [['TOTAL DE LED COB',`${nm(m.toFixed(2))} m`],['POTÊNCIA',`${nm(W.toFixed(1))} W (+25% = ${nm((W*LED_FOLGA).toFixed(1))} W)`],['REATORES 12 V',Object.entries(c).map(([w,q])=>`${q} x ${w} W`).join(' + ')],['CANTONEIRA 25x25 PRETA',`${nm(m.toFixed(2))} m (${lens.length} peça(s))`]]
+   [['TOTAL DE LED COB (+20% SOBRA)',`${nm((m*1.2).toFixed(2))} m  (medida ${nm(m.toFixed(2))} m)`],['POTÊNCIA',`${nm(W.toFixed(1))} W (+25% = ${nm((W*LED_FOLGA).toFixed(1))} W)`],['REATORES 12 V',Object.entries(c).map(([w,q])=>`${q} x ${w} W`).join(' + ')],['CANTONEIRA 25x25 PRETA',`${nm(m.toFixed(2))} m (${lens.length} peça(s))`]]
      .forEach(([a,b],i)=>P.push({t:'rect',x:184,y:44+i*13,w:100,h:11,r:1.5,fill:i===2?'#fff4e6':'#f8f9fa',stroke:i===2?'#e8590c':'#adb5bd',lw:0.4},{t:'text',x:188,y:48.6+i*13,s:a,size:2.4,bold:true,color:'#495057'},{t:'text',x:188,y:53.2+i*13,s:b,size:3.2,bold:true,color:'#000000'}));
-   P.push({t:'text',x:14,y:160,s:'Uma peça de cantoneira por requadro / complemento, na largura dele. Fita LED colada embaixo da cantoneira. Trechos de no máx. 5 m por alimentação.',size:2.5,color:'#000000'},{t:'text',x:14,y:165,s:'Reator escolhido pela potência + 25% (60 / 100 / 150 W). Vermelho (+) e preto (−) no lado 12 V do reator.',size:2.5,color:'#000000'});
+   P.push({t:'text',x:14,y:160,s:'Uma peça de cantoneira por requadro / complemento, na largura dele. Fita LED colada embaixo da cantoneira (separar 20% a mais de fita para sobra). Trechos de no máx. 5 m por alimentação.',size:2.5,color:'#000000'},{t:'text',x:14,y:165,s:'Reator escolhido pela potência + 25% (60 / 100 / 150 W). Vermelho (+) e preto (−) no lado 12 V do reator.',size:2.5,color:'#000000'});
    pages.push(P);tags.push('ELÉTRICA')}
   const bars=bobsPlano(null,ctx,pages,tags,[['CANTONEIRA ALUMÍNIO 25x25 PRETA',lens.map(len=>({len})),'#1a1a1a',BOBS.cantBarra]],'PLANO DE CORTE — CANTONEIRA 25x25');
   xfPaginas(ctx,'#xfB',pages,tags);
   const N=[{k:'bobs|cant25',desc:'Cantoneira de alumínio 25x25 x 1,00 preta — barra 3 m',q:bars['CANTONEIRA ALUMÍNIO 25x25 PRETA']||Math.ceil(m/3),un:'un',uso:`${nm(m.toFixed(2))} m em ${lens.length} peça(s)`,busca:{must:['CANTONEIRA DE ALUMINIO 25X25','1,00MM','PRETA']}},
-    {k:'bobs|cob',desc:'Fita LED COB 12 V 12 W/m 3000K',q:m,un:'m',uso:`embaixo da cantoneira — ${nm(W.toFixed(1))} W`,busca:{must:['FITA LED','COB','3000K']}},
+    {k:'bobs|cob',desc:'Fita LED COB 12 V 12 W/m 3000K',q:Math.round(m*1.2*100)/100,un:'m',uso:`embaixo da cantoneira: ${nm(m.toFixed(2))} m + 20% de sobra — ${nm(W.toFixed(1))} W`,busca:{must:['FITA LED','COB','3000K']}},
     ...Object.entries(c).map(([w,q])=>({k:`fonte|${w}`,desc:`Fonte blindada ${w} W 12 V IP67`,q,un:'un',uso:`LED COB ${nm(W.toFixed(1))} W + 25%`,busca:{must:['REATOR',`${w}W`,'IP67']}})),
     {k:'fio|1.5|preto',desc:'Cabo flexível 1,5 mm preto',q:m,un:'m',uso:'alimentação do LED',busca:{must:['CABO FLEXIVEL','PRETO','01.50MM']}},{k:'fio|1.5|verm',desc:'Cabo flexível 1,5 mm vermelho',q:m,un:'m',uso:'alimentação do LED',busca:{must:['CABO FLEXIVEL','VERMELHO','01.50MM']}}];
   const mx=Math.max(...lens);const prod={tipo:'estrutura',mat:N,anc:{peca:'CANTONEIRA',auto:0,onde:'colada / parafusada embaixo dos requadros'},semAnc:true,nome:ctx.descItem,W:mx,H:25,D:25,un:1,
     volumes:[{desc:'CANTONEIRAS 25x25 COM LED',cont:`${lens.length} peça(s) — ${nm(m.toFixed(2))} m com LED COB 3000K`,dims:`${f0(mx)} x 25 x 25`,q:1,kg:m*0.13,draw:{rects:[{x0:0,y0:0,x1:mx,y1:25,cor:'#1a1a1a'}]}},{desc:'REATORES',cont:Object.entries(c).map(([w,q])=>`${q} x ${w} W`).join(' + '),dims:'—',q:1,kg:0,draw:null}],
     contornoRects:[{x0:0,y0:0,x1:mx,y1:25,cor:'#1a1a1a'}],contorno:[[[0,0],[mx,0],[mx,25],[0,25]]],checks:['MEDIDAS','LED ACENDE']};
+  try{const P=bobsCantDetalhe(ctx);pages.push(P);tags.push(P._tag)}catch(e){console.error('detalhe cantoneira',e)}
   paginasFinais(pages,tags,ctx,prod);if(!FOOT_SKIP){numeraSetores(pages);pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length))}bobsFiles=[];
   return{pages,tags,ctx,resumo:`${nm(m.toFixed(2))} m de cantoneira com LED • ${Object.entries(c).map(([w,q])=>`${q} x ${w} W`).join(' + ')}.`}}
 bobsUI();
@@ -5626,6 +5628,37 @@ let bArtes=[];
 function bArteUI(){const L=$('#bArteLista');if(!L)return;L.innerHTML=bArtes.length?bArtes.map((f,i)=>`<div class="row" style="gap:6px;align-items:center;margin-top:3px"><b style="font-size:13px">📎 ${esc(f.name)}</b><span class="note">${(f.buf.byteLength/1048576).toFixed(1).replace('.',',')} MB</span><button class="btn ghost sm" type="button" data-bartedel="${i}">Remover</button></div>`).join(''):'Nenhum arquivo anexado.'}
 if($('#bArte')){$('#bArte').onchange=async e=>{for(const f of e.target.files)bArtes.push({name:f.name,buf:await f.arrayBuffer()});e.target.value='';bArteUI()};
   $('#bArteLista').onclick=e=>{const b=e.target.closest('[data-bartedel]');if(!b)return;bArtes.splice(+b.dataset.bartedel,1);bArteUI()}}
+
+// desenho de instalação: corte da cantoneira 25x25 sobre o tubo, com a fita LED embaixo
+function bobsCantDetalhe(ctx){const st=(typeof setorInst==='function')?setorInst():'INSTALAÇÃO';const P=[];frame(P,ctx,{setor:st});P._tag=st;P._ref=null;
+  P.push({t:'text',x:148.5,y:30,s:'INSTALAÇÃO DA CANTONEIRA COM LED NO TUBO — CORTE',size:4.4,bold:true,color:'#000000',anchor:'middle'},
+    {t:'text',x:148.5,y:35.5,s:'CANTONEIRA DE ALUMÍNIO 25x25 PRETA PARAFUSADA EM CIMA DO TUBO • FITA LED COB 3000K COLADA EMBAIXO DA ABA, NO VÃO DE 10 MM',size:2.5,color:'#495057',anchor:'middle'});
+  const s=2.15,ox=118,oy=72;const X=v=>ox+v*s,Y=v=>oy+v*s;const R=(x0,y0,x1,y1,fill,stroke,lw)=>P.push({t:'rect',x:X(x0),y:Y(y0),w:(x1-x0)*s,h:(y1-y0)*s,fill,stroke:stroke||'#000000',lw:lw||0.3});
+  // tubo 30x30 (#1,55) + painel abaixo
+  R(0,0,30,30,'#868e96','#212529',0.35);R(1.55,1.55,28.45,28.45,'#ffffff','#212529',0.3);R(0,30,30,40,'#868e96','#212529',0.35);
+  // cantoneira: aba de cima (25) e aba que desce (25), 1 mm
+  R(-11,-1,14,0,'#1a1a1a','#000000',0.2);R(-11,-1,-10,24,'#1a1a1a','#000000',0.2);
+  // fita LED COB embaixo da aba, no vão
+  R(-8.5,0,-2.5,1.4,'#ffd43b','#000000',0.2);P.push({t:'circle',x:X(-5.5),y:Y(1.6),r:0.9*s,fill:'#ffd43b',stroke:'#000000',lw:0.2});
+  // luz
+  for(const dx of [-9,-5.5,-2]){P.push({t:'line',x1:X(-5.5),y1:Y(2.6),x2:X(dx),y2:Y(13),color:'#fab005',w:0.35,dash:[1.2,0.9]})}
+  // parafuso
+  const px=6;P.push({t:'rect',x:X(px-3),y:Y(-6.5),w:6*s,h:1.6*s,fill:'#dee2e6',stroke:'#000000',lw:0.25},{t:'rect',x:X(px-0.7),y:Y(-4.9),w:1.4*s,h:9.5*s,fill:'#dee2e6',stroke:'#000000',lw:0.25},{t:'polyf',pts:[[X(px-0.7),Y(4.6)],[X(px+0.7),Y(4.6)],[X(px),Y(6.2)]],fill:'#dee2e6',stroke:'#000000',lw:0.25});
+  // cota 10 mm (face interna da aba -> face do tubo)
+  const yc=-9.5,CB='#1971c2';P.push({t:'line',x1:X(-10),y1:Y(yc-2),x2:X(-10),y2:Y(-1.2),color:CB,w:0.2},{t:'line',x1:X(0),y1:Y(yc-2),x2:X(0),y2:Y(-1.2),color:CB,w:0.2},{t:'line',x1:X(-10),y1:Y(yc),x2:X(0),y2:Y(yc),color:CB,w:0.3},
+    {t:'polyf',pts:[[X(-10),Y(yc)],[X(-10)+2.2,Y(yc)-0.9],[X(-10)+2.2,Y(yc)+0.9]],fill:CB,stroke:CB,lw:0.1},{t:'polyf',pts:[[X(0),Y(yc)],[X(0)-2.2,Y(yc)-0.9],[X(0)-2.2,Y(yc)+0.9]],fill:CB,stroke:CB,lw:0.1},
+    {t:'text',x:X(-5),y:Y(yc)-1.4,s:'10 mm',size:3,bold:true,color:CB,anchor:'middle'});
+  // chamadas
+  const call=(x,y,tx,ty,a,b)=>{P.push({t:'line',x1:x,y1:y,x2:tx,y2:ty,color:'#495057',w:0.25},{t:'circle',x,y,r:0.7,fill:'#495057',stroke:'#495057',lw:0.1},{t:'text',x:tx+(tx<x?-1:1),y:ty-0.6,s:a,size:2.7,bold:true,color:'#000000',anchor:tx<x?'end':undefined});if(b)P.push({t:'text',x:tx+(tx<x?-1:1),y:ty+3,s:b,size:2.2,color:'#495057',anchor:tx<x?'end':undefined})};
+  call(X(-10.5),Y(16),X(-24),Y(16),'CANTONEIRA ALUMÍNIO 25x25','PRETA, 1,00 mm');
+  call(X(-7),Y(0.8),X(-24),Y(5),'FITA LED COB 3000K','colada embaixo da aba');
+  call(X(px),Y(-5.7),X(24),Y(-12),'PARAFUSO BROCANTE','a cada ~250 mm, no meio do tubo');
+  call(X(14),Y(24),X(-24),Y(28),'TUBO 30x30 DO REQUADRO','ou do complemento');
+  call(X(8),Y(36),X(-24),Y(38),'PAINEL / BALCÃO','');
+  // passo a passo
+  const L=['PASSO A PASSO','1. Colar a FITA LED COB embaixo da aba de cima da','    cantoneira, perto da aba que desce, em toda a peça.','2. Apoiar a cantoneira em cima do tubo 30x30 com a aba que desce','    para o lado de fora, deixando 10 mm de vão entre a aba e o tubo.','3. Parafusar com brocante pela aba de cima, no meio do tubo,','    ~1 a cada 250 mm (sem furar a fita).','4. Passar os fios pelo vão até o reator; vermelho (+) e preto (−).','5. Ligar e conferir: a luz sai pelo vão de 10 mm, para baixo.'];
+  L.forEach((t,i)=>P.push({t:'text',x:200,y:60+i*6.4,s:t,size:i?2.6:3.2,bold:!i,color:'#000000'}));
+  return P}
 
 /* ===================== FP EM BRANCO (tudo manual) =====================
    Fichas por setor com foto, instruções e quantitativo; RM/PI à mão; arquivos que vão no ZIP. */
