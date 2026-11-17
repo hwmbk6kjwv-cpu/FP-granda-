@@ -293,7 +293,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
       <label class="f" style="margin-top:14px">Itens do pedido</label>
             <div id="pedItensBox"><div id="osLista"></div>
       <div id="pedItens"></div></div>
-      <div class="row" id="pedNovos" style="gap:6px;margin-top:10px"><span class="note" style="align-self:center">Novo item:</span><button class="btn ghost sm" data-novo="letra">+ Letra caixa</button><button class="btn ghost sm" data-novo="branco">+ FP em branco</button><button class="btn ghost sm" data-novo="testeira">+ Testeira</button><button class="btn ghost sm" data-novo="estrutura">+ Estrutura por desenho</button><button class="btn ghost sm" data-novo="modelo3d">+ Modelo 3D</button><button class="btn ghost sm" data-novo="bobs">+ Bobs requadro</button><button class="btn ghost sm" data-novo="bobscomp">+ Bobs complemento 30x30</button><button class="btn ghost sm" data-novo="bobscant">+ Bobs cantoneira iluminada</button></div>
+      <div class="row" id="pedNovos" style="gap:6px;margin-top:10px"><span class="note" style="align-self:center">Novo item:</span><button class="btn ghost sm" data-novo="letra">+ Letra caixa</button><button class="btn ghost sm" data-novo="branco">+ FP em branco</button><button class="btn ghost sm" data-novo="testeira">+ Testeira</button><button class="btn ghost sm" data-novo="modelo3d">+ 3D (STL, OBJ, DXF ou PDF)</button><button class="btn ghost sm" data-novo="bobs">+ Bobs requadro</button><button class="btn ghost sm" data-novo="bobscomp">+ Bobs complemento 30x30</button><button class="btn ghost sm" data-novo="bobscant">+ Bobs cantoneira iluminada</button></div>
       <div class="row" id="pedAcoes" style="gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)"><button class="btn pink" id="pedGerar">Gerar FP completa do pedido</button><button class="btn acc" id="pedGerarSel" disabled>Gerar FP parcial (selecione os itens)</button><button class="btn ghost" id="pedBaixar" hidden>Baixar FP completa (PDF)</button><button class="btn" id="pedGeral" style="background:#2f9e44;color:#fff;font-weight:700">Gerar apenas FP geral</button><button class="btn" id="pedRM" style="background:#495057;color:#fff">Baixar RM + PI do pedido (por produto + total)</button><button class="btn ghost sm" id="pedExport" style="display:none">Exportar pedido (arquivo)</button><button class="btn danger sm" id="pedExcluir" style="margin-left:auto">Excluir pedido</button></div><div id="pedExpMsg" class="note" style="margin-top:6px"></div>
       <div id="pedMsg"></div>
       <div class="prev" id="pedPrev"></div>
@@ -307,8 +307,15 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
       <label class="f">Largura real (mm) <span class="badge">opcional — só se o PDF não estiver 1:1</span></label><input type="number" id="largReal" placeholder="Deixe vazio para usar 1:1" inputmode="decimal">
     </div>
     <div class="card"><h2>3. Tipo de letra caixa</h2><div class="types" id="typePick"></div><div id="chapaBox" hidden><label class="f" style="margin-top:14px">Linha interna da chapa galvanizada</label><div class="leds" id="chapaPick"></div></div>
-      <label class="f" style="margin-top:14px">Profundidade da caixa (espessura da letra)</label><div class="leds" id="caixaPick"></div>
+      <div id="caixaWrap"><label class="f" style="margin-top:14px">Profundidade da caixa (espessura da letra)</label><div class="leds" id="caixaPick"></div></div>
+      <div id="planaBox" hidden style="margin-top:12px;padding:10px;border:1.5px solid #f783ac;background:#fff0f6;border-radius:10px"><b style="color:#a61e4d">Letra de chapa (recortada na router)</b>
+        <label class="f" style="margin-top:6px">Material e espessura</label><div class="row" id="plMatPick" style="gap:6px;flex-wrap:wrap"></div><input type="hidden" id="plMat" value="pvc10">
+        
+        <label class="f" style="margin-top:10px">Acabamento da letra</label><div class="row" style="gap:6px;flex-wrap:wrap"><button type="button" class="chip" data-plp="0" style="padding:7px 12px;font-size:13px">Cor natural do material</button><button type="button" class="chip" data-plp="1" style="padding:7px 12px;font-size:13px">🎨 Pintado (RAL, Pantone, CMYK)</button></div><input type="checkbox" id="plPint" hidden><div id="plCorBox" hidden style="margin-top:8px"><label class="f">Cor natural do acrílico <span class="note" id="plCorSel" style="text-transform:none;font-weight:600;color:var(--ink)"></span></label><div class="row" id="plCores" style="gap:5px;max-height:150px;overflow:auto"></div><input type="hidden" id="plCor" value=""><input type="hidden" id="plCorHex" value=""></div>
+        <div id="plPintSlot" style="margin-top:8px"></div><div id="plPartesBox" hidden style="max-width:280px"><label class="f">O que pintar</label><select id="plPartes"><option value="frente_lateral">Frente e lateral</option><option value="frente">Só a frente</option><option value="lateral">Só a lateral</option></select></div>
+        <p class="note" style="margin:8px 0 0">Sai a FP da router com o corte em tamanho real (arquivos de corte em "Arquivos de produção"), o aproveitamento na chapa, a RM e a prévia 3D. O fundo em ACM ou acrílico é no quadro abaixo.</p></div>
       <div id="l3dBox" hidden style="margin-top:12px;padding:10px;border:1.5px solid #b197fc;background:#f3f0ff;border-radius:10px"><b style="color:#5f3dc4">Letra 3D (PETG)</b>
+        <label style="display:flex;gap:6px;align-items:center;font-size:13.5px;margin-top:6px;font-weight:600"><input type="checkbox" id="l3dLuz"> 💡 Letra com LED dentro (iluminada)</label><p class="note" id="l3dLuzNota" hidden style="margin:2px 0 4px;color:#5f3dc4">Com LED: cúpula interna em filamento <b>BRANCO</b> (reflete a luz).</p><div id="l3dLatBox" hidden style="margin:2px 0 6px"><span style="font-size:13px;font-weight:600">Lateral da letra iluminada?</span> <button type="button" class="chip" data-latluz="1" style="padding:5px 12px;font-size:13px">Sim</button> <button type="button" class="chip" data-latluz="0" style="padding:5px 12px;font-size:13px">Não</button><input type="checkbox" id="l3dLatLuz" hidden><p class="note" id="l3dLatNota" style="margin:3px 0 0"></p></div>
         <div class="row" style="gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap"><label class="f" style="margin:0">Cor do filamento</label><select id="l3dCor" style="max-width:160px"><option>BRANCO</option><option>PRETO</option><option>CINZA</option><option>AZUL</option><option>VERMELHO</option><option>LARANJA</option><option>BRANCO TRANSLÚCIDO</option></select>
         <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="l3dFundo" checked> Fundo impresso junto</label></div>
         <div class="row" style="gap:14px;align-items:center;margin-top:8px;flex-wrap:wrap"><label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="l3dCapa"> Interior branco para LED (capa interna em PETG branco, 0,5 mm menor que a cavidade)</label><label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="l3dPvc"> PVC 2 mm para LED no fundo (1 mm menor que a capa)</label></div>
@@ -325,7 +332,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
           <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="fdArred"> Arredondar os cantos externos</label><span id="fdRaioW" hidden style="display:inline-flex;gap:6px;align-items:center"><span class="note" style="margin:0">raio</span><input type="number" id="fdRaio" value="20" min="1" step="1" inputmode="decimal" style="width:80px"><span class="note" style="margin:0">mm</span></span></div>
           <div style="grid-column:1/-1"><canvas id="fdPrev" style="width:100%;height:auto;display:block;background:#fff;border:1px solid #a5d8ff;border-radius:8px"></canvas><div class="note" id="fdPrevInfo" style="margin:4px 0 0"></div></div>
           <p class="note" style="grid-column:1/-1;margin:0">Só o contorno de fora das letras (sem os furos do O, A, R…). Sem juntar, cada letra sai numa peça — se a borda for maior que a metade do espaço entre as letras, elas se encostam e viram uma peça.</p></div></div></div>
-    <div class="card"><h2>4. LED</h2><div class="leds" id="ledPick"></div><label class="f" style="margin-top:12px">Potência do módulo de LED</label><div class="leds" id="ledWPick"></div>
+    <div class="card" id="ledCard"><h2>4. LED</h2><div class="leds" id="ledPick"></div><label class="f" style="margin-top:12px">Potência do módulo de LED</label><div class="leds" id="ledWPick"></div>
       <div class="g2"><div><label class="f">Rabicho do fio por letra (mm)</label><input type="number" id="ledRab" value="3000" step="100" min="0"></div><div><label class="f">Saída do fio na letra</label><select id="ledSaida"><option value="inf">Inferior centralizado</option><option value="sup">Superior centralizado</option></select></div></div>
       <details id="ledEsp" class="ledEsp"><summary>Configurações avançadas de LED <span class="badge" id="ledEspUso" hidden>em uso</span><span class="seta">▾</span></summary>
       <div class="g2"><div><label class="f">Distância centro a centro (mm) <span class="badge">opcional</span></label><input type="number" step="1" id="ledGap" placeholder="Padrão do tipo: 80" inputmode="decimal"></div>
@@ -368,7 +375,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
       <div class="row"><button class="btn ghost sm" id="xAdd">+ Página extra</button></div>
     </div>
     <div class="card" id="l3dCard" hidden><h2 style="margin:0 0 6px">Letra 3D — visualização <span class="note" style="font-weight:400">— arraste para girar, role ou pince para zoom</span></h2>
-        <div class="v3wrap"><canvas id="l3dCv" style="display:block;width:100%;height:420px;touch-action:none;cursor:grab"></canvas><div class="v3bar"><button data-l3v="iso">3D</button><button data-l3v="frente">Frente</button><button data-l3v="tras">Fundo</button><button data-l3v="topo">Topo</button><button data-l3v="corte">Corte</button><button data-l3v="acr">Acrílico: sim</button></div></div>
+        <div class="v3wrap"><canvas id="l3dCv" style="display:block;width:100%;height:420px;touch-action:none;cursor:grab"></canvas><div class="v3bar"><button data-l3v="iso">3D</button><button data-l3v="frente">Frente</button><button data-l3v="tras">Fundo</button><button data-l3v="topo">Topo</button><button data-l3v="corte">Corte</button><button data-l3v="acr">Acrílico: sim</button><button data-l3v="led" id="l3vLedBt" hidden>LED: aceso</button><button data-l3v="exp" id="l3vExpBt" hidden>Separar peças</button></div></div>
         <div class="note" id="l3dInfo" style="margin-top:6px"></div></div>
     <div class="card">
       <div class="row"><button class="btn pink" id="gerar" disabled>Gerar FP</button><button class="btn ghost" id="baixar" hidden>Baixar FP (PDF)</button></div>
@@ -385,7 +392,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
 
   <section id="tab-modelo" hidden>
     <div class="card">
-      <h2>Modelo 3D (SketchUp / SolidWorks)</h2>
+      <h2>3D — modelo, estrutura e vistas com cotas</h2><div class="m3dSw leds" style="margin:0 0 12px"><button type="button" data-m3d="arq"><b>📦 Arquivo 3D pronto</b><span class="note" style="display:block">STL, OBJ ou DXF 3D</span></button><button type="button" data-m3d="des"><b>📐 Estrutura por desenho</b><span class="note" style="display:block">PDF ou DXF 2D + descrição → 3D</span></button></div>
       <p class="note" style="margin-top:0">Envie o modelo em <b>STL</b> ou <b>OBJ</b>. SketchUp: Arquivo › Exportar › Modelo 3D › STL ou OBJ (cada tubo como grupo/componente). SolidWorks: Salvar como › STL ou OBJ, com a montagem num arquivo só e cada peça como corpo separado.</p>
       <div class="g3">
         <div><label class="f">Quantidade (un.)</label><input type="number" id="mQt" value="1" inputmode="numeric"></div>
@@ -393,7 +400,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
         <div><label class="f">Unidade do arquivo</label><select id="mUn"><option value="1">milímetro</option><option value="10">centímetro</option><option value="1000">metro</option><option value="25.4">polegada</option></select></div>
       </div>
       <div class="g3"><div><label class="f">Eixo para cima</label><select id="mEixo"><option value="z">Z (SketchUp)</option><option value="y">Y (SolidWorks)</option></select></div></div>
-      <label class="drop" style="display:block;margin-top:10px"><input type="file" id="mFile" accept=".stl,.obj,.pdf,application/pdf" hidden><span id="mDropTxt">Toque para escolher o arquivo 3D (.stl ou .obj) — ou o PDF do desenho</span></label>
+      <label class="drop" style="display:block;margin-top:10px"><input type="file" id="mFile" accept=".stl,.obj,.dxf,.pdf,application/pdf" hidden><span id="mDropTxt">Toque para escolher o arquivo: STL, OBJ, DXF ou PDF</span></label>
       <div id="mInfo"></div>
     </div>
     <div class="card">
@@ -478,7 +485,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
   <section id="tab-cotas" hidden>
     <div class="card"><div id="ctCompBar" hidden style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:-4px 0 10px;padding:9px 10px;border-radius:10px;background:#fff0f6;border:1.5px solid #f783ac"><b id="ctCompTit" style="color:#c2255c;flex:1;min-width:180px"></b><button class="btn ghost sm" type="button" id="ctCancelar">← Voltar ao projeto</button><button class="btn sm" type="button" id="ctGuardar" style="background:#c2255c;color:#fff">Salvar cota no item</button></div><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px"><button class="btn ghost sm" type="button" id="ctVoltar">← Voltar ao pedido</button></div><h2>Cotas de arquivo vetorial</h2>
       <p class="note" style="margin-top:0">Envie o vetor em PDF (textos em curvas) ou um modelo 3D (STL / OBJ). Sai uma folha com as medidas — no 3D, com as vistas de frente, lateral e superior —, o material e a observação.</p>
-      <label class="drop" id="ctDrop" style="display:block"><input type="file" id="ctIn" accept="application/pdf,.pdf,.stl,.obj" hidden><span id="ctDropTxt">Toque para escolher o PDF, STL ou OBJ</span></label>
+      <label class="drop" id="ctDrop" style="display:block"><input type="file" id="ctIn" accept="application/pdf,.pdf,.stl,.obj,.dxf" hidden><span id="ctDropTxt">Toque para escolher o PDF, DXF, STL ou OBJ</span></label>
       <div style="margin-top:12px;padding:10px;border:1.5px solid #f783ac;border-radius:10px;background:#fff0f6"><label class="f" style="margin:0 0 6px;color:#c2255c">Para qual setor é esta cota? <span id="ctSetorSel" style="text-transform:none"></span></label><div class="row" id="ctSetores" style="gap:6px"></div></div>
       <label class="f">Tipo de cota</label>
       <div class="leds" id="ctModo"><button type="button" data-ctm="padrao" class="sel"><b>Padrão</b><span>só largura e altura (no 3D: L × A × P nas vistas)</span></button><button type="button" data-ctm="detalhada"><b>Detalhada</b><span>furos, recortes e textos (no 3D: cada peça) numerados com medida e posição</span></button></div>
@@ -505,15 +512,15 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
     <div class="card isbCard"><button class="btn pink isbBtn" type="button" style="width:100%;padding:14px;font-size:16px">Salvar item</button><div class="note isbMsg" style="margin-top:6px"></div></div>
   </section>
   <section id="tab-testeiras" hidden>
-    <div class="leds" id="tModo" style="margin-bottom:14px"><button data-m="padrao" class="sel"><b>Testeira padrão</b><span class="note" style="display:block">quadro, caixa, L, U</span></button><button data-m="desenho"><b>Estrutura por desenho</b><span class="note" style="display:block">PDF + descrição → 3D</span></button></div>
+    <div class="leds" id="tModo" style="margin-bottom:14px;display:none"><button data-m="padrao" class="sel"><b>Testeira padrão</b><span class="note" style="display:block">quadro, caixa, L, U</span></button><button data-m="desenho"><b>Estrutura por desenho</b><span class="note" style="display:block">PDF + descrição → 3D</span></button></div>
     <div class="card tm-des" id="dCard" hidden>
-      <h2>Estrutura por desenho</h2>
+      <h2>3D — estrutura por desenho</h2><div class="m3dSw leds" style="margin:0 0 12px"><button type="button" data-m3d="arq"><b>📦 Arquivo 3D pronto</b><span class="note" style="display:block">STL, OBJ ou DXF 3D</span></button><button type="button" data-m3d="des"><b>📐 Estrutura por desenho</b><span class="note" style="display:block">PDF ou DXF 2D + descrição → 3D</span></button></div>
       <div class="g3">
         <div><label class="f">Quantidade (un.)</label><input type="number" id="dUn" value="1" inputmode="numeric"></div>
         <div><label class="f">Descrição do item</label><input type="text" id="dDesc" value="ESTRUTURA METÁLICA"></div>
       </div>
-      <label class="f">1. Desenho da estrutura (PDF original, vista de frente em 1:1, cada peça com uma cor)</label>
-      <label class="drop" id="dDrop" style="display:block"><input type="file" id="dPdf" accept="application/pdf" hidden><span id="dDropTxt">Toque para escolher o PDF</span></label>
+      <label class="f">1. Desenho da estrutura (PDF ou DXF original, vista de frente em 1:1, cada peça com uma cor)</label>
+      <label class="drop" id="dDrop" style="display:block"><input type="file" id="dPdf" accept=".pdf,application/pdf,.dxf,.stl,.obj" hidden><span id="dDropTxt">Toque para escolher o PDF ou DXF (STL/OBJ vai para o arquivo 3D)</span></label>
       <div id="dInfo"></div>
       <div id="dDraw" style="margin-top:8px"></div>
       <div id="dPecas"></div>
@@ -806,15 +813,41 @@ const DEFAULT_TYPES=[
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});
-const pagesOf=t=>t.paginas||(t.linhas&&t.linhas.length?[{...PG_BLANK,titulo:t.nome,linhas:t.linhas}]:[]);
+const pagesOf0=t=>t.paginas||(t.linhas&&t.linhas.length?[{...PG_BLANK,titulo:t.nome,linhas:t.linhas}]:[]);
+const l3dLuzOn=()=>!!(document.getElementById('l3dLuz')||{}).checked;
+const pagesOf=t=>{const p=pagesOf0(t);if(p.some(x=>x.tipo==='imp3d')&&l3dLuzOn()&&!(document.getElementById('l3dLatLuz')||{}).checked&&!p.some(x=>x.tipo==='pintura'))return[...p,{tipo:'pintura',setor:'PINTURA',titulo:'PINTURA DA LETRA 3D — PARTE EXTERNA',partes:'frente_lateral',auto3d:true}];return p};
 
 /* ---------- Armazenamento ---------- */
 const GRANDA_LOGO='data:image/png;base64,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';
 let FOOT_SKIP=false;
+// ---------- LETRA DE CHAPA (tipo fixo: PVC ou acrílico recortado, sem caixa) ----------
+const PLANA_ID='__letra_chapa';
+const PLANA_MATS=[['pvc3','PVC 3 mm'],['pvc6','PVC 6 mm'],['pvc10','PVC 10 mm'],['pvc20','PVC 20 mm'],['pvc30','PVC 30 mm'],['acr3','Acrílico 3 mm'],['acr6','Acrílico 6 mm'],['acr8','Acrílico 8 mm'],['acr10','Acrílico 10 mm']];
+function planaSel(){return typeof selType!=='undefined'&&selType===PLANA_ID}
+function planaInfo(){const v=(document.getElementById('plMat')||{}).value||'pvc10';const acr=v.startsWith('acr');const es=+v.replace(/\D/g,'')||10;
+  const cor=acr?((document.getElementById('plCor')||{}).value||'CRISTAL').toUpperCase():'BRANCO';const hex=acr?((document.getElementById('plCorHex')||{}).value||'#dbeefc'):'#f8f9fa';
+  const pint=!!(document.getElementById('plPint')||{}).checked;return{acr,es,cor,hex,pint,mat:acr?`ACRÍLICO ${es} MM ${cor}`:`PVC EXPANDIDO ${es} MM`}}
+function planaPaginas(){const I=planaInfo();const pgs=[{setor:'ROUTER',chapaPlana:true,titulo:`LETRA DE CHAPA — ${I.mat}`,material:I.acr?`ACRÍLICO ${I.cor}`:'PVC EXPANDIDO',espessura:`${I.es}MM`,cor:I.acr?I.cor:'BRANCO',textura:'',
+    linhas:[{cor:RC['CORTE EXTERNO'],legenda:'CORTE EXTERNO',offset:0}]}];
+  if(I.pint)pgs.push({setor:'PINTURA',tipo:'pintura',titulo:'PINTURA DA LETRA DE CHAPA',partes:(document.getElementById('plPartes')||{}).value||'frente_lateral'});return pgs}
+const PLANA_TIPO={id:PLANA_ID,nome:'Letra de chapa (PVC ou acrílico)',descricao:'Letra recortada na router: PVC 3, 6, 10, 20 ou 30 mm, ou acrílico 3, 6, 8 ou 10 mm. Pintura e fundo (ACM ou acrílico) opcionais.',ordem:-1,leds:[],get paginas(){return planaPaginas()}};
+function planaUI(){const on=planaSel();const box=document.getElementById('planaBox');if(!box)return;box.hidden=!on;
+  const cw=document.getElementById('caixaWrap');if(cw)cw.hidden=on;const lc=document.getElementById('ledCard');if(lc)lc.hidden=on;
+  const pc=document.getElementById('pintCard');if(pc)pc.hidden=on;if(!on){const pk=document.getElementById('pPicker');if(pk&&pc&&pk.parentNode!==pc)pc.insertBefore(pk,pc.children[1]||null);return}
+  const I=planaInfo(),v=document.getElementById('plMat').value||'pvc10';
+  document.getElementById('plMatPick').innerHTML=PLANA_MATS.map(([k,n])=>`<button type="button" class="chip${k===v?' on':''}" data-plm="${k}" style="padding:7px 12px;font-size:13px;${k.startsWith('acr')?'border-color:#74c0fc':''}">${n}</button>`).join('');
+  document.getElementById('plCorBox').hidden=!I.acr||I.pint;document.getElementById('plPartesBox').hidden=!I.pint;
+  document.querySelectorAll('[data-plp]').forEach(b=>b.classList.toggle('on',(b.dataset.plp==='1')===I.pint));
+  {const pk=document.getElementById('pPicker'),sl=document.getElementById('plPintSlot'),pcd=document.getElementById('pintCard');if(pk&&sl&&pcd){if(I.pint){if(pk.parentNode!==sl)sl.appendChild(pk)}else if(pk.parentNode!==pcd)pcd.insertBefore(pk,pcd.children[1]||null)}}
+  if(I.acr&&typeof FD_ACR!=='undefined'){document.getElementById('plCores').innerHTML=FD_ACR.map(([n,h])=>`<button type="button" data-plc="${esc(n)}" data-h="${h}" style="display:inline-flex;gap:5px;align-items:center;border:2px solid ${n===I.cor?'var(--acc)':'var(--line)'};background:#fff;border-radius:8px;padding:3px 8px 3px 4px;font:inherit;font-size:11.5px;cursor:pointer"><span style="width:16px;height:16px;border-radius:4px;background:${h};border:1px solid #0002"></span>${esc(n)}</button>`).join('');document.getElementById('plCorSel').textContent='— '+I.cor}}
+document.addEventListener('click',e=>{const m=e.target.closest('[data-plm]'),c=e.target.closest('[data-plc]'),pp=e.target.closest('[data-plp]');if(!m&&!c&&!pp)return;if(pp)document.getElementById('plPint').checked=pp.dataset.plp==='1';
+  if(m)document.getElementById('plMat').value=m.dataset.plm;if(c){document.getElementById('plCor').value=c.dataset.plc;document.getElementById('plCorHex').value=c.dataset.h}
+  planaUI();if(typeof renderTypes==='function')renderTypes();if(typeof resetOut==='function')resetOut();if(typeof l3dPrevAgenda==='function')l3dPrevAgenda()});
+document.addEventListener('change',e=>{if(e.target&&(e.target.id==='plPint'||e.target.id==='plPartes')){planaUI();if(typeof renderTypes==='function')renderTypes();if(typeof resetOut==='function')resetOut();if(typeof l3dPrevAgenda==='function')l3dPrevAgenda()}});
 let types=[];let db=null;let local=false;let empresa={logo:GRANDA_LOGO,lw:375,lh:134};
 function lsGet(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
-function setTypes(list){types=list.slice().sort((a,b)=>(a.ordem||99)-(b.ordem||99)||a.nome.localeCompare(b.nome));renderTypes()}
+function setTypes(list){types=[PLANA_TIPO,...list.filter(x=>x&&x.id!==PLANA_ID).sort((a,b)=>(a.ordem||99)-(b.ordem||99)||a.nome.localeCompare(b.nome))];renderTypes()}
 function startLocal(){local=true;fixLocal();perfisLocal();mpExtraLocal();ancTiposLocal();acmLocal();pedLocal();setTypes(lsGet('granda_tipos2')||DEFAULT_TYPES);empresa=lsGet('granda_empresa')||empresa;renderLogo();$('#storeNote').textContent='Modo local: os cadastros ficam salvos só neste aparelho.'}
 async function initStore(){
   const timer=setTimeout(()=>{if(!types.length)startLocal()},10000);
@@ -831,11 +864,11 @@ async function initStore(){
 }
 async function saveType(t){
   const {id,linhas,...body}=t;
-  if(local){const i=types.findIndex(x=>x.id===id);if(i>=0)types[i]=t;else types.push(t);lsSet('granda_tipos2',types);setTypes(types);return}
+  if(local){const i=types.findIndex(x=>x.id===id);if(i>=0)types[i]=t;else types.push(t);lsSet('granda_tipos2',types.filter(x=>x.id!==PLANA_ID));setTypes(types);return}
   await db.collection('tipos').doc(id).set(body);
 }
 async function deleteType(id){
-  if(local){types=types.filter(t=>t.id!==id);lsSet('granda_tipos2',types);setTypes(types);return}
+  if(local){types=types.filter(t=>t.id!==id);lsSet('granda_tipos2',types.filter(x=>x.id!==PLANA_ID));setTypes(types);return}
   await db.collection('tipos').doc(id).delete();
 }
 async function saveEmpresa(){if(local){lsSet('granda_empresa',empresa);renderLogo();return}await db.doc('config/empresa').set(empresa)}
@@ -851,7 +884,7 @@ function typeCard(t,sel){
 function renderTypes(){
   if(selType&&!types.find(t=>t.id===selType))selType=null;
   $('#typePick').innerHTML=types.length?types.map(t=>typeCard(t,t.id===selType)).join(''):'<p class="note">Carregando tipos…</p>';
-  $('#typeList').innerHTML=types.length?types.map(t=>typeCard(t,false)).join(''):'<p class="note">Nenhum tipo cadastrado.</p>';
+  {const tl=types.filter(t=>t.id!==PLANA_ID);$('#typeList').innerHTML=tl.length?tl.map(t=>typeCard(t,false)).join(''):'<p class="note">Nenhum tipo cadastrado.</p>'}planaUI();
   renderLeds();updateBtn();
 }
 let selChapa=null,selCaixa=80,selEsc='PANTONE';
@@ -1205,6 +1238,67 @@ function acrPecaUnica(polys,larg=20){if(!polys||polys.length<2)return polys;
 // arredonda só os cantos externos (convexos) com raio r: abre (−r) e fecha (+r) com junção redonda
 function arredExt(polys,r){if(!(r>0)||!polys||!polys.length)return polys;const run=(p,d)=>{const co=new ClipperLib.ClipperOffset(2,0.05*S);co.AddPaths(p,ClipperLib.JoinType.jtRound,ClipperLib.EndType.etClosedPolygon);const o=[];co.Execute(o,d*S);return o};
   const out=run(run(toC(polys),-r),r);return out.length?fromC(out):polys}
+
+// ---------- DXF (2D: linhas, polilinhas, arcos, círculos, splines, elipses • 3D: 3DFACE) ----------
+// devolve o mesmo formato do readPdf: {paths:[{s,it,fill,stroke}], polys (mm), warnings}; se tiver faces 3D, devolve também obj (texto OBJ)
+const DXF_ACI=['#000000','#ff0000','#ffff00','#00ff00','#00ffff','#0000ff','#ff00ff','#000000','#808080','#c0c0c0'];
+function dxfAci(i){i=Math.abs(+i||7);if(i<10)return DXF_ACI[i];if(i>=250){const v=Math.round(51+(i-250)*40.8);return'#'+[v,v,v].map(x=>x.toString(16).padStart(2,'0')).join('')}
+  const h=Math.floor((i-10)/10)*15,s=(i%2)?0.5:1,l=[1,1,0.8,0.8,0.65,0.65,0.5,0.5,0.3,0.3][i%10];const f=n=>{const k=(n+h/60)%6;return Math.round(l*255*(1-s*Math.max(0,Math.min(k,4-k,1))))};return'#'+[f(5),f(3),f(1)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function dxfPares(txt){const L=txt.replace(/\r/g,'').split('\n');const P=[];for(let i=0;i+1<L.length;i+=2)P.push([+L[i].trim(),L[i+1].trim()]);return P}
+async function readDxf(buf){
+  const txt=new TextDecoder('latin1').decode(buf instanceof ArrayBuffer?new Uint8Array(buf):buf);
+  if(!/SECTION/.test(txt.slice(0,5000)))throw new Error('DXF binário ou inválido — salve como DXF ASCII (texto)');
+  const P=dxfPares(txt);const warnings=[];
+  // unidades ($INSUNITS) → mm
+  let un=1;{const i=P.findIndex(p=>p[0]===9&&p[1]==='$INSUNITS');if(i>=0){const u=+P[i+1][1];un={1:25.4,2:304.8,4:1,5:10,6:1000}[u]||1}}
+  // cores das camadas
+  const lay={};{let i=P.findIndex(p=>p[0]===2&&p[1]==='LAYER');for(;i>=0&&i<P.length;i++){if(P[i][0]===0&&P[i][1]==='ENDTAB')break;if(P[i][0]===0&&P[i][1]==='LAYER'){let nm='',c=7,tc=null;for(let j=i+1;j<P.length&&P[j][0]!==0;j++){if(P[j][0]===2)nm=P[j][1];if(P[j][0]===62)c=+P[j][1];if(P[j][0]===420)tc=+P[j][1]}lay[nm]=tc!=null?'#'+(tc&0xffffff).toString(16).padStart(6,'0'):dxfAci(c)}}}
+  // entidades
+  let i0=P.findIndex((p,k)=>p[0]===2&&p[1]==='ENTITIES'&&P[k-1]&&P[k-1][1]==='SECTION');if(i0<0)throw new Error('DXF sem ENTITIES');
+  const ents=[];let cur=null;for(let i=i0+1;i<P.length;i++){const [c,v]=P[i];if(c===0){if(v==='ENDSEC')break;cur={t:v,g:[]};ents.push(cur)}else if(cur)cur.g.push([c,v])}
+  const one=(e,c,d)=>{const x=e.g.find(p=>p[0]===c);return x?+x[1]:d},all=(e,c)=>e.g.filter(p=>p[0]===c).map(p=>+p[1]);
+  const cor=e=>{const tc=e.g.find(p=>p[0]===420);if(tc)return'#'+((+tc[1])&0xffffff).toString(16).padStart(6,'0');const c=one(e,62,256);const ly=(e.g.find(p=>p[0]===8)||[0,'0'])[1];if(c===256||c===0)return lay[ly]||'#000000';return dxfAci(c)};
+  const segs=[];const closed=[];const faces=[];
+  const arcPts=(cx,cy,r,a0,a1)=>{while(a1<=a0)a1+=360;const n=Math.max(8,Math.ceil((a1-a0)/6));const o=[];for(let k=0;k<=n;k++){const a=(a0+(a1-a0)*k/n)*Math.PI/180;o.push([cx+r*Math.cos(a),cy+r*Math.sin(a)])}return o};
+  const bulge=(p,q,b)=>{if(!b)return[q];const th=4*Math.atan(b),d=Math.hypot(q[0]-p[0],q[1]-p[1]);if(d<1e-9)return[q];const r=d/(2*Math.sin(th/2)),h=r*Math.cos(th/2);const ux=(q[0]-p[0])/d,uy=(q[1]-p[1])/d;
+    const cx=(p[0]+q[0])/2-uy*h,cy=(p[1]+q[1])/2+ux*h,R=Math.abs(r),a0=Math.atan2(p[1]-cy,p[0]-cx);const n=Math.max(4,Math.ceil(Math.abs(th)/(Math.PI/30)));const o=[];for(let k=1;k<n;k++){const a=a0+th*k/n;o.push([cx+R*Math.cos(a),cy+R*Math.sin(a)])}o.push(q);return o};
+  const poly=(pts,bul,fech,c)=>{if(pts.length<2)return;const o=[pts[0]];for(let k=0;k<pts.length-(fech?0:1);k++){const p=pts[k],q=pts[(k+1)%pts.length];o.push(...bulge(p,q,bul[k]||0))}if(fech)closed.push({pts:o,c});else segs.push({pts:o,c})};
+  let pl=null;
+  for(const e of ents){const c=cor(e);
+    if(e.t==='LINE')segs.push({pts:[[one(e,10,0),one(e,20,0)],[one(e,11,0),one(e,21,0)]],c});
+    else if(e.t==='LWPOLYLINE'){const xs=[],ys=[],bs=[];let k=-1;for(const [g,v] of e.g){if(g===10){k++;xs.push(+v);bs[k]=0}else if(g===20)ys.push(+v);else if(g===42&&k>=0)bs[k]=+v}poly(xs.map((x,j)=>[x,ys[j]]),bs,(one(e,70,0)&1)===1,c)}
+    else if(e.t==='POLYLINE'){pl={pts:[],b:[],f:(one(e,70,0)&1)===1,c,m:(one(e,70,0)&(16|64))!==0}}
+    else if(e.t==='VERTEX'&&pl){if(pl.m){const f=all(e,71).concat(all(e,72),all(e,73),all(e,74));if(f.length&&f.some(Boolean))pl.fc=(pl.fc||[]).concat([f]);else(pl.v3=pl.v3||[]).push([one(e,10,0),one(e,20,0),one(e,30,0)])}else{pl.pts.push([one(e,10,0),one(e,20,0)]);pl.b.push(one(e,42,0))}}
+    else if(e.t==='SEQEND'&&pl){if(pl.m&&pl.v3&&pl.fc)pl.fc.forEach(f=>{const v=f.filter(x=>x).map(x=>pl.v3[Math.abs(x)-1]).filter(Boolean);if(v.length>=3)faces.push({v,ly:'malha'})});else poly(pl.pts,pl.b,pl.f,pl.c);pl=null}
+    else if(e.t==='CIRCLE')closed.push({pts:arcPts(one(e,10,0),one(e,20,0),one(e,40,1),0,360).slice(0,-1),c});
+    else if(e.t==='ARC')segs.push({pts:arcPts(one(e,10,0),one(e,20,0),one(e,40,1),one(e,50,0),one(e,51,360)),c});
+    else if(e.t==='ELLIPSE'){const cx=one(e,10,0),cy=one(e,20,0),mx=one(e,11,1),my=one(e,21,0),ra=one(e,40,1),t0=one(e,41,0),t1=one(e,42,2*Math.PI);const R=Math.hypot(mx,my),an=Math.atan2(my,mx);let a1=t1;while(a1<=t0)a1+=2*Math.PI;const n=Math.max(16,Math.ceil((a1-t0)/(Math.PI/36)));const o=[];
+      for(let k=0;k<=n;k++){const t=t0+(a1-t0)*k/n,x=R*Math.cos(t),y=R*ra*Math.sin(t);o.push([cx+x*Math.cos(an)-y*Math.sin(an),cy+x*Math.sin(an)+y*Math.cos(an)])}(Math.abs(a1-t0-2*Math.PI)<1e-6?closed:segs).push({pts:Math.abs(a1-t0-2*Math.PI)<1e-6?o.slice(0,-1):o,c})}
+    else if(e.t==='SPLINE'){const fx=all(e,11),fy=all(e,21),cx=all(e,10),cy=all(e,20);const deg=one(e,71,3),kn=all(e,40);let pts;
+      if(cx.length>deg&&kn.length===cx.length+deg+1){const de=(t)=>{let k=deg;while(k<cx.length-1&&t>=kn[k+1])k++;const d=[];for(let j=0;j<=deg;j++)d.push([cx[k-deg+j],cy[k-deg+j]]);for(let r=1;r<=deg;r++)for(let j=deg;j>=r;j--){const i=k-deg+j,a=(t-kn[i])/((kn[i+deg-r+1]-kn[i])||1);d[j]=[(1-a)*d[j-1][0]+a*d[j][0],(1-a)*d[j-1][1]+a*d[j][1]]}return d[deg]};
+        const t0=kn[deg],t1=kn[cx.length];const n=Math.max(16,cx.length*8);pts=[];for(let k=0;k<=n;k++)pts.push(de(t0+(t1-t0)*Math.min(k/n,0.999999)))}
+      else pts=(fx.length?fx:cx).map((x,j)=>[x,(fy.length?fy:cy)[j]]);
+      ((one(e,70,0)&1)?closed:segs).push({pts,c})}
+    else if(e.t==='3DFACE'){const v=[[one(e,10,0),one(e,20,0),one(e,30,0)],[one(e,11,0),one(e,21,0),one(e,31,0)],[one(e,12,0),one(e,22,0),one(e,32,0)],[one(e,13,0),one(e,23,0),one(e,33,0)]];const u=v.filter((p,k)=>k<3||Math.hypot(p[0]-v[2][0],p[1]-v[2][1],p[2]-v[2][2])>1e-9);faces.push({v:u,ly:(e.g.find(p=>p[0]===8)||[0,'0'])[1]})}
+    else if(['TEXT','MTEXT','INSERT','DIMENSION','HATCH'].includes(e.t))warnings.__ign=(warnings.__ign||new Set()).add(e.t)}
+  // faces 3D → OBJ (uma peça por camada)
+  let obj=null;if(faces.length>=4){const vs=[],fs=[];const porLy={};faces.forEach(f=>{(porLy[f.ly]=porLy[f.ly]||[]).push(f)});let txt2='';let vi=1;
+    for(const [ly,fl] of Object.entries(porLy)){txt2+=`o ${ly}\n`;fl.forEach(f=>{f.v.forEach(p=>{txt2+=`v ${p[0]*un} ${p[1]*un} ${p[2]*un}\n`});txt2+='f '+f.v.map((_,k)=>vi+k).join(' ')+'\n';vi+=f.v.length})}obj=txt2}
+  // junta segmentos abertos que se tocam (mesma cor) em contornos
+  const tol=0.01/un+1e-6,eq=(a,b)=>Math.abs(a[0]-b[0])<=tol*10&&Math.abs(a[1]-b[1])<=tol*10;
+  const livres=segs.slice();const cadeias=[];
+  while(livres.length){let s=livres.pop();let pts=s.pts.slice();let mudou=true;
+    while(mudou){mudou=false;for(let k=livres.length-1;k>=0;k--){const o=livres[k];if(o.c!==s.c)continue;const a=o.pts,f=pts[pts.length-1],ini=pts[0];
+      if(eq(f,a[0])){pts.push(...a.slice(1))}else if(eq(f,a[a.length-1])){pts.push(...a.slice(0,-1).reverse())}else if(eq(ini,a[a.length-1])){pts=a.slice(0,-1).concat(pts)}else if(eq(ini,a[0])){pts=a.slice(1).reverse().concat(pts)}else continue;livres.splice(k,1);mudou=true}}
+    if(pts.length>2&&eq(pts[0],pts[pts.length-1])){pts.pop();closed.push({pts,c:s.c})}else cadeias.push({pts,c:s.c})}
+  const mk=(pts,c,fech)=>{const q=pts.map(p=>[p[0]*un,p[1]*un]);return{s:q[0],it:q.slice(1).concat(fech?[q[0]]:[]).map(p=>({L:p})),fill:null,stroke:c}};
+  const paths=closed.map(o=>mk(o.pts,o.c,true)).concat(cadeias.filter(o=>o.pts.length>=3).map(o=>mk(o.pts,o.c,false)));
+  const polys=flattenPaths(paths,1,0.05);
+  if(cadeias.some(o=>o.pts.length<3))warnings.push('Algumas linhas soltas (sem formar contorno) foram ignoradas.');
+  if(warnings.__ign)warnings.push('Ignorei '+[...warnings.__ign].join(', ')+' (textos, blocos, cotas e hachuras não entram).');
+  if(un!==1)warnings.push(`Unidades do DXF convertidas para mm (×${un}).`);
+  return{polys,paths,warnings:warnings.filter(w=>typeof w==='string'),obj}}
+const ehDxf=n=>/\.dxf$/i.test(n||'');
 
 /* ---------- Distribuição de LED ---------- */
 const REATORES=[60,100,120,150];
@@ -1663,7 +1757,7 @@ const L3D_CORES=[['BRANCO',1841],['PRETO',1844],['CINZA',1842],['AZUL',1840],['V
 function l3dDiff(A,B){const c=new ClipperLib.Clipper();c.AddPaths(A,ClipperLib.PolyType.ptSubject,true);if(B&&B.length)c.AddPaths(B,ClipperLib.PolyType.ptClip,true);
   const tree=new ClipperLib.PolyTree();c.Execute(ClipperLib.ClipType.ctDifference,tree,ClipperLib.PolyFillType.pftNonZero,ClipperLib.PolyFillType.pftNonZero);
   const out=[];const walk=n=>{for(const ch of n.Childs()){if(!ch.IsHole()){out.push([ch.Contour(),...ch.Childs().map(h=>h.Contour())]);ch.Childs().forEach(h=>walk(h))}}};walk(tree);return out}
-const l3dArea=regs=>regs.reduce((s,r)=>s+r.reduce((a,p)=>a+ClipperLib.Clipper.Area(p),0),0)/(S*S);
+const l3dAreaR=regs=>regs.reduce((s,r)=>s+r.reduce((a,p)=>a+ClipperLib.Clipper.Area(p),0),0)/(S*S);
 // geometria de uma letra (região Clipper: contorno + furos) na profundidade H
 function l3dLetra(reg,H){const acr=toC(offset(reg,-L3D.parede));           // cavidade = contorno do acrílico: 2,5 mm para dentro, com os cantos internos arredondados no raio da fresa (Ø3 → R1,5), igual ao corte da router
   const apo=toC(offset(reg,-(L3D.parede+L3D.apoio),'centro'));
@@ -1672,10 +1766,10 @@ function l3dLetra(reg,H){const acr=toC(offset(reg,-L3D.parede));           // ca
   // sólidos SOBREPOSTOS (todos partem da mesa): o fatiador une sem faces coincidentes
   const cheio=l3dDiff(reg,[]);
   const slabs=[{z0:0,z1:fz,regs:cheio},{z0:0,z1:zA,regs:comApoio},{z0:0,z1:H,regs:parede}].filter(s=>s.z1-s.z0>0.01&&s.regs.length);
-  const vol=l3dArea(cheio)*fz+l3dArea(comApoio)*(zA-fz)+l3dArea(parede)*(H-zA); // mm³ (sem contar a sobreposição)
+  const vol=l3dAreaR(cheio)*fz+l3dAreaR(comApoio)*(zA-fz)+l3dAreaR(parede)*(H-zA); // mm³ (sem contar a sobreposição)
   // capa interna branca (interior branco p/ LED): contorno da cavidade − 0,5 mm, parede de L3D.capa, do fundo (ou do PVC) até o degrau do acrílico
   let capa=null;if(l3dCapa()){const cO=toC(offset(reg,-(L3D.parede+L3D.apoio+L3D.capaFolga),'centro'));const cI=toC(offset(cO,-L3D.capa,'centro'));const z0=fz+(l3dPvc()?L3D.pvc:0),hC=zA-z0;
-    const regs=l3dDiff(cO,cI);if(hC>1&&regs.length)capa={z0,h:hC,slabs:[{z0:0,z1:hC,regs}],out:fromC(cO),inn:fromC(cI),vol:l3dArea(regs)*hC}}
+    const regs=l3dDiff(cO,cI);if(hC>1&&regs.length)capa={z0,h:hC,slabs:[{z0:0,z1:hC,regs}],out:fromC(cO),inn:fromC(cI),vol:l3dAreaR(regs)*hC}}
   const pvc=l3dPvc()?offset(reg,l3dPvcOff(),'centro'):null;
   return{slabs,vol,acr:fromC(acr),apo:fromC(apo),capa,pvc}}
 // STL binário de várias camadas (cada camada é um sólido fechado)
@@ -1751,7 +1845,7 @@ function l3dFolha(P,ctx,pg,R,orig){const H=R.H;const cor=l3dCor();
 }
 
 /* ---------- visualização 3D da letra (mesma geometria do STL) ---------- */
-const L3V={r:null,scene:null,cam:null,grp:null,th:-0.55,ph:1.3,R:2000,tg:[0,0,0],ptr:new Map(),pinch:0,acr:true,corte:false};
+const L3V={r:null,scene:null,cam:null,grp:null,th:-0.55,ph:1.3,R:2000,tg:[0,0,0],ptr:new Map(),pinch:0,acr:true,corte:false,led:true,exp:false};
 function l3vInit(){if(L3V.r||L3V.fail)return!!L3V.r;const cv=$('#l3dCv');if(!cv||!window.THREE){L3V.fail=true;return false}
   try{L3V.r=new THREE.WebGLRenderer({canvas:cv,antialias:true,preserveDrawingBuffer:true})}catch(e){L3V.fail=true;return false}
   L3V.r.setPixelRatio(Math.min(2,window.devicePixelRatio||1));L3V.scene=new THREE.Scene();L3V.scene.background=new THREE.Color('#f3f4f7');
@@ -1772,11 +1866,11 @@ function l3vDraw(){if(!L3V.r)return;const cv=L3V.r.domElement;const w=cv.clientW
 function l3vGeo(tris){const pos=new Float32Array(tris.length*9);let i=0;for(const t of tris)for(const p of t){pos[i++]=p[0];pos[i++]=p[1];pos[i++]=p[2]}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.computeVertexNormals();return g}
 let l3vUlt=null;
-function l3dMostra(d){const R=(d.info||[]).map(i=>i.l3d).find(Boolean);const card=$('#l3dCard');if(!card)return;if(!R){card.hidden=true;return}card.hidden=false;l3vUlt=R;
+function l3dMostra(d){if(typeof planaSel==='function'&&planaSel()){l3dPrevia();return}let R=(d.info||[]).map(i=>i.l3d).find(Boolean);const card=$('#l3dCard');if(!card)return;if(!R){try{R=l3dCaixa(d)}catch(e){console.error('3D caixa',e);R=null}}if(!R){card.hidden=true;return}card.hidden=false;l3vUlt=R;
   if(!l3vInit()){$('#l3dInfo').textContent='Visualizador 3D indisponível neste aparelho.';return}l3vMonta()}
-function l3vMonta(){const R=l3vUlt;if(!R)return;
+function l3vMonta(){const R=l3vUlt;if(!R)return;{const lb=$('#l3vLedBt');if(lb)lb.hidden=!R.caixa;const eb=$('#l3vExpBt');if(eb)eb.hidden=!R.caixa}if(R.caixa)return l3vMontaCaixa(R);
   if(L3V.grp){L3V.scene.remove(L3V.grp);L3V.grp.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
-  const g=new THREE.Group();const cor=l3dCor()[0];const hex={BRANCO:0xf1f3f5,PRETO:0x2b2b2b,CINZA:0x868e96,AZUL:0x1c7ed6,VERMELHO:0xe03131,LARANJA:0xf76707,'BRANCO TRANSLÚCIDO':0xf8f9fa}[cor]||0xf1f3f5;const tr=/TRANSL/.test(cor);
+  const g=new THREE.Group();const cor=l3dCor()[0];const hex=R.corHex?new THREE.Color(R.corHex).getHex():({BRANCO:0xf1f3f5,PRETO:0x2b2b2b,CINZA:0x868e96,AZUL:0x1c7ed6,VERMELHO:0xe03131,LARANJA:0xf76707,'BRANCO TRANSLÚCIDO':0xf8f9fa}[cor]||0xf1f3f5);const tr=R.corHex?!!R.transp:/TRANSL/.test(cor);
   const mP=new THREE.MeshLambertMaterial({color:hex,side:THREE.DoubleSide,...(tr?{transparent:true,opacity:0.72}:{})});const mA=new THREE.MeshLambertMaterial({color:0xffc9de,transparent:true,opacity:0.55,depthWrite:false,side:THREE.DoubleSide});
   const lm=new THREE.LineBasicMaterial({color:0x222222,transparent:true,opacity:0.35});
   const all=bbox(R.Ls.flatMap(x=>x.ps));const ox=(all.x0+all.x1)/2,oy=(all.y0+all.y1)/2;
@@ -1787,7 +1881,7 @@ function l3vMonta(){const R=l3vUlt;if(!R)return;
     const geo=l3vGeo(l3dTris(slabs,ox,oy));const me=new THREE.Mesh(geo,mP);g.add(me);g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo,25),lm));
     if(L.capa){const gc=l3vGeo(l3dTris(L.capa.slabs.map(x=>({...x,z0:x.z0+L.capa.z0,z1:x.z1+L.capa.z0})),ox,oy));g.add(new THREE.Mesh(gc,new THREE.MeshLambertMaterial({color:0xffffff,side:THREE.DoubleSide})));g.add(new THREE.LineSegments(new THREE.EdgesGeometry(gc,25),new THREE.LineBasicMaterial({color:0x1c7ed6,transparent:true,opacity:0.6})))}
     if(L.pvc){const z0=l3dFundo()?L3D.fundo:0;const gv=l3vGeo(l3dTris([{z0,z1:z0+L3D.pvc,regs:l3dDiff(toC(L.pvc),[])}],ox,oy));g.add(new THREE.Mesh(gv,new THREE.MeshLambertMaterial({color:0xffe8cc,side:THREE.DoubleSide})))}
-    if(L3V.acr&&!L3V.corte){const acr=[{z0:R.H-L3D.face,z1:R.H,regs:l3dDiff(toC(L.acr),[])}];const ga=l3vGeo(l3dTris(acr,ox,oy));g.add(new THREE.Mesh(ga,mA))}});
+    if(L3V.acr&&!L3V.corte&&L.acr){const acr=[{z0:R.H-L3D.face,z1:R.H,regs:l3dDiff(toC(L.acr),[])}];const ga=l3vGeo(l3dTris(acr,ox,oy));g.add(new THREE.Mesh(ga,mA))}});
   // acrílico transparente no fundo (+20 mm do desenho)
   if(l3dAcrF()&&!L3V.corte){try{const es=l3dAcrF();const co=new ClipperLib.ClipperOffset(10,0.005*S);co.AddPaths(toC(R.Ls.flatMap(x=>x.ps)),ClipperLib.JoinType.jtMiter,ClipperLib.EndType.etClosedPolygon);let o=[];const FC=fundoCfg();co.Execute(o,FC.borda*S);
     const ar=q=>ClipperLib.Clipper.Area(q);const mx=o.reduce((m,q)=>Math.abs(ar(q))>Math.abs(ar(m))?q:m,o[0]);o=o.filter(q=>Math.sign(ar(q))===Math.sign(ar(mx)));if(FC.junta)o=toC(acrPecaUnica(fromC(o)));if(FC.raio)o=toC(arredExt(fromC(o),FC.raio));
@@ -1800,6 +1894,8 @@ function l3vMonta(){const R=l3vUlt;if(!R)return;
   $('#l3dInfo').textContent=`${R.Ls.length} letra(s) • profundidade ${R.H} mm • parede ${String(L3D.parede).replace('.',',')} mm (${String(L3D.parede+L3D.apoio).replace('.',',')} abaixo da face) • ${l3dFundo()?'fundo impresso':'sem fundo'}${l3dAcrF()?(()=>{const F=fundoCfg();return ` + ${F.mat==='ACM'?'ACM':'acrílico'} ${F.es} mm ${F.cor.toLowerCase()}${F.pint?' pintado '+F.pint:''} no fundo (+${F.borda} mm)`})():''}${l3dCapa()?' + capa interna branca':''}${l3dPvc()?' + PVC 2 mm':''} • PETG ${cor} ${Math.round(R.grTot)} g`}
 document.querySelectorAll('[data-l3v]').forEach(b=>b.onclick=()=>{const k=b.dataset.l3v;
   if(k==='acr'){L3V.acr=!L3V.acr;b.textContent='Acrílico: '+(L3V.acr?'sim':'não');l3vMonta();return}
+  if(k==='led'){L3V.led=!L3V.led;b.textContent='LED: '+(L3V.led?'aceso':'apagado');l3vMonta();return}
+  if(k==='exp'){L3V.exp=!L3V.exp;b.classList.toggle('sel',L3V.exp);b.textContent=L3V.exp?'Juntar peças':'Separar peças';l3vMonta();return}
   if(k==='corte'){L3V.corte=!L3V.corte;b.classList.toggle('sel',L3V.corte);l3vMonta();return}
   const v={iso:[-0.55,1.3],frente:[0,Math.PI/2],tras:[Math.PI,Math.PI/2],topo:[0,0.08]}[k];if(v){L3V.th=v[0];L3V.ph=v[1];l3vDraw()}});
 
@@ -1807,14 +1903,162 @@ document.querySelectorAll('[data-l3v]').forEach(b=>b.onclick=()=>{const k=b.data
 let l3dPrevT=null;
 function l3dPrevAgenda(){clearTimeout(l3dPrevT);l3dPrevT=setTimeout(l3dPrevia,350)}
 function l3dPrevia(){const card=$('#l3dCard');if(!card)return;try{
-  const t=typeof types!=='undefined'&&types.find(x=>x.id===selType);const is3d=t&&pagesOf(t).some(p=>p.tipo==='imp3d');
-  if(!is3d||!src||!src.polys||!src.polys.length){card.hidden=true;return}
+  const t=typeof types!=='undefined'&&types.find(x=>x.id===selType);const is3d=t&&pagesOf(t).some(p=>p.tipo==='imp3d');const plana=typeof planaSel==='function'&&planaSel();
+  if(!t||!src||!src.polys||!src.polys.length){card.hidden=true;return}
   let b=bbox(src.polys);const lr=num($('#largReal').value);const esc=lr>0&&b.w>0?lr/b.w:1;
   const polys=src.paths?flattenPaths(src.paths,esc,0.05):src.polys.map(p=>p.map(([x,y])=>[x*esc,y*esc]));
   const fr=Math.max(0,num($('#fresaD').value)/2);FRESA_R=fr;const cp=unionEO(polys);
+  if(!is3d&&!plana){const temD=typeof lDoc!=='undefined'&&lDoc&&lDoc.orig;const R=l3dCaixa(temD?lDoc:{orig:fromC(typeof fechaInternos==='function'?fechaInternos(cp,fr):cp),ctx:{caixa:+selCaixa||80},ledInfo:null});if(!R){card.hidden=true;return}R.antes=!temD;
+    card.hidden=false;l3vUlt=R;if(!l3vInit()){$('#l3dInfo').textContent='Visualizador 3D indisponível neste aparelho.';return}l3vMonta();return}
+  if(plana){const I=planaInfo();const Ls=ordenaPecas(regionsOf(cp).map(r=>{const ps=fromC(r);return{r,ps,bb:bbox(ps),slabs:[{z0:0,z1:I.es,regs:l3dDiff(r,[])}]}}));
+    let hex=I.pint?((corInfo()||{}).hex||'#adb5bd'):I.acr?I.hex:'#f1f3f5';const R={Ls,H:I.es,plana:true,corHex:hex,transp:!I.pint&&I.acr&&/CRISTAL/.test(I.cor)};
+    card.hidden=false;l3vUlt=R;if(!l3vInit()){$('#l3dInfo').textContent='Visualizador 3D indisponível neste aparelho.';return}l3vMonta();
+    const b=bbox(Ls.flatMap(x=>x.ps));const F=typeof fundoCfg==='function'&&fundoCfg();
+    $('#l3dInfo').textContent=`${Ls.length} letra(s) • ${I.mat}${I.pint?' pintada':''} • ${f0(b.w)} × ${f0(b.h)} mm${F?` + fundo ${F.mat==='ACM'?'ACM':'acrílico'} ${F.es} mm ${F.cor.toLowerCase()} (+${F.borda} mm)`:''} • prévia 3D`;return}
   const R=l3dCalc(cp,+selCaixa||80);card.hidden=false;l3vUlt=R;if(!l3vInit()){$('#l3dInfo').textContent='Visualizador 3D indisponível neste aparelho.';return}l3vMonta();
   $('#l3dInfo').textContent+=' • prévia (antes de gerar a FP)'}catch(e){console.error('prévia 3D',e)}}
 ['#l3dCor','#l3dFundo','#l3dAcrF','#l3dAcrEsp','#fdBorda','#fdJunta','#l3dCapa','#l3dPvc','#largReal','#fresaD'].forEach(sel=>{const el=document.querySelector(sel);if(el)el.addEventListener('change',l3dPrevAgenda)});
+
+// cor da luz pela temperatura (K) — aproximação de Tanner Helland
+function l3dKelvin(k){const t=Math.max(1000,Math.min(40000,+k||6500))/100;let r,g,b;r=t<=66?255:329.698727446*Math.pow(t-60,-0.1332047592);g=t<=66?99.4708025861*Math.log(t)-161.1195681661:288.1221695283*Math.pow(t-60,-0.0755148492);b=t>=66?255:t<=19?0:138.5177312231*Math.log(t-10)-305.0447927307;
+  const c=v=>Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,'0');return'#'+c(r)+c(g)+c(b)}
+/* ---------- letra caixa comum em 3D: monta com as MESMAS peças dos arquivos de corte (PVC do fundo, acrílico da frente) + lateral + LEDs ---------- */
+function l3dPeca(info,re,excl){const it=(info||[]).find(i=>i.pg&&!i.pg.chapaPlana&&re.test((i.pg.material||'')+' '+(i.pg.titulo||''))&&!(excl&&excl.test((i.pg.material||'')+' '+(i.pg.titulo||'')))&&i.lines&&i.lines.some(l=>l.polys&&l.polys.length));if(!it)return null;
+  const ext=it.lines.filter(l=>/EXTERNO/i.test(l.legenda||'')).flatMap(l=>l.polys);const base=ext.length?ext:it.lines[0].polys;const hol=it.lines.filter(l=>l!==it.lines[0]&&/INTERNO|FURO|MIOLO/i.test(l.legenda||'')).flatMap(l=>l.polys);
+  let regs=l3dDiff(unionEO(base),hol.length?toC(hol):[]);const es=+(String(it.pg.espessura||'').match(/\d+(?:[.,]\d+)?/)||['3'])[0].replace(',','.')||3;return{regs,es,pg:it.pg,furos:hol.length}}
+function l3dCaixa(d){if(!d||!d.orig||!d.orig.length)return null;const t=typeof types!=='undefined'&&types.find(x=>x.id===selType);if(!t)return null;const defs=pagesOf(t);
+  const H=+(d.ctx&&d.ctx.caixa)||+selCaixa||80;const cp=toC(d.orig);
+  const Ls=ordenaPecas(regionsOf(cp).map(r=>{const ps=fromC(r);return{r,ps,bb:bbox(ps)}}));
+  const acrPg=defs.find(p=>/ACR/i.test((p.material||'')+' '+(p.titulo||''))&&!/FUNDO/i.test((p.material||'')+' '+(p.titulo||''))&&!p.chapaPlana);const pvcPg=defs.find(p=>/PVC/i.test(p.material||''));const pint=defs.find(p=>p.tipo==='pintura');
+  const acrCor=acrPg?String(acrPg.cor||acrPg.material||'').toUpperCase():'';
+  const acrHex=/LEITOSO|TRANSL|BRANCO/.test(acrCor)||!acrCor?'#f8f9fa':/CRISTAL/.test(acrCor)?'#d0ebff':(typeof FD_ACR!=='undefined'&&(FD_ACR.find(([n])=>acrCor.includes(n))||[])[1])||'#f8f9fa';
+  const CI=pint&&typeof corInfo==='function'?corInfo():null;const latPint=!!(CI&&CI.hex)&&(pint.partes||'frente_lateral')!=='frente';const latHex=latPint?CI.hex:'#ced4da';
+  // peças reais dos arquivos de corte (quando a FP já foi gerada)
+  const acr=d.info?l3dPeca(d.info,/ACR/i,/FUNDO/i):null,pvc=d.info?l3dPeca(d.info,/PVC/i):null;
+  const esA=acr?acr.es:acrPg?(+(String(acrPg.espessura||'').match(/\d+(?:[.,]\d+)?/)||['3'])[0].replace(',','.')||3):0;
+  const esP=pvc?pvc.es:pvcPg?(+(String(pvcPg.espessura||'').match(/\d+(?:[.,]\d+)?/)||['3'])[0].replace(',','.')||3):2;
+  let LI=d.ledInfo||null;const lp=defs.find(p=>p.tipo==='led');
+  if(!LI&&lp&&!d.semLed){try{const ov={};if(typeof selLedW!=='undefined'&&selLedW)ov.watts=selLedW;const gq=num(($('#ledGap')||{}).value),mq=num(($('#ledMarg')||{}).value);if(gq>0)ov.gap=gq<30?gq*10:gq;if(mq>0)ov.margem=mq<20?mq*10:mq;
+    LI=distributeLED(cp,{...(lp.led||{}),...ov,ajuste:typeof ledAdj!=='undefined'?ledAdj:undefined})}catch(e){console.error('LED 3D',e)}}
+  const chPg=defs.find(p=>p.tipo==='chapa');const filete=chPg?(+(typeof selChapa!=='undefined'&&selChapa)||+({padrao:7,...(chPg.chapa||{})}.padrao)||7):0;
+  const ledK=+(String(typeof selLed!=='undefined'?selLed:'6500').match(/\d+/)||[6500])[0];
+  return{caixa:true,filete,Ls,H,esA,esP,acrHex,latHex,latPint,pint:!!(CI&&CI.hex),pintHex:CI&&CI.hex,fundoHex:pvcPg?'#f1f3f5':'#adb5bd',fundoNome:pvcPg?'PVC':'chapa',temPvc:!!pvcPg,
+    acrRegs:acr?acr.regs:null,pvcRegs:pvc?pvc.regs:null,real:!!(acr||pvc),pvcFuros:pvc?pvc.furos:0,
+    mods:LI?LI.mods||[]:[],modL:LI&&LI.P?+LI.P.larg||60:60,modN:LI&&LI.P&&LI.P.leds?+LI.P.leds:3,fitas:LI?LI.fitas||[]:[],ledHex:l3dKelvin(ledK),ledK,temAcr:!!acrPg}}
+const l3dInter=(A,B)=>{const c=new ClipperLib.Clipper();c.AddPaths(A.flat(),ClipperLib.PolyType.ptSubject,true);c.AddPaths(B.flat(),ClipperLib.PolyType.ptClip,true);const tr=new ClipperLib.PolyTree();c.Execute(ClipperLib.ClipType.ctIntersection,tr,ClipperLib.PolyFillType.pftEvenOdd,ClipperLib.PolyFillType.pftNonZero);const o=[];const w=n=>{for(const ch of n.Childs()){if(!ch.IsHole()){o.push([ch.Contour(),...ch.Childs().map(h=>h.Contour())]);ch.Childs().forEach(h=>w(h))}}};w(tr);return o};
+// monta o grupo 3D (usado no visualizador e na foto da FP de pintura)
+function l3dGrupoCaixa(R,o0){const o=Object.assign({acr:true,led:true,corte:false,exp:false},o0||{});
+  const g=new THREE.Group();const all=bbox(R.Ls.flatMap(x=>x.ps));const ox=(all.x0+all.x1)/2,oy=(all.y0+all.y1)/2;const H=R.H,ESP=1.2;const avisos=[];
+  const lm=new THREE.LineBasicMaterial({color:0x222222,transparent:true,opacity:0.35});
+  const mF=new THREE.MeshLambertMaterial({color:new THREE.Color(R.fundoHex),side:THREE.DoubleSide});
+  const mL=new THREE.MeshLambertMaterial({color:new THREE.Color(R.latHex),side:THREE.DoubleSide});const mIn=new THREE.MeshLambertMaterial({color:0xffffff,side:THREE.DoubleSide});
+  const mErr=new THREE.MeshBasicMaterial({color:0xfa1e1e,side:THREE.DoubleSide});
+  const aceso=o.led&&(R.mods.length||R.fitas.length);
+  const mA=aceso?new THREE.MeshBasicMaterial({color:new THREE.Color(R.ledHex),transparent:true,opacity:0.8,depthWrite:false,side:THREE.DoubleSide}):new THREE.MeshLambertMaterial({color:new THREE.Color(R.acrHex).multiplyScalar(0.82),transparent:true,opacity:0.85,depthWrite:false,side:THREE.DoubleSide});
+  const mLed=aceso?new THREE.MeshBasicMaterial({color:new THREE.Color(R.ledHex)}):new THREE.MeshLambertMaterial({color:0x868e96});
+  const mHalo=new THREE.MeshBasicMaterial({color:new THREE.Color(R.ledHex),transparent:true,opacity:0.18,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
+  const mMod=new THREE.MeshLambertMaterial({color:0xe9ecef});
+  const bbR=regs=>bbox(regs.flatMap(r=>fromC(r)));
+  const clip=regs=>{if(!o.corte||!regs.length)return regs;const bb=all;const yc=(bb.y0+bb.y1)/2;const cl=[[{X:Math.round((bb.x0-10)*S),Y:Math.round((bb.y0-10)*S)},{X:Math.round((bb.x1+10)*S),Y:Math.round((bb.y0-10)*S)},{X:Math.round((bb.x1+10)*S),Y:Math.round(yc*S)},{X:Math.round((bb.x0-10)*S),Y:Math.round(yc*S)}]];return l3dInter(regs,[cl])};
+  const add=(regs,z0,z1,mat,edges)=>{regs=clip(regs);if(!regs.length)return;const geo=l3vGeo(l3dTris([{z0,z1,regs}],ox,oy));g.add(new THREE.Mesh(geo,mat));if(edges)g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo,25),lm))};
+  const F=R.filete>0,EF=0.9;const dzP=o.exp?-Math.max(60,H*0.9)*(F?2:1):0,dzA=o.exp?(F?-Math.max(60,H*0.9):Math.max(50,H*0.7)):0;
+  const G=o.inst?Math.max(90,H*1.3):0; // instalação: PVC fica na parede, a letra (lateral+frente+acrílico) vem por cima
+  const mSc=new THREE.MeshLambertMaterial({color:0x495057}),mWall=new THREE.MeshLambertMaterial({color:0xe9ecef,side:THREE.DoubleSide});
+  const oct=(cx,cy,r)=>{const q=[];for(let a=0;a<8;a++)q.push([cx+r*Math.cos((a+0.5)*Math.PI/4),cy+r*Math.sin((a+0.5)*Math.PI/4)]);return l3dDiff(toC([q]),[])};
+  // lateral (fita/chapa) no contorno do desenho: fora na cor da pintura, dentro branco
+  const inner=[];R.Ls.forEach(L=>{const inn=offF(L.r,-ESP),mid=offF(L.r,-ESP*0.5);inner.push(...l3dDiff(inn,[]));add(l3dDiff(L.r,mid),G,G+H,mL,true);add(l3dDiff(mid,inn),G,G+H,mIn,false)});
+  // letra filetada: a frente é a chapa (filete) soldada na lateral — só a borda, sem as travas do arquivo de corte
+  if(F)R.Ls.forEach(L=>{const fi=offF(L.r,-R.filete);add(l3dDiff(L.r,fi),G+H,G+H+EF,mL,true)});
+  // fundo de PVC: a peça do arquivo de corte (ou o contorno interno, antes de gerar)
+  let zLed=0;
+  if(R.temPvc){const pv=R.pvcRegs||inner;add(pv,dzP,dzP+R.esP,mF,true);zLed=dzP+R.esP;
+    if(R.pvcRegs){const fora=l3dDiff(R.pvcRegs.flat(),inner.flat());const a=l3dAreaR(fora);if(a>50){add(fora,dzP-0.5,dzP+R.esP+0.5,mErr,false);avisos.push(`PVC passa ${Math.round(a)} mm² para fora da lateral (em vermelho)`)}}}
+  else{add(inner,dzP,dzP+2,mF,true);zLed=dzP+2}
+  // acrílico da frente: a peça do arquivo de corte; se cabe dentro da lateral fica encaixado, senão apoia em cima
+  let acrPos='';if(R.temAcr&&o.acr){const ac=R.acrRegs||R.Ls.flatMap(L=>l3dDiff(L.r,[]));const fora=R.acrRegs?l3dAreaR(l3dDiff(R.acrRegs.flat(),inner.flat())):1e9;const dentro=fora<50;
+    const z0=F?H-R.esA:dentro?H-R.esA:H;acrPos=F?'atrás da frente (filete) — entra por trás':dentro?'encaixado dentro da lateral':'apoiado sobre a lateral';add(ac,G+z0+dzA,G+z0+dzA+R.esA,mA,false);
+    if(aceso&&!o.exp)R.mods.forEach(m=>{const u=m.u||[1,0],n=Math.max(1,R.modN||3),Lm=R.modL||60;for(let k=0;k<n;k++){const f=(k+0.5)/n-0.5;const cx=m.c[0]+u[0]*Lm*f,cy=m.c[1]+u[1]*Lm*f;const c=[];for(let a=0;a<16;a++)c.push([cx+Math.cos(a/16*Math.PI*2)*28,cy+Math.sin(a/16*Math.PI*2)*28]);add(l3dInter(l3dDiff(toC([c]),[]),ac),z0-0.6,z0-0.2,mHalo,false)}})}
+  if(o.inst){const pad=35;const wq=[[all.x0-pad,all.y0-pad],[all.x1+pad,all.y0-pad],[all.x1+pad,all.y1+pad],[all.x0-pad,all.y1+pad]];add(l3dDiff(toC([wq]),[]),-6,-1,mWall,true);
+    // parafusos de parede nos furos do PVC (furos pequenos)
+    const pts=[];(R.pvcRegs||[]).forEach(rg=>rg.slice(1).forEach(h=>{const p=fromC([h])[0];const b=bbox([p]);if(b.w<30&&b.h<30)pts.push([(b.x0+b.x1)/2,(b.y0+b.y1)/2])}));
+    pts.forEach(([x,y])=>{add(oct(x,y,2.5),-30,R.esP+1,mSc,false);add(oct(x,y,5),R.esP+1,R.esP+3,mSc,false)});
+    // parafusos da lateral (panela, 1 a cada ~330 mm) entrando no PVC
+    R.Ls.forEach(L=>{const p=L.ps[0];let per=0;const seg=[];for(let i=0;i<p.length;i++){const a=p[i],b=p[(i+1)%p.length];const d=Math.hypot(b[0]-a[0],b[1]-a[1]);seg.push([a,b,d,per]);per+=d}
+      const n=Math.max(2,Math.round(per/330));for(let k=0;k<n;k++){const s=(k+0.5)*per/n;const sg=seg.find(q=>s>=q[3]&&s<=q[3]+q[2])||seg[0];const f=(s-sg[3])/(sg[2]||1);const x=sg[0][0]+(sg[1][0]-sg[0][0])*f,y=sg[0][1]+(sg[1][1]-sg[0][1])*f;
+        let nx=(sg[1][1]-sg[0][1])/(sg[2]||1),ny=-(sg[1][0]-sg[0][0])/(sg[2]||1);if(inside([x+nx*3,y+ny*3],toC([p])))nx=-nx,ny=-ny;
+        const len=G*0.55,bx=x+nx*(len),by=y+ny*(len);const q=[[x-ny*2-nx*4,y+nx*2-ny*4],[bx-ny*2,by+nx*2],[bx+ny*2,by-nx*2],[x+ny*2-nx*4,y-nx*2-ny*4]];add(l3dDiff(toC([q]),[]),R.esP/2-2,R.esP/2+2,mSc,false);
+        (o.pts=o.pts||[]).push(['lat',[bx,by,R.esP/2]])}});
+    if(pts.length)(o.pts=o.pts||[]).push(['par',[pts[0][0],pts[0][1],R.esP+3]]);
+    (o.pts=o.pts||[]).push(['pvc',[R.Ls[0].ps[0][0][0],R.Ls[0].ps[0][0][1],R.esP]],['frente',[R.Ls[Math.min(1,R.Ls.length-1)].bb.x0+R.Ls[Math.min(1,R.Ls.length-1)].bb.w/2,R.Ls[Math.min(1,R.Ls.length-1)].bb.y1,G+H]])}
+  // LEDs em cima do fundo
+  R.mods.forEach(m=>{if(!m.rect)return;add(l3dDiff(toC([m.rect]),[]),zLed,zLed+5,mMod,true);
+    const u=m.u||[1,0],n=Math.max(1,R.modN||3),Lm=R.modL||60;for(let k=0;k<n;k++){const f=(k+0.5)/n-0.5;const cx=m.c[0]+u[0]*Lm*f,cy=m.c[1]+u[1]*Lm*f,s=4;const q=[[cx-s,cy-s],[cx+s,cy-s],[cx+s,cy+s],[cx-s,cy+s]];add(l3dDiff(toC([q]),[]),zLed+5,zLed+8,mLed,false)}});
+  R.fitas.forEach(f=>(f.linhas||[]).forEach(ln=>{try{add(l3dDiff(offF(toC([ln]),4),offF(toC([ln]),-4)),zLed,zLed+3,mLed,false)}catch(e){}}));
+  if(l3dAcrF()&&!o.corte){try{const es=l3dAcrF();const FC=fundoCfg();const co=new ClipperLib.ClipperOffset(10,0.005*S);co.AddPaths(toC(R.Ls.flatMap(x=>x.ps)),ClipperLib.JoinType.jtMiter,ClipperLib.EndType.etClosedPolygon);let q=[];co.Execute(q,FC.borda*S);
+    const ar=p=>ClipperLib.Clipper.Area(p);const mx=q.reduce((m,p)=>Math.abs(ar(p))>Math.abs(ar(m))?p:m,q[0]);q=q.filter(p=>Math.sign(ar(p))===Math.sign(ar(mx)));if(FC.junta)q=toC(acrPecaUnica(fromC(q)));if(FC.raio)q=toC(arredExt(fromC(q),FC.raio));
+    const dz=o.exp?dzP*2:0;add(l3dDiff(q,[]),dz-es,dz,(FC.mat==='ACM'||FC.pint||!/CRISTAL/.test(FC.cor))?new THREE.MeshLambertMaterial({color:new THREE.Color(FC.hex||'#ced4da'),side:THREE.DoubleSide}):new THREE.MeshLambertMaterial({color:0xa5d8ff,transparent:true,opacity:0.35,depthWrite:false,side:THREE.DoubleSide}),true)}catch(e){console.error('fundo 3D',e)}}
+  return{g,all,avisos,acrPos,pts:o.pts||[]}}
+function l3vMontaCaixa(R){if(L3V.grp){L3V.scene.remove(L3V.grp);L3V.grp.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
+  const {g,all,avisos,acrPos}=l3dGrupoCaixa(R,{acr:L3V.acr,led:L3V.led,corte:L3V.corte,exp:L3V.exp});const H=R.H;
+  L3V.scene.add(L3V.grp=g);L3V.tg=[0,0,H/2];{const cv=$('#l3dCv');const asp=(cv.clientWidth||900)/(cv.clientHeight||420);L3V.R=Math.max(all.w*1.15/(0.64*asp),all.h*1.6/0.64,H*(L3V.exp?5:3))}
+  l3vDraw();
+  $('#l3dInfo').innerHTML=esc(`${R.Ls.length} letra(s) • caixa ${H} mm • ${R.temPvc?`fundo PVC ${R.esP} mm`:'fundo em chapa'} • lateral${R.filete?` + frente em chapa (filete ${R.filete} mm), soldadas,`:''} ${R.latPint?'pintada por fora':'galvanizada'}, branca por dentro${R.temAcr?` • acrílico ${R.esA} mm${acrPos?' '+acrPos:''}${L3V.acr?'':' (tirado)'}`:''} • ${R.mods.length?R.mods.length+' módulos de LED':''}${R.fitas.length?(R.mods.length?' + ':'')+'fita de LED':''}${(R.mods.length||R.fitas.length)?` ${R.ledK} K${L3V.led?' (aceso)':' (apagado)'}`:'sem LED'}`)+
+    `<br><b style="color:${R.real?'#2b8a3e':'#e8590c'}">${R.real?'✓ Montado com as peças dos arquivos de corte (PVC e acrílico como saem na router).':'Prévia aproximada — gere a FP para montar com as peças reais dos arquivos de corte.'}</b>`+
+    (avisos.length?`<br><b style="color:#c92a2a">⚠ ${avisos.map(esc).join(' • ')}</b>`:(R.real?' <span style="color:#2b8a3e">Nenhuma peça sobrepõe outra.</span>':''))+
+    `<br><span class="note">"Acrílico" tira/põe a frente • "Separar" afasta as peças • "LED" acende/apaga • "Corte" mostra o perfil</span>`}
+/* ---------- foto do 3D para a FP de pintura (lateral na cor + interno branco) ---------- */
+let l3dSnapR=null;
+function l3dSnap(R,o){if(!window.THREE||!R)return null;try{
+  const W=1200,Hh=700;if(!l3dSnapR){const cv=document.createElement('canvas');cv.width=W;cv.height=Hh;l3dSnapR=new THREE.WebGLRenderer({canvas:cv,antialias:true,preserveDrawingBuffer:true});l3dSnapR.setSize(W,Hh,false)}
+  const sc=new THREE.Scene();sc.background=new THREE.Color('#ffffff');sc.add(new THREE.HemisphereLight(0xffffff,0x8a8f99,0.75));const dl=new THREE.DirectionalLight(0xffffff,0.6);dl.position.set(-0.5,0.8,1);sc.add(dl);
+  const {g,all}=l3dGrupoCaixa(R,Object.assign({acr:false,led:false,corte:false,exp:false},o||{}));sc.add(g);
+  const th=-0.55,ph=1.05,H=R.H;const cam=new THREE.OrthographicCamera(-1,1,1,-1,-1e6,1e6);const Rr=Math.max(all.w,all.h)*2;
+  cam.position.set(Rr*Math.sin(ph)*Math.sin(th),Rr*Math.cos(ph),H/2+Rr*Math.sin(ph)*Math.cos(th));cam.lookAt(0,0,H/2);cam.updateMatrixWorld();
+  // enquadra: projeta os cantos
+  const box=new THREE.Box3().setFromObject(g);const cs=[];for(const x of [box.min.x,box.max.x])for(const y of [box.min.y,box.max.y])for(const z of [box.min.z,box.max.z])cs.push(new THREE.Vector3(x,y,z).applyMatrix4(cam.matrixWorldInverse));
+  const x0=Math.min(...cs.map(v=>v.x)),x1=Math.max(...cs.map(v=>v.x)),y0=Math.min(...cs.map(v=>v.y)),y1=Math.max(...cs.map(v=>v.y));const cx=(x0+x1)/2,cy=(y0+y1)/2;let hw=(x1-x0)/2*1.06,hh=(y1-y0)/2*1.06;if(hw/hh>W/Hh)hh=hw*Hh/W;else hw=hh*W/Hh;
+  Object.assign(cam,{left:cx-hw,right:cx+hw,top:cy+hh,bottom:cy-hh});cam.updateProjectionMatrix();l3dSnapR.render(sc,cam);
+  // pontos para as setas: parede interna e lateral externa da 1ª letra
+  const all2=all,ox=(all2.x0+all2.x1)/2,oy=(all2.y0+all2.y1)/2;const L=R.Ls[0];const pr=(p,z)=>{const v=new THREE.Vector3(p[0]-ox,p[1]-oy,z).project(cam);return[(v.x+1)/2,(1-v.y)/2]};
+  const inn=fromC(offF(L.r,-3));const pi=inn.length?inn[0].reduce((a,p)=>p[1]>a[1]?p:a,inn[0][0]):L.ps[0][0];const po=L.ps[0].reduce((a,p)=>p[0]<a[0]?p:a,L.ps[0][0]);
+  const src=l3dSnapR.domElement.toDataURL('image/jpeg',0.9);g.traverse(x=>{if(x.geometry)x.geometry.dispose()});return{src,w:W,h:Hh,interno:pr(pi,H*0.55),lateral:pr(po,H*0.5)}}catch(e){console.error('foto 3D',e);return null}}
+
+// LED dentro da letra 3D: corpo preto + cúpula branca, parte externa pintada
+function l3dLuzSync(ligou){const on=l3dLuzOn();const c=$('#l3dCor'),k=$('#l3dCapa'),n=$('#l3dLuzNota'),lb=$('#l3dLatBox'),ll=$('#l3dLatLuz');if(n)n.hidden=!on;if(lb)lb.hidden=!on;
+  if(ligou&&on&&k)k.checked=true;const lat=on&&ll&&ll.checked;
+  document.querySelectorAll('[data-latluz]').forEach(b=>b.classList.toggle('on',(b.dataset.latluz==='1')===!!lat));
+  if(c){if(on&&!lat){if(c.value!=='PRETO')c.dataset.antes=c.value;c.value='PRETO';c.disabled=true}else{c.disabled=false;if(c.dataset.antes&&c.value==='PRETO'){c.value=c.dataset.antes}delete c.dataset.antes}}
+  const nt=$('#l3dLatNota');if(nt)nt.innerHTML=!on?'':lat?'Lateral acende junto: o filamento fica na cor escolhida abaixo e <b>não vai pintura</b>.':'Lateral não acende: filamento <b>PRETO</b> e a parte externa (lateral + bordinha da face) vai para <b>pintura</b> na cor escolhida (RAL, Pantone, CMYK).';
+  const pc=$('#pintCard');if(pc&&on&&!lat)pc.hidden=false}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-latluz]');if(!b)return;$('#l3dLatLuz').checked=b.dataset.latluz==='1';l3dLuzSync();if(typeof renderTypes==='function')renderTypes();if(typeof resetOut==='function')resetOut();l3dPrevAgenda()});
+document.addEventListener('change',e=>{if(e.target&&(e.target.id==='l3dLuz')){l3dLuzSync(e.target.id==='l3dLuz');if(typeof renderTypes==='function')renderTypes();if(typeof resetOut==='function')resetOut();l3dPrevAgenda()}});
+let l3dLuzTipo=null;setInterval(()=>{try{const t=typeof types!=='undefined'&&types.find(x=>x.id===selType);if(!t||t.id===l3dLuzTipo)return;l3dLuzTipo=t.id;const p=pagesOf0(t);if(p.some(x=>x.tipo==='imp3d')){const cb=$('#l3dLuz');if(cb){cb.checked=p.some(x=>x.tipo==='led');l3dLuzSync(true)}}}catch(e){}},700);
+
+/* ---------- FP de instalação: vista explodida (PVC na parede → letra por cima → parafusos) ---------- */
+function l3dSnapInst(R){if(!window.THREE||!R)return null;try{const W=1400,Hh=820;
+  if(!l3dSnapR){const cv=document.createElement('canvas');cv.width=1200;cv.height=700;l3dSnapR=new THREE.WebGLRenderer({canvas:cv,antialias:true,preserveDrawingBuffer:true})}l3dSnapR.setSize(W,Hh,false);
+  const sc=new THREE.Scene();sc.background=new THREE.Color('#ffffff');sc.add(new THREE.HemisphereLight(0xffffff,0x8a8f99,0.75));const dl=new THREE.DirectionalLight(0xffffff,0.6);dl.position.set(-0.6,0.7,1);sc.add(dl);
+  const o={acr:true,led:false,corte:false,exp:false,inst:true};const {g,all,pts:P3}=l3dGrupoCaixa(R,o);o.pts=P3;sc.add(g);const ox=(all.x0+all.x1)/2,oy=(all.y0+all.y1)/2;
+  const th=-0.75,ph=1.18;const cam=new THREE.OrthographicCamera(-1,1,1,-1,-1e6,1e6);const Rr=Math.max(all.w,all.h)*2;cam.position.set(Rr*Math.sin(ph)*Math.sin(th),Rr*Math.cos(ph),R.H+Rr*Math.sin(ph)*Math.cos(th));cam.lookAt(0,0,R.H*0.6);cam.updateMatrixWorld();
+  const box=new THREE.Box3().setFromObject(g);const cs=[];for(const x of [box.min.x,box.max.x])for(const y of [box.min.y,box.max.y])for(const z of [box.min.z,box.max.z])cs.push(new THREE.Vector3(x,y,z).applyMatrix4(cam.matrixWorldInverse));
+  const x0=Math.min(...cs.map(v=>v.x)),x1=Math.max(...cs.map(v=>v.x)),y0=Math.min(...cs.map(v=>v.y)),y1=Math.max(...cs.map(v=>v.y));const cx=(x0+x1)/2,cy=(y0+y1)/2;let hw=(x1-x0)/2*1.04,hh=(y1-y0)/2*1.04;if(hw/hh>W/Hh)hh=hw*Hh/W;else hw=hh*W/Hh;
+  Object.assign(cam,{left:cx-hw,right:cx+hw,top:cy+hh,bottom:cy-hh});cam.updateProjectionMatrix();l3dSnapR.render(sc,cam);
+  const pr=p=>{const v=new THREE.Vector3(p[0]-ox,p[1]-oy,p[2]).project(cam);return[(v.x+1)/2,(1-v.y)/2]};const pts={};(o.pts||[]).forEach(([k,p])=>{if(!pts[k])pts[k]=pr(p)});
+  const src=l3dSnapR.domElement.toDataURL('image/jpeg',0.9);g.traverse(x=>{if(x.geometry)x.geometry.dispose()});l3dSnapR.setSize(1200,700,false);return{src,w:W,h:Hh,pts}}catch(e){console.error('3D instalação',e);return null}}
+function folhaExplodida(ctx,prod){const X=prod&&prod.exp3d;if(!X)return null;const R=l3dCaixa({orig:X.orig,info:X.info,ledInfo:X.ledInfo,ctx,semLed:!X.ledInfo});if(!R||!R.temPvc)return null;const sn=l3dSnapInst(R);if(!sn)return null;
+  const P=[];frame(P,ctx,{setor:'INSTALAÇÃO'});P._ref=null;P.push({t:'text',x:PW/2,y:30,s:'MONTAGEM NA PAREDE — VISTA EXPLODIDA',size:4.4,bold:true,color:'#000000',anchor:'middle'});
+  const iw=196,ih=Math.min(122,iw*sn.h/sn.w),ix=12,iy=37;P.push({t:'rect',x:ix-1,y:iy-1,w:iw+2,h:ih+2,r:1.5,fill:'#ffffff',stroke:'#ced4da',lw:0.25},{t:'img',x:ix,y:iy,w:iw,h:ih,src:sn.src,fmt:'JPEG'});
+  const frente=R.filete?'LETRA (FRENTE EM CHAPA + LATERAL, COM O ACRÍLICO POR DENTRO)':'LETRA (ACRÍLICO DA FRENTE + LATERAL, JÁ MONTADOS)';
+  const passos=[['pvc','1','FIXAR O FUNDO DE PVC NA PAREDE',`Pelos furos do PVC (${(R.pvcRegs||[]).reduce((a,r)=>a+r.length-1,0)} furos), com bucha e parafuso. Conferir nível antes.`,'#1971c2'],
+    ['frente','2','ENCAIXAR A LETRA SOBRE O PVC',frente+' — encaixa por fora do PVC.','#2b8a3e'],
+    ['lat','3','PARAFUSAR A LATERAL NO PVC','Parafuso cabeça panela 5,5 x 25 mm pela lateral, 1 a cada ~330 mm (pintado na cor da letra).','#c2410c']];
+  const XR=ix+iw+6;let y=44;passos.forEach(([k,n,t,d,c])=>{const pt=sn.pts[k]||(k==='pvc'?sn.pts.par:null);
+    P.push({t:'circle',x:XR+3,y:y-1.2,r:3,fill:c,stroke:c,lw:0.2},{t:'text',x:XR+3,y:y,s:n,size:3.4,bold:true,color:'#ffffff',anchor:'middle'},{t:'text',x:XR+8,y,s:t,size:2.9,bold:true,color:c});
+    const ws=d.match(/.{1,46}(\s|$)/g)||[d];ws.forEach((w,i)=>P.push({t:'text',x:XR+8,y:y+4.6+i*3.6,s:w.trim(),size:2.4,color:'#333333'}));
+    if(pt){const px=ix+pt[0]*iw,py=iy+pt[1]*ih;P.push({t:'circle',x:px,y:py,r:2.6,fill:c,stroke:'#ffffff',lw:0.4},{t:'text',x:px,y:py+1.1,s:n,size:3,bold:true,color:'#ffffff',anchor:'middle'})}
+    y+=12+ws.length*3.6});
+  P.push({t:'text',x:XR,y:Math.min(y+4,150),s:'Peças como saem nos arquivos de corte (PVC e acrílico).',size:2.2,color:'#868e96'});
+  return P}
 
 
 /* ---------- Folha padrão Granda (A4 deitada, mm) ---------- */
@@ -1882,7 +2126,7 @@ function frame(P,ctx,pg){pg={...pg,setor:setorNome(pg.setor)};
   P.push({t:'rect',x:226,y:8,w:63,h:11,r:2,fill:col});
   P._setor=pg.setor;const sLab=pg.setor==='MONTAGEM'?'MONTAGEM DE ACM':pg.setor;P._setorT={t:'text',x:257.5,y:15.3,s:sLab,size:sLab.length>16?3.4:4.2,bold:true,color:'#ffffff',anchor:'middle'};P.push(P._setorT);
   P.push({t:'text',x:18,y:15.5,s:(ctx.item==='GERAL'?`FP GERAL - ${ctx.descItem}`:`${sLab} ITEM ${ctx.item} - ${ctx.descItem}`).toUpperCase(),size:3.4,bold:true,color:'#000000'});
-  if(ctx.tipo)P.push({t:'text',x:18,y:21,s:`Tipo: ${ctx.tipo}   •   LED: ${ctx.led}   •   CAIXA: ${ctx.caixa} mm`,size:2.6,color:'#555555'});
+  if(ctx.tipo)P.push({t:'text',x:18,y:21,s:ctx.plana?`Tipo: ${ctx.tipo}   •   ESPESSURA: ${ctx.caixa} mm`:`Tipo: ${ctx.tipo}   •   LED: ${ctx.led}   •   CAIXA: ${ctx.caixa} mm`,size:2.6,color:'#555555'});
   P._f0=P.length;P._ref=refImg;
 }
 /* ---------- imagem de referência do projetista: 7 x 5 cm no canto superior direito ---------- */
@@ -2018,7 +2262,7 @@ function buildDoc(){
   // letra 3D: o contorno externo é impresso (fica como o arquivo); o arredondamento da fresa vale para a parte INTERNA (acrílico e cavidade, 2,5 mm para dentro)
   const cp=is3d?cpRaw:fechaInternos(cpRaw,fresaR);const orig=fromC(cp);
   const d=$('#entrega').value;
-  const ctx={os:$('#os').value.trim(),item:$('#item').value||'1',descItem:$('#descItem').value.trim()||'LETRA CAIXA',cliente:$('#cliente').value.trim(),vendedor:$('#vendedor').value.trim(),projetista:$('#projetista').value.trim(),endereco:$('#endereco').value.trim(),entrega:d?d.split('-').reverse().join('/'):'',tipo:t.nome,led:selLed.toLocaleString('pt-BR')+' K',caixa:selCaixa,obs:$('#obs').value.trim()};
+  const ctx={os:$('#os').value.trim(),item:$('#item').value||'1',descItem:$('#descItem').value.trim()||'LETRA CAIXA',cliente:$('#cliente').value.trim(),vendedor:$('#vendedor').value.trim(),projetista:$('#projetista').value.trim(),endereco:$('#endereco').value.trim(),entrega:d?d.split('-').reverse().join('/'):'',tipo:t.nome,led:selLed.toLocaleString('pt-BR')+' K',caixa:(typeof planaSel==='function'&&planaSel())?planaInfo().es:selCaixa,plana:typeof planaSel==='function'&&planaSel(),imp3d:!!(types.find(x=>x.id===selType)&&pagesOf0(types.find(x=>x.id===selType)).some(p=>p.tipo==='imp3d')),obs:$('#obs').value.trim()};
   let defs=pagesOf(t).concat(readPages($('#xPages')));
   if(is3d&&$('#l3dPvc')&&$('#l3dPvc').checked){const iF=defs.findIndex(p=>p.setor==='ROUTER'&&/ACR/i.test((p.material||'')+' '+(p.titulo||'')));defs.splice(iF>=0?iF+1:defs.length,0,{setor:'ROUTER',fundoPvc:true,titulo:'FUNDO INTERNO LETRA 3D - PVC 2mm BRANCO (LED)',material:'PVC',espessura:'2MM',cor:'BRANCO',textura:'----',linhas:[{offset:l3dPvcOff(),legenda:'CORTE EXTERNO',cor:'#ff00c0'}]})}
   {const F=fundoCfg();if(F){const iF=defs.findIndex(p=>p.setor==='ROUTER'&&/ACR/i.test((p.material||'')+' '+(p.titulo||'')));defs.splice(iF>=0?iF+1:defs.length,0,{setor:'ROUTER',fundoAcr:true,fundoMat:F.mat,titulo:`FUNDO ${is3d?'LETRA 3D':'DAS LETRAS'} - ${F.mat==='ACM'?'ACM':'ACRÍLICO'} ${F.es}mm ${F.cor}${F.pint?' PINTADO '+F.pint:''} (+${F.borda} mm, ${F.junta?'PEÇA ÚNICA':'UMA PEÇA POR LETRA'}${F.raio?', CANTOS EXTERNOS R'+F.raio:''})`,material:F.mat==='ACM'?'ACM':'ACRÍLICO',espessura:F.es+'MM',cor:F.cor+(F.marca?' ('+F.marca+')':''),pintura:F.pint||'',textura:F.pint?'PINTADO '+F.pint:'----',linhas:[{offset:F.borda,legenda:'CORTE EXTERNO',cor:'#ff00c0',soExt:true,ponte:F.junta,raio:F.raio}]})}}
@@ -2042,10 +2286,16 @@ function buildDoc(){
       const partes=pg.partes||'lateral';const txt={frente_lateral:'PINTAR A FRENTE E A LATERAL DA LETRA',lateral:'PINTAR SOMENTE A LATERAL DA LETRA',frente:'PINTAR SOMENTE A FRENTE DA LETRA'}[partes];
       P.push({t:'text',x:PW/2,y:30,s:pg.titulo||'PINTURA DA LETRA',size:4.2,color:'#000000',anchor:'middle'});
       P.push({t:'rect',x:30,y:34,w:237,h:22,r:2,fill:'#fff4e6',stroke:'#e8590c',lw:0.4});
-      P.push({t:'text',x:PW/2,y:40.6,s:txt+(partes==='lateral'?' — NÃO PINTAR A FRENTE':''),size:4.6,bold:true,color:'#c2410c',anchor:'middle'});
-      P.push({t:'text',x:PW/2,y:48,s:'PINTAR O INTERNO DA LETRA DE BRANCO COM PISTOLA',size:4.2,bold:true,color:'#1c7ed6',anchor:'middle'});
-      {const np=regionsOf(toC(orig)).reduce((a,r)=>a+panelaPorLetra(fromC(r)),0);P.push({t:'text',x:PW/2,y:53.6,s:`PINTAR TAMBÉM ${np} PARAFUSOS CABEÇA PANELA PHILLIPS 5,5x25 (FIXAÇÃO DA LATERAL, 1 A CADA ~330 MM) NA COR DA LETRA`,size:3,bold:true,color:'#c2410c',anchor:'middle'})}
-      const bb=bbox(orig);const BX=30,BY=66,BW=254,BH=46;const s=Math.min(BW/bb.w,BH/bb.h);const dx=BX+(BW-bb.w*s)/2,dy=BY+(BH-bb.h*s)/2;
+      P.push({t:'text',x:PW/2,y:40.6,s:ctx.imp3d&&partes!=='lateral'?'PINTAR A LATERAL E A BORDINHA DA FACE DA LETRA':txt+(partes==='lateral'?' — NÃO PINTAR A FRENTE':''),size:4.6,bold:true,color:'#c2410c',anchor:'middle'});
+      if(ctx.imp3d)P.push({t:'text',x:PW/2,y:48,s:'NÃO PINTAR O INTERNO — CÚPULA BRANCA IMPRESSA (REFLETE O LED). PROTEGER COM FITA.',size:3.6,bold:true,color:'#1c7ed6',anchor:'middle'});
+      else if(!ctx.plana)P.push({t:'text',x:PW/2,y:48,s:'PINTAR O INTERNO DA LETRA DE BRANCO COM PISTOLA',size:4.2,bold:true,color:'#1c7ed6',anchor:'middle'});
+      if(!ctx.plana&&!ctx.imp3d){const np=regionsOf(toC(orig)).reduce((a,r)=>a+panelaPorLetra(fromC(r)),0);P.push({t:'text',x:PW/2,y:53.6,s:`PINTAR TAMBÉM ${np} PARAFUSOS CABEÇA PANELA PHILLIPS 5,5x25 (FIXAÇÃO DA LATERAL, 1 A CADA ~330 MM) NA COR DA LETRA`,size:3,bold:true,color:'#c2410c',anchor:'middle'})}
+      let snap=null;if(!ctx.plana&&typeof l3dCaixa==='function'&&!(types.find(x=>x.id===selType)&&pagesOf(types.find(x=>x.id===selType)).some(p=>p.tipo==='imp3d'))){try{const R3=l3dCaixa({orig,ctx,ledInfo:null,semLed:true});if(R3)snap=l3dSnap(R3)}catch(e){console.error(e)}}
+      const bb=bbox(orig);const BX=30,BY=66,BW=snap?150:254,BH=46;
+      if(snap){const ih=52,iw=ih*snap.w/snap.h,ix=285-iw,iy=58;P.push({t:'rect',x:ix-1,y:iy-1,w:iw+2,h:ih+2,r:1.5,fill:'#ffffff',stroke:'#adb5bd',lw:0.25},{t:'img',x:ix,y:iy,w:iw,h:ih,src:snap.src,fmt:'JPEG'});
+        const ar=(pt,lx,ly,txt,cor)=>{const px=ix+pt[0]*iw,py=iy+pt[1]*ih;P.push({t:'line',x1:lx+8,y1:ly-3.2,x2:px,y2:py,color:cor,w:0.35},{t:'circle',x:px,y:py,r:0.9,fill:cor,stroke:cor,lw:0.2},{t:'rect',x:lx-1,y:ly-3.2,w:txt.length*1.55+3,h:4.6,r:1,fill:'#ffffff',stroke:cor,lw:0.3},{t:'text',x:lx+0.5,y:ly,s:txt,size:2.5,bold:true,color:cor})};
+        ar(snap.interno,ix+iw-43,iy+5,'INTERNO: BRANCO (PISTOLA)','#1c7ed6');if(partes!=='frente')ar(snap.lateral,ix+2,iy+ih-2.5,'LATERAL NA COR','#c2410c');
+        P.push({t:'text',x:ix+2,y:iy+3.6,s:'3D — SEM O ACRÍLICO',size:2.3,bold:true,color:'#555555'})}const s=Math.min(BW/bb.w,BH/bb.h);const dx=BX+(BW-bb.w*s)/2,dy=BY+(BH-bb.h*s)/2;
       const map=p=>p.map(([x,y])=>[dx+(x-bb.x0)*s,dy+(bb.y1-y)*s]);
       // filetada: só a borda (contorno original até a linha interna escolhida)
       const temChapa=pagesOf(t).some(x=>x.tipo==='chapa');const tBorda=temChapa?(selChapa||7):0;
@@ -2060,8 +2310,8 @@ function buildDoc(){
       const areaOf=ps=>Math.abs(ps.reduce((acc,p)=>{let a=0;for(let i=0,j=p.length-1;i<p.length;j=i++)a+=(p[j][0]+p[i][0])*(p[j][1]-p[i][1]);return acc+a/2},0))/1e6;
       const area=areaOf(orig)-(inner.length?areaOf(inner):0);const areaLat=perim*ctx.caixa/1000;
       const nLet=regionsOf(toC(orig)).length;
-      matTable(P,pg,[['ESCALA:',CI.esc],['CÓDIGO:',CI.code||'A DEFINIR'],...(CI.nome?[['NOME DA COR:',CI.nome]]:[]),...(CI.rgb?[['REF.:',CI.esc==='CMYK'?`RGB ${CI.rgb.join(' ')} (aprox.)`:`CMYK ${CI.cmyk.join(' ')} (aprox.)`]]:[]),['ACABAMENTO:',acab],['TINTA:',tinta||'----'],['PINTAR:',{frente_lateral:'FRENTE + LATERAL',lateral:'SOMENTE LATERAL',frente:'SOMENTE FRENTE'}[partes]],['INTERNO:','BRANCO — PISTOLA'],['CAIXA:',`${ctx.caixa/10} CM`],['ÁREA LATERAL:',`${areaLat.toLocaleString('pt-BR',{maximumFractionDigits:2})} M2 (${perim.toLocaleString('pt-BR',{maximumFractionDigits:2})} M x ${ctx.caixa/10} CM)`],...(partes!=='lateral'?[['ÁREA FRENTE:',`${area.toLocaleString('pt-BR',{maximumFractionDigits:2})} M2${tBorda?` (BORDA ${tBorda} MM)`:''}`]]:[])]);
-      {const Ls=ordenaPecas(regionsOf(toC(orig)).map(r=>{const ps=fromC(r);return{ps,bb:bbox(ps)}}));const pc=Ls.map(g=>panelaPorLetra(g.ps));const np=pc.reduce((a,v)=>a+v,0);
+      matTable(P,pg,[['ESCALA:',CI.esc],['CÓDIGO:',CI.code||'A DEFINIR'],...(CI.nome?[['NOME DA COR:',CI.nome]]:[]),...(CI.rgb?[['REF.:',CI.esc==='CMYK'?`RGB ${CI.rgb.join(' ')} (aprox.)`:`CMYK ${CI.cmyk.join(' ')} (aprox.)`]]:[]),['ACABAMENTO:',acab],['TINTA:',tinta||'----'],['PINTAR:',{frente_lateral:'FRENTE + LATERAL',lateral:'SOMENTE LATERAL',frente:'SOMENTE FRENTE'}[partes]],...(ctx.plana?[['ESPESSURA:',`${ctx.caixa} MM`]]:ctx.imp3d?[['INTERNO:','CÚPULA BRANCA — NÃO PINTAR'],['CAIXA:',`${ctx.caixa/10} CM`]]:[['INTERNO:','BRANCO — PISTOLA'],['CAIXA:',`${ctx.caixa/10} CM`]]),['ÁREA LATERAL:',`${areaLat.toLocaleString('pt-BR',{maximumFractionDigits:2})} M2 (${perim.toLocaleString('pt-BR',{maximumFractionDigits:2})} M x ${ctx.caixa/10} CM)`],...(partes!=='lateral'?[['ÁREA FRENTE:',`${area.toLocaleString('pt-BR',{maximumFractionDigits:2})} M2${tBorda?` (BORDA ${tBorda} MM)`:''}`]]:[])]);
+      if(!ctx.plana&&!ctx.imp3d){const Ls=ordenaPecas(regionsOf(toC(orig)).map(r=>{const ps=fromC(r);return{ps,bb:bbox(ps)}}));const pc=Ls.map(g=>panelaPorLetra(g.ps));const np=pc.reduce((a,v)=>a+v,0);
        const perE=Ls.reduce((a,g)=>a+chainLen(g.ps[0].concat([g.ps[0][0]])),0)/1000;const X0=146,Y0=114;
        P.push({t:'rect',x:X0,y:Y0,w:139,h:34,r:2,fill:'#fff4e6',stroke:'#e8590c',lw:0.35});
        P.push({t:'text',x:X0+3,y:Y0+5,s:'PARAFUSOS DA LATERAL — PINTAR NA COR DA LETRA',size:2.8,bold:true,color:'#c2410c'});
@@ -2139,7 +2389,9 @@ function buildDoc(){
     const all=lines.flatMap(l=>l.polys);const draw=all.length?all:orig;
     const bb=bbox(draw);
     const ref=lines.filter(l=>l.polys.length).sort((a,c)=>c.offset-a.offset)[0];const rb=ref?bbox(ref.polys):bb;
-    if(/PVC/i.test(pg.material||'')&&lines.length&&lines[0].polys.length){const pc=lines.find(l=>/EXTERNO/i.test(l.legenda||''))||lines[0];
+    if(pg.chapaPlana&&lines.length){const pin=(pt,poly)=>{let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const [xi,yi]=poly[i],[xj,yj]=poly[j];if((yi>pt[1])!==(yj>pt[1])&&pt[0]<(xj-xi)*(pt[1]-yi)/(yj-yi)+xi)c=!c}return c};
+      lines.filter(l=>/EXTERNO/i.test(l.legenda||'')).forEach(l=>{const hol=[],out=[];l.polys.forEach(p=>{const n=l.polys.filter(q=>q!==p&&pin(p[0],q)).length;(n%2?hol:out).push(p)});if(hol.length){l.polys=out;lines.push({cor:RC['CORTE INTERNO'],legenda:'CORTE INTERNO (miolos das letras)',offset:l.offset,noOff:true,polys:hol})}})}
+    else if(/PVC/i.test(pg.material||'')&&lines.length&&lines[0].polys.length){const pc=lines.find(l=>/EXTERNO/i.test(l.legenda||''))||lines[0];
       if(!furosDoc){furosDoc=furosPVC(pc.polys,Math.max(0,-2*(pc.offset||0)));pvcPolys=pc.polys}
       // miolos das letras (contornos internos) do PVC saem como CORTE INTERNO
       {const pin=(pt,poly)=>{let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const [xi,yi]=poly[i],[xj,yj]=poly[j];if((yi>pt[1])!==(yj>pt[1])&&pt[0]<(xj-xi)*(pt[1]-yi)/(yj-yi)+xi)c=!c}return c};
@@ -2190,7 +2442,7 @@ function buildDoc(){
    L.forEach(g=>g.per=g.ps.reduce((s,p)=>s+chainLen(p.concat([p[0]])),0));
    const perTot=L.reduce((s,g)=>s+g.per,0);const hMax=Math.max(...L.map(g=>g.bb.h));
    // destaques
-   const boxes=[['MODELO DA LETRA',t.nome,110],['Nº DE PEÇAS',String(L.length),32],['ALTURA DA LETRA',`${Math.round(hMax)} mm`,38],['CAIXA',`${ctx.caixa} mm`,28],['PERÍMETRO TOTAL',`${(perTot/1000).toLocaleString('pt-BR',{maximumFractionDigits:2})} m`,45]];
+   const boxes=[['MODELO DA LETRA',t.nome,110],['Nº DE PEÇAS',String(L.length),32],['ALTURA DA LETRA',`${Math.round(hMax)} mm`,38],[ctx.plana?'ESPESSURA':'CAIXA',`${ctx.caixa} mm`,28],['PERÍMETRO TOTAL',`${(perTot/1000).toLocaleString('pt-BR',{maximumFractionDigits:2})} m`,45]];
    let bx=12;boxes.forEach(([lb,v,w])=>{P.push({t:'rect',x:bx,y:25,w,h:17,r:2,fill:'#fff0f6',stroke:'#c2255c',lw:0.5});
      P.push({t:'text',x:bx+w/2,y:30,s:lb,size:2.6,bold:true,color:'#c2255c',anchor:'middle'});
      if(lb==='MODELO DA LETRA'&&v.length*3.6*0.52>w-4){const ws=v.split(' ');let l1='';while(ws.length&&(l1+' '+ws[0]).trim().length*3.1*0.52<w-4)l1=(l1+' '+ws.shift()).trim();
@@ -2283,7 +2535,7 @@ function buildDoc(){
    matTable(P,{},[['MATERIAL:','PAPEL KRAFT'],['MOLDE:',`${fmt(RW)} x ${fmt(RH)} MM`],['ARTE:',`${fmt(bb.w)} x ${fmt(bb.h)} MM`],['MARGEM:','50 MM EM CADA LADO'],...(furosDoc?[['FUROS:',`${furosDoc.length} Ø${FURO_D} = PVC (MARCAR/FURAR)`]]:[]),['ESCALA:','1:1 (TAMANHO REAL)']]);
    P.push({t:'text',x:284,y:25,s:`ESCALA DA FOLHA 1:${Math.round(1/s)} — ARQUIVO DO MOLDE EM 1:1`,size:2.4,bold:true,color:'#2f6fa8',anchor:'end'});
    pages.splice(1,0,P);}
-  paginasFinais(pages,null,ctx,prodLetras(t,ctx,orig,defs,ledInfo,furosDoc,nests));
+  {const pr=prodLetras(t,ctx,orig,defs,ledInfo,furosDoc,nests);if(!ctx.plana&&!pagesOf0(t).some(p=>p.tipo==='imp3d'))pr.exp3d={orig,info,ledInfo};paginasFinais(pages,null,ctx,pr)}
   if(!FOOT_SKIP){numeraSetores(pages);pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length))}
   pages.forEach((P,i)=>{pages[i]=scaleP(P,K)});
   return {pages,info,ctx,W:b.w,H:b.h,escala,ledInfo,K,nests,orig,furos:furosDoc};
@@ -3899,6 +4151,7 @@ function folhasQualidade(ctx,prod){const pages=[];const V=(prod.volumes||[]).con
 
 function paginasFinais(pages,tags,ctx,prod){try{
   const a=folhaInstalacao(ctx,prod);pages.push(a);if(tags)tags.push('INSTALAÇÃO');
+  if(prod.exp3d&&typeof folhaExplodida==='function'){try{const ex=folhaExplodida(ctx,prod);if(ex){pages.push(ex);if(tags)tags.push('INSTALAÇÃO')}}catch(e){console.error('vista explodida',e)}}
   const temLig=prod.tipo==='letra'&&prod.circ&&prod.circ.lista&&prod.circ.lista.length&&prod.letras&&prod.letras[0]&&prod.letras[0].ps;
   if(!temLig&&prod.tipo==='letra'&&prod.letras&&prod.letras.length&&prod.letras[0].ps){const lg=folhaLogoInst(ctx,prod);if(lg){pages.push(lg);if(tags)tags.push('INSTALAÇÃO')}}
   if(prod.tipo==='letra'&&prod.circ&&prod.circ.lista&&prod.circ.lista.length&&prod.letras&&prod.letras[0].ps){['INSTALAÇÃO','ELÉTRICA'].forEach(st=>{try{const q=folhaLigacao(ctx,prod,st);if(q){pages.push(q);if(tags)tags.push(st)}}catch(e){console.error('ligação',e)}})}
@@ -4176,7 +4429,7 @@ function matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L){const N=[];const temLed=
       N.push({k:`pvc|${es}`,desc:`PVC expandido ${es} mm 1,22x2,44 m`,m2,un:'un',uso:`fundo — aproveitamento ${fr(m2)} m²`,busca:{must:['PVC EXPANDIDO',[`${es.padStart(2,'0')}MM`,` ${es}MM`]]}})}
     else{areaGalv=(B.areaPecas||0)/1e6;N.push({k:'galv20',desc:`Chapa galvanizada 20 (0,95 mm) ${B.h/1000}x${B.w/1000} m — face`,m2,un:'un',uso:`face/filete — aproveitamento ${fr(m2)} m²`,busca:{must:['CHAPA GALVANIZADA','(20)',sz]}})}});
   // lateral em chapa 26: tiras com a altura da caixa pelo perímetro das letras originais, na chapa 3000 x 1200
-  let areaLat=0;const pint=defs.find(p=>p.tipo==='pintura');const temChapa=defs.some(p=>p.tipo==='chapa')||!!pint;
+  let areaLat=0;const pint=defs.find(p=>p.tipo==='pintura');const plana=defs.find(p=>p.chapaPlana);const temChapa=!plana&&!defs.some(p=>p.tipo==='imp3d')&&(defs.some(p=>p.tipo==='chapa')||!!pint);
   if(temChapa&&L&&L.length){const h=(+ctx.caixa||80)+MPP.latExtra;const per=[];L.forEach(g=>g.ps.forEach(p=>{let s2=0;p.forEach((q,i)=>{const r=p[(i+1)%p.length];s2+=Math.hypot(r[0]-q[0],r[1]-q[1])});per.push(s2)}));
     const tot=per.reduce((a,v)=>a+v,0);areaLat=tot*(+ctx.caixa||80)/1e6;
     const rows=[];per.slice().sort((a,b)=>b-a).forEach(len=>{while(len>3000){rows.push(3000);len-=3000}const r=rows.findIndex(u=>u+len<=3000);if(r<0)rows.push(len);else rows[r]+=len});
@@ -4185,7 +4438,11 @@ function matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L){const N=[];const temLed=
     if(FITA){const mt=Math.ceil(tot/1000*1.05*10)/10;N.push({k:'fitaaco|'+(+ctx.caixa||80),desc:`Fita aço B. carbono GN 0,50 (chapa 26) x ${+ctx.caixa||80} mm — lateral`,q:mt,un:'m',uso:`lateral: perímetro ${f2(tot/1000)} m + 5% de perda`,busca:{must:['FITA ACO B.CARBONO',`X${+ctx.caixa||80}MM`]}})}
     else N.push({k:'galv26|3000x1200',desc:'Chapa galvanizada 26 (0,50 mm) — lateral',m2,un:'un',uso:`lateral: perímetro ${f2(tot/1000)} m x ${f0(h)} mm em tiras de 3.000`,busca:{must:['CHAPA GALVANIZADA','(26)',['1200 X 3000','3000 X 1200','1200X3000']]}})}
   // pintura: face/filete + lateral
-  if(pint||areaGalv>0){const soLat=pint&&pint.partes==='lateral';N.push(...needsTinta(soLat?areaLat:areaGalv+areaLat,soLat?'lateral das letras':'letras (face + lateral)'))}
+  const imp=defs.some(p=>p.tipo==='imp3d');
+  if((plana||imp)&&pint&&L&&L.length){const es=plana?+(String(plana.espessura||'').match(/\d+/)||['10'])[0]:(+(ctx&&ctx.caixa)||80);const ar=p=>{let A=0;p.forEach((q,i)=>{const r=p[(i+1)%p.length];A+=q[0]*r[1]-r[0]*q[1]});return Math.abs(A/2)};
+    let face=0,per=0;L.forEach(g=>{const a=g.ps.map(ar).sort((x,y)=>y-x);face+=a[0]-a.slice(1).reduce((m,v)=>m+v,0);g.ps.forEach(p=>p.forEach((q,i)=>{const r=p[(i+1)%p.length];per+=Math.hypot(r[0]-q[0],r[1]-q[1])}))});
+    const lat=per*es/1e6,fr=plana?face/1e6:per*4/1e6;const pt=pint.partes||'frente_lateral';const A=pt==='frente'?fr:pt==='lateral'?lat:fr+lat;N.push(...needsTinta(A,pt==='frente'?'frente das letras de chapa':pt==='lateral'?'lateral das letras de chapa':(plana?'letras de chapa (frente + lateral)':'letras 3D: parte externa (lateral + borda da face)')))}
+  else if(pint||areaGalv>0){const soLat=pint&&pint.partes==='lateral';N.push(...needsTinta(soLat?areaLat:areaGalv+areaLat,soLat?'lateral das letras':'letras (face + lateral)'))}
   if(temLed){const P=ledInfo.P||{};const wt=+P.watts||0.72;const t=String(ctx.led||'').match(/\d{4,5}/);const tk=t?t[0]:'6500';const ws=String(wt).replace('.',',');
     if(ledInfo.fitaM>0)N.push({k:`fitaled|${tk}`,desc:`Fita LED zig-zag 10 W/m 12 V ${tk}K`,q:Math.round(ledInfo.fitaM*100)/100,un:'m',uso:'letras onde o módulo não cabe (linha interna, +10%)',busca:{must:['FITA LED FLEXIVEL ZIGZAG',`${tk}K`]}});
     N.push({k:`led|${tk}|${wt}`,desc:`Módulo LED ${tk}K ${ws} W 12 V`,q:ledInfo.mods.length,un:'un',uso:'iluminação (configuração do sistema)',busca:{must:['MODULO LED',`${tk}K`,[`${(+wt).toFixed(2)}W`,`${+wt}W`]],want:['3P','VINILSUL']}});
@@ -4196,7 +4453,7 @@ function matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L){const N=[];const temLed=
   if(/filetad/i.test(ctx.tipo||'')&&L&&L.length){let per=0;L.forEach(g=>g.ps.forEach(p=>{p.forEach((q,i)=>{const r=p[(i+1)%p.length];per+=Math.hypot(r[0]-q[0],r[1]-q[1])})}));const pm=per/1000;
     N.push({k:'let|ig110',desc:'Fita dupla face 3M VHB IG110 9 mm (rolo 20 m)',q:Math.round(pm/20*100)/100,un:'un',uso:`frente: acrílico no filete — perímetro ${f2(pm)} m`,busca:{must:['IG110','09MM']}});
     N.push({k:'let|espuma116',desc:'Espuma autoadesiva 11 x 6 mm (rolo 10 m)',q:Math.round(pm/10*100)/100,un:'un',uso:`fundo: vedação no PVC — perímetro ${f2(pm)} m`,busca:{must:['ESPUMA AUTOADESIVA','11X6']}})}
-  if(np)N.push({k:'let|panela',desc:'Parafuso cabeça panela (lateral)',q:np,un:'un',uso:'lateral das letras',busca:{must:['CABECA PANELA','2.9X6.5']}});
+  if(np&&!plana)N.push({k:'let|panela',desc:'Parafuso cabeça panela (lateral)',q:np,un:'un',uso:'lateral das letras',busca:{must:['CABECA PANELA','2.9X6.5']}});
   return N}
 function matEstrutura(L,un){const g={};(L||[]).forEach(r=>{if(!/tubo|metalon|barra/i.test((r.tipo||'')+' '+(r.nome||'')))return;const k=(r.perfil||'')+'|'+(r.parede||'');(g[k]=g[k]||[]);for(let i=0;i<(r.q||1)*un;i++)g[k].push(r.len||0)});
   return Object.entries(g).map(([k,lens])=>{const [p,w]=k.split('|');return needMetalon(p,w,mpBarras(lens),'estrutura')})}
@@ -4357,9 +4614,9 @@ function nomeCor(hex){const r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.sli
   if(h<15||h>=345)return'vermelho';if(h<40)return'laranja';if(h<65)return'amarelo';if(h<160)return'verde';if(h<190)return'ciano';if(h<255)return'azul';if(h<290)return'roxo';if(h<345)return'rosa';return'vermelho'}
 
 /* ---------- leitura do PDF: cada forma preenchida é uma peça ---------- */
-$('#dPdf').onchange=async e=>{const f=e.target.files[0];if(!f)return;await dLerPdf(f.name,await f.arrayBuffer());e.target.value=''};
+$('#dPdf').onchange=async e=>{const f=e.target.files[0];if(!f)return;const buf=await f.arrayBuffer();e.target.value='';if(/\.(stl|obj)$/i.test(f.name)){await m3dAbrirArquivo(f.name,buf);return}await dLerPdf(f.name,buf)};
 async function dLerPdf(fname,buf){const f={name:fname};$('#dDropTxt').textContent=f.name;$('#dInfo').innerHTML='<div class="msg ok">Lendo o desenho…</div>';
-  try{const r=await readPdf(buf);
+  try{const r=ehDxf(fname)?await readDxf(buf):await readPdf(buf);if(r.obj){await m3dAbrirArquivo(fname,buf);return}
     let pcs=r.paths.map((p,i)=>{const poly=flattenPaths([p],1,0.05)[0];if(!poly)return null;const b=bbox([poly]);return{cor:p.fill||p.stroke||'#000000',b,poly,soTraco:!p.fill,holes:[]}}).filter(x=>x&&x.b.w>0.5&&x.b.h>0.5);
     // contorno duplo (linha de fora + linha de dentro da mesma cor): vira UMA peça vazada, sem preencher o miolo
     {const dentro=(q,P)=>{let c=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const [xi,yi]=P[i],[xj,yj]=P[j];if((yi>q[1])!==(yj>q[1])&&q[0]<(xj-xi)*(q[1]-yi)/(yj-yi)+xi)c=!c}return c};
@@ -4624,11 +4881,16 @@ function classifica(g,un){const [L,a,b]=g.d.map(x=>x*un);const A=arred(a),Bm=arr
   return{tipo:'outro',perfil:`${pf(arred(L))}x${pf(A)}x${pf(Bm)}`,nome:`Peça ${pf(arred(L))} x ${pf(A)} x ${pf(Bm)}`,comp:L,parede:''}}
 // ---------- carregar ----------
 let mBytes=null;
-$('#mFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;const buf=await f.arrayBuffer();e.target.value='';
-  // PDF é desenho 2D: vai para "Estrutura por desenho", que monta o 3D a partir do PDF + descrição
-  if(/\.pdf$/i.test(f.name)||f.type==='application/pdf'){if(typeof itemAtual!=='undefined'&&itemAtual&&itemAtual.tipo==='modelo3d'&&itemAtual.novo){itemAtual.tipo='estrutura'}irAba('testeiras');setModo('desenho');await dLerPdf(f.name,buf);
-    $('#dInfo').insertAdjacentHTML('afterbegin','<div class="msg warn">PDF é um desenho 2D — abri em <b>Estrutura por desenho</b>: explique o que é cada cor e toque em <b>Montar 3D</b>.</div>');$('#dCard').scrollIntoView({behavior:'smooth'});return}
-  await mCarrega(f.name,buf)};
+$('#mFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;const buf=await f.arrayBuffer();e.target.value='';await m3dAbrirArquivo(f.name,buf,f.type)};
+// arquivo 3D único: STL/OBJ (ou DXF com faces 3D) → modelo 3D; PDF/DXF 2D → estrutura por desenho
+async function m3dAbrirArquivo(nome,buf,tipoMime){const f={name:nome,type:tipoMime||''};
+  if(ehDxf(nome)){let r;try{r=await readDxf(buf)}catch(err){irAba('modelo');$('#mInfo').innerHTML=`<div class="msg err">Não consegui ler o DXF: ${esc(err.message)}</div>`;return}
+    if(r.obj){if(typeof itemAtual!=='undefined'&&itemAtual&&itemAtual.tipo==='estrutura'&&itemAtual.novo)itemAtual.tipo='modelo3d';irAba('modelo');await mCarrega(nome.replace(/\.dxf$/i,'.obj'),new TextEncoder().encode(r.obj).buffer);return}}
+  if(/\.(stl|obj)$/i.test(nome)){if(typeof itemAtual!=='undefined'&&itemAtual&&itemAtual.tipo==='estrutura'&&itemAtual.novo)itemAtual.tipo='modelo3d';if(abaAtual()!=='modelo')irAba('modelo');await mCarrega(nome,buf);return}
+  // PDF/DXF 2D é desenho: vai para "Estrutura por desenho", que monta o 3D a partir do desenho + descrição
+  if(/\.(pdf|dxf)$/i.test(f.name)||f.type==='application/pdf'){if(typeof itemAtual!=='undefined'&&itemAtual&&itemAtual.tipo==='modelo3d'&&itemAtual.novo){itemAtual.tipo='estrutura'}irAba('testeiras');setModo('desenho');try{pedBarRender()}catch(err){}await dLerPdf(f.name,buf);
+    $('#dInfo').insertAdjacentHTML('afterbegin','<div class="msg warn">Desenho 2D (PDF/DXF) — abri em <b>Estrutura por desenho</b>: explique o que é cada cor e toque em <b>Montar 3D</b>.</div>');$('#dCard').scrollIntoView({behavior:'smooth'});return}
+  irAba('modelo');$('#mInfo').innerHTML='<div class="msg err">Use um arquivo .STL, .OBJ, .DXF ou .PDF.</div>'}
 async function mCarrega(nome,buf,manterUn){const f={name:nome};$('#mDropTxt').textContent=f.name;$('#mInfo').innerHTML='<div class="msg ok">Lendo o modelo…</div>';
   try{mBytes=new Uint8Array(buf.slice(0));const ext=f.name.toLowerCase().split('.').pop();
     const objs=ext==='obj'?parseOBJ(new TextDecoder().decode(buf)):ext==='stl'?parseSTL(buf):null;if(!objs)throw new Error('use um arquivo .STL ou .OBJ');
@@ -4723,46 +4985,49 @@ function mFolhas(){const un=Math.max(1,Math.round(num($('#mQt').value))||1);cons
   const tabela=(P,rows,ty)=>{let x=12;cols.forEach(([h,w])=>{P.push({t:'rect',x,y:ty,w,h:rh,fill:'#e6e6e6',stroke:'#000000',lw:0.2},{t:'text',x:x+w/2,y:ty+3.3,s:h,size:2.2,bold:true,color:'#000000',anchor:'middle'});x+=w});
     rows.forEach((r,i)=>{const yy=ty+rh*(i+1);let x=12;const v=[String(r.item),'',r.nome,r.tipo==='chapa'?'—':r.perfil.toUpperCase(),r.parede||'—',r.tipo==='chapa'?'—':f1(r.len),String(r.q),r.tipo==='chapa'?'—':f1(r.total),r.tipo==='chapa'?r.secao+' mm':''];
       cols.forEach(([h,w],k)=>{P.push({t:'rect',x,y:yy,w,h:rh,fill:k===1||k===0?r.cor:'#ffffff',stroke:'#000000',lw:0.2});if(k!==1)P.push({t:'text',x:k===2?x+1.2:x+w/2,y:yy+3.3,s:fit(v[k],w-2,2.3),size:2.3,bold:k===5,color:k===0&&escuro(r.cor)?'#ffffff':'#000000',anchor:k===2?undefined:'middle'});x+=w})});return ty+rh*(rows.length+1)};
-  // MONTAGEM
-  {const P=[];frame(P,ctx,pg);P.push({t:'text',x:18,y:31,s:`${un}X`,size:7,bold:true,italic:true,color:'#000000'});
-   P.push({t:'text',x:PW/2,y:30,s:'MONTAGEM — MODELO 3D',size:4.2,bold:true,color:'#000000',anchor:'middle'});
-   const cabe=118+rh*(L.length+1)<=166;const R=cabe?{x:20,y:36,w:180,h:74}:{x:20,y:36,w:190,h:116};
-   const D=desenhaPecas(P,mPecas,'iso',R);
-   mPecas.forEach(p=>{const [x,y]=D.M(p.obb.c);P.push({t:'circle',x,y,r:1.8,fill:'#ffffff',stroke:'#000000',lw:0.2},{t:'text',x,y:y+0.8,s:String(p.item),size:2,bold:true,color:'#000000',anchor:'middle'})});
-   P.push({t:'text',x:R.x+R.w/2,y:R.y+R.h+4,s:`CONJUNTO: ${f0(bb.x1-bb.x0)} (L) x ${f0(bb.y1-bb.y0)} (A) x ${f0(bb.z1-bb.z0)} (P) mm`,size:2.8,bold:true,color:COR_DIM,anchor:'middle'});
-   legendaSerr(P,220,cabe?84:137,66,L.map(r=>r.perfil));
-   if(cabe){const ye=tabela(P,L,118);P.push({t:'text',x:12,y:ye+4,s:`Quantidades por unidade (total para ${un} un.: multiplicar por ${un}). Parede medida na geometria do modelo — confira.`,size:2.3,color:'#555555'})}
+  // MONTAGEM — vista isométrica grande (a tabela vai junto só quando é curta; senão, folha própria)
+  const W=bb.x1-bb.x0,H=bb.y1-bb.y0,Dp=bb.z1-bb.z0;const conj=`CONJUNTO: ${f0(W)} (L) x ${f0(H)} (A) x ${f0(Dp)} (P) mm`;
+  const balao=(P,D,sz)=>mPecas.forEach(p=>{const [x,y]=D.M(p.obb.c);P.push({t:'circle',x,y,r:sz,fill:'#ffffff',stroke:'#000000',lw:0.2},{t:'text',x,y:y+sz*0.45,s:String(p.item),size:sz*1.1,bold:true,color:'#000000',anchor:'middle'})});
+  {const P=[];frame(P,ctx,pg);P._ref=null;P.push({t:'text',x:18,y:31,s:`${un}X`,size:7,bold:true,italic:true,color:'#000000'});
+   P.push({t:'text',x:PW/2,y:30,s:'MONTAGEM — VISTA ISOMÉTRICA',size:4.2,bold:true,color:'#000000',anchor:'middle'});
+   const curta=L.length<=5;const yT=166-rh*(L.length+1)-6;const R=curta?{x:16,y:36,w:196,h:yT-36-8}:{x:14,y:36,w:200,h:124};
+   const D=desenhaPecas(P,mPecas,'iso',R);balao(P,D,mPecas.length>40?1.4:1.9);
+   P.push({t:'text',x:R.x+R.w/2,y:R.y+R.h+4,s:conj,size:3,bold:true,color:COR_DIM,anchor:'middle'});
+   legendaSerr(P,220,curta?Math.min(137,yT-30):137,66,L.map(r=>r.perfil));
+   P.push({t:'text',x:284,y:25,s:'VISTA ISOMÉTRICA — SEM ESCALA',size:2.4,bold:true,color:'#2f6fa8',anchor:'end'});
+   if(curta){const ye=tabela(P,L,yT);P.push({t:'text',x:12,y:ye+4,s:`Quantidades por unidade (total para ${un} un.: multiplicar por ${un}). Parede medida na geometria do modelo — confira.`,size:2.3,color:'#555555'})}
    pages.push(P);tags.push('MONTAGEM');
-   if(!cabe){let i=0;const per=Math.floor((160-36)/rh)-1;while(i<L.length){const Q=[];frame(Q,ctx,pg);Q.push({t:'text',x:PW/2,y:30,s:'LISTA DE CORTE',size:4.2,bold:true,color:'#000000',anchor:'middle'});tabela(Q,L.slice(i,i+per),36);i+=per;pages.push(Q);tags.push('LISTA')}}}
-  // VISTAS com cotas: frente, lateral e topo
-  {const P=[];frame(P,ctx,pg);P.push({t:'text',x:PW/2,y:30,s:'VISTAS E MEDIDAS',size:4.2,bold:true,color:'#000000',anchor:'middle'});
-   P._ref=null;// sem a imagem de referência aqui: ela encolhia a folha toda
-   const W=bb.x1-bb.x0,H=bb.y1-bb.y0,Dp=bb.z1-bb.z0;
-   // escolhe o arranjo que deixa as vistas maiores (lado a lado, em L ou empilhado)
-   const AX=24,AY=44,AW=214-AX,AH=164-AY,mx=26,my=24;
-   const ops=[{n:'linha',w:W+Dp+W,h:Math.max(H,Dp),gx:3*mx,gy:my},{n:'L',w:W+Dp,h:H+Dp,gx:2*mx,gy:2*my},{n:'coluna',w:Math.max(W,Dp),h:2*H+Dp,gx:mx,gy:3*my}].map(o=>({...o,s:Math.min((AW-o.gx)/(o.w||1),(AH-o.gy)/(o.h||1))}));
-   // peça muito alta: testa também as vistas VIRADAS 90° (de lado) — só usa se ficar bem maior
-   const rops=[{n:'rcol',w:Math.max(H,W),h:W+Dp+Dp,gx:mx,gy:3*my},{n:'rlado',w:H+W,h:Math.max(W+Dp,Dp),gx:2*mx,gy:2*my}].map(o=>({...o,s:Math.min((AW-o.gx)/(o.w||1),(AH-o.gy)/(o.h||1))}));
-   let op=ops.reduce((a,b)=>b.s>a.s?b:a);const rb=rops.reduce((a,b)=>b.s>a.s?b:a);if(rb.s>op.s*1.15)op=rb;const s=op.s;const x0=AX+12,y0=AY+6;
-   const vistas=op.n==='rcol'?[['frenteR',{x:x0,y:y0,w:H*s,h:W*s}],['lateralR',{x:x0,y:y0+W*s+my,w:H*s,h:Dp*s}],['topoR',{x:x0,y:y0+(W+Dp)*s+2*my,w:Dp*s,h:W*s}]]
-     :op.n==='rlado'?[['frenteR',{x:x0,y:y0,w:H*s,h:W*s}],['lateralR',{x:x0,y:y0+W*s+my,w:H*s,h:Dp*s}],['topo',{x:x0+H*s+mx,y:y0,w:W*s,h:Dp*s}]]
-     :op.n==='linha'?[['frente',{x:x0,y:y0,w:W*s,h:H*s}],['lateral',{x:x0+W*s+mx,y:y0,w:Dp*s,h:H*s}],['topo',{x:x0+(W+Dp)*s+2*mx,y:y0,w:W*s,h:Dp*s}]]
-     :op.n==='L'?[['frente',{x:x0,y:y0,w:W*s,h:H*s}],['lateral',{x:x0+W*s+mx,y:y0,w:Dp*s,h:H*s}],['topo',{x:x0,y:y0+H*s+my,w:W*s,h:Dp*s}]]
-     :[['frente',{x:x0,y:y0,w:W*s,h:H*s}],['lateral',{x:x0,y:y0+H*s+my,w:Dp*s,h:H*s}],['topo',{x:x0,y:y0+2*H*s+2*my,w:W*s,h:Dp*s}]];
+   if(!curta){let i=0;const per=Math.floor((156-36)/rh)-1;while(i<L.length){const Q=[];frame(Q,ctx,pg);Q._ref=null;Q.push({t:'text',x:PW/2,y:30,s:'LISTA DE PEÇAS',size:4.2,bold:true,color:'#000000',anchor:'middle'});const ye=tabela(Q,L.slice(i,i+per),36);i+=per;
+     if(i>=L.length)Q.push({t:'text',x:12,y:ye+4,s:`Quantidades por unidade (total para ${un} un.: multiplicar por ${un}). Parede medida na geometria do modelo — confira.`,size:2.3,color:'#555555'});pages.push(Q);tags.push('LISTA')}}}
+  // VISTAS com medidas: frontal, lateral e superior — cada uma o maior possível; juntas na mesma folha só se não encolherem
+  {const EXT={frente:[W,H],lateral:[Dp,H],topo:[W,Dp]},NOME={frente:'VISTA FRONTAL',lateral:'VISTA LATERAL',topo:'VISTA SUPERIOR'};
+   const AX=34,AY=46,AW=PW-AX-30,AH=150-AY;const mx=34,my=30;
+   const fit1=(nm,aw,ah)=>{const [w,h]=EXT[nm];const a=Math.min(aw/(w||1),ah/(h||1)),b=Math.min(aw/(h||1),ah/(w||1));return b>a*1.15?{s:b,rot:true}:{s:a,rot:false}};
+   const so={frente:fit1('frente',AW,AH),lateral:fit1('lateral',AW,AH),topo:fit1('topo',AW,AH)};
    const junta=(arr,tol)=>{const a=arr.slice().sort((p,q)=>p-q);const out=[];a.forEach(v=>{if(!out.length||v-out[out.length-1]>tol)out.push(v)});return out};
-   vistas.forEach(([nmV,R])=>{if(R.y+R.h>167)return;const nm=nmV.replace(/R$/,''),rot=nmV!==nm;const D=desenhaPecas(P,mPecas,nmV,R,{s});
-     if(rot){P.push({t:'rect',x:R.x-11,y:R.y-10,w:R.w+22,h:R.h+(nm==='frente'?27:20),stroke:'#e8590c',lw:0.35,r:1.5})}
-     const X=u=>D.ox+(u-D.bx0)*s,Y=v=>D.oy+(D.by1-v)*s;const fs=2.8;
-     cotaH(P,X(D.bx0),X(D.bx1),Y(D.by1)-6,Y(D.by1),fmm(D.bx1-D.bx0),fs);cotaV(P,X(D.bx0)-7,Y(D.by1),Y(D.by0),X(D.bx0),fmm(D.by1-D.by0),fs);
-     // correntes pelas bordas das peças (só nesta vista)
+   const vista=(P,nm,rot,R,s)=>{const nmV=rot?nm+'R':nm;const D=desenhaPecas(P,mPecas,nmV,R,{s});const X=u=>D.ox+(u-D.bx0)*s,Y=v=>D.oy+(D.by1-v)*s;const fs=3.2;
+     // medida total
+     cotaH(P,X(D.bx0),X(D.bx1),Y(D.by1)-8,Y(D.by1),fmm(D.bx1-D.bx0),fs);cotaV(P,X(D.bx0)-9,Y(D.by1),Y(D.by0),X(D.bx0),fmm(D.by1-D.by0),fs);
+     // correntes pelos eixos/bordas das peças (detalhe), embaixo e à direita
      const rects=mPecas.map(p=>{const c=cantos(p.obb).map(D.pr);return{x0:Math.min(...c.map(q=>q[0])),x1:Math.max(...c.map(q=>q[0])),y0:Math.min(...c.map(q=>q[1])),y1:Math.max(...c.map(q=>q[1]))}});
-     const verts=rects.filter(r=>(r.y1-r.y0)>(r.x1-r.x0)*1.5);const xs=junta([D.bx0,...verts.map(r=>(r.x0+r.x1)/2),D.bx1],15);
-     if(xs.length>2&&nm!=='lateral')for(let k=0;k+1<xs.length;k++)cotaH(P,X(xs[k]),X(xs[k+1]),Y(D.by0)+6,Y(D.by0),fmm(xs[k+1]-xs[k]),fs*0.85);
-     const ys=junta(rects.flatMap(r=>[r.y0,r.y1]),8).reverse();if(ys.length>2&&nm==='frente')for(let k=0;k+1<ys.length;k++)cotaV(P,X(D.bx1)+7,Y(ys[k]),Y(ys[k+1]),X(D.bx1),fmm(ys[k]-ys[k+1]),fs*0.85);
-     if(nm==='frente')mPecas.forEach(p=>{const [x,y]=D.M(p.obb.c);P.push({t:'circle',x,y,r:1.7,fill:'#ffffff',stroke:'#000000',lw:0.2},{t:'text',x,y:y+0.8,s:String(p.item),size:1.9,bold:true,color:'#000000',anchor:'middle'})});
-     P.push({t:'text',x:R.x+R.w/2,y:Y(D.by0)+(nm==='lateral'?6:13),s:{frente:'FRENTE',lateral:'LATERAL',topo:'TOPO'}[nm]+(rot?' — VIRADA 90° (DESENHO DE LADO)':''),size:3,bold:true,color:rot?'#e8590c':'#000000',anchor:'middle'})});
-   legendaSerr(P,220,137,66,L.map(r=>r.perfil));P.push({t:'text',x:284,y:25,s:`ESCALA 1:${Math.round(1/s)} — MEDIDAS EM MM`,size:2.4,bold:true,color:'#2f6fa8',anchor:'end'});
-   pages.push(P);tags.push('VISTAS')}
+     const tolX=Math.max(5,(D.bx1-D.bx0)*0.004),tolY=Math.max(5,(D.by1-D.by0)*0.004);
+     const verts=rects.filter(r=>(r.y1-r.y0)>(r.x1-r.x0)*1.5);const xs=junta([D.bx0,...verts.flatMap(r=>[r.x0,r.x1]),D.bx1],tolX);
+     const hors=rects.filter(r=>(r.x1-r.x0)>(r.y1-r.y0)*1.5);const ys=junta([D.by0,...hors.flatMap(r=>[r.y0,r.y1]),D.by1],tolY).reverse();
+     const minLab=6/s;// não escreve cota menor que cabe
+     if(xs.length>2&&xs.length<46){for(let k=0;k+1<xs.length;k++){const d=xs[k+1]-xs[k];cotaH(P,X(xs[k]),X(xs[k+1]),Y(D.by0)+8,Y(D.by0),d>=minLab?fmm(d):'',fs*0.8,'#c2255c')}}
+     if(ys.length>2&&ys.length<40){for(let k=0;k+1<ys.length;k++){const d=ys[k]-ys[k+1];cotaV(P,X(D.bx1)+9,Y(ys[k]),Y(ys[k+1]),X(D.bx1),d>=minLab?fmm(d):'',fs*0.8,'#c2255c')}}
+     if(nm==='frente')balao(P,D,1.9);
+     const ly=Y(D.by0)+(xs.length>2?17:9);P.push({t:'text',x:R.x+R.w/2,y:Math.min(ly,166),s:NOME[nm]+(rot?' — VIRADA 90° (DESENHO DE LADO)':''),size:3.4,bold:true,color:rot?'#e8590c':'#000000',anchor:'middle'});
+     if(rot)P.push({t:'rect',x:X(D.bx0)-14,y:Y(D.by1)-12,w:(D.bx1-D.bx0)*s+30,h:Math.min(ly,166)-Y(D.by1)+15,stroke:'#e8590c',lw:0.35,r:1.5});return D};
+   const folha=(titulo,lista,s)=>{const P=[];frame(P,ctx,pg);P._ref=null;P.push({t:'text',x:PW/2,y:30,s:titulo,size:4.2,bold:true,color:'#000000',anchor:'middle'});
+     P.push({t:'text',x:284,y:25,s:`ESCALA 1:${Math.round(1/s)} — MEDIDAS EM MM — ${conj.replace('CONJUNTO: ','')}`,size:2.4,bold:true,color:'#2f6fa8',anchor:'end'});
+     lista.forEach(([nm,rot,R])=>vista(P,nm,rot,R,s));P.push({t:'text',x:284,y:29.5,s:'Azul = medida total • Rosa = posição das peças',size:2.2,color:'#868e96',anchor:'end'});pages.push(P);tags.push('VISTAS')};
+   // frontal + lateral lado a lado, se cada uma ficar com pelo menos 85% do tamanho sozinha
+   const [fw,fh]=EXT.frente,[lw,lh]=EXT.lateral;const sPar=Math.min((AW-mx)/((fw+lw)||1),AH/(Math.max(fh,lh)||1));
+   if(!so.frente.rot&&!so.lateral.rot&&sPar>=0.85*Math.min(so.frente.s,so.lateral.s)){const x0=AX+Math.max(0,(AW-mx-(fw+lw)*sPar)/2);
+     folha('VISTAS FRONTAL E LATERAL',[['frente',false,{x:x0,y:AY,w:fw*sPar,h:AH}],['lateral',false,{x:x0+fw*sPar+mx,y:AY,w:lw*sPar,h:AH}]],sPar)}
+   else{['frente','lateral'].forEach(nm=>{const o=so[nm];folha(NOME[nm],[[nm,o.rot,{x:AX,y:AY,w:AW,h:AH}]],o.s)})}
+   {const o=so.topo;folha(NOME.topo,[['topo',o.rot,{x:AX,y:AY,w:AW,h:AH}]],o.s)}}
   // PLANO DE CORTE (tubos e barras), barras de 6 m
   {const barra=6000,serra=3;const grp={};L.filter(r=>r.tipo==='tubo'||r.tipo==='barra').forEach(r=>{const k=`${r.perfil.toUpperCase()}${r.parede?' #'+r.parede:''}`;(grp[k]=grp[k]||{cor:r.cor,pcs:[]});for(let i=0;i<r.q*un;i++)grp[k].pcs.push({len:r.len,item:r.item})});
    if(Object.keys(grp).length){let P=null,y=0;const novo=()=>{P=[];frame(P,ctx,pg);P.push({t:'text',x:PW/2,y:30,s:`PLANO DE CORTE — BARRAS DE ${f0(barra)} MM (${un} UN.)`,size:4,bold:true,color:'#000000',anchor:'middle'});pages.push(P);tags.push('PLANO');y=38};novo();
@@ -4785,6 +5050,13 @@ $('#mPgPick').onclick=e=>{const b=e.target.closest('[data-mpg]');if(!b)return;mS
 $('#mBaixar').onclick=async()=>{if(!mBuild)return;const pdf=toPDF(mBuild.pages);const name=`OS ${mBuild.ctx.os||'sem número'} - modelo 3D - item ${mBuild.ctx.item}.pdf`.replace(/[\\/:*?"<>|]/g,'-');
   try{const dl=window.claude&&claude.use?await claude.use('downloads'):null;if(!dl){$('#mInfo').insertAdjacentHTML('beforeend','<div class="msg err">Download indisponível nesta visualização. Abra o sistema pelo link no claude.ai.</div>');return}
     await dl.save({filename:name,data:new Blob([pdf],{type:'application/pdf'})})}catch(e){if(e&&e.code==='declined')return;$('#mInfo').insertAdjacentHTML('beforeend',`<div class="msg err">Não foi possível baixar (${esc(e.code||e.message)}).</div>`)}};
+
+// ---------- 3D unificado: troca entre arquivo pronto e estrutura por desenho ----------
+function m3dSwSync(){const em=abaAtual()==='testeiras'&&tModo==='desenho'?'des':'arq';const novo=typeof itemAtual==='undefined'||!itemAtual||itemAtual.novo;
+  document.querySelectorAll('.m3dSw button').forEach(b=>{b.classList.toggle('sel',b.dataset.m3d===em);b.disabled=!novo&&b.dataset.m3d!==em;b.title=b.disabled?'Item já salvo: para trocar, crie um novo componente 3D':''})}
+document.addEventListener('click',e=>{const b=e.target.closest('.m3dSw [data-m3d]');if(!b||b.disabled)return;const ia=typeof itemAtual!=='undefined'&&itemAtual&&itemAtual.novo?itemAtual:null;
+  if(b.dataset.m3d==='des'){if(ia&&ia.tipo==='modelo3d')ia.tipo='estrutura';irAba('testeiras');setModo('desenho')}else{if(ia&&ia.tipo==='estrutura')ia.tipo='modelo3d';irAba('modelo')}m3dSwSync();try{pedBarRender()}catch(err){}});
+document.addEventListener('click',()=>setTimeout(m3dSwSync,0));
 
 /* ================= BOBS — REQUADRO DO BALCÃO =================
    Estrutura externa em metalon 30x30 (pintura preta a pó, terceirizada).
@@ -5436,14 +5708,15 @@ function ctRender0(){try{ctBuild=ct3?ct3Folhas():ctFolhas();$('#ctPrev').innerHT
   catch(e){console.error(e);$('#ctMsg').innerHTML=`<div class="msg err">${esc(e.message)}</div>`}}
 async function ctCarrega(f){if(!f)return;await ctCarregaBytes(f.name,new Uint8Array(await f.arrayBuffer()),true)}
 async function ctCarregaBytes(nome,bytes,render){const f={name:nome};ctNome=nome;ctBytes=bytes.slice();$('#ctDropTxt').textContent='Lendo '+f.name+'…';
-  const ext=f.name.toLowerCase().split('.').pop();
-  if(ext==='stl'||ext==='obj'){try{const buf=bytes.slice().buffer;const objs=ext==='obj'?parseOBJ(new TextDecoder().decode(buf)):parseSTL(buf);let pecas=separaPecas(objs);if(!pecas.length)pecas=objs;if(!pecas.length)throw new Error('não encontrei triângulos no arquivo');
+  const ext=f.name.toLowerCase().split('.').pop();let dx=null;
+  if(ext==='dxf'){try{dx=await readDxf(bytes.slice().buffer)}catch(e){$('#ctDropTxt').textContent='Toque para escolher o arquivo';$('#ctMsg').innerHTML=`<div class="msg err">Não consegui ler o DXF: ${esc(e.message)}</div>`;return}}
+  if(ext==='stl'||ext==='obj'||(dx&&dx.obj)){try{const buf=bytes.slice().buffer;const objs=dx&&dx.obj?parseOBJ(dx.obj):ext==='obj'?parseOBJ(new TextDecoder().decode(buf)):parseSTL(buf);let pecas=separaPecas(objs);if(!pecas.length)pecas=objs;if(!pecas.length)throw new Error('não encontrei triângulos no arquivo');
       let lo=[1e18,1e18,1e18],hi=[-1e18,-1e18,-1e18];pecas.forEach(p=>p.tris.forEach(t=>t.forEach(v=>{for(let i=0;i<3;i++){if(v[i]<lo[i])lo[i]=v[i];if(v[i]>hi[i])hi[i]=v[i]}})));const span=Math.max(hi[0]-lo[0],hi[1]-lo[1],hi[2]-lo[2]);
       if(render!==false||!$('#ctUn').value){$('#ctUn').value=span<30?'1000':span<300&&ext==='obj'?'10':'1';$('#ctEixo').value=ext==='stl'?'z':'y'}ct3={name:f.name,pecas};ctSrc=null;$('#ct3Opts').hidden=false;$('#ctLargW').hidden=true;
-      $('#ctDrop').classList.add('has');$('#ctDropTxt').textContent='✓ '+f.name;if(!ctv('ctDesc'))$('#ctDesc').value=f.name.replace(/\.(stl|obj)$/i,'');if(render!==false)ctRender()}
+      $('#ctDrop').classList.add('has');$('#ctDropTxt').textContent='✓ '+f.name;if(!ctv('ctDesc'))$('#ctDesc').value=f.name.replace(/\.(stl|obj|dxf)$/i,'');if(render!==false)ctRender()}
     catch(e){console.error(e);ct3=null;$('#ctDropTxt').textContent='Toque para escolher o arquivo';$('#ctMsg').innerHTML=`<div class="msg err">Não consegui ler: ${esc(e.message)}</div>`}return}
   ct3=null;$('#ct3Opts').hidden=true;$('#ctLargW').hidden=false;
-  try{const r=await readPdf(bytes.slice());ctSrc={name:f.name,...r};$('#ctDrop').classList.add('has');$('#ctDropTxt').textContent='✓ '+f.name;
+  try{const r=dx||await readPdf(bytes.slice());ctSrc={name:f.name,...r};$('#ctDrop').classList.add('has');$('#ctDropTxt').textContent='✓ '+f.name;
     if(!r.polys.length){$('#ctMsg').innerHTML='<div class="msg err">Não encontrei linhas vetoriais nesse PDF (texto precisa estar em curvas).</div>';return}
     const b=bbox(r.polys);$('#ctLarg').placeholder=`Tamanho do arquivo: ${ctFmt(b.w)} mm`;if(!ctv('ctDesc'))$('#ctDesc').value=f.name.replace(/\.pdf$/i,'');if(render!==false)ctRender()}
   catch(e){console.error(e);$('#ctDropTxt').textContent='Toque para escolher o PDF';$('#ctMsg').innerHTML=`<div class="msg err">Não consegui ler: ${esc(e.message)}</div>`}}
@@ -5551,8 +5824,9 @@ let compCotas=[],compExcl=[],ctEdit=-1,ctVolta=null;const CT_ABAS=['novo','teste
 function ctSalvaveis(){return compCotas.map(c=>{const o={...c};delete o._src;delete o._3d;delete o._bytes;if(o.ref){delete o.b64}if(o.arqs)o.arqs=o.arqs.map(f=>f.ref?{name:f.name,ref:f.ref}:f);return o})}
 async function ctBytesDe(c){if(c._bytes)return c._bytes;const u=c.b64?unb64(c.b64):c.ref?await lerGrande(c.ref):null;c._bytes=u;return u}
 async function ctParse(c){try{const ext=(c.nome||'').toLowerCase().split('.').pop();const bytes=await ctBytesDe(c);if(!bytes)return;
-  if(ext==='stl'||ext==='obj'){const buf=bytes.slice().buffer;const objs=ext==='obj'?parseOBJ(new TextDecoder().decode(buf)):parseSTL(buf);let pecas=separaPecas(objs);if(!pecas.length)pecas=objs;c._3d={name:c.nome,pecas};c._src=null}
-  else{c._src={name:c.nome,...(await readPdf(bytes.slice()))};c._3d=null}}catch(e){console.error('cota',c.nome,e)}}
+  const dx=ext==='dxf'?await readDxf(bytes.slice().buffer):null;
+  if(ext==='stl'||ext==='obj'||(dx&&dx.obj)){const buf=bytes.slice().buffer;const objs=dx&&dx.obj?parseOBJ(dx.obj):ext==='obj'?parseOBJ(new TextDecoder().decode(buf)):parseSTL(buf);let pecas=separaPecas(objs);if(!pecas.length)pecas=objs;c._3d={name:c.nome,pecas};c._src=null}
+  else{c._src={name:c.nome,...(dx||await readPdf(bytes.slice()))};c._3d=null}}catch(e){console.error('cota',c.nome,e)}}
 const CT_PCACHE=new Map();function ctClonePg(P){const Q=P.map(o=>({...o}));for(const k of Object.keys(P))if(isNaN(+k))Q[k]=P[k];const i=P.indexOf(P._setorT);if(i>=0)Q._setorT=Q[i];return Q}
 function ctGerarCota(c,ctx){const ck=JSON.stringify([c.id,c.setor,c.modo,c.desc,c.mat,c.obs,c.qtd,c.larg,c.un,c.eixo,c.nome,ctx.os,ctx.item,ctx.descItem,ctx.cliente,ctx.entrega,c.n||(c.b64||'').length]);if(CT_PCACHE.has(ck))return CT_PCACHE.get(ck).map(ctClonePg);const ps=ctGerarCota0(c,ctx);CT_PCACHE.set(ck,ps.map(ctClonePg));if(CT_PCACHE.size>40)CT_PCACHE.delete(CT_PCACHE.keys().next().value);return ps}
 function ctGerarCota0(c,ctx){const sv={ctSrc,ct3,ctModo,CTO};try{ctSrc=c._src||null;ct3=c._3d||null;ctModo=c.modo||'padrao';CTO={ctLarg:c.larg||'',ctMat:c.mat||'',ctObs:c.obs||'',ctQtd:c.qtd||'1',ctDesc:c.desc||'',ctUn:c.un||'1',ctEixo:c.eixo||'z',ctSetor:c.setor||'COTAS',ctx};
@@ -5616,7 +5890,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 /* ================= PEDIDOS: uma OS com vários itens (letras, testeiras, estruturas, modelos 3D), tudo salvo ================= */
 let pedidos=[],pedAtual=null,itemAtual=null,pedPdf=null,pedSujo=false;
-const TIPO_NOME={letra:'Letra caixa',testeira:'Testeira',estrutura:'Estrutura por desenho',modelo3d:'Modelo 3D',bobs:'Bobs — requadro do balcão',bobscomp:'Bobs — complemento 30x30',bobscant:'Bobs — cantoneira com iluminação',branco:'FP em branco',cotas:'Cotas'};
+const TIPO_NOME={letra:'Letra caixa',testeira:'Testeira',estrutura:'3D — estrutura por desenho',modelo3d:'3D — modelo (STL/OBJ/DXF)',bobs:'Bobs — requadro do balcão',bobscomp:'Bobs — complemento 30x30',bobscant:'Bobs — cantoneira com iluminação',branco:'FP em branco',cotas:'Cotas'};
 const TIPO_ABA={letra:'novo',testeira:'testeiras',estrutura:'testeiras',modelo3d:'modelo',bobs:'bobs',bobscomp:'bobs',bobscant:'bobs',branco:'branco',cotas:'cotas'};
 const OS_IDS=['os','entrega','cliente','vendedor','projetista','endereco'];
 // ---------- armazenamento ----------
@@ -5687,7 +5961,7 @@ function pedAbrir(p){pedSel=new Set();setTimeout(()=>{osResumoSync();pedCotasUI(
   $('#pedListaCard').hidden=true;$('#pedCard').hidden=false;$('#osSec').hidden=false;{const noPed=!$('#tab-pedidos').hidden;['#itemBox','#descBox','#vendaBox','#refBox'].forEach(x=>{const e=$(x);if(e)e.hidden=noPed});const pt=$('#pedTotBox');if(pt)pt.hidden=!noPed}$('#pedPrev').innerHTML='';$('#pedMsg').innerHTML='';$('#pedBaixar').hidden=true;$('#pedGerar').textContent='Gerar FP completa do pedido';pedAbertoRender();pedBarRender()}
 function pedAbertoRender(){if(!pedAtual)return;$('#pedTitulo').innerHTML=`Pedido ${esc(pedAtual.os||'(sem número)')}${pedAtual.nome?' — '+esc(pedAtual.nome):''}<div style="font-size:13px;font-weight:400;margin-top:4px"><b>Cliente:</b> ${esc(pedAtual.cliente||'—')} &nbsp;•&nbsp; <b>Projetista:</b> ${esc(pedAtual.projetista||'—')}</div>`;
   const its=(pedAtual.itens||[]).slice().sort((a,b)=>a.n-b.n);const grupos=[];its.forEach(it=>{let g=grupos.find(g=>g.n===+it.n);if(!g){g={n:+it.n,its:[]};grupos.push(g)}g.its.push(it)});
-  const prod=pedAtual.produtos||{};const tipos=[['letra','Letra caixa'],['testeira','Testeira'],['estrutura','Estrutura por desenho'],['modelo3d','Modelo 3D'],['bobs','Bobs requadro'],['bobscomp','Bobs complemento 30x30'],['bobscant','Bobs cantoneira iluminada'],['branco','FP em branco']];
+  const prod=pedAtual.produtos||{};const tipos=[['letra','Letra caixa'],['testeira','Testeira'],['modelo3d','3D (STL, OBJ, DXF ou PDF)'],['bobs','Bobs requadro'],['bobscomp','Bobs complemento 30x30'],['bobscant','Bobs cantoneira iluminada'],['branco','FP em branco']];
   {const cs=its.map(i=>i.custo);const falta=cs.filter(x=>x==null).length;const c=cs.some(x=>x!=null)?cs.reduce((a,x)=>a+(+x||0),0):null;
    const ns=[...new Set(its.map(i=>+i.n))];const vI=n=>typeof vendaItem==='function'?vendaItem(n):its.filter(i=>+i.n===n).reduce((a,i)=>a+(+i.venda||0),0);
    const vt=ns.reduce((a,n)=>a+vI(n),0),vc=ns.filter(n=>its.some(i=>+i.n===n&&i.custo!=null)).reduce((a,n)=>a+vI(n),0);$('#pedTotal').innerHTML=its.length?margemBox(c,falta&&c!=null?vc:vt,'TOTAL DO PEDIDO'+(falta?`<br><span style="font-weight:400;color:#c92a2a">${falta} item(ns) sem custo — fora da conta</span>`:'')):''}
@@ -5735,9 +6009,9 @@ function tipoDaAba(){const t=abaAtual();return t==='novo'?'letra':t==='testeiras
 function isbRender(){const tipo=tipoDaAba();const it=pedAtual&&itemAtual&&itemAtual.tipo===tipo?itemAtual:null;
   document.querySelectorAll('.isbBtn').forEach(b=>b.textContent=!pedAtual?'Salvar item (cria o pedido com os dados da OS)':it&&!it.novo?`Salvar alterações no item ${$('#item').value||it.n}`:`Salvar como item ${$('#item').value||''}`)}
 document.querySelectorAll('.isbBtn').forEach(b=>b.onclick=()=>{const tipo=tipoDaAba();if(!tipo)return;if(!pedAtual){const p={id:'p'+Date.now().toString(36),nome:'',itens:[],criado:Date.now()};OS_IDS.forEach(k=>p[k]=$('#'+k).value.trim());pedidos.push(p);pedAtual=JSON.parse(JSON.stringify(p));itemAtual={id:'i'+Date.now().toString(36),tipo,n:Math.max(1,Math.round(num($('#item').value))||1),novo:true}}itemSalvar(tipo)});
-const TROCA_TIPOS=['letra','testeira','estrutura','modelo3d','bobs','bobscomp','bobscant','branco'];
+const TROCA_TIPOS=['letra','testeira','modelo3d','bobs','bobscomp','bobscant','branco'];
 function tipoTrocaRender(){const el=$('#tipoTroca');if(!el)return;const tp=tipoDaAba();const on=!!(pedAtual&&itemAtual&&itemAtual.novo&&tp&&tp!=='cotas');el.hidden=!on;if(!on)return;
-  el.innerHTML=`<div class="note" style="margin:0 0 5px;font-weight:600">Tipo de produto deste ${(pedAtual.itens||[]).some(i=>+i.n===+itemAtual.n)?'componente':'item'} — toque para trocar:</div><div class="row" style="gap:6px;flex-wrap:wrap">`+TROCA_TIPOS.map(k=>`<button type="button" class="btn sm ${k===tp?'pink':'ghost'}" data-trtipo="${k}"${k===tp?' disabled style="opacity:1"':''}>${esc(TIPO_NOME[k])}</button>`).join('')+'</div>'}
+  el.innerHTML=`<div class="note" style="margin:0 0 5px;font-weight:600">Tipo de produto deste ${(pedAtual.itens||[]).some(i=>+i.n===+itemAtual.n)?'componente':'item'} — toque para trocar:</div><div class="row" style="gap:6px;flex-wrap:wrap">`+TROCA_TIPOS.map(k=>`<button type="button" class="btn sm ${(k===tp||(k==='modelo3d'&&tp==='estrutura'))?'pink':'ghost'}" data-trtipo="${k}"${(k===tp||(k==='modelo3d'&&tp==='estrutura'))?' disabled style="opacity:1"':''}>${esc(k==='modelo3d'?'3D':TIPO_NOME[k])}</button>`).join('')+'</div>'}
 document.addEventListener('click',e=>{const b=e.target.closest('#tipoTroca [data-trtipo]');if(!b||b.disabled)return;const tipo=b.dataset.trtipo,n=+($('#item').value||itemAtual.n),d=$('#descItem').value;
   const vai=()=>{if(typeof osFazer==='function'&&(pedAtual.osItens||[]).some(i=>+i.n===n))osFazer(tipo,n);else novoComp(tipo,n);if(d&&$('#descItem'))$('#descItem').value=d};
   if(typeof projSujo==='function'&&projSujo())projPergunta(vai);else vai()});
@@ -6049,7 +6323,7 @@ async function osImportar(file,noPedidoAberto){const msg=$('#pedMsg')||$('#pedLi
     const l=$('#osLista');if(l)l.scrollIntoView({behavior:'smooth',block:'start'})}
   catch(e){console.error(e);if(msg)msg.innerHTML=`<div class="msg err">Não consegui ler a OS: ${esc(e.message)}</div>`}}
 // lista dos itens da OS dentro do pedido
-const OS_TIPOS=[['letra','Letra caixa'],['branco','FP em branco'],['testeira','Testeira'],['estrutura','Estrutura por desenho'],['modelo3d','Modelo 3D'],['bobs','Bobs']];
+const OS_TIPOS=[['letra','Letra caixa'],['branco','FP em branco'],['testeira','Testeira'],['modelo3d','3D (STL, OBJ, DXF ou PDF)'],['bobs','Bobs']];
 const osFormHtml=()=>{const L=(pedAtual&&pedAtual.osItens)||[];const prox=Math.max(0,...L.map(i=>+i.n||0),...((pedAtual&&pedAtual.itens)||[]).map(i=>+i.n||0))+1;
   return `<details id="osManual" style="margin-top:8px"><summary style="cursor:pointer;font-weight:600;font-size:13px;color:#2b3a8c">+ Adicionar item à lista (manual, sem a OS em PDF)</summary>
   <div class="g3" style="gap:6px;margin-top:6px"><div><label class="f">Nº do item</label><input type="number" id="osmN" value="${prox}" min="1"></div><div style="grid-column:span 2"><label class="f">Nome do item</label><input type="text" id="osmT" placeholder="ex.: LETREIRO OMODA"></div>
