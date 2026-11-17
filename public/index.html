@@ -1622,8 +1622,21 @@ function distributeLED(cp,Pin){
     const reg=ClipperLib.Clipper.CleanPolygons(reg0,0.05*S);const rb=bbox(fromC(reg));const key=ledKey(rb);
     let bl=[];let placed=ledRegiao(reg,P,bl)||[];let alvoR=null;
     // letra 3D: onde o módulo não cabe, fita LED zig-zag pela linha interna (linha central do traço)
-    if(P.fita){const ps=fromC(reg);const tl=ps.reduce((a,p)=>a+chainLen(p.concat([p[0]])),0)/2; // linha interna: metade do perímetro ≈ linha central do traço
-      if(tl>0&&(!placed.length||placed.forcado||placed.length*pitch*2.5<tl)){const m=Math.round(tl/1000*1.1*100)/100;fitas.push({bb:rb,key,m,linhas:ps.map(p=>p.concat([p[0]]))});groups.push({bb:rb,n:0,key,aj:0,alvo:null,fm:m,fw:m*FITA_W});continue}}
+    // fita zig-zag: SEM módulos — a fita vai inteira na linha elétrica pré-determinada (linhas base de cada traço)
+    if(P.fita){let lin;const fechadas=bl.filter(x=>x.closed&&x.pts&&x.pts.length>2);
+      if(fechadas.length)lin=fechadas.map(x=>x.pts.concat([x.pts[0]]));
+      else{// linha central de TODOS os traços (inclusive os curtos, como o miolo do E), esticada até perto das pontas
+        const SG=skeletonGraph(reg);const inner=offF(reg,-7);const ends=[];SG.forEach(pt=>{if(!pt.closed&&pt.pts.length>1)ends.push(pt.pts[0],pt.pts[pt.pts.length-1])});
+        const livre=p=>ends.filter(q=>Math.hypot(q[0]-p[0],q[1]-p[1])<2).length<=1;
+        const estica=(pts,ini)=>{const n=pts.length;const b=ini?pts[0]:pts[n-1];if(!livre(b))return pts;let k=Math.min(n-1,4);const a=ini?pts[k]:pts[n-1-k];let dx=b[0]-a[0],dy=b[1]-a[1];const L=Math.hypot(dx,dy)||1;dx/=L;dy/=L;
+          let e=b;for(let s=1;s<400;s++){const q=[b[0]+dx*s,b[1]+dy*s];if(!inside(q,inner))break;e=q}return ini?[e,...pts]:[...pts,e]};
+        lin=[];SG.forEach(pt=>{if(!pt.pts||pt.pts.length<2||chainLen(pt.pts)<8)return;let pts=pt.pts.slice();if(pt.closed){lin.push(pts.concat([pts[0]]));return}pts=estica(pts,true);pts=estica(pts,false);lin.push(pts)});
+        if(!lin.length)lin=bl.filter(x=>x.pts&&x.pts.length>1).map(x=>x.closed?x.pts.concat([x.pts[0]]):x.pts);
+        bl=lin.map(p=>({pts:p,closed:false}))}
+      const lt=lin.reduce((a,p)=>a+chainLen(p),0);
+      if(lt>0){const m=Math.round(lt/1000*1.1*100)/100;baseLines.push(...bl);fitas.push({bb:rb,key,m,linhas:lin,aberta:true});groups.push({bb:rb,n:0,key,aj:0,alvo:null,fm:m,fw:m*FITA_W});continue}}
+    if(P.fita){const ps=fromC(reg);const tl=ps.reduce((a,p)=>a+chainLen(p.concat([p[0]])),0)/2; // peça sem linha base: linha interna (metade do perímetro)
+      if(tl>0){const m=Math.round(tl/1000*1.1*100)/100;fitas.push({bb:rb,key,m,linhas:ps.map(p=>p.concat([p[0]]))});groups.push({bb:rb,n:0,key,aj:0,alvo:null,fm:m,fw:m*FITA_W});continue}}
     if(!placed.length)continue;
     // ajuste manual (+/-) desta letra: procura o espaçamento que dá a quantidade pedida
     const d=(P.ajuste||{})[key]||0;
@@ -2392,10 +2405,10 @@ function buildDoc(){
       R.baseLines.forEach(b=>P.push({t:b.closed?'poly':'path',pts:map(b.pts),color:'#1c7ed6',w:0.2}));
       R.wires.forEach(w=>P.push({t:'path',pts:map(w),color:'#555555',w:0.25}));
       {const rm=(ctx.rab||0)/1000;P.push({t:'rect',x:12,y:24,w:86,h:13,r:1.5,fill:'#fff4e6',stroke:'#e8590c',lw:0.35},{t:'text',x:55,y:29.6,s:`RABICHO ${String(Math.round(rm*100)/100).replace('.',',')} METRO${rm===1?'':'S'} POR LETRA`,size:3.4,bold:true,color:'#000000',anchor:'middle'},{t:'text',x:55,y:34.4,s:`SAÍDA ${ctx.saida==='sup'?'SUPERIOR':'INFERIOR'} CENTRALIZADA • FIO PRETO + VERMELHO`,size:2.4,bold:true,color:'#c2410c',anchor:'middle'})}
-      {const wm=+((R&&R.P&&R.P.watts)||0.72);const ws=String(wm).replace('.',',');const cor=wm>=1?'#c92a2a':'#1971c2';P.push({t:'rect',x:102,y:32.2,w:90,h:8.6,r:1.5,fill:wm>=1?'#fff5f5':'#e7f5ff',stroke:cor,lw:0.6},{t:'text',x:147,y:38,s:`LED ${ws} W POR MÓDULO • ${String(ctx.led||'').toUpperCase()}`,size:3.4,bold:true,color:cor,anchor:'middle'})}
+      if(R.mods.length){const wm=+((R&&R.P&&R.P.watts)||0.72);const ws=String(wm).replace('.',',');const cor=wm>=1?'#c92a2a':'#1971c2';P.push({t:'rect',x:102,y:32.2,w:90,h:8.6,r:1.5,fill:wm>=1?'#fff5f5':'#e7f5ff',stroke:cor,lw:0.6},{t:'text',x:147,y:38,s:`LED ${ws} W POR MÓDULO • ${String(ctx.led||'').toUpperCase()}`,size:3.4,bold:true,color:cor,anchor:'middle'})}
       R.mods.forEach(m=>P.push({t:'poly',pts:map(m.rect),color:'#000000',w:0.1}));
-      (R.fitas||[]).forEach(f=>{P.push({t:'pathfill',polys:f.linhas.map(map),fill:'#ffe8cc'});f.linhas.forEach(l=>P.push({t:'path',pts:map(l),color:'#f08c00',w:0.5}))});
-      if(R.fitaM>0)P.push({t:'rect',x:196,y:32.2,w:88,h:8.6,r:1.5,fill:'#fff4e6',stroke:'#f08c00',lw:0.6},{t:'text',x:240,y:36,s:`FITA LED ZIG-ZAG 10 W/m: ${String(R.fitaM.toFixed(2)).replace('.',',')} m`,size:2.9,bold:true,color:'#d9480f',anchor:'middle'},{t:'text',x:240,y:39.4,s:'onde o módulo não cabe — pela linha interna (em laranja)',size:2,color:'#495057',anchor:'middle'});
+      (R.fitas||[]).forEach(f=>{if(f.aberta){f.linhas.forEach(l=>P.push({t:'path',pts:map(l),color:'#f08c00',w:1.4}))}else{P.push({t:'pathfill',polys:f.linhas.map(map),fill:'#ffe8cc'});f.linhas.forEach(l=>P.push({t:'path',pts:map(l),color:'#f08c00',w:0.5}))}});
+      if(R.fitaM>0)P.push({t:'rect',x:196,y:32.2,w:88,h:8.6,r:1.5,fill:'#fff4e6',stroke:'#f08c00',lw:0.6},{t:'text',x:240,y:36,s:`FITA LED ZIG-ZAG 10 W/m: ${String(R.fitaM.toFixed(2)).replace('.',',')} m`,size:2.9,bold:true,color:'#d9480f',anchor:'middle'},{t:'text',x:240,y:39.4,s:R.mods.length?'onde o módulo não cabe — pela linha interna (em laranja)':`${String(ctx.led||'').toUpperCase()} • só fita, na linha elétrica (em laranja)`,size:2,color:'#495057',anchor:'middle'});
       // LEDs por peça: etiquetas numa faixa abaixo do desenho, com linha de chamada até a peça (não ficam em cima das letras)
       {const Ls=ordenaPecas(R.letters);
        const W0=15,G0=2,yTop=dy+bb.h*s+4;const n=Ls.length;const perRow=Math.max(1,Math.floor((BW+20)/(W0+G0)));const rowsN=Math.ceil(n/perRow);
@@ -2413,9 +2426,9 @@ function buildDoc(){
       P.push({t:'text',x:284,y:25,s:escTxt,size:2.4,bold:true,color:'#2f6fa8',anchor:'end'});
       const Pp=R.P;const w=R.watts;
       if(R.circ&&R.circ.lista.length){const L=R.circ.lista;let yy=167-Math.min(L.length,6)*4.2-4;P.push({t:'text',x:98,y:yy,s:'LIGAÇÃO ELÉTRICA — LETRAS LIGADAS JUNTAS',size:2.5,bold:true,color:'#c2255c'});yy+=4.2;L.slice(0,6).forEach(c=>{P.push({t:'circle',x:99.6,y:yy-1,r:1.3,fill:c.cor,stroke:c.cor,lw:0.1},{t:'text',x:102.5,y:yy,s:fit(circTxt(c),95,2.4),size:2.4,bold:true,color:'#000000'});yy+=4.2});if(L.length>6)P.push({t:'text',x:102.5,y:yy,s:`+ ${L.length-6} fonte(s) — ver instalação`,size:2.2,color:'#555555'})}
-      matTable(P,pg,[['ILUMINAÇÃO:',`LED ${f0(Pp.larg)} x ${f0(Pp.alt)} MM`],['TEMPERATURA:',ctx.led],['QTD. MÓDULOS:',`${R.mods.length} un`],['CONSUMO:',`${w.toLocaleString('pt-BR',{maximumFractionDigits:1})} W  (+25% = ${(w*LED_FOLGA).toLocaleString('pt-BR',{maximumFractionDigits:1})} W)`],['FONTES:',R.circ?(()=>{const c={};R.circ.lista.forEach(x=>c[x.fonte]=(c[x.fonte]||0)+1);return Object.entries(c).map(([w2,n])=>`${n}x ${w2} W`).join(' + ')+(R.circ.grande?' (LETRA > 350 MM)':'')})():reatorTxt(w*LED_FOLGA)],['ESPAÇAMENTO:',`${f0(Pp.gap)} MM CENTRO A CENTRO`],['QTD. REAL:',' ']]);
-      legend(P,pg,[{cor:'#e03131',legenda:`Contorno base`,offset:Pp.base,polys:R.boundary},{cor:'#000000',legenda:`Módulo LED ${f0(Pp.larg)}x${f0(Pp.alt)} mm — ${Pp.watts}W`,offset:0,polys:[1],noOff:true},{cor:'#7a7a7a',legenda:'Fio entre módulos (zig-zag)',offset:0,polys:[1],noOff:true},{cor:'#1c7ed6',legenda:'Linha base (centro do traço)',offset:0,polys:[1],noOff:true}]);
-      pages.push(P);info.push({pg,lines:[],vec:[{color:'#e03131',polys:R.boundary},{color:'#000000',polys:R.mods.map(m=>m.rect)}]});return;
+      const soFita=!R.mods.length&&R.fitaM>0;matTable(P,pg,[['ILUMINAÇÃO:',soFita?'FITA ZIG-ZAG 5MM 10W/M':`LED ${f0(Pp.larg)} x ${f0(Pp.alt)} MM`],['TEMPERATURA:',ctx.led],soFita?['QTD. FITA:',`${String(R.fitaM.toFixed(2)).replace('.',',')} M (+10%)`]:['QTD. MÓDULOS:',`${R.mods.length} un`],['CONSUMO:',`${w.toLocaleString('pt-BR',{maximumFractionDigits:1})} W  (+25% = ${(w*LED_FOLGA).toLocaleString('pt-BR',{maximumFractionDigits:1})} W)`],['FONTES:',R.circ?(()=>{const c={};R.circ.lista.forEach(x=>c[x.fonte]=(c[x.fonte]||0)+1);return Object.entries(c).map(([w2,n])=>`${n}x ${w2} W`).join(' + ')+(R.circ.grande?' (LETRA > 350 MM)':'')})():reatorTxt(w*LED_FOLGA)],...(soFita?[['MONTAGEM:','NA LINHA ELÉTRICA (LARANJA)']]:[['ESPAÇAMENTO:',`${f0(Pp.gap)} MM CENTRO A CENTRO`]]),['QTD. REAL:',' ']]);
+      legend(P,pg,[{cor:'#e03131',legenda:`Contorno base`,offset:Pp.base,polys:R.boundary},...(soFita?[{cor:'#f08c00',legenda:'Fita LED zig-zag 5 mm (na linha elétrica)',offset:0,polys:[1],noOff:true}]:[{cor:'#000000',legenda:`Módulo LED ${f0(Pp.larg)}x${f0(Pp.alt)} mm — ${Pp.watts}W`,offset:0,polys:[1],noOff:true},{cor:'#7a7a7a',legenda:'Fio entre módulos (zig-zag)',offset:0,polys:[1],noOff:true},{cor:'#1c7ed6',legenda:'Linha base (centro do traço)',offset:0,polys:[1],noOff:true}])]);
+      pages.push(P);info.push({pg,lines:[],vec:[{color:'#e03131',polys:R.boundary},{color:'#000000',polys:R.mods.map(m=>m.rect)},...((R.fitas||[]).some(f=>f.aberta)?[{color:'#f08c00',aberto:true,polys:R.fitas.flatMap(f=>f.aberta?f.linhas:[])}]:[])]});return;
     }
     const lines=(pg.linhas||[]).map(l=>{let polys=offset(cpRaw,l.offset,ladoDe(l));if(l.soExt){const ar=q=>{let A=0;for(let i=0;i<q.length;i++){const[a,b]=q[i],[c,d]=q[(i+1)%q.length];A+=a*d-c*b}return A/2};const mx=polys.reduce((m,q)=>Math.abs(ar(q))>Math.abs(ar(m))?q:m,polys[0]||[]);const sg=Math.sign(ar(mx));polys=polys.filter(q=>Math.sign(ar(q))===sg)}if(l.ponte)polys=acrPecaUnica(polys);if(l.raio>0)polys=arredExt(polys,l.raio);return{...l,polys}});
     const P=[];frame(P,ctx,pg);
@@ -2749,7 +2762,7 @@ function vecPDF(vec,M=10){
     for(const p of v.polys){const f=p.length>8?fitCurves(p,0.02):null;
       if(f){doc.moveTo(X(f.s),Y(f.s));for(const sg of f.segs){if(sg.L)doc.lineTo(X(sg.L),Y(sg.L));else{const [c1,c2,e]=sg.C;doc.curveTo(X(c1),Y(c1),X(c2),Y(c2),X(e),Y(e))}}}
       else p.forEach((q,i)=>{i?doc.lineTo(X(q),Y(q)):doc.moveTo(X(q),Y(q))});
-      doc.close();doc.stroke()}}
+      if(!v.aberto)doc.close();doc.stroke()}}
   const buf=doc.output('arraybuffer');try{const dx=vecDXF(vec);if(dx)DXF_DE.set(buf,dx)}catch(e){console.error('DXF',e)}
   return {buf,w:b.w,h:b.h};
 }
