@@ -6491,7 +6491,7 @@ function osListaRender(){pedTotRender();pedProgRender();if(typeof pedCotasUI==='
       <span class="osSeta" role="button" tabindex="0" data-osseta="${it.n}" title="${ab?'Fechar':'Ver detalhes'}">${ab?'▴':'▾'}</span></div>
     <div class="osAcoes">${st!=='pend'?`${st==='parc'?`<button class="btn sm" type="button" data-osfin="${it.n}" style="background:#2b8a3e;color:#fff;font-weight:700">✓ Finalizar</button>`:`<button class="btn ghost sm" type="button" data-osreab="${it.n}" title="Voltar para parcial">Reabrir</button>`}<label class="note" style="margin:0 0 0 auto;display:flex;gap:5px;align-items:center;font-size:11.5px"><input type="checkbox" data-selg="${it.n}" title="Selecionar para FP parcial" style="width:18px;height:18px"${cp.every(i=>pedSel.has(i.id))?' checked':''}>FP parcial</label>`:`<button class="btn pink sm" data-osfazer="${it.n}">Fazer projeto</button>${it.manual?`<button class="btn ghost sm" type="button" data-osdel="${it.n}" title="Tirar da lista" style="margin-left:auto">×</button>`:''}`}</div>
     ${st==='pend'?`<div class="row" data-ostipos="${it.n}" hidden style="gap:4px;margin-top:6px;flex-wrap:wrap">${OS_TIPOS.map(([t,l])=>`<button class="btn ghost sm" data-osnovo="${t}" data-osn="${it.n}">${l}</button>`).join('')}</div>`:''}
-    <div class="osDet"${ab?'':' hidden'}>${junt.map(o=>`<div class="osJunto"><span>⛓ <b>Item ${o.n} — ${esc(o.titulo)}</b> · ${String(o.q).replace('.',',')} un.${o.sub?' · '+brlP(o.sub):''}</span><button class="btn ghost sm" type="button" data-ossep="${o.n}">Separar</button></div>`).join('')}<div class="note" style="margin:6px 0 0;font-size:12px">${it.med?'<b>Medidas:</b> '+esc(it.med)+'<br>':''}${it.desc?esc(it.desc):''}</div>${st!=='pend'?osCompHtml(it.n):''}<div style="text-align:right;margin-top:8px"><button class="osAgCom" type="button" data-osagcom="${it.n}">⛓ Agrupar com outro item</button></div></div></div>`}).join('')}${osFormHtml()}</div>`}
+    <div class="osDet"${ab?'':' hidden'}>${junt.map(o=>`<div class="osJunto"><span>⛓ <b>Item ${o.n} — ${esc(o.titulo)}</b> · ${String(o.q).replace('.',',')} un.${o.sub?' · '+brlP(o.sub):''}</span><span style="display:inline-flex;gap:6px"><button class="btn ghost sm" type="button" data-osmain="${o.n}" title="Fazer este o item principal do grupo" style="border-color:#1971c2;color:#1971c2">★ Tornar principal</button><button class="btn ghost sm" type="button" data-ossep="${o.n}">Separar</button></span></div>`).join('')}<div class="note" style="margin:6px 0 0;font-size:12px">${it.med?'<b>Medidas:</b> '+esc(it.med)+'<br>':''}${it.desc?esc(it.desc):''}</div>${st!=='pend'?osCompHtml(it.n):''}<div style="text-align:right;margin-top:8px"><button class="osAgCom" type="button" data-osagcom="${it.n}">⛓ Agrupar com outro item</button></div></div></div>`}).join('')}${osFormHtml()}</div>`}
 // começa o projeto do item já com a descrição, a venda e a foto da OS
 const OS_DESC={letra:'#descItem',testeira:'#tDesc',estrutura:'#dDesc',bobs:'#bDesc',branco:'#brDesc',cotas:'#ctDesc',modelo3d:'#mDesc'};
 // número, descrição e venda do item vêm da OS (PDF) sempre que o item existir nela
@@ -6507,6 +6507,7 @@ function osFazer(tipo,n){const it=(pedAtual.osItens||[]).find(i=>+i.n===+n);novo
     if(e.target.closest('[data-osagok]')){if(osAgSel.size<2){const z=$('#osAgAviso');if(z){z.textContent='Marque pelo menos 2 itens.';z.hidden=false}return}const L=pedAtual.osItens||[];const ns=[...osAgSel].sort((a,b)=>a-b);
       // o principal é o que já tem projeto (senão o de menor número); os outros seguem ele
       osJunta(ns);osAgrupando=false;osAgSel.clear();return}
+    const mn=e.target.closest('[data-osmain]');if(mn){osPrincipal(+mn.dataset.osmain);return}
     const sp=e.target.closest('[data-ossep]');if(sp){const o=(pedAtual.osItens||[]).find(i=>+i.n===+sp.dataset.ossep);if(o){delete o.grupo;osListaRender();pedSalvar(pedAtual)}return}
     const se=e.target.closest('[data-osseta]')||(()=>{const tp=e.target.closest('#osLista .osTop');if(!tp||e.target.closest('button,input,label,a,select,textarea,.osAcoes'))return null;const bx=tp.closest('.osBox');return bx?{dataset:{osseta:bx.dataset.osbox}}:null})();if(se){const n=+se.dataset.osseta;osAbertos.has(n)?osAbertos.delete(n):osAbertos.add(n);osListaRender();return}
     const fz=e.target.closest('[data-osfin]'),rb=e.target.closest('[data-osreab]');if(fz||rb){const n=+(fz?fz.dataset.osfin:rb.dataset.osreab);const o=(pedAtual.osItens||[]).find(i=>+i.n===n);if(o){o.fin=!!fz;osListaRender();pedSalvar(pedAtual)}return}
@@ -6579,6 +6580,13 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-rename]');
   const ok=async()=>{if(feito)return;feito=true;const v=inp.value.trim().toUpperCase();if(v&&v!==it.desc){it.desc=v;try{if(itemAtual&&itemAtual.id===it.id){const el=$(DESC_IN[it.tipo]);if(el)el.value=v}}catch(er){}await pedSalvar(pedAtual)}pedAbertoRender()};
   inp.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();ok()}else if(ev.key==='Escape'){feito=true;pedAbertoRender()}});
   sp.querySelector('[data-rnok]').onclick=ev=>{ev.stopPropagation();ok()};sp.querySelector('[data-rnx]').onclick=ev=>{ev.stopPropagation();feito=true;pedAbertoRender()}});
+
+// troca o item principal de um grupo da OS: o título/número do grupo passa a ser o dele e os componentes já feitos vão junto
+function osPrincipal(nv){const L=pedAtual.osItens||[];const o=L.find(i=>+i.n===nv);if(!o||!o.grupo)return;const old=+o.grupo;
+  L.forEach(i=>{if(+i.n===old||+i.grupo===old)i.grupo=+i.n===nv?undefined:nv});
+  (pedAtual.itens||[]).forEach(i=>{if(+i.n===old)i.n=nv});
+  const om=L.find(i=>+i.n===old);if(om&&om.fin){o.fin=om.fin;delete om.fin}
+  if(osAbertos.has(old)){osAbertos.delete(old);osAbertos.add(nv)}osListaRender();if(typeof pedAbertoRender==='function')pedAbertoRender();pedSalvar(pedAtual)}
 
 renderTypes();renderLogo();initStore();
 
