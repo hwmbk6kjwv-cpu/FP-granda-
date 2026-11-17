@@ -12,6 +12,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/clipper-lib@6.4.2/clipper.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/opentype.js/1.3.4/opentype.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
 <script>/* ===== Granda online: substitui os recursos do Claude (banco, arquivos, downloads, IA) pelo servidor da Netlify ===== */
 (function(){
@@ -543,7 +544,13 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
     <div class="card"><h2>1. Fundo</h2><div id="plFundoBox"></div>
       <label style="display:flex;gap:6px;align-items:center;font-size:13px;margin-top:12px"><input type="checkbox" id="pcPint"> <b>Pintar o fundo</b> (configuração padrão de pintura)</label><div id="pcPintSlot"></div></div>
     <div class="card"><h2>2. Texto / arte na frente</h2><div id="plFrenteBox"></div>
-      <label class="f" style="margin-top:12px">Arquivo da arte (PDF, AI, CDR, SVG, imagem… — guardado do jeito que veio)</label><input type="file" id="plArq"><div id="plArteInfo" style="margin-top:8px"></div></div>
+      <label class="f" style="margin-top:12px">De onde vem o texto / arte</label><div class="row" id="plFonteSw" style="gap:6px;flex-wrap:wrap"><button type="button" class="chip" data-plsrc="arq" style="padding:8px 12px;font-size:13px">📎 Arquivo da arte</button><button type="button" class="chip" data-plsrc="txt" style="padding:8px 12px;font-size:13px">⌨️ Digitar o texto (o sistema monta)</button></div>
+      <div id="plSrcArq"><label class="f" style="margin-top:10px">Arquivo da arte (PDF, AI, CDR, SVG, imagem… — guardado do jeito que veio)</label><input type="file" id="plArq"><div id="plArteInfo" style="margin-top:8px"></div></div>
+      <div id="plSrcTxt" hidden>
+        <label class="f" style="margin-top:10px">Texto (uma linha por linha da placa)</label><textarea id="plTxt" rows="3" placeholder="ex.: SAÍDA DE EMERGÊNCIA"></textarea>
+        <div class="g3" style="margin-top:6px"><div><label class="f">Fonte</label><select id="plFonte"></select></div><div><label class="f">Altura da letra maiúscula (mm)</label><input type="number" id="plAltLetra" inputmode="decimal" placeholder="automático (ocupa a placa)"></div><div><label class="f">Alinhamento</label><select id="plAlin"><option value="centro">Centralizado</option><option value="esq">À esquerda</option><option value="dir">À direita</option></select></div></div>
+        <div class="g3"><div><label class="f">Margem da borda (mm)</label><input type="number" id="plMg" value="15" inputmode="decimal"></div><div><label class="f">Espaço entre linhas (%)</label><input type="number" id="plEntre" value="40" inputmode="decimal"></div><div><label class="f">Cor do texto (impressão UV)</label><input type="color" id="plTxtCor" value="#000000"></div></div>
+        <div id="plTxtPrev" style="margin-top:8px"></div></div></div>
     <div class="card"><h2>Páginas extras</h2><p class="note" style="margin:0 0 6px">Folha com foto grande centralizada e observação em destaque (box verde).</p><div class="xfList" id="xfPl"></div><button class="btn ghost sm xfAdd" type="button" data-box="xfPl">+ Página extra</button></div>
     <div class="card" id="plResCard"><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn pink" id="plGerar">Gerar FP</button><button class="btn ghost" id="plBaixar" hidden>Baixar ZIP (FP + arquivos de corte + arte + RM)</button></div><div id="plMsg" style="margin-top:8px"></div>
       <div class="row" id="plPgPick" style="gap:6px;margin-top:10px"></div><div class="prev" id="plPrev"></div><div class="matBox" data-prev="plPrev"></div></div>
@@ -2972,11 +2979,15 @@ function calcFace(f,o){
     else{M({x0:0,x1:a,y0:0,y1:H,z0,z1,perfil:P,len:H,tipo:'Vertical '+tag});M({x0:W-a,x1:W,y0:0,y1:H,z0,z1,perfil:P,len:H,tipo:'Vertical '+tag});
       M({x0:a,x1:W-a,y0:H-a,y1:H,z0,z1,perfil:P,len:W-2*a,tipo:'Horizontal '+tag});M({x0:a,x1:W-a,y0:0,y1:a,z0,z1,perfil:P,len:W-2*a,tipo:'Horizontal '+tag})}
     const [q0,q1]=zt(pv).map(z=>z+zoff);
-    for(let i=1;i<nb;i++){const c=vcs[i];M({x0:c-aiV/2,x1:c+aiV/2,y0:a,y1:H-a,z0:q0,z1:q1,perfil:PV,len:H-2*a,tipo:'Vertical interna '+tag})}};
+    for(let i=1;i<nb;i++){const c=vcs[i];if(hCont&&tag==='quadro frontal'){const ys=[a,...rows.slice().sort((u,v)=>u-v).flatMap(y=>[y-ai/2,y+ai/2]),H-a];for(let k=0;k<ys.length;k+=2)M({x0:c-aiV/2,x1:c+aiV/2,y0:ys[k],y1:ys[k+1],z0:q0,z1:q1,perfil:PV,len:ys[k+1]-ys[k],tipo:'Vertical interna '+tag})}
+      else M({x0:c-aiV/2,x1:c+aiV/2,y0:a,y1:H-a,z0:q0,z1:q1,perfil:PV,len:H-2*a,tipo:'Vertical interna '+tag})}};
+  // menos peças: compara travas verticais inteiras (horizontais picadas) x horizontais inteiras (verticais picadas); empate = inteira no lado mais comprido
+  const nR=rows.length,nI=nb-1;const cV=nI+nR*nb,cH=nR+nI*(nR+1);const hCont=!!(nR&&nI&&!o.perfilV&&!box&&(cH<cV||(cH===cV&&W>=H))&&(W-2*a)<=(o.barra||6000));
   quadro(0,'quadro frontal');
   const bays=[];for(let i=0;i<nb;i++)bays.push([vcs[i]+vw(i)/2,vcs[i+1]-vw(i+1)/2]);
   const [zi0,zi1]=zt(pi);
-  rows.forEach(yc=>bays.forEach(([x0,x1])=>M({x0,x1,y0:yc-ai/2,y1:yc+ai/2,z0:zi0,z1:zi1,perfil:o.perfilInt,len:x1-x0,tipo:'Travessa horizontal'})));
+  if(hCont){const x0=bays[0][0],x1=bays[nb-1][1];rows.forEach(yc=>M({x0,x1,y0:yc-ai/2,y1:yc+ai/2,z0:zi0,z1:zi1,perfil:o.perfilInt,len:x1-x0,tipo:'Travessa horizontal'}))}
+  else rows.forEach(yc=>bays.forEach(([x0,x1])=>M({x0,x1,y0:yc-ai/2,y1:yc+ai/2,z0:zi0,z1:zi1,perfil:o.perfilInt,len:x1-x0,tipo:'Travessa horizontal'})));
   if(o.trav40){const [q0,q1]=zt(r40);bays.forEach(([x0,x1])=>M({x0,x1,y0:y40-r40.f/2,y1:y40+r40.f/2,z0:q0,z1:q1,perfil:'20x40',len:x1-x0,tipo:'Travessa de reforço 20x40'}))}
   if(box){quadro(D-p,'quadro traseiro');
     vcs.forEach((c,i)=>{if(i===0&&sI)return;const w=vw(i);const P=(i===0||i===nb)?o.perfil:PV;
@@ -4107,7 +4118,7 @@ function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:setorInst()});P
   if(prod.un>1)lin('QUANTIDADE:',`${prod.un} UN.`);
   lin('POSIÇÃO:',instPosTxt(I),'#d6336c');
   const perso=I.ancT==='perso';
-  {const A=perso?null:ancInfo(I,prod);if(A)lin('ANCORAGEM:',A.semQtd?A.nome:`${A.nome} — ${A.q} UN.`,'#d6336c');{const T=ancTipoDe(I.ancTipo);if(T){const q=ancTipoQtd(I,prod);lin('TIPO DE ANCORAGEM:',`${T.nome.toUpperCase()} — ${q} UN. ${I.ancPos==='inferior'?'INFERIOR':'SUPERIOR'}`,'#d6336c')}}if(perso)lin('ANCORAGEM:','PERSONALIZADA — VER OBSERVAÇÃO','#2b8a3e')}
+  if(prod.colado)lin('FIXAÇÃO:',prod.colado,'#d6336c');else{const A=perso?null:ancInfo(I,prod);if(A)lin('ANCORAGEM:',A.semQtd?A.nome:`${A.nome} — ${A.q} UN.`,'#d6336c');{const T=ancTipoDe(I.ancTipo);if(T){const q=ancTipoQtd(I,prod);lin('TIPO DE ANCORAGEM:',`${T.nome.toUpperCase()} — ${q} UN. ${I.ancPos==='inferior'?'INFERIOR':'SUPERIOR'}`,'#d6336c')}}if(perso)lin('ANCORAGEM:','PERSONALIZADA — VER OBSERVAÇÃO','#2b8a3e')}
   if(I.pw&&I.ph)lin('PAREDE:',`${f0(I.pw)} mm (L) x ${f0(I.ph)} mm (A)`);else if(I.pw)lin('PAREDE:',`${f0(I.pw)} mm (L)`);else if(I.ph)lin('PAREDE:',`${f0(I.ph)} mm (A)`);
   const TA=ancTipoDe(I.ancTipo);
   if(temF){const fp=[instImg,instImg2].filter(Boolean);const fs=(instLocal?[{im:instLocal,lb:'LOCAL (FOTO ORIGINAL)',c:'#1971c2'}]:[]).concat(fp.map((im,i)=>({im,lb:fp.length>1?`FOTO ${i+1}`:'FOTO DE INSTALAÇÃO',c:'#868e96'})));if(TA&&TA.img)fs.push({im:TA.img,lb:fit(`ANCORAGEM ${I.ancPos==='inferior'?'INFERIOR':'SUPERIOR'}: ${TA.nome.toUpperCase()} (${ancTipoQtd(I,prod)} UN.)`,48,2),c:'#d6336c'});const FH=40,G=3,FW=((XR-IX)-G*(fs.length-1))/fs.length;
@@ -4144,6 +4155,9 @@ function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:setorInst()});P
   P.push({t:'rect',x:X(L0),y:Y(B0+H),w:W*s,h:H*s,fill:'#fff0f6',stroke:'#d6336c',lw:0.15});
   if(prod.contornoRects)prod.contornoRects.forEach(r=>{const a=PM([r.x0,r.y1]),b=PM([r.x1,r.y0]);P.push({t:'rect',x:a[0],y:a[1],w:Math.max(0.2,b[0]-a[0]),h:Math.max(0.2,b[1]-a[1]),fill:r.cor||'#dee2e6',stroke:'#495057',lw:0.05})});
   else{P.push({t:'pathfill',polys:pc.map(p=>p.map(PM)),fill:'#ffc9de'});pc.forEach(p=>P.push({t:'poly',pts:p.map(PM),color:'#212529',w:0.15}))}
+  // arte da peça (adesivo / placa): a imagem ou o texto em vetor por cima do contorno
+  try{const x0=X(L0),y0=Y(B0+H),w=W*s,h=H*s;if(prod.imgInst){const im=prod.imgInst;const k=Math.min(w/im.w,h/im.h),iw=im.w*k,ih=im.h*k;P.push({t:'rect',x:x0,y:y0,w,h,fill:'#ffffff',stroke:'#495057',lw:0.05},{t:'img',x:x0+(w-iw)/2,y:y0+(h-ih)/2,w:iw,h:ih,src:im.src,fmt:'JPEG'})}
+    if(prod.instPolys){const T=prod.instPolys;const kx2=w/T.L,ky2=h/T.A;P.push({t:'pathfill',polys:T.polys.map(pp=>pp.map(([x,y])=>[x0+x*kx2,y0+(T.A-y)*ky2])),fill:T.fill})}}catch(e){console.error('arte na instalação',e)}
   const CR='#d6336c',fs=3.2;
   cotaH(P,X(L0),X(L0+W),Y(B0+H)-5,Y(B0+H),`${f0(W)} mm`,fs);cotaV(P,X(L0+W)+6,Y(B0+H),Y(B0),X(L0+W),`${f0(H)} mm`,fs);
   // ancoragens: 20 cm de cada lateral, o resto distribuído igual; superior ou inferior
@@ -4307,7 +4321,7 @@ function paginasFinais(pages,tags,ctx,prod){window.ultProd=prod;try{fbPaginas(ct
   {const V=volAplica(prod);folhasExpedicao(ctx,{...prod,volumes:V.exp}).forEach(P=>{pages.push(P);if(tags)tags.push('EXPEDIÇÃO')});
    folhasQualidade(ctx,{...prod,volumes:V.qual,qualExtra:[],checks:V.checks}).forEach(P=>{pages.push(P);if(tags)tags.push('QUALIDADE')})}
   try{const anc=prod.semAnc?[]:needsAncoragem(ancInfo(instLer(),prod));const X=piPrep(prod,[...(prod.mat||[]),...anc]);
-    const rows=matResolve(X.needs).concat(ancTipoRows(prod),matAddRows()).filter(r=>!matExcl[r.k]);
+    const rows=matResolve(X.needs).concat(prod.soMat?[]:ancTipoRows(prod),matAddRows()).filter(r=>!matExcl[r.k]);
     if(rows.length){folhasMaterial(ctx,prod,rows).forEach(P=>{pages.push(P);if(tags)tags.push('RM')});matUlt=rows;setTimeout(matCardRender,0);if(typeof custoAuto==='function')custoAuto()}
     try{const pi=piLista(rows,X.tinta);rmUlt={ctx,prod,rows,pi};folhasPI(ctx,prod,pi).forEach(P=>{pages.push(P);if(tags)tags.push('PI')})}catch(e){console.error('PI',e)}}catch(e){console.error('lista de material',e)}}catch(e){console.error('paginasFinais',e)}}
 /* ---------- PI — PRODUTOS DE INSTALAÇÃO (tudo que está aqui também entra na RM) ---------- */
@@ -6086,7 +6100,7 @@ function adHexDe(nome){const s=String(nome||'').toLowerCase();if(typeof adesHex=
 function adConsumo(L,A,W){const u=W-40;const op=[];if(A<=u)op.push(L);if(L<=u)op.push(A);if(op.length)return Math.min(...op)+50;const n=Math.ceil(Math.min(L,A)/u);return n*(Math.max(L,A)+50)}
 function adCtx(){const d=$('#entrega').value;return{obsBelow:true,os:$('#os').value.trim(),item:$('#item').value||'1',descItem:($('#adDesc').value.trim()||'ADESIVO DE RECORTE').toUpperCase(),cliente:$('#cliente').value.trim(),vendedor:$('#vendedor').value.trim(),projetista:$('#projetista').value.trim(),endereco:$('#endereco').value.trim(),entrega:d?d.split('-').reverse().join('/'):''}}
 function adFolhas(){const ctx=adCtx();const pages=[],tags=[];const un=Math.max(1,Math.round(num($('#adUn').value))||1);const L=num($('#adL').value)||0,A=num($('#adA').value)||0;
-  if(!adArq)throw new Error('envie o arquivo original do adesivo');if(!(L>0&&A>0))throw new Error('informe a largura e a altura do adesivo');
+if(!(L>0&&A>0))throw new Error('informe a largura e a altura do adesivo');
   const cams=adCam.length?adCam:[{nome:'',q:1}];const nm=v=>String(v).replace('.',',');
   {const P=[];frame(P,ctx,{setor:'IMPRESSÃO'});P.push({t:'text',x:18,y:31,s:`${un}X`,size:7,bold:true,italic:true,color:'#000000'},{t:'text',x:PW/2,y:30,s:'ADESIVO DE RECORTE',size:4.4,bold:true,color:'#000000',anchor:'middle'},
       {t:'text',x:PW/2,y:35.5,s:`RECORTAR DIRETO DO ARQUIVO ORIGINAL (SEM APROVEITAMENTO) • ${f0(L)} x ${f0(A)} MM`,size:2.6,bold:true,color:'#c92a2a',anchor:'middle'});
@@ -6097,38 +6111,38 @@ function adFolhas(){const ctx=adCtx();const pages=[],tags=[];const un=Math.max(1
     else P.push({t:'rect',x:bx.x,y:bx.y,w:bx.w,h:bx.h,fill:'#f8f9fa',stroke:'#ced4da',lw:0.2},{t:'text',x:bx.x+bx.w/2,y:bx.y+bx.h/2,s:'(arquivo sem prévia — ver arquivo original)',size:3,color:'#868e96',anchor:'middle'});
     // quadro de informações
     let y=48;const X=202,W=82;P.push({t:'rect',x:X,y:44,w:W,h:116,r:1.5,fill:'#f8f9fa',stroke:'#495057',lw:0.35},{t:'text',x:X+3,y:y+1,s:'CORES / ADESIVOS',size:2.8,bold:true,color:'#000000'});y+=5;
-    cams.forEach((c,i)=>{P.push({t:'rect',x:X+3,y,w:6,h:6,r:0.8,fill:adHexDe(c.nome),stroke:'#495057',lw:0.2},{t:'text',x:X+11,y:y+2.6,s:fit(adNomeCurto(c.nome)||'COR A DEFINIR',W-14,2.4),size:2.4,bold:true,color:'#000000'},
+    cams.forEach((c,i)=>{const inf=adSelInfo(c);P.push({t:'rect',x:X+3,y,w:6,h:6,r:0.8,fill:inf?inf.hex:'#cccccc',stroke:'#495057',lw:0.2},{t:'text',x:X+11,y:y+2.6,s:fit(inf?inf.curto.toUpperCase():'COR A DEFINIR',W-14,2.4),size:2.4,bold:true,color:'#000000'},
       {t:'text',x:X+11,y:y+5.6,s:`${c.L&&c.A?f0(c.L)+' x '+f0(c.A)+' mm • ':''}${c.q||1} peça(s) por un.`,size:2.1,color:'#495057'});y+=9});
     y+=2;const linha=(a,b)=>{P.push({t:'text',x:X+3,y,s:a,size:2.3,bold:true,color:'#495057'},{t:'text',x:X+3,y:y+3.6,s:fit(b,W-6,2.4),size:2.4,bold:true,color:'#000000'});y+=8.5};
-    linha('ARQUIVO ORIGINAL:',adArq.nome);linha('QUANTIDADE:',`${un} un.`);linha('MÁSCARA DE TRANSFERÊNCIA:',$('#adMasc').checked?'SIM (transparente)':'NÃO');
+    linha('ARQUIVO ORIGINAL:',adArq?adArq.nome:'— anexar o arquivo —');linha('QUANTIDADE:',`${un} un.`);linha('MÁSCARA DE TRANSFERÊNCIA:',$('#adMasc').checked?'SIM (transparente)':'NÃO');
     const ap=$('#adAplic').value.trim();if(ap)linha('APLICAR EM:',ap.toUpperCase());
     const ob=$('#adObs').value.trim();if(ob){P.push({t:'rect',x:14,y:152,w:182,h:12,r:1.5,fill:'#d3f9d8',stroke:'#2b8a3e',lw:0.4},{t:'text',x:17,y:156.5,s:'OBSERVAÇÃO:',size:2.4,bold:true,color:'#2b8a3e'},{t:'text',x:17,y:161,s:fit(ob.toUpperCase(),176,2.8),size:2.8,bold:true,color:'#000000'})}
     pages.push(P);tags.push('IMPRESSÃO')}
   xfPaginas(ctx,'#xfA',pages,tags);
   // RM: cada cor peça por peça na largura do rolo (sem aproveitamento)
-  const N=[];let mT=0;cams.forEach((c,i)=>{const l=c.L||L,a=c.A||A;const W=adRolo(c.nome);const mm=adConsumo(l,a,W)*(c.q||1)*un;const m=Math.round(mm/10)/100;mT=Math.max(mT,mm);
-    if(c.nome)N.push({k:'ades|'+c.cod,desc:`${c.nome}`,q:m,un:'m',uso:`adesivo de recorte ${f0(l)} x ${f0(a)} mm — ${(c.q||1)*un} peça(s), sem aproveitamento (rolo ${f0(W)} mm)`,busca:{must:[c.nome]}})});
+  const N=[];cams.forEach((c,i)=>{const inf=adSelInfo(c);const l=c.L||L,a=c.A||A;const W=inf?inf.rolo:1220;const mm=adConsumo(l,a,W)*(c.q||1)*un;const m=Math.round(mm/10)/100;
+    if(inf)N.push({k:'ades|'+i+'|'+inf.nome,desc:inf.cad?inf.cad.nome:`${inf.nome} (cor sem cadastro — preço de referência da linha)`,q:m,un:'m',uso:`adesivo de recorte ${f0(l)} x ${f0(a)} mm — ${(c.q||1)*un} peça(s), sem aproveitamento (rolo ${f0(W)} mm) — ${inf.curto}`,busca:inf.busca})});
   if($('#adMasc').checked){const m=Math.round(cams.reduce((s,c)=>s+adConsumo(c.L||L,c.A||A,1000)*(c.q||1)*un,0)/10)/100;N.push({k:'ades|mascara',desc:'Máscara de transferência transparente 1,00 m',q:m,un:'m',uso:'transferir o adesivo recortado',busca:{must:['MASCARA DE TRANSFERENCIA TRANSPARENTE']}})}
-  const prod={tipo:'estrutura',mat:N,semAnc:true,anc:{peca:'ADESIVO',auto:0,onde:'colado'},nome:ctx.descItem,W:L,H:A,D:1,un,
-    volumes:[{desc:ctx.descItem,cont:`Adesivo de recorte ${cams.map(c=>adNomeCurto(c.nome)).filter(Boolean).join(' + ')||''} — enrolado com máscara`,dims:`${f0(L)} x ${f0(A)}`,q:un,kg:0,draw:adPrevImg?{img:adPrevImg}:null}],
-    contornoRects:[{x0:0,y0:0,x1:L,y1:A,cor:adHexDe((cams[0]||{}).nome)}],contorno:[[[0,0],[L,0],[L,A],[0,A]]],checks:['MEDIDAS','COR','RECORTE / DESCASQUE','APLICAÇÃO']};
+  const prod={tipo:'estrutura',mat:N,semAnc:true,soMat:true,colado:`ADESIVO COLADO — APLICAR ${($('#adAplic').value.trim()||'NO LOCAL').toUpperCase()} COM ESPÁTULA (MÁSCARA DE TRANSFERÊNCIA)`,imgInst:adPrevImg||null,anc:{peca:'ADESIVO',auto:0,onde:'colado'},nome:ctx.descItem,W:L,H:A,D:1,un,
+    volumes:[{desc:ctx.descItem,cont:`Adesivo de recorte ${cams.map(c=>{const i=adSelInfo(c);return i?i.curto:''}).filter(Boolean).join(' + ')||''} — enrolado com máscara`,dims:`${f0(L)} x ${f0(A)}`,q:un,kg:0,draw:adPrevImg?{img:adPrevImg}:null},...($('#adMasc').checked?[{desc:'MÁSCARA DE TRANSFERÊNCIA',cont:'Rolo / sobra de máscara transparente para a aplicação no local',dims:'—',q:1,kg:0,draw:null}]:[])],
+    contornoRects:[{x0:0,y0:0,x1:L,y1:A,cor:(adSelInfo(cams[0])||{hex:'#999'}).hex}],contorno:[[[0,0],[L,0],[L,A],[0,A]]],checks:['MEDIDAS','COR','RECORTE / DESCASQUE','APLICAÇÃO']};
   paginasFinais(pages,tags,ctx,prod);pages.forEach((P,i)=>{P._setor=P._setor||tags[i]});
   if(!FOOT_SKIP){numeraSetores(pages);pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length))}
   return{pages,tags,ctx}}
 function adRender(){try{adBuild=adFolhas();const C=setorChips(adBuild.pages,adSel,'data-adpg');adSel=C.sel;$('#adPgPick').innerHTML=C.html;$('#adPrev').innerHTML=C.shown.map(P=>`<div class="pg">${toSVG(P)}</div>`).join('');$('#adBaixar').hidden=false;$('#adMsg').innerHTML=''}
-  catch(e){adBuild=null;$('#adMsg').innerHTML=`<div class="msg err">${esc(e.message)}</div>`;console.error(e)}}
+  catch(e){adBuild=null;matUlt=null;rmUlt=null;try{matCardRender()}catch(er){}$('#adMsg').innerHTML=`<div class="msg err">${esc(e.message)}</div>`;console.error(e)}}
 function adSujo(){adBuild=null;if(typeof pedSujo!=='undefined')pedSujo=true}
-function adLimpa(){adArq=null;adPrevImg=null;adCam=[];adBuild=null;['#adDesc','#adAplic','#adObs','#adL','#adA'].forEach(s=>$(s)&&($(s).value=''));if($('#adUn'))$('#adUn').value='1';if($('#adMasc'))$('#adMasc').checked=true;xfPut('#xfA',[]);if($('#adPrev'))$('#adPrev').innerHTML='';if($('#adPgPick'))$('#adPgPick').innerHTML='';adUI()}
+function adLimpa(){matUlt=null;rmUlt=null;try{matCardRender()}catch(e){}adArq=null;adPrevImg=null;adCam=[];adBuild=null;['#adDesc','#adAplic','#adObs','#adL','#adA'].forEach(s=>$(s)&&($(s).value=''));if($('#adUn'))$('#adUn').value='1';if($('#adMasc'))$('#adMasc').checked=true;xfPut('#xfA',[]);if($('#adPrev'))$('#adPrev').innerHTML='';if($('#adPgPick'))$('#adPgPick').innerHTML='';adUI()}
 function adUI(){const box=$('#adArqInfo');if(!box)return;
   box.innerHTML=adArq?`<div class="row" style="gap:10px;align-items:center;flex-wrap:wrap">${adPrevImg?`<img src="${adPrevImg.src}" style="max-height:120px;max-width:260px;border:1px solid var(--line);border-radius:6px;background:#fff">`:''}<div><b>📎 ${esc(adArq.nome)}</b><div class="note" style="margin:0">${(adArq.b64.length*0.75/1048576).toFixed(2).replace('.',',')} MB — guardado do jeito que veio (vai no ZIP sem mexer)</div><button class="btn ghost sm" type="button" id="adArqBaixar" style="margin-top:4px">Baixar o original</button></div></div>`:'<span class="note">Nenhum arquivo ainda.</span>';
   const cad=adListaCad();const L=$('#adCamLista');
-  L.innerHTML=adCam.map((c,i)=>`<div class="row" style="gap:8px;align-items:flex-end;flex-wrap:wrap;margin-top:8px;padding:8px;border:1.5px solid var(--line);border-radius:10px">
-    <span style="width:26px;height:26px;border-radius:6px;background:${adHexDe(c.nome)};border:1px solid #868e96;align-self:center"></span>
-    <div style="flex:3;min-width:220px"><label class="f" style="margin:0 0 2px">Adesivo (cadastro)</label><select data-adc="${i}" data-ak="cod"><option value="">— escolha —</option>${cad.map(x=>`<option value="${esc(String(x.cod))}"${String(x.cod)===String(c.cod)?' selected':''}>${esc(adNomeCurto(x.nome))}${x.v?` — R$ ${String(x.v.toFixed(2)).replace('.',',')}/${x.un}`:''}</option>`).join('')}</select></div>
+  L.innerHTML=adCam.map((c,i)=>{const inf=adSelInfo(c);return `<div style="margin-top:8px;padding:8px;border:1.5px solid var(--line);border-radius:10px">
+    <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap"><span style="width:26px;height:26px;border-radius:6px;background:${inf?inf.hex:'#f1f3f5'};border:1px solid #868e96"></span><b style="flex:1;min-width:160px">Cor ${i+1}${inf?' — '+esc(inf.curto):''}</b>
     <div style="width:90px"><label class="f" style="margin:0 0 2px">Larg. (mm)</label><input type="number" inputmode="decimal" data-adc="${i}" data-ak="L" value="${c.L||''}" placeholder="igual"></div>
     <div style="width:90px"><label class="f" style="margin:0 0 2px">Alt. (mm)</label><input type="number" inputmode="decimal" data-adc="${i}" data-ak="A" value="${c.A||''}" placeholder="igual"></div>
     <div style="width:70px"><label class="f" style="margin:0 0 2px">Peças/un.</label><input type="number" inputmode="numeric" data-adc="${i}" data-ak="q" value="${c.q||1}"></div>
-    <button class="btn ghost sm" type="button" data-addel="${i}" style="color:#c92a2a">✕</button></div>`).join('')||'<p class="note" style="margin:6px 0 0">Adicione a cor (adesivo) — uma linha por cor do recorte.</p>'}
+    <button class="btn ghost sm" type="button" data-addel="${i}" style="color:#c92a2a">✕</button></div>
+    <div style="margin-top:6px">${adPickHTML(c,i,'ad')}</div></div>`}).join('')||'<p class="note" style="margin:6px 0 0">Adicione a cor (adesivo) — uma linha por cor do recorte.</p>'}
 async function adCarrega(f){const buf=new Uint8Array(await f.arrayBuffer());adArq={nome:f.name,b64:b64(buf),tipo:f.type||''};adPrevImg=null;
   try{if(/pdf$/i.test(f.name)||f.type==='application/pdf'){const pdf=await pdfjsLib.getDocument({data:buf.slice(),isEvalSupported:false}).promise;const pg=await pdf.getPage(1);const vp0=pg.getViewport({scale:1});
       if(!num($('#adL').value))$('#adL').value=Math.round(vp0.width*25.4/72);if(!num($('#adA').value))$('#adA').value=Math.round(vp0.height*25.4/72);
@@ -6142,7 +6156,8 @@ async function adCarrega(f){const buf=new Uint8Array(await f.arrayBuffer());adAr
   const L=$('#adCamLista');
   L.addEventListener('change',e=>{const i=e.target.dataset.adc;if(i==null)return;const c=adCam[+i],k=e.target.dataset.ak;
     if(k==='cod'){const x=adListaCad().find(r=>String(r.cod)===e.target.value);c.cod=x?x.cod:'';c.nome=x?x.nome:''}else c[k]=num(e.target.value)||0;adUI();adSujo()});
-  L.addEventListener('click',e=>{const d=e.target.closest('[data-addel]');if(!d)return;adCam.splice(+d.dataset.addel,1);adUI();adSujo()});
+  L.addEventListener('change',e=>{const s=e.target.dataset.adcad;if(s==null)return;const c=adCam[+s];const x=adListaCad().find(r=>String(r.cod)===e.target.value);c.sel={marca:'cad'};c.cod=x?x.cod:'';c.nome=x?x.nome:'';adUI();adSujo()});
+  L.addEventListener('click',e=>{if(adPickClick(e,'ad',adCam,()=>{adUI();adSujo()}))return;const d=e.target.closest('[data-addel]');if(!d)return;adCam.splice(+d.dataset.addel,1);adUI();adSujo()});
   ['#adDesc','#adUn','#adL','#adA','#adAplic','#adObs','#adMasc'].forEach(s=>$(s).addEventListener('change',adSujo));
   $('#adGerar').onclick=()=>adRender();
   $('#adPgPick').onclick=e=>{const b=e.target.closest('[data-adpg]');if(!b||e.target.closest('[data-setx],[data-fbabrir]'))return;adSel=b.dataset.adpg;adRender()};
@@ -6150,16 +6165,42 @@ async function adCarrega(f){const buf=new Uint8Array(await f.arrayBuffer());adAr
     try{if(rmUlt&&rmUlt.rows&&rmUlt.rows.length)z.file(nomeArq(base+' - RM.xlsx'),await rmXlsx(rmUlt.rows,base+' - RM'))}catch(e){}await salvar(nomeArq(base+'.zip'),await z.generateAsync({type:'blob'}))};
   adUI()})();
 
+/* ---------- escolha do adesivo por MARCA e COR (padrões Oracal 651 e Imprimax Gold Max / Gold Fosco / Color Max) ---------- */
+const AD_MARCAS=[['Oracal','651 (brilho / M = fosco)','Oracal 651'],['Imprimax','Gold Max (brilho)','Imprimax Gold Max'],['Imprimax','Gold Fosco','Imprimax Gold Fosco'],['Imprimax','Color Max','Imprimax Color Max'],['cad','','Outros do cadastro']];
+function adCoresDe(marca,linha){return (typeof adesCatalogo==='function'?adesCatalogo():[]).filter(c=>c.marca===marca&&c.linha===linha)}
+// acha o adesivo no cadastro: Oracal pelo código (651 031), Imprimax pelo nome da cor + linha
+function adCadDe(s){if(!s)return null;const L=adListaCad();const N=x=>mpNorm(x);
+  if(s.marca==='Oracal'){const cod=String(s.cod||'').replace(/M$/,'');const ws=N(s.nome).split(' ').filter(w=>w.length>3&&!/LIGHT|DARK|MATTE|SIGNAL|PASTEL/.test(w));return L.find(x=>N(x.nome).includes('ORACAL')&&cod&&new RegExp(`651 0?${cod}\\b`).test(N(x.nome)))||L.find(x=>N(x.nome).includes('ORACAL')&&ws.length&&ws.filter(w=>!/^(BLUE|RED|GREEN|YELLOW|ORANGE|WHITE|BLACK|GREY|GRAY|BROWN|PINK|VIOLET|PURPLE)$/.test(w)).some(w=>N(x.nome).includes(w)))||null}
+  if(s.marca==='Imprimax'){const cor=N(s.nome).replace(/ FOSCO$/,'');const fos=/fosco/i.test(s.linha)||/fosco/i.test(s.nome);const lin=/color/i.test(s.linha)?'COLOR MAX':'GOLD';
+    const cands=L.filter(x=>{const n=N(x.nome);return n.includes(cor)&&(n.includes(lin)||(lin==='GOLD'&&n.includes('GOLDMAX')))&&(fos?n.includes('FOSCO'):!n.includes('FOSCO'))});if(cands[0])return cands[0];
+    if(!fos)return L.find(x=>{const n=N(x.nome);return n.includes(cor)&&n.includes('IMPRIMAX')&&n.includes('BRILH')})||null;return null}return null}
+function adSelInfo(c){// c: {sel:{marca,linha,cod,nome,hex}} ou legado {cod,nome} do cadastro
+  if(c&&c.sel&&c.sel.marca&&c.sel.marca!=='cad'){const s=c.sel;const cad=adCadDe(s);const nome=`ADESIVO ${s.marca.toUpperCase()} ${s.linha.replace(/\s*\(.*\)/,'').toUpperCase()} — ${s.cod?s.cod+' ':''}${String(s.nome).toUpperCase()}`;
+    const rolo=s.marca==='Oracal'?1260:1220;const marcaW=s.marca==='Oracal'?'ORACAL':'IMPRIMAX',linW=s.marca==='Oracal'?'ORACAL':(/color/i.test(s.linha)?'COLOR MAX':'GOLD');const cor1=mpNorm(s.nome).split(' ')[0];const LC=adListaCad();const ref=!cad?(LC.find(x=>{const n=mpNorm(x.nome);return n.includes(marcaW)&&n.includes(cor1)})||LC.find(x=>mpNorm(x.nome).includes(linW))||LC.find(x=>mpNorm(x.nome).includes(marcaW))):null;
+    return{nome,hex:s.hex,rolo:cad?adRolo(cad.nome):rolo,busca:cad?{must:[cad.nome]}:ref?{must:[ref.nome]}:{must:['ADESIVO',s.marca.toUpperCase()]},cad,ref,curto:`${s.marca} ${s.linha.replace(/\s*\(.*\)/,'')} — ${s.cod?s.cod+' ':''}${s.nome}`}}
+  if(c&&c.nome)return{nome:c.nome,hex:adHexDe(c.nome),rolo:adRolo(c.nome),busca:{must:[c.nome]},cad:c,curto:adNomeCurto(c.nome)};return null}
+function adPickHTML(c,i,pre){const s=c.sel||{};const mk=s.marca?(s.marca==='cad'?'cad':s.marca+'|'+s.linha):(c.cod?'cad':'');
+  let h=`<div class="row" style="gap:6px;flex-wrap:wrap">${AD_MARCAS.map(([m,l,t])=>{const k=m==='cad'?'cad':m+'|'+l;return `<button type="button" class="chip${k===mk?' on':''}" data-${pre}mk="${esc(k)}" data-${pre}i="${i}" style="padding:7px 11px;font-size:12.5px">${t}</button>`}).join('')}</div>`;
+  if(mk==='cad'){const cad=adListaCad();h+=`<select data-${pre}cad="${i}" style="margin-top:6px"><option value="">— escolha —</option>${cad.map(x=>`<option value="${esc(String(x.cod))}"${String(x.cod)===String(c.cod)?' selected':''}>${esc(adNomeCurto(x.nome))}${x.v?` — R$ ${String(x.v.toFixed(2)).replace('.',',')}/${x.un}`:''}</option>`).join('')}</select>`}
+  else if(mk){const [m,l]=mk.split('|');h+=`<div class="row" style="gap:5px;flex-wrap:wrap;margin-top:6px;max-height:190px;overflow:auto;padding:2px">${adCoresDe(m,l).map((x,j)=>{const on=s.nome===x.nome&&s.linha===l;const cad=adCadDe({...x,marca:m,linha:l});return `<button type="button" class="chip${on?' on':''}" data-${pre}cor="${j}" data-${pre}i="${i}" title="${cad?'no cadastro — R$ '+String(cad.v.toFixed(2)).replace('.',',')+'/m':'sem preço no cadastro'}" style="display:inline-flex;gap:5px;align-items:center;padding:5px 9px;font-size:12px"><span style="width:15px;height:15px;border-radius:3px;background:${x.hex};border:1px solid #0003;display:inline-block"></span>${x.cod?`<b>${esc(x.cod)}</b> `:''}${esc(x.nome)}${cad?' <span style="color:#2b8a3e">●</span>':''}</button>`}).join('')}</div><div class="note" style="margin:3px 0 0;font-size:11px"><span style="color:#2b8a3e">●</span> = tem preço no cadastro</div>`}
+  const inf=adSelInfo(c);if(inf)h+=`<div class="note" style="margin:6px 0 0">Escolhido: <b>${esc(inf.curto)}</b> — ${inf.cad&&inf.cad.v!=null?`R$ ${String((+inf.cad.v).toFixed(2)).replace('.',',')}/m (cadastro)`:inf.ref?`<span style="color:#e8590c">cor sem preço no cadastro — usando o preço de referência da linha (${esc(adNomeCurto(inf.ref.nome))})</span>`:'<span style="color:#e8590c">entra como provisório na RM</span>'}</div>`;
+  return h}
+function adPickClick(e,pre,lista,depois){const d=e.target.closest(`[data-${pre}mk],[data-${pre}cor]`);if(!d)return false;const i=+d.dataset[pre+'i'];const c=lista[i];if(!c)return false;
+  if(d.dataset[pre+'mk']!=null){const k=d.dataset[pre+'mk'];if(k==='cad')c.sel={marca:'cad'};else{const [m,l]=k.split('|');c.sel={marca:m,linha:l}}}
+  else{const s=c.sel||{};const x=adCoresDe(s.marca,s.linha)[+d.dataset[pre+'cor']];if(x){c.sel={marca:s.marca,linha:s.linha,cod:x.cod||'',nome:x.nome,hex:x.hex};c.cod='';c.nome=''}}depois();return true}
+
 /* ===================== PLACA DE SINALIZAÇÃO =====================
    Fundo: ACM 3/4 mm (borda refilada opcional: +aba de cada lado, corte tipo bandeja com usinagem), PVC 3/5/10/20 mm ou acrílico (mm e cor do cadastro).
    Pintura com a configuração padrão (escolha de cor do sistema). Frente: impressão UV (terceirizada), adesivo de recorte ou acrílico 3 mm. */
+let plSrc='arq';const PL_FONTES=[['arimo','0.4.3','Arimo','Arial (Arimo)',['400Regular','700Bold']],['roboto','0.4.3','Roboto','Roboto',['400Regular','500Medium','700Bold','900Black']],['montserrat','0.4.2','Montserrat','Montserrat',['400Regular','600SemiBold','700Bold','800ExtraBold','900Black']],['open-sans','0.4.2','OpenSans','Open Sans',['400Regular','600SemiBold','700Bold','800ExtraBold']],['lato','0.4.1','Lato','Lato',['400Regular','700Bold','900Black']],['poppins','0.4.1','Poppins','Poppins',['400Regular','600SemiBold','700Bold','900Black']],['oswald','0.4.2','Oswald','Oswald (condensada)',['400Regular','500Medium','700Bold']],['bebas-neue','0.4.1','BebasNeue','Bebas Neue',['400Regular']],['anton','0.4.2','Anton','Anton',['400Regular']],['archivo-black','0.4.1','ArchivoBlack','Archivo Black',['400Regular']]];
+const plFontCache={};let plFontKey='arimo|700Bold';
 let plFundo={mat:'acm',esp:3,acmCod:'',acrCor:'BRANCO',refil:false,aba:20},plFrente={tipo:'nenhum',adCod:'',acrCor:'PRETO'},plArte=null,plArteImg=null,plBuild=null,plSel='';
 const PL_PVC=[3,5,10,20],PL_ACR=[2,3,4,5,6,8,10];
 const plAcmLista=e=>MP.filter(r=>/^ACM /i.test(r[1])&&new RegExp(`(^|[ X])0?${e}\\s*MM`,'i').test(r[1])).map(r=>({cod:r[0],nome:r[1],v:r[3]}));
 const plAcrHex=c=>((typeof FD_ACR!=='undefined'?FD_ACR:[]).find(x=>x[0]===c)||[0,'#cccccc'])[1];
 function plFundoNome(){const f=plFundo;if(f.mat==='acm'){const x=plAcmLista(f.esp).find(r=>String(r.cod)===String(f.acmCod));return `ACM ${f.esp} MM${x?' — '+x.nome.replace(/^ACM\s+/i,''):''}${f.refil?` • BORDA REFILADA (ABA ${f0(f.aba)} MM)`:''}`}
   if(f.mat==='pvc')return `PVC EXPANDIDO ${f.esp} MM`;return `ACRÍLICO ${f.esp} MM ${f.acrCor}`}
-function plFrenteNome(){const t=plFrente.tipo;if(t==='uv')return'IMPRESSÃO UV (TERCEIRIZADA)';if(t==='adesivo'){const x=(typeof adListaCad==='function'?adListaCad():[]).find(r=>String(r.cod)===String(plFrente.adCod));return 'ADESIVO DE RECORTE'+(x?' — '+adNomeCurto(x.nome):'')}if(t==='acrilico')return `ACRÍLICO 3 MM ${plFrente.acrCor} (RECORTADO)`;return'SEM TEXTO / SÓ O FUNDO'}
+function plFrenteNome(){const t=plFrente.tipo;if(t==='uv')return'IMPRESSÃO UV (TERCEIRIZADA)';if(t==='adesivo'){const x=plAdInfo();return 'ADESIVO DE RECORTE'+(x?' — '+x.curto:'')}if(t==='acrilico')return `ACRÍLICO 3 MM ${plFrente.acrCor} (RECORTADO)`;return'SEM TEXTO / SÓ O FUNDO'}
 function plCtx(){const d=$('#entrega').value;return{obsBelow:true,os:$('#os').value.trim(),item:$('#item').value||'1',descItem:($('#plDesc').value.trim()||'PLACA DE SINALIZAÇÃO').toUpperCase(),cliente:$('#cliente').value.trim(),vendedor:$('#vendedor').value.trim(),projetista:$('#projetista').value.trim(),endereco:$('#endereco').value.trim(),entrega:d?d.split('-').reverse().join('/'):''}}
 // contorno de corte e linhas de usinagem (ACM com borda refilada = bandeja com os cantos recortados)
 function plGeo(L,A){const f=plFundo;if(f.mat==='acm'&&f.refil){const a=f.aba;const corte=[[0,a],[a,a],[a,0],[a+L,0],[a+L,a],[2*a+L,a],[2*a+L,a+A],[a+L,a+A],[a+L,2*a+A],[a,2*a+A],[a,a+A],[0,a+A]];
@@ -6189,14 +6230,17 @@ function plFolhas(){const ctx=plCtx();const pages=[],tags=[];const un=Math.max(1
       {t:'text',x:41,y:60,s:`${un} placa(s) de ${f0(L)} x ${f0(A)} mm — área aprox. ${f2(area*un)} m² (face)`,size:2.8,color:'#000000'},{t:'text',x:41,y:66,s:`Fundo em ${plFundoNome().toLowerCase()} — pintar a face${plFundo.mat==='acm'&&plFundo.refil?' e as abas':''}.`,size:2.5,color:'#555555'});
     desenho(P,{x:60,y:84,w:180,h:76},[[0,0],[L,0],[L,A],[0,A]],[],CI.hex,true);pages.push(P);tags.push('PINTURA')}
   // 3) FRENTE (texto)
-  const arteBox=(P,bx)=>{if(plArteImg){const s=Math.min(bx.w/plArteImg.w,bx.h/plArteImg.h),w=plArteImg.w*s,h=plArteImg.h*s;P.push({t:'img',x:bx.x+(bx.w-w)/2,y:bx.y+(bx.h-h)/2,w,h,src:plArteImg.src,fmt:'JPEG'})}else desenho(P,bx,[[0,0],[L,0],[L,A],[0,A]],[],fundoCor,true)};
+  const TG=plSrc==='txt'?plTextoGeo(L,A):null;if(plSrc==='txt'&&!TG&&plFrente.tipo!=='nenhum')throw new Error('digite o texto da placa');
+  const arteBox=(P,bx)=>{if(TG){const D=desenho(P,bx,[[0,0],[L,0],[L,A],[0,A]],[],fundoCor,true);P.push({t:'pathfill',polys:TG.polys.map(pp=>pp.map(([x,y])=>[D.X(x),D.Y(y)])),fill:plTxtHex()});
+      P.push({t:'text',x:bx.x+bx.w/2,y:bx.y+bx.h+7,s:`TEXTO: ${plFontNome(plFontKey).toUpperCase()} • LETRA MAIÚSCULA ${String(TG.cap.toFixed(1)).replace('.',',')} MM`,size:2.4,bold:true,color:'#495057',anchor:'middle'});return}
+    if(plArteImg){const s=Math.min(bx.w/plArteImg.w,bx.h/plArteImg.h),w=plArteImg.w*s,h=plArteImg.h*s;P.push({t:'img',x:bx.x+(bx.w-w)/2,y:bx.y+(bx.h-h)/2,w,h,src:plArteImg.src,fmt:'JPEG'})}else desenho(P,bx,[[0,0],[L,0],[L,A],[0,A]],[],fundoCor,true)};
   const ft=plFrente.tipo;
   if(ft==='uv'){const P=[];frame(P,ctx,{setor:'TERCEIRIZAÇÃO'});P.push({t:'text',x:18,y:31,s:`${un}X`,size:7,bold:true,italic:true,color:'#000000'},{t:'text',x:PW/2,y:30,s:'IMPRESSÃO UV — TERCEIRIZADA',size:4.4,bold:true,color:'#000000',anchor:'middle'},{t:'text',x:PW/2,y:35.5,s:'NÃO FAZEMOS NA EMPRESA: MANDAR A PLACA (JÁ CORTADA / PINTADA) + ARQUIVO DA ARTE PARA O FORNECEDOR',size:2.6,bold:true,color:'#e8590c',anchor:'middle'});
-    arteBox(P,{x:20,y:46,w:176,h:110});caixaInfo(P,[['SERVIÇO:','Impressão UV direto na placa'],['MEDIDA:',`${f0(L)} x ${f0(A)} mm`],['QUANTIDADE:',`${un} un.`],['ARQUIVO DA ARTE:',plArte?plArte.nome:'— anexar —'],['FUNDO:',plFundoNome()]],202,50,84);pages.push(P);tags.push('TERCEIRIZAÇÃO')}
-  if(ft==='adesivo'){const x=(typeof adListaCad==='function'?adListaCad():[]).find(r=>String(r.cod)===String(plFrente.adCod));const P=[];frame(P,ctx,{setor:'IMPRESSÃO'});P.push({t:'text',x:18,y:31,s:`${un}X`,size:7,bold:true,italic:true,color:'#000000'},{t:'text',x:PW/2,y:30,s:'TEXTO EM ADESIVO DE RECORTE',size:4.4,bold:true,color:'#000000',anchor:'middle'},{t:'text',x:PW/2,y:35.5,s:'RECORTAR DIRETO DO ARQUIVO DA ARTE (SEM APROVEITAMENTO) E APLICAR SOBRE A PLACA',size:2.6,bold:true,color:'#c92a2a',anchor:'middle'});
-    arteBox(P,{x:20,y:46,w:176,h:110});P.push({t:'rect',x:202,y:45,w:8,h:8,r:1,fill:x&&typeof adHexDe==='function'?adHexDe(x.nome):'#999',stroke:'#495057',lw:0.2});caixaInfo(P,[['ADESIVO:',x?adNomeCurto(x.nome):'COR A DEFINIR'],['MEDIDA DA PLACA:',`${f0(L)} x ${f0(A)} mm`],['QUANTIDADE:',`${un} un.`],['ARQUIVO DA ARTE:',plArte?plArte.nome:'— anexar —']],202,62,84);pages.push(P);tags.push('IMPRESSÃO')}
+    arteBox(P,{x:20,y:46,w:176,h:110});caixaInfo(P,[['SERVIÇO:','Impressão UV direto na placa'],['MEDIDA:',`${f0(L)} x ${f0(A)} mm`],['QUANTIDADE:',`${un} un.`],plSrc==='txt'?['TEXTO / FONTE:',`${($('#plTxt').value||'').replace(/\n/g,' / ')} — ${plFontNome(plFontKey)}`]:['ARQUIVO DA ARTE:',plArte?plArte.nome:'— anexar —'],['FUNDO:',plFundoNome()]],202,50,84);pages.push(P);tags.push('TERCEIRIZAÇÃO')}
+  if(ft==='adesivo'){const x=plAdInfo();const P=[];frame(P,ctx,{setor:'IMPRESSÃO'});P.push({t:'text',x:18,y:31,s:`${un}X`,size:7,bold:true,italic:true,color:'#000000'},{t:'text',x:PW/2,y:30,s:'TEXTO EM ADESIVO DE RECORTE',size:4.4,bold:true,color:'#000000',anchor:'middle'},{t:'text',x:PW/2,y:35.5,s:'RECORTAR DIRETO DO ARQUIVO DA ARTE (SEM APROVEITAMENTO) E APLICAR SOBRE A PLACA',size:2.6,bold:true,color:'#c92a2a',anchor:'middle'});
+    arteBox(P,{x:20,y:46,w:176,h:110});P.push({t:'rect',x:202,y:45,w:8,h:8,r:1,fill:x?x.hex:'#999',stroke:'#495057',lw:0.2});caixaInfo(P,[['ADESIVO:',x?x.curto.toUpperCase():'COR A DEFINIR'],['MEDIDA DA PLACA:',`${f0(L)} x ${f0(A)} mm`],['QUANTIDADE:',`${un} un.`],plSrc==='txt'?['TEXTO / FONTE:',`${($('#plTxt').value||'').replace(/\n/g,' / ')} — ${plFontNome(plFontKey)}`]:['ARQUIVO DA ARTE:',plArte?plArte.nome:'— anexar —']],202,62,84);pages.push(P);tags.push('IMPRESSÃO')}
   if(ft==='acrilico'){const P=[];frame(P,ctx,{setor:'ROUTER'});P.push({t:'text',x:18,y:31,s:`${un}X`,size:7,bold:true,italic:true,color:'#000000'},{t:'text',x:PW/2,y:30,s:`TEXTO EM ACRÍLICO 3 MM ${plFrente.acrCor}`,size:4.4,bold:true,color:'#000000',anchor:'middle'},{t:'text',x:PW/2,y:35.5,s:'RECORTAR NA ROUTER CONFORME O ARQUIVO DA ARTE • COLAR SOBRE A PLACA (ACABAMENTO)',size:2.6,bold:true,color:'#c92a2a',anchor:'middle'});
-    arteBox(P,{x:20,y:46,w:176,h:110});P.push({t:'rect',x:202,y:45,w:8,h:8,r:1,fill:plAcrHex(plFrente.acrCor),stroke:'#495057',lw:0.2});caixaInfo(P,[['MATERIAL:',`Acrílico 3 mm ${plFrente.acrCor}`],['MEDIDA DA PLACA:',`${f0(L)} x ${f0(A)} mm`],['QUANTIDADE:',`${un} un.`],['ARQUIVO DA ARTE:',plArte?plArte.nome:'— anexar —']],202,62,84);pages.push(P);tags.push('ROUTER')}
+    arteBox(P,{x:20,y:46,w:176,h:110});P.push({t:'rect',x:202,y:45,w:8,h:8,r:1,fill:plAcrHex(plFrente.acrCor),stroke:'#495057',lw:0.2});caixaInfo(P,[['MATERIAL:',`Acrílico 3 mm ${plFrente.acrCor}`],['MEDIDA DA PLACA:',`${f0(L)} x ${f0(A)} mm`],['QUANTIDADE:',`${un} un.`],plSrc==='txt'?['TEXTO / FONTE:',`${($('#plTxt').value||'').replace(/\n/g,' / ')} — ${plFontNome(plFontKey)}`]:['ARQUIVO DA ARTE:',plArte?plArte.nome:'— anexar —']],202,62,84);pages.push(P);tags.push('ROUTER')}
   // 4) ACABAMENTO: montagem
   {const P=[];frame(P,ctx,{setor:'ACABAMENTO'});P.push({t:'text',x:PW/2,y:30,s:'MONTAGEM DA PLACA',size:4.4,bold:true,color:'#000000',anchor:'middle'});arteBox(P,{x:20,y:44,w:176,h:112});
     const st=[`1. Fundo: ${plFundoNome()}${plFundo.mat==='acm'&&plFundo.refil?' — usinar, cortar e refilar a aba lateral':''}.`,pint?'2. Pintar o fundo (ver folha de pintura).':'2. Fundo sem pintura.',ft==='uv'?'3. Enviar para a impressão UV (terceirizada) e conferir na volta.':ft==='adesivo'?'3. Aplicar o adesivo de recorte com máscara de transferência.':ft==='acrilico'?`3. Colar o texto em acrílico 3 mm ${plFrente.acrCor} (fita VHB / cola).`:'3. Sem texto.','4. Limpar, conferir medida e embalar.'];
@@ -6209,12 +6253,12 @@ function plFolhas(){const ctx=plCtx();const pages=[],tags=[];const un=Math.max(1
   else N.push({k:'placa|acr|'+f.esp+'|'+f.acrCor,desc:`Acrílico ${f.esp} mm ${f.acrCor}`,m2:aFundo*1.15,un:'un',uso:`fundo da placa x ${un} + 15% de perda`,busca:{must:['ACRILICO',[`0${f.esp}MM`,` ${f.esp}MM`]],want:[f.acrCor]}});
   if(pint)needsTinta(aFundo,'placa de sinalização').forEach(x=>N.push(x));
   if(ft==='uv')N.push({k:'placa|uv',desc:'Impressão UV na placa (terceirizada)',q:Math.round(area*un*100)/100,un:'m²',uso:`${f0(L)} x ${f0(A)} mm x ${un} — informar o valor do serviço`,busca:{must:['IMPRESSAO UV']}});
-  if(ft==='adesivo'){const x=(typeof adListaCad==='function'?adListaCad():[]).find(r=>String(r.cod)===String(plFrente.adCod));const W=x?adRolo(x.nome):1220;const m=Math.round(adConsumo(L,A,W)*un/10)/100;
-    if(x)N.push({k:'placa|ades|'+x.cod,desc:x.nome,q:m,un:'m',uso:`texto em adesivo de recorte — ${un} placa(s), sem aproveitamento`,busca:{must:[x.nome]}});
+  if(ft==='adesivo'){const x=plAdInfo();const W=x?x.rolo:1220;const m=Math.round(adConsumo(L,A,W)*un/10)/100;
+    if(x)N.push({k:'placa|ades|'+x.nome,desc:x.cad?x.cad.nome:`${x.nome} (cor sem cadastro — preço de referência da linha)`,q:m,un:'m',uso:`texto em adesivo de recorte — ${un} placa(s), sem aproveitamento — ${x.curto}`,busca:x.busca});
     N.push({k:'ades|mascara',desc:'Máscara de transferência transparente 1,00 m',q:Math.round(adConsumo(L,A,1000)*un/10)/100,un:'m',uso:'aplicar o adesivo',busca:{must:['MASCARA DE TRANSFERENCIA TRANSPARENTE']}})}
   if(ft==='acrilico')N.push({k:'placa|acrf|'+plFrente.acrCor,desc:`Acrílico 3 mm ${plFrente.acrCor}`,m2:area*un*1.15,un:'un',uso:`texto da placa x ${un} + 15% de perda`,busca:{must:['ACRILICO',['03MM',' 3MM']],want:[plFrente.acrCor]}});
-  const prod={tipo:'estrutura',mat:N,semAnc:false,anc:{peca:'PLACA',auto:4*un,onde:'fixação da placa (estimado)'},nome:ctx.descItem,W:L,H:A,D:f.mat==='pvc'?f.esp:4,un,
-    volumes:[{desc:ctx.descItem,cont:`${plFundoNome()} • ${plFrenteNome()}`,dims:`${f0(L)} x ${f0(A)}`,q:un,kg:0,draw:plArteImg?{img:plArteImg}:{rects:[{x0:0,y0:0,x1:L,y1:A,cor:fundoCor}]}}],
+  const prod={tipo:'estrutura',mat:N,semAnc:false,imgInst:!TG&&plArteImg?plArteImg:null,instPolys:TG?{polys:TG.polys,fill:plTxtHex(),L,A}:null,anc:{peca:'PLACA',auto:4*un,onde:'fixação da placa (estimado)'},nome:ctx.descItem,W:L,H:A,D:f.mat==='pvc'?f.esp:4,un,
+    volumes:[{desc:ctx.descItem,cont:`${plFundoNome()} • ${plFrenteNome()}`,dims:`${f0(L)} x ${f0(A)}`,q:un,kg:0,draw:plArteImg&&!TG?{img:plArteImg}:{rects:[{x0:0,y0:0,x1:L,y1:A,cor:fundoCor}]}},...(ft==='adesivo'?[{desc:'MÁSCARA DE TRANSFERÊNCIA',cont:'Rolo / sobra de máscara transparente para a aplicação',dims:'—',q:1,kg:0,draw:null}]:[])],
     contornoRects:[{x0:0,y0:0,x1:L,y1:A,cor:fundoCor}],contorno:[[[0,0],[L,0],[L,A],[0,A]]],checks:['MEDIDAS','PINTURA','TEXTO','LIMPEZA']};
   paginasFinais(pages,tags,ctx,prod);pages.forEach((P,i)=>{P._setor=P._setor||tags[i]});
   if(!FOOT_SKIP){numeraSetores(pages);pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length))}
@@ -6222,12 +6266,14 @@ function plFolhas(){const ctx=plCtx();const pages=[],tags=[];const un=Math.max(1
 function plArquivos(r){const out=[];if(!r)return out;const base=`OS ${r.ctx.os||'sem número'} - item ${r.ctx.item}`;const G=r.G;
   const v=vecPDF([{color:'#1c7ed6',polys:[G.corte]},...(G.us.length?[{color:'#c2255c',polys:G.us,aberto:true}]:[])],10);
   if(v)out.push({name:nomeArq(`${base} - PLACA FUNDO ${plFundoNome().replace(/ — .*?(?= •|$)/,'')} ${f0(G.W)}x${f0(G.H)}${G.us.length?' (corte azul + usinagem rosa)':''}.pdf`),buf:v.buf});
-  if(plArte)out.push({name:nomeArq(`${base} - ARTE - ${plArte.nome}`),buf:unb64(plArte.b64)});return out}
+  if(plSrc==='txt'&&plFrente.tipo!=='nenhum'){try{const TG=plTextoGeo(r.L,r.A);if(TG){const nmT=plFrente.tipo==='acrilico'?'TEXTO ACRILICO 3MM (router)':plFrente.tipo==='adesivo'?'TEXTO ADESIVO (plotter de recorte)':'TEXTO ARTE (impressao UV)';
+      const vt=vecPDF([{color:'#adb5bd',polys:[[[0,0],[r.L,0],[r.L,r.A],[0,r.A]]]},{color:'#000000',polys:TG.polys}],10);if(vt)out.push({name:nomeArq(`${base} - ${nmT} - ${plFontNome(plFontKey)} - placa ${f0(r.L)}x${f0(r.A)}.pdf`),buf:vt.buf})}}catch(e){console.error('texto',e)}}
+  else if(plArte)out.push({name:nomeArq(`${base} - ARTE - ${plArte.nome}`),buf:unb64(plArte.b64)});return out}
 function plRender(){try{plBuild=plFolhas();const C=setorChips(plBuild.pages,plSel,'data-plpg');plSel=C.sel;$('#plPgPick').innerHTML=C.html;$('#plPrev').innerHTML=C.shown.map(P=>`<div class="pg">${toSVG(P)}</div>`).join('');$('#plBaixar').hidden=false;$('#plMsg').innerHTML=''}
   catch(e){plBuild=null;$('#plMsg').innerHTML=`<div class="msg err">${esc(e.message)}</div>`;console.error(e)}}
 function plSujo(){plBuild=null;if(typeof pedSujo!=='undefined')pedSujo=true}
 function plPicker(){const pk=$('#pPicker'),sl=$('#pcPintSlot');if(!pk||!sl)return;if(!$('#tab-placa').hidden&&$('#pcPint').checked){if(pk.parentNode!==sl)sl.appendChild(pk)}else if($('#pintCard')&&pk.parentNode===sl)$('#pintCard').appendChild(pk)}
-function plLimpa(){plFundo={mat:'acm',esp:3,acmCod:'',acrCor:'BRANCO',refil:false,aba:20};plFrente={tipo:'nenhum',adCod:'',acrCor:'PRETO'};plArte=null;plArteImg=null;plBuild=null;['#plDesc','#plL','#plA','#plObs'].forEach(s=>$(s)&&($(s).value=''));if($('#plUn'))$('#plUn').value='1';if($('#pcPint'))$('#pcPint').checked=false;xfPut('#xfPl',[]);if($('#plPrev'))$('#plPrev').innerHTML='';if($('#plPgPick'))$('#plPgPick').innerHTML='';plUI()}
+function plLimpa(){plSrc='arq';if(typeof plTxtUI==='function')setTimeout(plTxtUI,0);plFundo={mat:'acm',esp:3,acmCod:'',acrCor:'BRANCO',refil:false,aba:20};plFrente={tipo:'nenhum',adCod:'',acrCor:'PRETO'};plArte=null;plArteImg=null;plBuild=null;['#plDesc','#plL','#plA','#plObs'].forEach(s=>$(s)&&($(s).value=''));if($('#plUn'))$('#plUn').value='1';if($('#pcPint'))$('#pcPint').checked=false;xfPut('#xfPl',[]);if($('#plPrev'))$('#plPrev').innerHTML='';if($('#plPgPick'))$('#plPgPick').innerHTML='';plUI()}
 function plUI(){const B=$('#plFundoBox');if(!B)return;const f=plFundo;const chip=(on,attr,txt,sw)=>`<button type="button" class="chip${on?' on':''}" ${attr} style="display:inline-flex;gap:6px;align-items:center;padding:8px 12px;font-size:13px">${sw?`<span style="width:16px;height:16px;border-radius:4px;background:${sw};border:1px solid #868e96;display:inline-block"></span>`:''}${txt}</button>`;
   let h=`<div class="row" style="gap:6px;flex-wrap:wrap">${[3,4].map(e=>chip(f.mat==='acm'&&f.esp===e,`data-plf="acm" data-ple="${e}"`,`ACM ${e} mm`)).join('')}${PL_PVC.map(e=>chip(f.mat==='pvc'&&f.esp===e,`data-plf="pvc" data-ple="${e}"`,`PVC ${e} mm`)).join('')}${chip(f.mat==='acr',`data-plf="acr" data-ple="${f.mat==='acr'?f.esp:3}"`,'Acrílico')}</div>`;
   if(f.mat==='acm'){const L=plAcmLista(f.esp);h+=`<label class="f" style="margin-top:10px">Cor / chapa do ACM ${f.esp} mm (cadastro)</label><select id="plAcm"><option value="">— cor a definir —</option>${L.map(x=>`<option value="${esc(String(x.cod))}"${String(x.cod)===String(f.acmCod)?' selected':''}>${esc(x.nome.replace(/^ACM\s+/i,''))} — R$ ${String((+x.v).toFixed(2)).replace('.',',')}</option>`).join('')}</select>
@@ -6235,7 +6281,7 @@ function plUI(){const B=$('#plFundoBox');if(!B)return;const f=plFundo;const chip
   if(f.mat==='acr')h+=`<label class="f" style="margin-top:10px">Espessura</label><div class="row" style="gap:6px;flex-wrap:wrap">${PL_ACR.map(e=>chip(f.esp===e,`data-plae="${e}"`,`${e} mm`)).join('')}</div><label class="f" style="margin-top:8px">Cor do acrílico</label><div class="row" style="gap:6px;flex-wrap:wrap">${FD_ACR.map(([n,c])=>chip(f.acrCor===n,`data-plac="${n}"`,n,c)).join('')}</div>`;
   B.innerHTML=h;
   const fr=plFrente;let k=`<div class="row" style="gap:6px;flex-wrap:wrap">${[['nenhum','Sem texto'],['uv','Impressão UV (terceirizada)'],['adesivo','Adesivo de recorte'],['acrilico','Acrílico 3 mm na frente']].map(([v,t])=>chip(fr.tipo===v,`data-plt="${v}"`,t)).join('')}</div>`;
-  if(fr.tipo==='adesivo'){const L=typeof adListaCad==='function'?adListaCad():[];k+=`<label class="f" style="margin-top:10px">Cor do adesivo (cadastro)</label><div class="row" style="gap:6px;flex-wrap:wrap;max-height:220px;overflow:auto">${L.map(x=>chip(String(x.cod)===String(fr.adCod),`data-plad="${esc(String(x.cod))}"`,esc(adNomeCurto(x.nome)),adHexDe(x.nome))).join('')}</div>`}
+  if(fr.tipo==='adesivo'){plAdLeg();k+=`<label class="f" style="margin-top:10px">Marca e cor do adesivo</label>${adPickHTML(fr,0,'pq')}`}
   if(fr.tipo==='acrilico')k+=`<label class="f" style="margin-top:10px">Cor do acrílico 3 mm</label><div class="row" style="gap:6px;flex-wrap:wrap">${FD_ACR.map(([n,c])=>chip(fr.acrCor===n,`data-plfc="${n}"`,n,c)).join('')}</div>`;
   if(fr.tipo==='uv')k+=`<p class="note" style="margin:8px 0 0">Sai uma folha de <b>TERCEIRIZAÇÃO</b> (não fazemos impressão UV na empresa) e o serviço entra na RM por m².</p>`;
   $('#plFrenteBox').innerHTML=k;
@@ -6255,6 +6301,53 @@ async function plCarrega(f){const buf=new Uint8Array(await f.arrayBuffer());plAr
     plArquivos(plBuild).filter(arqOk).forEach(f=>{z.file(f.name,f.buf);const dx=DXF_DE.get(f.buf);if(dx)z.file(f.name.replace(/\.pdf$/i,'')+'.dxf',dx)});try{await zipRmPi(z,base)}catch(e){}await salvar(nomeArq(base+'.zip'),await z.generateAsync({type:'blob'}))};
   document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>setTimeout(plPicker,30)));
   plUI()})();
+
+/* ---------- texto digitado: o sistema monta o texto com a fonte escolhida (vetor, para a FP e para o corte) ---------- */
+const plFontUrl=k=>{const [pkg,peso]=k.split('|');const F=PL_FONTES.find(f=>f[0]===pkg)||PL_FONTES[0];return `https://cdn.jsdelivr.net/npm/@expo-google-fonts/${F[0]}@${F[1]}/${peso}/${F[2]}_${peso}.ttf`};
+const plFontNome=k=>{const [pkg,peso]=k.split('|');const F=PL_FONTES.find(f=>f[0]===pkg)||PL_FONTES[0];return `${F[3].replace(/ \(.*\)/,'')} ${peso.replace(/^\d+/,'')}`};
+async function plFonteCarrega(k){if(plFontCache[k]&&plFontCache[k].font)return plFontCache[k].font;if(!plFontCache[k])plFontCache[k]={p:(async()=>{if(!window.opentype)throw new Error('biblioteca de fontes não carregou');const r=await fetch(plFontUrl(k));if(!r.ok)throw new Error('não consegui baixar a fonte');return opentype.parse(await r.arrayBuffer())})()};
+  try{const f=await plFontCache[k].p;plFontCache[k].font=f;return f}catch(e){delete plFontCache[k];throw e}}
+function plFlatten(cmds){const out=[];let cur=null,st=null,x=0,y=0;const add=(a,b)=>{cur.push([a,b]);x=a;y=b};
+  cmds.forEach(c=>{if(c.type==='M'){if(cur&&cur.length>2)out.push(cur);cur=[];add(c.x,c.y);st=[c.x,c.y]}else if(c.type==='L')add(c.x,c.y);
+    else if(c.type==='Q'){const x0=x,y0=y;for(let i=1;i<=8;i++){const t=i/8,u=1-t;add(u*u*x0+2*u*t*c.x1+t*t*c.x,u*u*y0+2*u*t*c.y1+t*t*c.y)}}
+    else if(c.type==='C'){const x0=x,y0=y;for(let i=1;i<=10;i++){const t=i/10,u=1-t;add(u*u*u*x0+3*u*u*t*c.x1+3*u*t*t*c.x2+t*t*t*c.x,u*u*u*y0+3*u*u*t*c.y1+3*u*t*t*c.y2+t*t*t*c.y)}}
+    else if(c.type==='Z'){if(cur&&cur.length>2)out.push(cur);cur=null}});if(cur&&cur.length>2)out.push(cur);return out}
+// devolve os contornos do texto em mm (y para cima, origem no canto inferior esquerdo da placa)
+function plTextoGeo(L,A){const txt=($('#plTxt')&&$('#plTxt').value||'').replace(/\r/g,'');const linhas=txt.split('\n').map(s=>s.trim()).filter(Boolean);if(!linhas.length)return null;
+  const C=plFontCache[plFontKey];const font=C&&C.font;if(!font)throw new Error('carregando a fonte… gere a FP de novo em 1 segundo');
+  const U=1000;const capU=((font.tables.os2&&font.tables.os2.sCapHeight)||font.unitsPerEm*0.7)/font.unitsPerEm*U;const entre=Math.max(0,num($('#plEntre').value)||0)/100;
+  const ls=linhas.map(s=>{const P=font.getPath(s,0,0,U);const bb=P.getBoundingBox();return{s,P,x0:bb.x1,x1:bb.x2,w:bb.x2-bb.x1}});
+  const pitch=capU*(1+entre);const blocoH=capU+(ls.length-1)*pitch;const blocoW=Math.max(...ls.map(l=>l.w));
+  const mg=Math.max(0,num($('#plMg').value)||0);const aw=Math.max(10,L-2*mg),ah=Math.max(10,A-2*mg);const alt=num($('#plAltLetra').value);
+  let k=alt>0?alt/capU:Math.min(aw/blocoW,ah/blocoH);const al=$('#plAlin').value||'centro';
+  const topo=A/2+blocoH*k/2;const polys=[];
+  ls.forEach((l,i)=>{const base=topo-capU*k-i*pitch*k;const w=l.w*k;const xl=al==='esq'?mg:al==='dir'?L-mg-w:(L-w)/2;
+    plFlatten(l.P.commands).forEach(c=>polys.push(c.map(([x,y])=>[xl+(x-l.x0)*k,base-y*k])))});
+  let PU=polys;try{if(window.ClipperLib){const S=100;const c=new ClipperLib.Clipper();c.AddPaths(polys.map(pp=>pp.map(([x,y])=>({X:Math.round(x*S),Y:Math.round(y*S)}))),ClipperLib.PolyType.ptSubject,true);const sol=new ClipperLib.Paths();
+    c.Execute(ClipperLib.ClipType.ctUnion,sol,ClipperLib.PolyFillType.pftNonZero,ClipperLib.PolyFillType.pftNonZero);if(sol.length)PU=sol.map(pp=>pp.map(q=>[q.X/S,q.Y/S]))}}catch(e){console.error('união do texto',e)}
+  return{polys:PU,cap:capU*k,linhas:ls.length,fora:blocoW*k>L-0.5||blocoH*k>A-0.5,w:blocoW*k,h:blocoH*k}}
+function plTxtUI(){const sel=$('#plFonte');if(sel&&!sel.options.length)sel.innerHTML=PL_FONTES.map(F=>`<optgroup label="${F[3]}">${F[4].map(w=>`<option value="${F[0]}|${w}">${F[3]} — ${w.replace(/^(\d+)/,'$1 ')}</option>`).join('')}</optgroup>`).join('');if(sel)sel.value=plFontKey;
+  document.querySelectorAll('#plFonteSw [data-plsrc]').forEach(b=>b.classList.toggle('on',b.dataset.plsrc===plSrc));$('#plSrcArq').hidden=plSrc!=='arq';$('#plSrcTxt').hidden=plSrc!=='txt';plTxtPrev()}
+async function plTxtPrev(){const box=$('#plTxtPrev');if(!box||plSrc!=='txt')return;const L=num($('#plL').value),A=num($('#plA').value);if(!(L>0&&A>0)){box.innerHTML='<span class="note">Informe a largura e a altura da placa.</span>';return}
+  try{await plFonteCarrega(plFontKey)}catch(e){box.innerHTML=`<div class="msg err">${esc(e.message)}</div>`;return}
+  let g;try{g=plTextoGeo(L,A)}catch(e){box.innerHTML=`<span class="note">${esc(e.message)}</span>`;return}if(!g){box.innerHTML='<span class="note">Digite o texto.</span>';return}
+  const s=Math.min(560/L,220/A),W=L*s,H=A*s;const d=g.polys.map(pp=>'M'+pp.map(([x,y])=>`${(x*s).toFixed(1)} ${((A-y)*s).toFixed(1)}`).join('L')+'Z').join('');
+  box.innerHTML=`<svg viewBox="-2 -2 ${W+4} ${H+4}" style="width:100%;max-width:${Math.round(W+4)}px;height:auto;background:#fff;border:1px solid var(--line);border-radius:8px"><rect x="0" y="0" width="${W}" height="${H}" fill="${plFundoHex()}" stroke="#adb5bd" stroke-width="1"/><path d="${d}" fill="${plTxtHex()}" fill-rule="evenodd"/></svg>
+    <div class="note" style="margin:4px 0 0">${g.linhas} linha(s) • letra maiúscula com <b>${String(g.cap.toFixed(1)).replace('.',',')} mm</b> • bloco ${f0(g.w)} x ${f0(g.h)} mm${g.fora?' • <b style="color:#c92a2a">passa da placa — diminua a altura da letra</b>':''}</div>`}
+function plFundoHex(){const pint=$('#pcPint')&&$('#pcPint').checked;if(pint&&typeof corInfo==='function'){const c=corInfo();if(c&&c.hex)return c.hex}return plFundo.mat==='acr'?plAcrHex(plFundo.acrCor):plFundo.mat==='pvc'?'#ffffff':'#d9dde3'}
+function plTxtHex(){const t=plFrente.tipo;if(t==='adesivo'){const x=plAdInfo();return x?x.hex:'#000000'}if(t==='acrilico')return plAcrHex(plFrente.acrCor);return ($('#plTxtCor')&&$('#plTxtCor').value)||'#000000'}
+(function(){if(!$('#tab-placa'))return;
+  $('#plFonteSw').onclick=e=>{const b=e.target.closest('[data-plsrc]');if(!b)return;plSrc=b.dataset.plsrc;plTxtUI();plSujo()};
+  $('#plFonte').onchange=()=>{plFontKey=$('#plFonte').value;plTxtPrev();plSujo()};
+  ['#plTxt','#plAltLetra','#plAlin','#plMg','#plEntre','#plTxtCor','#plL','#plA'].forEach(s=>$(s).addEventListener('input',()=>{clearTimeout(plTxtPrev.t);plTxtPrev.t=setTimeout(plTxtPrev,200);plSujo()}));
+  $('#tab-placa').addEventListener('click',e=>{if(e.target.closest('[data-plt],[data-plad],[data-plfc]'))setTimeout(plTxtPrev,50)});
+  plTxtUI()})();
+
+// adesivo da placa: mesma escolha por marca/cor (Oracal / Imprimax) do adesivo de recorte
+function plAdLeg(){const f=plFrente;if(f.adCod&&!f.sel){const x=adListaCad().find(r=>String(r.cod)===String(f.adCod));if(x){f.sel={marca:'cad'};f.cod=x.cod;f.nome=x.nome}}}
+function plAdInfo(){plAdLeg();return adSelInfo(plFrente)}
+(function(){if(!$('#tab-placa'))return;$('#tab-placa').addEventListener('click',e=>{if(adPickClick(e,'pq',[plFrente],()=>{plUI();plSujo();setTimeout(plTxtPrev,30)}))e.stopPropagation()},true);
+  $('#tab-placa').addEventListener('change',e=>{if(e.target.dataset.pqcad==null)return;const x=adListaCad().find(r=>String(r.cod)===e.target.value);plFrente.sel={marca:'cad'};plFrente.cod=x?x.cod:'';plFrente.nome=x?x.nome:'';plUI();plSujo()})})();
 
 /* ---------- COTAS: manda um vetor (PDF) e sai uma folha cotada (padrão ou detalhada) ---------- */
 let CTO=null;function ctv(id){if(CTO&&id in CTO)return CTO[id];const e=$('#'+id);return e?e.value:''}
@@ -6586,6 +6679,10 @@ function pedAbertoRender(){if(!pedAtual)return;$('#pedTitulo').innerHTML=`Pedido
   {const cs=its.map(i=>i.custo);const falta=cs.filter(x=>x==null).length;const c=cs.some(x=>x!=null)?cs.reduce((a,x)=>a+(+x||0),0):null;
    const ns=[...new Set(its.map(i=>+i.n))];const vI=n=>typeof vendaItem==='function'?vendaItem(n):its.filter(i=>+i.n===n).reduce((a,i)=>a+(+i.venda||0),0);
    const vt=ns.reduce((a,n)=>a+vI(n),0),vc=ns.filter(n=>its.some(i=>+i.n===n&&i.custo!=null)).reduce((a,n)=>a+vI(n),0);$('#pedTotal').innerHTML=its.length?margemBox(c,falta&&c!=null?vc:vt,'TOTAL DO PEDIDO'+(falta?`<br><span style="font-weight:400;color:#c92a2a">${falta} item(ns) sem custo — fora da conta</span>`:'')):''}
+  // itens feitos à mão (sem OS lida): viram itens da lista da OS, para ter o mesmo controle (finalizar, %, sem projeto, agrupar, editar…)
+  {const L=pedAtual.osItens=pedAtual.osItens||[];const tem=new Set(L.map(o=>+o.n));let mud=false;
+   grupos.forEach(g=>{if(tem.has(g.n))return;L.push({n:g.n,titulo:String(prod[g.n]||(g.its[0]&&g.its[0].desc)||TIPO_NOME[g.its[0].tipo]||'ITEM').toUpperCase(),q:1,desc:'',manual:true});tem.add(g.n);mud=true});
+   if(mud){L.sort((a,b)=>a.n-b.n);setTimeout(()=>{try{pedSalvar(pedAtual)}catch(e){}},0)}}
   const osNs=new Set(((pedAtual.osItens)||[]).map(o=>+o.n));window.pedGrupoCorpo={};
   const grHtml=g=>{const nome=prod[g.n]||(g.its[0]&&g.its[0].desc)||'';const varios=g.its.length>1;
     return `<div style="border:1.5px solid #8ce99a;background:#ebfbee;border-radius:12px;padding:10px 12px;margin-top:8px">
@@ -6597,7 +6694,10 @@ function pedAbertoRender(){if(!pedAtual)return;$('#pedTitulo').innerHTML=`Pedido
     <div style="margin-top:8px${varios?';margin-left:14px':''}"><button class="btn ghost sm" data-compmenu="${g.n}">+ Componente no item ${g.n}</button><div class="row" data-comptipos="${g.n}" style="gap:6px;margin-top:6px" hidden>${tipos.map(([t,l])=>`<button class="btn ghost sm" data-compnovo="${t}" data-compn="${g.n}">+ ${l}</button>`).join('')}</div></div></div>`};
   grupos.forEach(g=>{if(osNs.has(g.n)){const h=grHtml(g);const i=h.indexOf('</div>',h.indexOf('<div class="row"'))+6;window.pedGrupoCorpo[g.n]=h.slice(i,h.length-6)}});
   const fora=grupos.filter(g=>!osNs.has(g.n));
-  $('#pedItens').innerHTML=fora.length?(osNs.size?'<b style="display:block;margin-top:10px">Outros itens (fora da OS)</b>':'')+fora.map(grHtml).join(''):(osNs.size?'':'<p class="note">Nenhum item ainda. Use os botões abaixo para incluir letras, testeiras ou estruturas.</p>');pedSelBtn();if(typeof osListaRender==='function')osListaRender()}
+  // itens fora da OS (ex.: pedidos do Bobs feitos à mão): mesmo visual dos itens da OS (componentes, editar nome, juntar, custo)
+  const foraHtml=g=>{if(typeof osCompHtml!=='function')return grHtml(g);const nome=prod[g.n]||(g.its[0]&&g.its[0].desc)||'';
+    return `<div class="osBox osAberto" style="background:#fff;border:1.5px solid #ffd8a8;border-radius:12px;padding:10px 12px;margin-top:8px"><div class="row" style="gap:8px;align-items:center;flex-wrap:wrap"><input type="checkbox" data-selg="${g.n}" title="Selecionar para FP parcial" style="width:18px;height:18px"${g.its.every(i=>pedSel.has(i.id))?' checked':''}><b style="font-size:16px">Item ${g.n} — ${esc(nome)}</b><span class="note" style="margin-left:auto">${g.its.length} comp.</span></div>${osCompHtml(g.n)}</div>`};
+  $('#pedItens').innerHTML=fora.length?(osNs.size?'<b style="display:block;margin-top:10px">Outros itens (fora da OS)</b>':'')+fora.map(foraHtml).join(''):(osNs.size?'':'<p class="note">Nenhum item ainda. Use os botões abaixo para incluir letras, testeiras ou estruturas.</p>');pedSelBtn();if(typeof osListaRender==='function')osListaRender()}
 function novoComp(tipo,n){if($('#itemVenda'))$('#itemVenda').value='';setTimeout(projMarcaSalvo,900);if(typeof compCotas!=='undefined'){compCotas=[];compExcl=[];setTimeout(()=>ctListaRender&&ctListaRender(),0)}itemAtual={id:'i'+Date.now().toString(36),tipo,n,novo:true};limpaTipo(tipo);if(typeof escVis==='function'){escAberta=false;escVis()}$('#item').value=n;irAba(TIPO_ABA[tipo]);if(typeof osPreenche==='function')osPreenche(tipo,n);if(tipo==='testeira')setModo('padrao');if(tipo==='estrutura')setModo('desenho');pedSujo=true;pedBarRender();window.scrollTo(0,0)}
 $('#pedItensBox').addEventListener('change',e=>{const i=e.target.closest('[data-prodnome]');if(!i||!pedAtual)return;pedAtual.produtos={...(pedAtual.produtos||{})};const v=i.value.trim();if(v)pedAtual.produtos[i.dataset.prodnome]=v;else delete pedAtual.produtos[i.dataset.prodnome];pedSalvar(pedAtual)});
 $('#pedFechar').onclick=()=>{pedAtual=null;itemAtual=null;setTimeout(()=>osResumoSync(),0);$('#pedCard').hidden=true;$('#pedListaCard').hidden=false;$('#osSec').hidden=true;pedBarRender();pedListaRender()};
@@ -6659,8 +6759,8 @@ function capturaEstado(tipo){
   if(tipo==='bobscomp')return{estado:{bComp:JSON.parse(JSON.stringify(bComp)),inputs:capInputs(['#bCompCard']),xf:xfLer('#xfB')},desc:$('#bcDesc').value.trim()||'COMPLEMENTO 30X30 BOBS',resumo:bComp.filter(c=>c.len>0).map(c=>`${c.q||1}x ${f0(c.len)}`).join(' + ')+' mm',lens:bobsLens('bobscomp')};
   if(tipo==='bobstela')return{estado:{bTela:JSON.parse(JSON.stringify(bTela)),inputs:capInputs(['#bTelaCard']),xf:xfLer('#xfB')},desc:$('#btDesc').value.trim()||'TESTEIRAS EM TELA BOBS',resumo:bTela.map(q=>`${q.q||1}x ${f0(q.L)}x${f0(q.H)}`).join(' + ')+' (tela 5x5)'};
   if(tipo==='bobscant'){const T=bobsTrechos();const tot=T.reduce((a,t)=>a+t.lens.reduce((x,v)=>x+v,0),0);return{estado:{bCantExtra:JSON.parse(JSON.stringify(bCantExtra)),inputs:capInputs(['#bCantCard']),xf:xfLer('#xfB')},desc:$('#bkDesc').value.trim()||'CANTONEIRA COM ILUMINAÇÃO BOBS',resumo:`${String((tot/1000).toFixed(2)).replace('.',',')} m com LED COB 3000K`}}
-  if(tipo==='placa')return{estado:{plFundo:JSON.parse(JSON.stringify(plFundo)),plFrente:JSON.parse(JSON.stringify(plFrente)),plArteImg,inputs:capInputs(['#tab-placa']),xf:xfLer('#xfPl')},fonte:plArte?{nome:plArte.nome,b64:plArte.b64,tipoArq:plArte.tipo}:null,desc:$('#plDesc').value.trim()||'PLACA DE SINALIZAÇÃO',resumo:`${f0(num($('#plL').value))} x ${f0(num($('#plA').value))} mm • ${plFundoNome()} • ${plFrenteNome()}`};
-  if(tipo==='adesivo'){if(!adArq)throw new Error('envie o arquivo original antes de salvar');return{estado:{adCam:JSON.parse(JSON.stringify(adCam)),adPrevImg,inputs:capInputs(['#tab-adesivo']),xf:xfLer('#xfA')},fonte:{nome:adArq.nome,b64:adArq.b64,tipoArq:adArq.tipo},desc:$('#adDesc').value.trim()||'ADESIVO DE RECORTE',resumo:`${f0(num($('#adL').value))} x ${f0(num($('#adA').value))} mm • ${adCam.map(c=>adNomeCurto(c.nome)).filter(Boolean).join(' + ')||'cor a definir'}`}}
+  if(tipo==='placa')return{estado:{plFundo:JSON.parse(JSON.stringify(plFundo)),plFrente:JSON.parse(JSON.stringify(plFrente)),plArteImg,plSrc,plFontKey,inputs:capInputs(['#tab-placa']),xf:xfLer('#xfPl')},fonte:plArte?{nome:plArte.nome,b64:plArte.b64,tipoArq:plArte.tipo}:null,desc:$('#plDesc').value.trim()||'PLACA DE SINALIZAÇÃO',resumo:`${f0(num($('#plL').value))} x ${f0(num($('#plA').value))} mm • ${plFundoNome()} • ${plFrenteNome()}`};
+  if(tipo==='adesivo'){return{estado:{adCam:JSON.parse(JSON.stringify(adCam)),adPrevImg,inputs:capInputs(['#tab-adesivo']),xf:xfLer('#xfA')},fonte:adArq?{nome:adArq.nome,b64:adArq.b64,tipoArq:adArq.tipo}:null,desc:$('#adDesc').value.trim()||'ADESIVO DE RECORTE',resumo:`${f0(num($('#adL').value))} x ${f0(num($('#adA').value))} mm • ${adCam.map(c=>{const i=adSelInfo(c);return i?i.curto:''}).filter(Boolean).join(' + ')||'cor a definir'}`}}
   if(tipo==='branco'){if(!brFichas.length&&!(matAdd||[]).length)throw new Error('adicione ao menos uma ficha ou material');return{estado:{brFichas:JSON.parse(JSON.stringify(brFichas)),inputs:capInputs(['#tab-branco'])},fonte:brArqs.length?{nome:'arquivos ('+brArqs.length+')',b64:JSON.stringify(brArqs)}:null,desc:$('#brDesc').value.trim()||'FP EM BRANCO',resumo:`${brFichas.length} ficha(s): ${[...new Set(brFichas.map(f=>f.setor))].join(', ')}`}}
   if(tipo==='cotas'){if(!ctBytes)throw new Error('envie o arquivo (PDF, STL ou OBJ) antes de salvar');return{estado:{inputs:capInputs(['#tab-cotas']),ctModo,ctArqs:JSON.parse(JSON.stringify(ctArqs))},fonte:{nome:ctNome,b64:b64(ctBytes)},desc:$('#ctDesc').value.trim()||'COTAS',resumo:`${ctModo==='detalhada'?'detalhada':'padrão'} • ${$('#ctSetor').value}`}}
   if(tipo==='modelo3d'){if(!mSrc||!mBytes)throw new Error('carregue o arquivo 3D antes de salvar');return{estado:{xf:xfLer('#xfM'),inputs:capInputs(['#tab-modelo'])},fonte:{nome:mSrc.name,b64:b64(mBytes)},desc:$('#mDesc').value.trim()||'ESTRUTURA',resumo:`${mPecas.length} peça(s)`}}}
@@ -6699,7 +6799,7 @@ async function itemAbrir0(it,mostrar){const E=await lerJSON(it.estadoId);if(!E)t
   if(it.tipo==='bobscomp'){bComp=JSON.parse(JSON.stringify(E.bComp||[{len:1000,q:1}]));putInputs(E.inputs);xfPut('#xfB',E.xf||[]);setBModo('comp');if(mostrar){irAba('bobs');bobsRender()}}
   if(it.tipo==='bobstela'){bTela=JSON.parse(JSON.stringify(E.bTela||[]));putInputs(E.inputs);xfPut('#xfB',E.xf||[]);setBModo('tela');if(mostrar){irAba('bobs');bobsRender()}}
   if(it.tipo==='bobscant'){bCantExtra=JSON.parse(JSON.stringify(E.bCantExtra||[]));putInputs(E.inputs);xfPut('#xfB',E.xf||[]);setBModo('cant');if(mostrar){irAba('bobs');bobsRender()}}
-  if(it.tipo==='placa'){plFundo={...plFundo,...(E.plFundo||{})};plFrente={...plFrente,...(E.plFrente||{})};plArteImg=E.plArteImg||null;putInputs(E.inputs);xfPut('#xfPl',E.xf||[]);plArte=F&&F.b64?{nome:F.nome,b64:F.b64,tipo:F.tipoArq||''}:null;plUI();if(mostrar){irAba('placa');plRender()}}
+  if(it.tipo==='placa'){plFundo={...plFundo,...(E.plFundo||{})};plFrente={...plFrente,...(E.plFrente||{})};plArteImg=E.plArteImg||null;plSrc=E.plSrc||'arq';plFontKey=E.plFontKey||'arimo|700Bold';putInputs(E.inputs);xfPut('#xfPl',E.xf||[]);try{await plFonteCarrega(plFontKey)}catch(e){};plTxtUI();plArte=F&&F.b64?{nome:F.nome,b64:F.b64,tipo:F.tipoArq||''}:null;plUI();if(mostrar){irAba('placa');plRender()}}
   if(it.tipo==='adesivo'){adCam=JSON.parse(JSON.stringify(E.adCam||[]));adPrevImg=E.adPrevImg||null;putInputs(E.inputs);xfPut('#xfA',E.xf||[]);adArq=F&&F.b64?{nome:F.nome,b64:F.b64,tipo:F.tipoArq||''}:null;adUI();if(mostrar){irAba('adesivo');adRender()}}
   if(it.tipo==='branco'){brFichas=JSON.parse(JSON.stringify(E.brFichas||[]));putInputs(E.inputs);try{brArqs=F&&F.b64?JSON.parse(F.b64):[]}catch(e){brArqs=[]}brUI();if(mostrar){irAba('branco');brRender()}}
   if(it.tipo==='cotas'){ctLimpa();putInputs(E.inputs);ctModo=E.ctModo||'padrao';ctArqs=E.ctArqs||[];ctSetorUI();ctModoUI();ctArqsUI();if(F)await ctCarregaBytes(F.nome,unb64(F.b64),mostrar);if(mostrar)irAba('cotas')}
@@ -6992,7 +7092,7 @@ async function osImportar(file,noPedidoAberto){const msg=$('#pedMsg')||$('#pedLi
     const l=$('#osLista');if(l)l.scrollIntoView({behavior:'smooth',block:'start'})}
   catch(e){console.error(e);if(msg)msg.innerHTML=`<div class="msg err">Não consegui ler a OS: ${esc(e.message)}</div>`}}
 // lista dos itens da OS dentro do pedido
-const OS_TIPOS=[['letra','Letra caixa'],['branco','FP em branco'],['testeira','Testeira'],['modelo3d','3D (STL, OBJ, DXF ou PDF)'],['bobs','Bobs'],['adesivo','Adesivo de recorte'],['placa','Placa de sinalização']];
+const OS_TIPOS=[['letra','Letra caixa'],['branco','FP em branco'],['testeira','Testeira'],['modelo3d','3D (STL, OBJ, DXF ou PDF)'],['bobs','Bobs requadro'],['bobscomp','Bobs complemento 30x30'],['bobscant','Bobs cantoneira iluminada'],['bobstela','Bobs testeira em tela'],['adesivo','Adesivo de recorte'],['placa','Placa de sinalização']];
 const osFormHtml=()=>{const L=(pedAtual&&pedAtual.osItens)||[];const prox=Math.max(0,...L.map(i=>+i.n||0),...((pedAtual&&pedAtual.itens)||[]).map(i=>+i.n||0))+1;
   return `<details id="osManual" style="margin-top:8px"><summary style="cursor:pointer;font-weight:600;font-size:13px;color:#2b3a8c">+ Adicionar item à lista (manual, sem a OS em PDF)</summary>
   <div class="g3" style="gap:6px;margin-top:6px"><div><label class="f">Nº do item</label><input type="number" id="osmN" value="${prox}" min="1"></div><div style="grid-column:span 2"><label class="f">Nome do item</label><input type="text" id="osmT" placeholder="ex.: LETREIRO OMODA"></div>
