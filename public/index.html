@@ -605,7 +605,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
         <label class="f">Instalação</label>
         <div class="leds" id="aInst"><button data-m="rente"><b>Corte rente</b><span class="note" style="display:block">exato no tamanho da face</span></button><button data-m="env1"><b>Envelope 1 dobra</b><span class="note" style="display:block">dobra na lateral até o fim do perfil</span></button><button data-m="env2"><b>Envelope 2 dobras</b><span class="note" style="display:block">lateral + 20 mm atrás • parafusado</span></button></div>
         <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;font-size:13px;margin-top:10px"><input type="checkbox" id="aJT"> Junta de dilatação em cada trava vertical do meio</label>
-        <p class="note" style="margin:4px 0 0">Com junta, as travas verticais do meio passam a ser metalon 30x20 (30 de face) e o ACM é cortado em cada trava.</p>
+        <p class="note" style="margin:4px 0 0">Com junta, as travas verticais do meio passam a ser metalon 20x40 (40 de face) e o ACM é cortado em cada trava.</p>
         <div id="aEmBox" hidden>
           <label class="f">Peças divididas (emendas)</label>
           <div id="aEnvTbox"><div class="leds" id="aEnvT"><button data-m="todas"><b>Envelope em todas as peças</b></button><button data-m="ext"><b>Envelope só nas extremidades</b><span class="note" style="display:block">peças do meio: só em cima e embaixo</span></button></div></div>
@@ -675,7 +675,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
     </div>
     <div class="card" style="margin:0">
       <h2 class="edVt">3D <span class="note" style="font-weight:400">— arraste para girar, pince para zoom</span><button type="button" class="edZoom" title="Ampliar">⤢</button></h2>
-      <div class="v3wrap"><canvas id="t3d"></canvas><div class="v3bar"><button data-v3="iso">3D</button><button data-v3="frente">Frente</button><button data-v3="lado">Lateral</button><button data-v3="topo">Topo</button><button data-v3="tras">Trás</button></div></div>
+      <div class="v3wrap"><canvas id="t3d"></canvas><div class="v3bar"><button data-v3="iso">3D</button><button data-v3="frente">Frente</button><button data-v3="lado">Lateral</button><button data-v3="topo">Topo</button><button data-v3="tras">Trás</button><button id="v3Afastar" title="Afastar as faces uns 30 cm uma da outra" style="border-color:#7048e8;color:#7048e8">Afastar</button></div></div>
       <div id="t3dNote" hidden><p class="note">Visualizador 3D indisponível neste aparelho — mostrando a isométrica.</p><div id="t3dAlt"></div></div>
       <div id="t3dInfo"></div>
     </div>
@@ -2918,7 +2918,7 @@ const f1=v=>v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDig
 const f0=v=>Math.round(v).toLocaleString('pt-BR');
 const fmm=v=>v.toFixed(2).replace('.',',')+' mm';
 const ALINHA={centro:'Centralizadas',fundo:'Faceadas pelo fundo',frente:'Faceadas pela frente'};
-const JUNTAS={linha:'Em linha (continua reto)',cima:'Em cima (empilhada)',tras:'Dobra 90° para trás (L)',frente:'Dobra 90° para frente (L)'};
+const JUNTAS={linha:'Em linha (continua reto)',cima:'Em cima (empilhada)',baixo:'Embaixo (empilhada)',tras:'Dobra 90° para trás (L)',frente:'Dobra 90° para frente (L)'};
 const tubDesc=(k,parede)=>`Tubo ${k==='20x40'?'Retangular 20 x 40':(PERFIS[k].f===PERFIS[k].p?'Quadrado ':'Retangular ')+k.replace('x',' x ')} - ${parede}mm`;
 
 /* ---------- cálculo de uma face (coordenadas locais: x largura, y altura, z profundidade) ---------- */
@@ -2976,16 +2976,18 @@ function calcFace(f,o){
 /* ---------- composição das faces (planta: x para a direita, z para trás) ---------- */
 // a face se liga a quem? (empilhada: a de baixo; em linha/L: a anterior no mesmo nível)
 function perfilJanela(k){const a=PERFIS[k].f,alvo=a-10;const sq=Object.keys(PERFIS).filter(q=>PERFIS[q].f===PERFIS[q].p);return sq.find(q=>PERFIS[q].f===alvo)||sq.filter(q=>PERFIS[q].f<a).sort((x,y)=>PERFIS[y].f-PERFIS[x].f)[0]||null}
-function faceRef(faces,i){const f=faces[i];if(f.ref!=null&&f.ref<i&&f.ref>=0)return f.ref;if(f.junta==='cima')return i-1;let k=i-1;while(k>0&&faces[k].junta==='cima')k=faceRef(faces,k);return k}
+function faceRef(faces,i){const f=faces[i];if(f.ref!=null&&f.ref<i&&f.ref>=0)return f.ref;if(f.junta==='cima'||f.junta==='baixo')return i-1;let k=i-1;while(k>0&&(faces[k].junta==='cima'||faces[k].junta==='baixo'))k=faceRef(faces,k);return k}
 // posição de cada face na medida final
 function layoutFaces(faces,o){const p=PERFIS[o.perfil].p;const out=[];
   faces.forEach((f,i)=>{const W=f._fW!=null?f._fW:f.W,H=f._fH!=null?f._fH:f.H;let O=[0,0],d=[1,0],n=[0,1],oy=0;
     if(i>0){const rf=out[faceRef(faces,i)];const j=f.junta||'linha';O=rf.O.slice();d=rf.d.slice();n=rf.n.slice();oy=rf.oy;
       if(j==='cima')oy=rf.oy+rf.H;
+      else if(j==='baixo')oy=rf.oy-H;
       else if(j==='tras'){O=[O[0]+rf.W*d[0]+rf.D*n[0],O[1]+rf.W*d[1]+rf.D*n[1]];const nd=n.slice(),nn=[-d[0],-d[1]];d=nd;n=nn}
       else if(j==='frente'){O=[O[0]+rf.W*d[0],O[1]+rf.W*d[1]];const nd=[-n[0],-n[1]],nn=[-d[0],-d[1]];d=nd;n=nn}
       else O=[O[0]+rf.W*d[0],O[1]+rf.W*d[1]]}
     out.push({O,d,n,oy,W,H,D:f.prof>p+20?f.prof:p})});
+  const mo=Math.min(0,...out.map(L=>L.oy));if(mo<0)out.forEach(L=>L.oy-=mo);
   return out}
 function compor(faces,o){const Lf=layoutFaces(faces,o);
   const out=faces.map((f,i)=>{const F=calcFace(f,o);const ins=f._in||{l:0,b:0};const L=Lf[i];return{f,F,O:L.O,d:L.d,n:L.n,i,ox:ins.l,oy:L.oy+ins.b}});
@@ -2996,7 +2998,7 @@ function compor(faces,o){const Lf=layoutFaces(faces,o);
   return out}
 function paraMundo(c,b){const ox=c.ox||0,oy=c.oy||0;const X=(x,z)=>c.O[0]+(x+ox)*c.d[0]+z*c.n[0],Z=(x,z)=>c.O[1]+(x+ox)*c.d[1]+z*c.n[1];
   const xs=[X(b.x0,b.z0),X(b.x1,b.z1)],zs=[Z(b.x0,b.z0),Z(b.x1,b.z1)];
-  return {...b,x0:Math.min(...xs),x1:Math.max(...xs),y0:b.y0+oy,y1:b.y1+oy,z0:Math.min(...zs),z1:Math.max(...zs)}}
+  return {...b,fi:c.i,x0:Math.min(...xs),x1:Math.max(...xs),y0:b.y0+oy,y1:b.y1+oy,z0:Math.min(...zs),z1:Math.max(...zs)}}
 /* ---------- fixações cadastradas ---------- */
 const FIX_POS={topo:'Topo de cada vertical',base:'Base de cada vertical',lateral:'Laterais (pontas da estrutura)',avulsa:'Quantidade fixa (só na lista)'};
 let fixacoes=[];const fixSel=new Set();
@@ -3181,7 +3183,7 @@ function tabelaCorte(P,rows,tx,ty){const rh=4.6;let cx=tx;
 /* ---------- leitura do formulário ---------- */
 let tFaces=[{W:1000,H:1000,prof:0,junta:'linha'}];let tVer=0;
 function lerOpcoes(){const n=k=>num($('#'+k).value);
-  return {un:Math.max(1,Math.round(n('tUn'))||1),perfil:$('#tPerfil').value,perfilInt:$('#tPerfilInt').value,parede:$('#tParede').value||'1,25',paredeInt:$('#tParedeInt').value||$('#tParede').value||'1,25',vaoV:n('tVaoV')||1400,vaoH:n('tVaoH')||1000,trav40:$('#t40').checked,meia:$('#tMeia').checked,cad:$('#tCad').checked,cadModo:$('#tCadModo').value,perfilV:(tAcm.on&&tAcm.jt)?'30x20':null,h40:n('tH40')||150,barra:n('tBarra')||6000,serra:n('tSerra')||3}}
+  return {un:Math.max(1,Math.round(n('tUn'))||1),perfil:$('#tPerfil').value,perfilInt:$('#tPerfilInt').value,parede:$('#tParede').value||'1,25',paredeInt:$('#tParedeInt').value||$('#tParede').value||'1,25',vaoV:n('tVaoV')||1400,vaoH:n('tVaoH')||1000,trav40:$('#t40').checked,meia:$('#tMeia').checked,cad:$('#tCad').checked,cadModo:$('#tCadModo').value,perfilV:(tAcm.on&&tAcm.jt)?'20x40':null,h40:n('tH40')||150,barra:n('tBarra')||6000,serra:n('tSerra')||3}}
 function montar(){const o=lerOpcoes();
   tFaces.forEach((f,i)=>{if(!(f.W>100&&f.H>100))throw new Error(`Face ${i+1}: informe largura e altura (mm).`)});
   fixSelSync();const fixs=fixacoes.filter(f=>fixSel.has(f.id));const comp=compor(acmFaces(tFaces,o),o);
@@ -3285,6 +3287,14 @@ function v3Set(boxes){if(!v3Init())return false;
   V3.scene.add(V3.grp=g);V3.tg=[(bb.x0+bb.x1)/2,(bb.y0+bb.y1)/2,-(bb.z0+bb.z1)/2];
   if(v3Fit){V3.R=span*2.1;v3Fit=false}
   v3Draw();return true}
+// "Afastar": separa as faces uns 30 cm uma da outra no 3D (só visual)
+let v3Afastar=false;
+function v3Afasta(bs){if(!v3Afastar)return bs;const G={};bs.forEach(b=>{if(b.fi==null)return;const g=G[b.fi]||(G[b.fi]={x0:1e9,x1:-1e9,y0:1e9,y1:-1e9,z0:1e9,z1:-1e9});['x','y','z'].forEach(a=>{g[a+'0']=Math.min(g[a+'0'],b[a+'0']);g[a+'1']=Math.max(g[a+'1'],b[a+'1'])})});
+  const ks=Object.keys(G);if(ks.length<2)return bs;const cen=k=>['x','y','z'].map(a=>(G[k][a+'0']+G[k][a+'1'])/2);const C=ks.map(cen);const m=[0,1,2].map(j=>C.reduce((s,c)=>s+c[j],0)/C.length);
+  let dmin=1e9;for(let i=0;i<C.length;i++)for(let j=i+1;j<C.length;j++){const d=Math.hypot(C[i][0]-C[j][0],C[i][1]-C[j][1],C[i][2]-C[j][2]);if(d>1)dmin=Math.min(dmin,d)}const f=300/dmin;
+  const off={};ks.forEach((k,i)=>off[k]=[(C[i][0]-m[0])*f,(C[i][1]-m[1])*f,(C[i][2]-m[2])*f]);
+  return bs.map(b=>{const o=off[b.fi];if(!o)return b;const n={...b,x0:b.x0+o[0],x1:b.x1+o[0],y0:b.y0+o[1],y1:b.y1+o[1],z0:b.z0+o[2],z1:b.z1+o[2]};
+    if(b.poly){n.poly=b.poly.map(([x,y])=>[x+o[0],y+o[1]]);if(b.holes)n.holes=b.holes.map(h=>h.map(([x,y])=>[x+o[0],y+o[1]]))}return n})}
 function v3View(k){const v={iso:[-0.65,1.12],frente:[0,Math.PI/2],lado:[Math.PI/2,Math.PI/2],topo:[0,0.06],tras:[Math.PI,Math.PI/2]}[k];V3.th=v[0];V3.ph=v[1];v3Draw()}
 
 /* ================= UI da aba Testeiras ================= */
@@ -3297,7 +3307,7 @@ function paraPers(f){let F;try{F=calcFace({...f,modo:'prop'},lerOpcoes())}catch(
 function ajustaVaos(f,k,n){const L=f[k]=f[k]||[];const tot=k==='vaosV'?f.W:f.H;while(L.length>n)L.pop();while(L.length<n){const rest=tot-L.reduce((s,v)=>s+v,0);L.push(Math.round(rest/2*100)/100)}}
 function renderFaces(){
   if(tEdFace>=tFaces.length)tEdFace=tFaces.length-1;$('#tFaces').innerHTML=tFaces.map((f,i)=>`<div class="fcard${i===tEdFace?' edSel':''}" data-i="${i}">
-    <div class="row" style="justify-content:space-between"><b>FACE ${i+1}${i?(f.junta==='cima'?` <span class="note">(em cima da face ${faceRef(tFaces,i)+1})</span>`:(f.ref!=null?` <span class="note">(ao lado da face ${faceRef(tFaces,i)+1})</span>`:'')):' (início)'}</b>${tFaces.length>1?`<button class="btn danger sm" data-del="${i}">Remover</button>`:''}</div>
+    <div class="row" style="justify-content:space-between"><b>FACE ${i+1}${i?(f.junta==='cima'?` <span class="note">(em cima da face ${faceRef(tFaces,i)+1})</span>`:f.junta==='baixo'?` <span class="note">(embaixo da face ${faceRef(tFaces,i)+1})</span>`:(f.ref!=null?` <span class="note">(ao lado da face ${faceRef(tFaces,i)+1})</span>`:'')):' (início)'}</b>${tFaces.length>1?`<button class="btn danger sm" data-del="${i}">Remover</button>`:''}</div>
     <div class="g4">
       <div><label class="f">Largura (mm)</label><input type="number" inputmode="decimal" data-k="W" value="${f.W}"></div>
       <div><label class="f">Altura (mm)</label><input type="number" inputmode="decimal" data-k="H" value="${f.H}"></div>
@@ -3324,10 +3334,10 @@ function tAtualizar(){clearTimeout(tTimer);tTimer=setTimeout(tRender,90)}
 function tRender(){if(tModo==='desenho'){dRender3D();return}
   syncAuto();if(!$('#tEd').contains(document.activeElement)&&!edDrag)renderEditor();
   try{const r=buildTesteira();lastBuild=r;
-    const ok3=v3Set(r.M.acm?r.M.boxes.concat(r.M.acm.boxes):r.M.boxes);$('#t3dNote').hidden=ok3;
+    const ok3=v3Set(v3Afasta(r.M.acm?r.M.boxes.concat(r.M.acm.boxes):r.M.boxes));$('#t3dNote').hidden=ok3;
     if(!ok3){const P=[];isoPrims(P,r.M.boxes,{x:10,y:10,w:PW-20,h:PH-20});$('#t3dAlt').innerHTML=toSVG(P)}
     const bb=bbox3(r.M.boxes.filter(b=>!b.fix));
-    {const gr=tFaces.map((f,i)=>passaLim(f)?i+1:0).filter(Boolean);if(gr.length)$('#tDivMsg').innerHTML=`<div class="msg warn"><b>Face ${gr.join(', ')}</b> passa do limite de 6.000 x 2.100 mm (um lado até 6.000 e o outro até 2.100). Termine a configuração e depois escolha: <div class="row" style="gap:6px;margin-top:6px"><button class="btn pink sm" id="tDivBtn">Dividir em partes iguais</button><button class="btn ghost sm" id="tDivManter">Manter a estrutura original</button></div></div>`;else if(/tDivBtn/.test($('#tDivMsg').innerHTML))$('#tDivMsg').innerHTML=''}
+    {const gr=tFaces.map((f,i)=>passaLim(f)?i+1:0).filter(Boolean);if(gr.length)$('#tDivMsg').innerHTML=`<div class="msg warn"><b>Face ${gr.join(', ')}</b> passa do limite de 6.000 x 2.100 mm (um lado até 6.000 e o outro até 2.100). Termine a configuração e depois escolha: <div class="row" style="gap:6px;margin-top:6px"><button class="btn pink sm" id="tDivBtn" data-dir="V" title="cortes em pé: divide a largura">Dividir na vertical (largura)</button><button class="btn pink sm" id="tDivBtnH" data-dir="H" title="cortes deitados: divide a altura">Dividir na horizontal (altura)</button><button class="btn ghost sm" id="tDivBtnA" data-dir="A">Automático</button><button class="btn ghost sm" id="tDivManter">Manter a estrutura original</button></div></div>`;else if(/tDivBtn/.test($('#tDivMsg').innerHTML))$('#tDivMsg').innerHTML=''}
     $('#t3dInfo').textContent=`${r.M.comp.length} face(s) • conjunto ${f0(bb.x1-bb.x0)} × ${f0(bb.y1-bb.y0)} × ${f0(bb.z1-bb.z0)} mm (L × A × P)`;
     {const C=setorChips(r.pages,tSelPage,'data-pg');tSelPage=C.sel;$('#tPgPick').innerHTML=C.html;$('#tPrev').innerHTML=C.shown.map(P=>`<div class="pg">${toSVG(P)}</div>`).join('')}
     const t=r.M;$('#tMsg').innerHTML=`<div class="msg ok">${t.comp.map(c=>`F${c.i+1}: ${c.F.nb+1-(c.F.sI?1:0)} verticais, ${c.F.rows.length} travessa(s)`).join(' • ')}${r.o.trav40?' • travessa 20x40':''} • ${r.plano.map(g=>`${g.nBarras} barra(s) de ${g.perfil}${g.parede?' #'+g.parede:''}`).join(', ')} para ${r.o.un} un.${r.M.acm?` • ACM: ${r.M.acm.esc.n} chapa(s) ${f1(r.M.acm.esc.SW/1000)}x5 (${Math.round(r.M.acm.esc.aprov*100)}%), fita ${ACM_FITA[r.M.acm.fitaTipo]} ${f1(r.M.acm.fitaTot)} m`:''}</div>`;
@@ -3348,11 +3358,20 @@ const cabeLim=(W,H)=>Math.max(W,H)<=MAX_L+0.5&&Math.min(W,H)<=MAX_C+0.5;
 const passaLim=f=>!f.semDiv&&!cabeLim(f.W,f.H);
 function divPlano(W,H){const a=[Math.ceil(W/MAX_L-1e-9),Math.ceil(H/MAX_C-1e-9)],b=[Math.ceil(W/MAX_C-1e-9),Math.ceil(H/MAX_L-1e-9)];return a[0]*a[1]<=b[0]*b[1]?a:b}
 function removeFace(idx){tFaces.splice(idx,1);tFaces.forEach((f,i)=>{if(f.ref==null)return;if(f.ref===idx)delete f.ref;else if(f.ref>idx)f.ref--;if(f.ref!=null&&f.ref>=i)delete f.ref})}
-function dividirFace(i){const f=tFaces[i];if(cabeLim(f.W,f.H))return false;const [nW,nH]=divPlano(f.W,f.H);if(nW<=1&&nH<=1)return false;
-  const r=v=>Math.round(v*100)/100;const pw=r(f.W/nW),ph=r(f.H/nH);const base={...f,W:pw,H:ph,nV:null,nH:null,modo:'prop',vaosV:null,vaosH:null,grp:'g'+Date.now().toString(36)+i};delete base.ref;
-  const novas=[];for(let c=0;c<nW;c++){const fundo=i+novas.length;for(let k=0;k<nH;k++){const g={...base};
-      if(c===0&&k===0){g.junta=f.junta||'linha';if(f.ref!=null)g.ref=f.ref}else if(k===0){g.junta='linha';g.ref=i+(c-1)*nH}else g.junta='cima';novas.push(g)}}
-  const add=novas.length-1;const ultimaBase=i+(nW-1)*nH;
+function divDir(W,H,dir){if(dir==='V'||dir==='H'){for(let n=2;n<=30;n++){const a=dir==='V'?[n,1]:[1,n];if(cabeLim(W/a[0],H/a[1]))return a}
+    // só numa direção não cabe: completa na outra
+    const a=dir==='V'?[Math.ceil(W/MAX_C-1e-9),1]:[1,Math.ceil(H/MAX_C-1e-9)];for(let m=1;m<=30;m++){const b=dir==='V'?[a[0],m]:[m,a[1]];if(cabeLim(W/b[0],H/b[1]))return b}}
+  return divPlano(W,H)}
+function dividirFace(i,dir){const f=tFaces[i];if(cabeLim(f.W,f.H))return false;const [nW,nH]=divDir(f.W,f.H,dir);if(nW<=1&&nH<=1)return false;
+  // mantém as travas onde o usuário deixou: posições absolutas da face inteira, repartidas por peça
+  let VA=[],HA=[];try{const F=calcFace(f,lerOpcoes());const ps=posDe(f,F);VA=ps.V;HA=ps.H}catch(e){}
+  const r=v=>Math.round(v*100)/100;const pw=r(f.W/nW),ph=r(f.H/nH);const base={...f,W:pw,H:ph,grp:'g'+Date.now().toString(36)+i};delete base.ref;delete base.semDiv;
+  const parte=(L,a,b)=>L.filter(x=>x>a+60&&x<b-60).map(x=>r(x-a));
+  const novas=[];for(let c=0;c<nW;c++){for(let k=0;k<nH;k++){const g={...base};const kb=nH-1-k;/* k=0 é a de CIMA */
+      if(VA.length||HA.length){const V=parte(VA,c*pw,(c+1)*pw),H=parte(HA,kb*ph,(kb+1)*ph);g.modo='pers';g.nV=V.length;g.nH=H.length;g.vaosV=V.map((x,j)=>r(x-(j?V[j-1]:0)));g.vaosH=H.map((y,j)=>r(y-(j?H[j-1]:0)))}
+      else{g.nV=null;g.nH=null;g.modo='prop';g.vaosV=null;g.vaosH=null}
+      if(c===0&&k===0){g.junta=f.junta||'linha';if(f.ref!=null)g.ref=f.ref}else if(k===0){g.junta='linha';g.ref=i+(c-1)*nH}else g.junta='baixo';novas.push(g)}}
+  const add=novas.length-1;const ultimaBase=i+(nW-1)*nH;/* face seguinte em linha liga na de cima da última coluna */
   tFaces.forEach((g,k)=>{if(k<=i||g.ref==null)return;if(g.ref===i)g.ref=ultimaBase;else if(g.ref>i)g.ref+=add});
   tFaces.splice(i,1,...novas);
   const msg=`(${f0(f.W)} x ${f0(f.H)} mm) passa do limite de 6.000 x 2.100 mm`;
@@ -3370,6 +3389,7 @@ document.querySelectorAll('[data-modelo]').forEach(b=>b.onclick=()=>{const a=tFa
   renderFaces();v3Fit=true;tAtualizar()});
 $('#tPgPick').onclick=e=>{const b=e.target.closest('[data-pg]');if(!b)return;tSelPage=b.dataset.pg;tRender()};
 document.querySelectorAll('[data-v3]').forEach(b=>b.onclick=()=>v3View(b.dataset.v3));
+{const ab=$('#v3Afastar');if(ab)ab.onclick=()=>{v3Afastar=!v3Afastar;ab.classList.toggle('on',v3Afastar);ab.textContent=v3Afastar?'Juntar':'Afastar';tRender()}}
 $('#tFixBox').addEventListener('change',e=>{const id=e.target.dataset.fx;if(!id)return;if(e.target.checked)fixSel.add(id);else fixSel.delete(id);tAtualizar()});
 document.querySelectorAll('#tOpts input,#tOpts select,#tOpts textarea').forEach(i=>i.addEventListener('input',tAtualizar));
 ['#os','#cliente','#vendedor','#projetista','#endereco','#entrega'].forEach(s=>{const el=$(s);if(el)el.addEventListener('input',()=>{if(!$('#tab-testeiras').hidden)tAtualizar()})});
@@ -3447,6 +3467,14 @@ $('#tEd').addEventListener('change',e=>{const t=e.target;if(!t.dataset.ed)return
   else{const D=H.slice().reverse();const n=D.length;const B=[F.H,...D,0];if(i<n)D[i]=B[i]-v;else D[n-1]=v;H.splice(0,H.length,...D.reverse())}
   edAplicar(f,F,V,H)});
 $('#tEd').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset.ed)e.target.blur()});
+// enquanto digita: 3D e FP já acompanham (o desenho 2D redesenha ao confirmar)
+$('#tEd').addEventListener('input',e=>{const t=e.target;if(!t.dataset.ed)return;const c=$('#tEd')._ctx;if(!c)return;const {f,F}=c;const raw=t.value.trim();const v=num(raw.includes(',')?raw.replace(/\./g,''):raw);if(!(v>0))return;
+  if(t.dataset.ed==='W'||t.dataset.ed==='H'){if(v<300)return;if(!c.base)c.base={W:f.W,H:f.H};f[t.dataset.ed]=v;tAtualizar();return}
+  const pos=posDe(f,F);const V=pos.V.slice(),H=pos.H.slice();const i=+t.dataset.i;
+  if(t.dataset.ed==='sv'){const n=V.length;if(i<n)V[i]=(i?V[i-1]:0)+v;else V[n-1]=F.W-v}
+  else{const D=H.slice().reverse();const n=D.length;const B=[F.H,...D,0];if(i<n)D[i]=B[i]-v;else D[n-1]=v;H.splice(0,H.length,...D.reverse())}
+  const a=F.a,ai=F.ai,gap=ai+10;const ok=(L,tot)=>L.slice().sort((x,y)=>x-y).every((u,j,S)=>u>a+ai/2+5&&u<tot-a-ai/2-5&&(j===0||u-S[j-1]>=gap));
+  if(ok(V,F.W)&&ok(H,F.H)){gravaPos(f,V.slice().sort((x,y)=>x-y),H.slice().sort((x,y)=>x-y));tAtualizar()}});
 $('#tEd').addEventListener('focusin',e=>{if(e.target.dataset.ed)setTimeout(()=>e.target.select(),0)});
 let edDrag=null;
 $('#tEd').addEventListener('pointerdown',e=>{const r=e.target.closest('[data-drag]');if(!r)return;const c=$('#tEd')._ctx;const svg=r.ownerSVGElement;
@@ -3454,8 +3482,11 @@ $('#tEd').addEventListener('pointerdown',e=>{const r=e.target.closest('[data-dra
 $('#tEd').addEventListener('pointermove',e=>{if(!edDrag)return;const {r,svg,c,k}=edDrag;const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const q=pt.matrixTransform(svg.getScreenCTM().inverse());
   let v=k==='V'?(q.x-c.ox)/c.s:c.F.H-(q.y-c.oy)/c.s;v=Math.round(v/5)*5;edDrag.cur=v;
   if(k==='V')r.setAttribute('x',c.X(v-c.F.aiV/2));else r.setAttribute('y',c.Y(v+c.F.ai/2));
+  {const pos=posDe(c.f,c.F);const V=pos.V.slice(),H=pos.H.slice();const L=k==='V'?V:H;const ix=L.findIndex(x=>Math.abs(x-edDrag.orig)<0.01);
+   if(ix>=0){L[ix]=v;const a=c.F.a,ai=c.F.ai,gap=ai+10;const ok=(A,tot)=>A.slice().sort((x,y)=>x-y).every((u,i,S)=>u>a+ai/2+5&&u<tot-a-ai/2-5&&(i===0||u-S[i-1]>=gap));
+     if(ok(V,c.F.W)&&ok(H,c.F.H)){if(!edDrag.copia)edDrag.copia=JSON.parse(JSON.stringify({modo:c.f.modo,vaosV:c.f.vaosV,vaosH:c.f.vaosH}));gravaPos(c.f,V.slice().sort((x,y)=>x-y),H.slice().sort((x,y)=>x-y));tAtualizar()}}}
   $('#tEdMsg').innerHTML=`<div class="msg ok">${k==='V'?'Da esquerda até o centro':'Da base até o centro'}: <b>${f1(v)} mm</b> — solte para aplicar</div>`});
-const edSolta=e=>{if(!edDrag)return;const {c,k,orig,cur}=edDrag;edDrag=null;if(Math.abs(cur-orig)<0.01){renderEditor();$('#tEdMsg').innerHTML='';return}
+const edSolta=e=>{if(!edDrag)return;const {c,k,orig,cur,copia}=edDrag;edDrag=null;if(copia)Object.assign(c.f,copia);if(Math.abs(cur-orig)<0.01){renderEditor();$('#tEdMsg').innerHTML='';return}
   const pos=posDe(c.f,c.F);const V=pos.V.slice(),H=pos.H.slice();const L=k==='V'?V:H;const ix=L.findIndex(x=>Math.abs(x-orig)<0.01);if(ix>=0)L[ix]=cur;edAplicar(c.f,c.F,V,H)};
 $('#tEd').addEventListener('pointerup',edSolta);$('#tEd').addEventListener('pointercancel',edSolta);
 $('#tEdPick').onclick=e=>{const b=e.target.closest('[data-edf]');if(!b)return;tEdFace=+b.dataset.edf;renderFaces();renderEditor()};
@@ -3504,7 +3535,7 @@ $('#tAcmFiles').onclick=async()=>{if(!lastBuild||!lastBuild.M.acm)return;const r
   let blob,name;{const z=new JSZip();fs.forEach(f=>z.file(f.name,f.buf));await zipRmPi(z,`OS ${r.ctx.os||'sem número'} - item ${r.ctx.item}`);blob=await z.generateAsync({type:'blob'});name=nomeArq(`OS ${r.ctx.os||'sem número'} - item ${r.ctx.item} - ACM router.zip`)}
   try{const dl=window.claude&&claude.use?await claude.use('downloads'):null;if(!dl){$('#tMsg').insertAdjacentHTML('beforeend','<div class="msg err">Download indisponível nesta visualização.</div>');return}await dl.save({filename:name,data:blob})}catch(e){if(e&&e.code==='declined')return;$('#tMsg').insertAdjacentHTML('beforeend',`<div class="msg err">Não foi possível baixar (${esc(e.code||e.message)}).</div>`)}};
 
-$('#tDivMsg').addEventListener('click',e=>{if(e.target.id==='tDivManter'){tFaces.forEach(f=>{if(!cabeLim(f.W,f.H))f.semDiv=true});$('#tDivMsg').innerHTML='<div class="msg ok">Estrutura mantida no tamanho original (sem divisão).</div>';tAtualizar();return}if(e.target.id!=='tDivBtn')return;for(let i=tFaces.length-1;i>=0;i--)dividirFace(i);renderFaces();acmUI();v3Fit=true;tAtualizar()});
+$('#tDivMsg').addEventListener('click',e=>{if(e.target.id==='tDivManter'){tFaces.forEach(f=>{if(!cabeLim(f.W,f.H))f.semDiv=true});$('#tDivMsg').innerHTML='<div class="msg ok">Estrutura mantida no tamanho original (sem divisão).</div>';tAtualizar();return}const dv=e.target.closest('[data-dir]');if(!dv)return;for(let i=tFaces.length-1;i>=0;i--)dividirFace(i,dv.dataset.dir);renderFaces();acmUI();v3Fit=true;tAtualizar()});
 
 /* ================= ACM nas testeiras ================= */
 const ACM_LEN=5000;const ACM_LARG={3:[1220,1500],4:[1250,1500]};
@@ -3667,7 +3698,7 @@ function acmCalc(comp,o){if(!tAcm.on)return null;const r=acmRed(),t=+tAcm.esp,n=
 
 /* ---------- folhas ---------- */
 function acmDesc(){const c=tAcm.cor;return c?`${c.nome}${c.marca&&c.marca!=='Minhas cores'?' — '+c.marca+(c.linha?' '+c.linha.replace(/\s*\(.*\)/,''):''):''}${c.acab?' ('+c.acab+')':''}`:'COR A DEFINIR'}
-function acmJuntaTxt(){if(!tAcm.on)return'';const w=[];if(tAcm.jt)w.push('TRAVAS VERTICAIS (30X20)');if(tAcm.je&&temEmenda(tFaces))w.push('EMENDAS');return w.length?`${+tAcm.jmm||5} MM — ${w.join(' + ')}`:''}
+function acmJuntaTxt(){if(!tAcm.on)return'';const w=[];if(tAcm.jt)w.push('TRAVAS VERTICAIS (20X40)');if(tAcm.je&&temEmenda(tFaces))w.push('EMENDAS');return w.length?`${+tAcm.jmm||5} MM — ${w.join(' + ')}`:''}
 function acmModelo(){const c=tAcm.cor;return `${ACM_INST[tAcm.inst]}${c&&c.marca&&c.marca!=='Minhas cores'?' — '+c.marca+' '+(c.linha||''):''} ${tAcm.esp} mm`}
 function acmInfoRows(A,o){return[['MODELO:',acmModelo().toUpperCase()],['ACM:',`${A.t} MM`],['COR:',acmDesc().toUpperCase()],['INSTALAÇÃO:',ACM_INST[tAcm.inst].toUpperCase()],['FITA:',`${ACM_FITA[A.fitaTipo].toUpperCase()} — ${f1(A.fitaTot)} M (${o.un} UN. +10%)`],
   ...(A.r?[['ESTRUTURA:',`${A.r} MM MENOR POR LADO`]]:[]),...(acmJuntaTxt()?[['JUNTA DILATAÇÃO:',acmJuntaTxt()]]:[]),['CHAPAS:',`${A.esc.n} X ${f1(A.esc.SW/1000)} X 5,00 M`]]}
