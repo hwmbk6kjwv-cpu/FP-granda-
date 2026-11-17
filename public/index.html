@@ -305,6 +305,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
       <label class="drop" id="drop"><input type="file" id="pdfIn" accept="application/pdf,.pdf" hidden><span id="dropTxt">Toque para escolher o PDF</span></label>
       <div id="fileInfo"></div>
       <label class="f">Largura real (mm) <span class="badge">opcional — só se o PDF não estiver 1:1</span></label><input type="number" id="largReal" placeholder="Deixe vazio para usar 1:1" inputmode="decimal">
+      <label class="f">Quantidade de jogos <span class="badge">quantas vezes este conjunto de letras</span></label><input type="number" id="lQtd" value="1" min="1" step="1" inputmode="numeric" style="max-width:140px">
     </div>
     <div class="card"><h2>3. Tipo de letra caixa</h2><div class="types" id="typePick"></div><div id="chapaBox" hidden><label class="f" style="margin-top:14px">Linha interna da chapa galvanizada</label><div class="leds" id="chapaPick"></div></div>
       <div id="caixaWrap"><label class="f" style="margin-top:14px">Profundidade da caixa (espessura da letra)</label><div class="leds" id="caixaPick"></div></div>
@@ -2126,6 +2127,7 @@ function frame(P,ctx,pg){pg={...pg,setor:setorNome(pg.setor)};
   P.push({t:'rect',x:226,y:8,w:63,h:11,r:2,fill:col});
   P._setor=pg.setor;const sLab=pg.setor==='MONTAGEM'?'MONTAGEM DE ACM':pg.setor;P._setorT={t:'text',x:257.5,y:15.3,s:sLab,size:sLab.length>16?3.4:4.2,bold:true,color:'#ffffff',anchor:'middle'};P.push(P._setorT);
   P.push({t:'text',x:18,y:15.5,s:(ctx.item==='GERAL'?`FP GERAL - ${ctx.descItem}`:`${sLab} ITEM ${ctx.item} - ${ctx.descItem}`).toUpperCase(),size:3.4,bold:true,color:'#000000'});
+  if(ctx.qtd>1&&ctx.tipo)P.push({t:'text',x:PW-16,y:31,s:`${ctx.qtd}X (JOGOS)`,size:6,bold:true,italic:true,color:'#c2255c',anchor:'end'});
   if(ctx.tipo)P.push({t:'text',x:18,y:21,s:ctx.plana?`Tipo: ${ctx.tipo}   •   ESPESSURA: ${ctx.caixa} mm`:`Tipo: ${ctx.tipo}   •   LED: ${ctx.led}   •   CAIXA: ${ctx.caixa} mm`,size:2.6,color:'#555555'});
   P._f0=P.length;P._ref=refImg;
 }
@@ -2262,7 +2264,7 @@ function buildDoc(){
   // letra 3D: o contorno externo é impresso (fica como o arquivo); o arredondamento da fresa vale para a parte INTERNA (acrílico e cavidade, 2,5 mm para dentro)
   const cp=is3d?cpRaw:fechaInternos(cpRaw,fresaR);const orig=fromC(cp);
   const d=$('#entrega').value;
-  const ctx={os:$('#os').value.trim(),item:$('#item').value||'1',descItem:$('#descItem').value.trim()||'LETRA CAIXA',cliente:$('#cliente').value.trim(),vendedor:$('#vendedor').value.trim(),projetista:$('#projetista').value.trim(),endereco:$('#endereco').value.trim(),entrega:d?d.split('-').reverse().join('/'):'',tipo:t.nome,led:selLed.toLocaleString('pt-BR')+' K',caixa:(typeof planaSel==='function'&&planaSel())?planaInfo().es:selCaixa,plana:typeof planaSel==='function'&&planaSel(),imp3d:!!(types.find(x=>x.id===selType)&&pagesOf0(types.find(x=>x.id===selType)).some(p=>p.tipo==='imp3d')),obs:$('#obs').value.trim()};
+  const ctx={os:$('#os').value.trim(),item:$('#item').value||'1',descItem:$('#descItem').value.trim()||'LETRA CAIXA',cliente:$('#cliente').value.trim(),vendedor:$('#vendedor').value.trim(),projetista:$('#projetista').value.trim(),endereco:$('#endereco').value.trim(),entrega:d?d.split('-').reverse().join('/'):'',tipo:t.nome,led:selLed.toLocaleString('pt-BR')+' K',caixa:(typeof planaSel==='function'&&planaSel())?planaInfo().es:selCaixa,plana:typeof planaSel==='function'&&planaSel(),imp3d:!!(types.find(x=>x.id===selType)&&pagesOf0(types.find(x=>x.id===selType)).some(p=>p.tipo==='imp3d')),qtd:Math.max(1,Math.round(num($('#lQtd').value)||1)),obs:$('#obs').value.trim()};
   let defs=pagesOf(t).concat(readPages($('#xPages')));
   if(is3d&&$('#l3dPvc')&&$('#l3dPvc').checked){const iF=defs.findIndex(p=>p.setor==='ROUTER'&&/ACR/i.test((p.material||'')+' '+(p.titulo||'')));defs.splice(iF>=0?iF+1:defs.length,0,{setor:'ROUTER',fundoPvc:true,titulo:'FUNDO INTERNO LETRA 3D - PVC 2mm BRANCO (LED)',material:'PVC',espessura:'2MM',cor:'BRANCO',textura:'----',linhas:[{offset:l3dPvcOff(),legenda:'CORTE EXTERNO',cor:'#ff00c0'}]})}
   {const F=fundoCfg();if(F){const iF=defs.findIndex(p=>p.setor==='ROUTER'&&/ACR/i.test((p.material||'')+' '+(p.titulo||'')));defs.splice(iF>=0?iF+1:defs.length,0,{setor:'ROUTER',fundoAcr:true,fundoMat:F.mat,titulo:`FUNDO ${is3d?'LETRA 3D':'DAS LETRAS'} - ${F.mat==='ACM'?'ACM':'ACRÍLICO'} ${F.es}mm ${F.cor}${F.pint?' PINTADO '+F.pint:''} (+${F.borda} mm, ${F.junta?'PEÇA ÚNICA':'UMA PEÇA POR LETRA'}${F.raio?', CANTOS EXTERNOS R'+F.raio:''})`,material:F.mat==='ACM'?'ACM':'ACRÍLICO',espessura:F.es+'MM',cor:F.cor+(F.marca?' ('+F.marca+')':''),pintura:F.pint||'',textura:F.pint?'PINTADO '+F.pint:'----',linhas:[{offset:F.borda,legenda:'CORTE EXTERNO',cor:'#ff00c0',soExt:true,ponte:F.junta,raio:F.raio}]})}}
@@ -2420,6 +2422,7 @@ function buildDoc(){
     let kk=null;if(job.nome==='ACM FUNDO'){const pg=(info[job.after]||{}).pg||{};const e=(String(pg.espessura||'').match(/\d+/)||['3'])[0];must=['ACM',[`${e}MM`,` ${e} MM`,`${e},0MM`]];kk=`acmf|${e}`}else if(job.nome==='ACRILICO FUNDO'){const pg=(info[job.after]||{}).pg||{};const B=buscaAcrilico(pg,false);const cw=(String(pg.cor||'CRISTAL').replace(/\(.*\)/,'').trim().split(/\s+/)[0]||'CRISTAL');must=[...B.must,cw];kk=`acr|${B.es}|${cw}`}else if(job.nome==='ACRILICO'){const pg=(info[job.after]||{}).pg||{};const B=buscaAcrilico(pg,temLed);must=B.must;kk=`acr|${B.es}|${temLed?'transl':B.cor}`}else if(job.nome==='CHAPA GALVANIZADA'){must=['CHAPA GALVANIZADA','(20)'];kk='galv20'}
     if(!must)return;const esc=kk&&chapaEscolhida(kk);if(esc){job.sizes=[esc];return}const disp=mpChapasDisp(must);if(!disp.length)return;const ok=job.sizes.filter(([w,h])=>disp.some(d=>d[0]===w&&d[1]===h));job.sizes=ok.length?ok:disp;job.disp=disp})}catch(e){console.error('chapas do cadastro',e)}
   const ins=[];
+  if(ctx.qtd>1)jobs.forEach(job=>{const b=job.pieces;job.pieces=[];for(let k=0;k<ctx.qtd;k++)b.forEach(p=>job.pieces.push(k?JSON.parse(JSON.stringify(p)):p))});
   for(const job of jobs){if(!job.pieces.length||!job.sizes.length)continue;
     const opts=job.sizes.map(([w,h])=>({w,h,...nestSheets(job.pieces,w,h,gap,mg)}));
     const ok=opts.filter(o=>!o.naoCabe.length);const pool=ok.length?ok:opts;
@@ -2442,7 +2445,7 @@ function buildDoc(){
    L.forEach(g=>g.per=g.ps.reduce((s,p)=>s+chainLen(p.concat([p[0]])),0));
    const perTot=L.reduce((s,g)=>s+g.per,0);const hMax=Math.max(...L.map(g=>g.bb.h));
    // destaques
-   const boxes=[['MODELO DA LETRA',t.nome,110],['Nº DE PEÇAS',String(L.length),32],['ALTURA DA LETRA',`${Math.round(hMax)} mm`,38],[ctx.plana?'ESPESSURA':'CAIXA',`${ctx.caixa} mm`,28],['PERÍMETRO TOTAL',`${(perTot/1000).toLocaleString('pt-BR',{maximumFractionDigits:2})} m`,45]];
+   const boxes=[['MODELO DA LETRA',t.nome,110],['Nº DE PEÇAS',ctx.qtd>1?`${L.length} x ${ctx.qtd} = ${L.length*ctx.qtd}`:String(L.length),32],['ALTURA DA LETRA',`${Math.round(hMax)} mm`,38],[ctx.plana?'ESPESSURA':'CAIXA',`${ctx.caixa} mm`,28],['PERÍMETRO TOTAL',`${(perTot/1000).toLocaleString('pt-BR',{maximumFractionDigits:2})} m`,45]];
    let bx=12;boxes.forEach(([lb,v,w])=>{P.push({t:'rect',x:bx,y:25,w,h:17,r:2,fill:'#fff0f6',stroke:'#c2255c',lw:0.5});
      P.push({t:'text',x:bx+w/2,y:30,s:lb,size:2.6,bold:true,color:'#c2255c',anchor:'middle'});
      if(lb==='MODELO DA LETRA'&&v.length*3.6*0.52>w-4){const ws=v.split(' ');let l1='';while(ws.length&&(l1+' '+ws[0]).trim().length*3.1*0.52<w-4)l1=(l1+' '+ws.shift()).trim();
@@ -4209,7 +4212,7 @@ function prodLetras(t,ctx,orig,defs,ledInfo,furos,nests){const fixBit=(()=>{try{
   if(temLed&&ledInfo)vols.push({desc:'ELÉTRICA',cont:'Fonte / reator e fiação da iluminação',dims:'—',q:1,kg:0,draw:null});
   const qualExtra=[];(nests||[]).forEach(N=>{const B=N.best;if(!B||N.semQual)return;B.sheets.forEach((sh,k)=>{const polys=[];sh.items.forEach(it=>{const pc=pieceAt(N.pieces[it.i],it);(pc.lines[0]?[pc.lines[0]]:[]).forEach(l=>l.polys.forEach(p=>polys.push(p)))});
     qualExtra.push({desc:`APROVEITAMENTO ${N.nome==='ACRILICO FUNDO'?'ACRÍLICO FUNDO':N.nome==='ACM FUNDO'?'ACM FUNDO':N.nome==='ACRILICO'?'ACRÍLICO':'CHAPA GALV.'} ${k+1}/${B.sheets.length}`,cont:`Chapa ${B.w} x ${B.h} mm — ${sh.items.length} peças`,q:1,draw:{rects:[{x0:0,y0:0,x1:B.w,y1:B.h,cor:'#f8f9fa'}],polys,fill:N.nome==='ACRILICO'?'#ffc9de':'#dee2e6'}})})});
-  return{tipo:'letra',circ:ledInfo&&ledInfo.circ,mat:matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L),anc:{peca:temPVC?'FUNDO DE PVC':'FUNDO DA LETRA',auto:temPVC?nb:L.length*3,onde:temPVC?'nos furos do PVC (molde kraft)':'3 por letra (estimado)'},qualExtra,nome:ctx.descItem||t.nome,W:b.w,H:b.h,D:cx,un:1,ledN:(()=>{try{return ledInfo&&ledInfo.letters?ordenaPecas(ledInfo.letters).map(g=>g.n):null}catch(e){return null}})(),ledWm:ledInfo&&ledInfo.P&&ledInfo.P.watts||null,letras:L.map((g,k)=>({h:g.bb.h,w:g.bb.w,bb:g.bb,ps:g.ps,broc:temPVC?(brocL[k]||0):null,pan:panL[k]})),fixBit,
+  return{tipo:'letra',circ:ledInfo&&ledInfo.circ,mat:matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L),anc:{peca:temPVC?'FUNDO DE PVC':'FUNDO DA LETRA',auto:temPVC?nb:L.length*3,onde:temPVC?'nos furos do PVC (molde kraft)':'3 por letra (estimado)'},qualExtra,nome:ctx.descItem||t.nome,W:b.w,H:b.h,D:cx,un:Math.max(1,ctx.qtd||1),ledN:(()=>{try{return ledInfo&&ledInfo.letters?ordenaPecas(ledInfo.letters).map(g=>g.n):null}catch(e){return null}})(),ledWm:ledInfo&&ledInfo.P&&ledInfo.P.watts||null,letras:L.map((g,k)=>({h:g.bb.h,w:g.bb.w,bb:g.bb,ps:g.ps,broc:temPVC?(brocL[k]||0):null,pan:panL[k]})),fixBit,
     metodo:[...(temPVC?[`Fixar o molde kraft na parede, furar pelos furos e fixar o FUNDO DE PVC com ${fixBit} (${nb} no total).`]:[]),...(l3d?['Letra 3D: encaixar o acrílico na face (entra justo, apoia no degrau) e fixar a letra pelo FUNDO na parede (furar o fundo impresso).']:[`Encaixar a frente da letra${temPVC?' sobre o PVC':''} e fixar pela LATERAL com ${PANELA} — um a cada ~330 mm (${np} no total).`,'Os parafusos da lateral vão pintados na cor da letra.'])],contorno:orig,volumes:vols,
     checks:['MEDIDAS','ACABAMENTO / PINTURA',`PARAFUSOS CABEÇA PANELA PINTADOS (${np})`,...(temLed?['LED ACENDE']:[]),...(temPVC?['FUROS PVC']:[])]}}
 function prodTesteira(M,o,ctx){const comp=M.comp;const vols=[];const b3=bbox3(M.acm?M.boxes.concat(M.acm.boxes):M.boxes.filter(b=>!b.fix));
@@ -4427,7 +4430,7 @@ function matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L){const N=[];const temLed=
       N.push({k:`acmf|${es}|${cor}`,desc:`ACM ${es} mm ${cor} ${B.h}x${B.w} mm — fundo das letras`,m2,un:'un',uso:`fundo (borda além do desenho) — aproveitamento ${fr(m2)} m²`,busca:{must:['ACM',[`${es}MM`,` ${es} MM`,`${es},0MM`]],want:[...cor.split(/\s+/),`${B.w}X${B.h}`,`${B.w}X5000`]}})}
     else if(Nn.nome==='PVC'){const pg=defs.find(p=>/PVC/i.test(p.material||''))||{};const e=String(pg.espessura||'').match(/(\d+)/);const es=e?e[1]:'10';
       N.push({k:`pvc|${es}`,desc:`PVC expandido ${es} mm 1,22x2,44 m`,m2,un:'un',uso:`fundo — aproveitamento ${fr(m2)} m²`,busca:{must:['PVC EXPANDIDO',[`${es.padStart(2,'0')}MM`,` ${es}MM`]]}})}
-    else{areaGalv=(B.areaPecas||0)/1e6;N.push({k:'galv20',desc:`Chapa galvanizada 20 (0,95 mm) ${B.h/1000}x${B.w/1000} m — face`,m2,un:'un',uso:`face/filete — aproveitamento ${fr(m2)} m²`,busca:{must:['CHAPA GALVANIZADA','(20)',sz]}})}});
+    else{areaGalv=(B.areaPecas||0)/1e6/Math.max(1,(ctx&&ctx.qtd)||1);N.push({k:'galv20',desc:`Chapa galvanizada 20 (0,95 mm) ${B.h/1000}x${B.w/1000} m — face`,m2,un:'un',uso:`face/filete — aproveitamento ${fr(m2)} m²`,busca:{must:['CHAPA GALVANIZADA','(20)',sz]}})}});
   // lateral em chapa 26: tiras com a altura da caixa pelo perímetro das letras originais, na chapa 3000 x 1200
   let areaLat=0;const pint=defs.find(p=>p.tipo==='pintura');const plana=defs.find(p=>p.chapaPlana);const temChapa=!plana&&!defs.some(p=>p.tipo==='imp3d')&&(defs.some(p=>p.tipo==='chapa')||!!pint);
   if(temChapa&&L&&L.length){const h=(+ctx.caixa||80)+MPP.latExtra;const per=[];L.forEach(g=>g.ps.forEach(p=>{let s2=0;p.forEach((q,i)=>{const r=p[(i+1)%p.length];s2+=Math.hypot(r[0]-q[0],r[1]-q[1])});per.push(s2)}));
@@ -4454,6 +4457,7 @@ function matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L){const N=[];const temLed=
     N.push({k:'let|ig110',desc:'Fita dupla face 3M VHB IG110 9 mm (rolo 20 m)',q:Math.round(pm/20*100)/100,un:'un',uso:`frente: acrílico no filete — perímetro ${f2(pm)} m`,busca:{must:['IG110','09MM']}});
     N.push({k:'let|espuma116',desc:'Espuma autoadesiva 11 x 6 mm (rolo 10 m)',q:Math.round(pm/10*100)/100,un:'un',uso:`fundo: vedação no PVC — perímetro ${f2(pm)} m`,busca:{must:['ESPUMA AUTOADESIVA','11X6']}})}
   if(np&&!plana)N.push({k:'let|panela',desc:'Parafuso cabeça panela (lateral)',q:np,un:'un',uso:'lateral das letras',busca:{must:['CABECA PANELA','2.9X6.5']}});
+  {const Q=Math.max(1,(ctx&&ctx.qtd)||1);if(Q>1)N.forEach(it=>{if(/^(acr|acrf|acmf|pvc)\|/.test(it.k||'')||it.k==='galv20')return;['q','m2','litros','m','kg','metros'].forEach(f=>{if(typeof it[f]==='number')it[f]*=Q});if(it.uso)it.uso+=` — x${Q} jogos`})}
   return N}
 function matEstrutura(L,un){const g={};(L||[]).forEach(r=>{if(!/tubo|metalon|barra/i.test((r.tipo||'')+' '+(r.nome||'')))return;const k=(r.perfil||'')+'|'+(r.parede||'');(g[k]=g[k]||[]);for(let i=0;i<(r.q||1)*un;i++)g[k].push(r.len||0)});
   return Object.entries(g).map(([k,lens])=>{const [p,w]=k.split('|');return needMetalon(p,w,mpBarras(lens),'estrutura')})}
