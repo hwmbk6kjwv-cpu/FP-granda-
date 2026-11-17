@@ -611,7 +611,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
           <div id="aEnvTbox"><div class="leds" id="aEnvT"><button data-m="todas"><b>Envelope em todas as peças</b></button><button data-m="ext"><b>Envelope só nas extremidades</b><span class="note" style="display:block">peças do meio: só em cima e embaixo</span></button></div></div>
           <label class="chip" style="display:inline-flex;gap:8px;align-items:center;padding:9px 12px;font-size:13px;margin-top:8px"><input type="checkbox" id="aJE"> Junta de dilatação nas emendas</label>
         </div>
-        <div id="aJmmBox" hidden><label class="f">Largura da junta</label><div class="leds" id="aJmm"><button data-m="5"><b>5 mm</b></button><button data-m="8"><b>8 mm</b></button></div><label class="f" style="margin-top:8px">Cor da junta — silicone neutro DOWSIL 791 (antigo Dow Corning)</label><select id="aJcor"><option>PRETO</option><option>BRANCO</option><option>CINZA</option><option>BRONZE</option><option>BEGE</option><option>TIJOLO</option></select><p class="note" style="margin:4px 0 0">Tubo de 300 ml. O branco tem preço no cadastro; as outras cores entram como provisório na RM (ajuste o valor lá).</p></div>
+        <div id="aJmmBox" hidden><label class="f">Largura da junta</label><div class="leds" id="aJmm"><button data-m="5"><b>5 mm</b></button><button data-m="8"><b>8 mm</b></button></div><label class="f" style="margin-top:8px">Cor da junta — silicone neutro DOWSIL 791 (antigo Dow Corning)</label><div id="aJcorBox" class="row" style="gap:6px;flex-wrap:wrap"><button type="button" data-jc="PRETO" style="display:inline-flex;gap:7px;align-items:center;padding:7px 11px;border:1.5px solid var(--line);border-radius:9px;background:#fff;font:inherit;font-size:13px;cursor:pointer"><span style="width:22px;height:22px;border-radius:5px;background:#1a1a1a;border:1px solid #868e96;display:inline-block"></span>Preto</button><button type="button" data-jc="BRANCO" style="display:inline-flex;gap:7px;align-items:center;padding:7px 11px;border:1.5px solid var(--line);border-radius:9px;background:#fff;font:inherit;font-size:13px;cursor:pointer"><span style="width:22px;height:22px;border-radius:5px;background:#f8f9fa;border:1px solid #868e96;display:inline-block"></span>Branco</button><button type="button" data-jc="CINZA" style="display:inline-flex;gap:7px;align-items:center;padding:7px 11px;border:1.5px solid var(--line);border-radius:9px;background:#fff;font:inherit;font-size:13px;cursor:pointer"><span style="width:22px;height:22px;border-radius:5px;background:#8d9196;border:1px solid #868e96;display:inline-block"></span>Cinza</button><button type="button" data-jc="BRONZE" style="display:inline-flex;gap:7px;align-items:center;padding:7px 11px;border:1.5px solid var(--line);border-radius:9px;background:#fff;font:inherit;font-size:13px;cursor:pointer"><span style="width:22px;height:22px;border-radius:5px;background:#6b4f3a;border:1px solid #868e96;display:inline-block"></span>Bronze</button><button type="button" data-jc="BEGE" style="display:inline-flex;gap:7px;align-items:center;padding:7px 11px;border:1.5px solid var(--line);border-radius:9px;background:#fff;font:inherit;font-size:13px;cursor:pointer"><span style="width:22px;height:22px;border-radius:5px;background:#d8c7a6;border:1px solid #868e96;display:inline-block"></span>Bege</button><button type="button" data-jc="TIJOLO" style="display:inline-flex;gap:7px;align-items:center;padding:7px 11px;border:1.5px solid var(--line);border-radius:9px;background:#fff;font:inherit;font-size:13px;cursor:pointer"><span style="width:22px;height:22px;border-radius:5px;background:#a5533a;border:1px solid #868e96;display:inline-block"></span>Tijolo</button></div><select id="aJcor" hidden><option>PRETO</option><option>BRANCO</option><option>CINZA</option><option>BRONZE</option><option>BEGE</option><option>TIJOLO</option></select><p class="note" style="margin:4px 0 0">Tubo de 300 ml. O branco tem preço no cadastro; as outras cores entram como provisório na RM (ajuste o valor lá).</p></div>
         <label class="f">Fita dupla face</label>
         <div class="leds" id="aFita"><button data-m="vhb"><b>VHB comum</b></button><button data-m="cv150"><b>CV 150</b><span class="note" style="display:block">melhor fixação</span></button></div>
         <p class="note" id="aRed" style="margin:8px 0 0"></p>
@@ -2217,7 +2217,7 @@ let lSel='',lDoc=null;
 const lSetNome=s=>({RM:'Relação de material (RM)','IMPRESSÃO 3D':'Impressão 3D',PI:'PI — Produtos de instalação',MONTAGEM:'Montagem de ACM','LETRA CAIXA':'Letra caixa',ROUTER:'Router',P1:'P1',PINTURA:'Pintura','ELÉTRICA':'Elétrica',ACABAMENTO:'Acabamento','INSTALAÇÃO':'Instalação','EXPEDIÇÃO':'Expedição',QUALIDADE:'Qualidade',SERRALHERIA:'Serralheria',OUTRAS:'Outras'}[s]||s);
 // fichas de produção separadas por setor (botões)
 function setorChips(pages,sel,attr){const sk=P=>P._setor||'OUTRAS';const sets=[...new Set(pages.map(sk))];if(!sets.includes(sel))sel=sets[0];
-  const html=sets.map(s=>{const n=pages.filter(P=>sk(P)===s).length;return `<button class="chip${s===sel?' on':''}" ${attr}="${esc(s)}">${esc(lSetNome(s))}${n>1?` (${n})`:''}</button>`}).join('')+(attr==='data-brpg'?'':`<button class="chip" type="button" data-fbabrir="1" style="border:1.5px dashed #2b8a3e;color:#2b8a3e;background:#fff">+ FP em branco${(typeof fpBrancas!=='undefined'&&fpBrancas.length)?` (${fpBrancas.length})`:''}</button>`);
+  const html=sets.map(s=>{const n=pages.filter(P=>sk(P)===s).length;return `<button class="chip${s===sel?' on':''}" ${attr}="${esc(s)}">${esc(lSetNome(s))}${n>1?` (${n})`:''}${attr!=='data-brpg'?`<span data-setx="${esc(s)}" title="Excluir o setor inteiro da FP" style="margin-left:7px;display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:${s===sel?'rgba(255,255,255,.25)':'#ffe3e3'};color:${s===sel?'#fff':'#c92a2a'};font-size:10px;font-weight:700">✕</span>`:''}</button>`}).join('')+(attr==='data-brpg'?'':`<button class="chip" type="button" data-fbabrir="1" style="border:1.5px dashed #2b8a3e;color:#2b8a3e;background:#fff">+ FP em branco${(typeof fpBrancas!=='undefined'&&fpBrancas.length)?` (${fpBrancas.length})`:''}</button>`);
   return{sel,html,shown:pages.filter(P=>sk(P)===sel)}}
 function lPrevRender(){const d=lDoc;$('#lFichasT').hidden=!d;if(!d){$('#lPgPick').innerHTML='';return}const C=setorChips(d.pages,lSel,'data-lpg');lSel=C.sel;$('#lPgPick').innerHTML=C.html;const shown=C.shown;prevSet(shown.map(P=>`<div class="pg">${toSVG(P)}</div>`).join(''));
   const li=shown.findIndex(P=>P.some(p=>p.t==='text'&&/DISTRIBUIÇÃO DE LED/.test(p.s||'')));const pgs=$('#prev').querySelectorAll('.pg');
@@ -3758,7 +3758,7 @@ function acmArquivos(A,base){const {jsPDF}=window.jspdf;const out=[];const E=A.e
 /* ---------- interface ---------- */
 function acmUI(){const box=$('#aBox');if(!box)return;$('#aOn').checked=tAcm.on;box.hidden=!tAcm.on;
   const sel=(id,v)=>document.querySelectorAll(`#${id} button`).forEach(b=>b.classList.toggle('sel',b.dataset.m===String(v)));
-  sel('aEsp',tAcm.esp);sel('aInst',tAcm.inst);sel('aFita',acmFita());sel('aJmm',+tAcm.jmm||5);if($('#aJcor'))$('#aJcor').value=tAcm.jcor||'PRETO';sel('aEnvT',tAcm.envT||'ext');
+  sel('aEsp',tAcm.esp);sel('aInst',tAcm.inst);sel('aFita',acmFita());sel('aJmm',+tAcm.jmm||5);if($('#aJcor'))$('#aJcor').value=tAcm.jcor||'PRETO';document.querySelectorAll('#aJcorBox [data-jc]').forEach(b=>{const on=b.dataset.jc===(tAcm.jcor||'PRETO');b.style.borderColor=on?'#c2255c':'';b.style.boxShadow=on?'0 0 0 2px #fcc2d7':'';b.style.fontWeight=on?'700':''});sel('aEnvT',tAcm.envT||'ext');
   $('#aJT').checked=!!tAcm.jt;$('#aJE').checked=!!tAcm.je;const em=temEmenda(tFaces);$('#aEmBox').hidden=!em;$('#aEnvTbox').hidden=tAcm.inst==='rente';
   $('#aJmmBox').hidden=!(tAcm.jt||(tAcm.je&&em));
   document.querySelector('#aFita [data-m=vhb]').disabled=+tAcm.esp===4;
@@ -3775,7 +3775,7 @@ function acmUI(){const box=$('#aBox');if(!box)return;$('#aOn').checked=tAcm.on;b
 function acmBind(){if(!$('#aOn'))return;
   $('#aOn').onchange=()=>{tAcm.on=$('#aOn').checked;acmUI();v3Fit=true;tAtualizar()};
   const leds=(id,k,num)=>$('#'+id).onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;tAcm[k]=num?+b.dataset.m:b.dataset.m;acmUI();tAtualizar()};
-  leds('aEsp','esp',true);leds('aInst','inst');leds('aFita','fita');leds('aJmm','jmm',true);if($('#aJcor'))$('#aJcor').onchange=()=>{tAcm.jcor=$('#aJcor').value;tAtualizar()};leds('aEnvT','envT');
+  leds('aEsp','esp',true);leds('aInst','inst');leds('aFita','fita');leds('aJmm','jmm',true);if($('#aJcor'))$('#aJcor').onchange=()=>{tAcm.jcor=$('#aJcor').value;tAtualizar()};if($('#aJcorBox'))$('#aJcorBox').onclick=e=>{const b=e.target.closest('[data-jc]');if(!b)return;tAcm.jcor=b.dataset.jc;$('#aJcor').value=b.dataset.jc;acmUI();tAtualizar()};leds('aEnvT','envT');
   $('#aJT').onchange=()=>{tAcm.jt=$('#aJT').checked;acmUI();tAtualizar()};$('#aJE').onchange=()=>{tAcm.je=$('#aJE').checked;acmUI();tAtualizar()};
   $('#aChapa').onchange=()=>{tAcm.chapa=$('#aChapa').value;tAtualizar()};
   $('#aMarca').onclick=e=>{const b=e.target.closest('[data-am]');if(!b)return;tAcm.marca=b.dataset.am;$('#aBusca').value='';acmUI()};$('#aBusca').oninput=acmUI;
@@ -4444,28 +4444,19 @@ document.addEventListener('input',e=>{if(e.target&&e.target.id==='lQtd')lReatSyn
 
 /* ---------- FP em branco avulsa (qualquer tipo de item): o usuário escolhe o setor ---------- */
 let fpBrancas=[];
-function fbFolha(ctx,b){const P=[];frame(P,ctx,{setor:b.setor||'ACABAMENTO'});const tit=(b.titulo||'').toUpperCase();
-  if(tit)P.push({t:'text',x:PW/2,y:30.5,s:tit,size:4.4,bold:true,color:'#000000',anchor:'middle'});
-  const W=PW-40;const ls=[];String(b.texto||'').toUpperCase().split(/\n/).forEach(par=>{let cur='';par.split(/\s+/).forEach(wd=>{const tt=cur?cur+' '+wd:wd;if(tt.length*3.6*0.56>W&&cur){ls.push(cur);cur=wd}else cur=tt});ls.push(cur)});
-  const top=tit?38:28;if(ls.join('').trim()){const L=ls.slice(0,24);P.push({t:'rect',x:14,y:top,w:PW-28,h:Math.min(168-top,L.length*5.6+8),r:2,fill:'#f8f9fa',stroke:'#495057',lw:0.4});L.forEach((s,i)=>P.push({t:'text',x:20,y:top+7+i*5.6,s,size:3.6,bold:true,color:'#000000'}))}
-  return P}
-function fbPaginas(ctx,pages,tags){(fpBrancas||[]).forEach(b=>{if(!b||!b.setor)return;const P=fbFolha(ctx,b);let k=-1;pages.forEach((Q,i)=>{if(Q._setor===P._setor)k=i});
-  if(k>=0){pages.splice(k+1,0,P);if(tags)tags.splice(k+1,0,b.setor)}else{pages.push(P);if(tags)tags.push(b.setor)}})}
+const fbNorm=b=>{if(!b.linhas)b.linhas=[{desc:'',med:'',q:1,un:'un'}];if(!b.imgs)b.imgs=[];if(!b.qtd)b.qtd=1;if(b.texto==null)b.texto='';if(b.titulo==null)b.titulo='';if(!b.id)b.id='f'+Math.random().toString(36).slice(2,8);return b};
+function fbPaginas(ctx,pages,tags){(fpBrancas||[]).forEach(b=>{if(!b||!b.setor)return;fbNorm(b);const ps=[],ts=[];brFichaPgs(b,ctx,'',ps,ts);ps.forEach(P=>{P._setor=P._setor||b.setor});
+  let k=-1;pages.forEach((Q,i)=>{if(Q._setor===b.setor)k=i});
+  if(k>=0){pages.splice(k+1,0,...ps);if(tags)tags.splice(k+1,0,...ts)}else{pages.push(...ps);if(tags)tags.push(...ts)}})}
 function fbRegerar(){const a=abaAtual();try{if(a==='novo'){if(typeof lDoc!=='undefined'&&lDoc)$('#gerar').click()}else if(a==='testeiras'){if(tModo==='desenho')dRender3D();else tAtualizar()}else if(a==='bobs')bobsRender();else if(a==='modelo')mFolhasRender()}catch(e){console.error(e)}if(typeof pedSujo!=='undefined')pedSujo=true}
-function fbAbrir(){let m=$('#fbPopup');if(m)m.remove();m=document.createElement('div');m.id='fbPopup';m.className='modal on';m.style.zIndex=10000;
-  const setores=Object.keys(SETORES).filter(s=>!['RM','PI','GERAL','MATERIAL'].includes(s));
-  const lista=()=>fpBrancas.map((b,i)=>`<div style="border:1.5px solid var(--line);border-radius:10px;padding:10px;margin-top:8px">
-    <div class="row" style="gap:8px;align-items:flex-end;flex-wrap:wrap"><div><label class="f" style="margin:0 0 2px">Setor</label><select data-fb="${i}" data-fk="setor">${setores.map(s=>`<option value="${s}"${s===b.setor?' selected':''}>${esc(typeof setorNome==='function'?setorNome(s):s)}</option>`).join('')}</select></div>
-      <div style="flex:1;min-width:180px"><label class="f" style="margin:0 0 2px">Título da folha</label><input type="text" data-fb="${i}" data-fk="titulo" value="${esc(b.titulo||'')}"></div><button class="btn ghost sm" type="button" data-fbdel="${i}" style="color:#c92a2a">✕</button></div>
-    <label class="f" style="margin:6px 0 2px">Texto / instruções (opcional — vazio = folha em branco)</label><textarea data-fb="${i}" data-fk="texto" rows="3" style="width:100%">${esc(b.texto||'')}</textarea></div>`).join('')||'<div class="note">Nenhuma FP em branco ainda.</div>';
-  const draw=()=>{m.innerHTML=`<div class="sheet" style="max-width:560px"><div style="font-weight:700;font-size:16px">FP em branco neste item</div><div class="note" style="margin:2px 0 6px">Escolha o setor: a folha entra na FP deste item (e na FP do pedido), junto com as do setor.</div>${lista()}
-    <div class="row" style="gap:8px;justify-content:space-between;margin-top:12px"><button class="btn ghost sm" type="button" data-fbadd="1">+ FP em branco</button><button class="btn pink" type="button" data-fbok="1">Pronto</button></div></div>`};
-  draw();
-  m.addEventListener('input',e=>{const t=e.target;if(t.dataset.fb==null)return;fpBrancas[+t.dataset.fb][t.dataset.fk]=t.value});
-  m.addEventListener('click',e=>{if(e.target.closest('[data-fbadd]')){fpBrancas.push({setor:'ACABAMENTO',titulo:'',texto:''});draw();return}
-    const d=e.target.closest('[data-fbdel]');if(d){fpBrancas.splice(+d.dataset.fbdel,1);draw();return}
-    if(e.target.closest('[data-fbok]')||e.target===m){m.remove();fbRegerar()}});
-  document.body.appendChild(m);if(!fpBrancas.length){fpBrancas.push({setor:'ACABAMENTO',titulo:'',texto:''});draw()}}
+function fbAbrir(){let m=$('#fbPopup');if(m)m.remove();m=document.createElement('div');m.id='fbPopup';m.className='modal on';m.style.zIndex=10000;fpBrancas.forEach(fbNorm);
+  m.innerHTML=`<div class="sheet" style="max-width:760px"><div style="font-weight:700;font-size:16px">FP em branco neste item</div><div class="note" style="margin:2px 0 8px">Igual à FP em branco: setor, título, quantidade, imagens (enviar ou colar), instruções e quantitativo. A folha entra na FP deste item (e na do pedido), junto com as do setor.</div>
+    <div class="row" id="fbSet" style="gap:6px;flex-wrap:wrap">${BR_SETORES.map(s=>`<button class="btn ghost sm" type="button" data-fbset="${s}" style="border-color:${SETORES[s]||'#666'};color:${SETORES[s]||'#666'}">+ FP de ${esc(lSetNome(s))}</button>`).join('')}</div>
+    <div id="fbLista"></div><div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn pink" type="button" data-fbok="1">Pronto</button></div></div>`;
+  document.body.appendChild(m);const L=m.querySelector('#fbLista');const draw=()=>{L.innerHTML=brListaHTML(fpBrancas)};draw();
+  brBind(L,()=>fpBrancas,draw,()=>{if(typeof pedSujo!=='undefined')pedSujo=true});
+  m.addEventListener('click',e=>{const s=e.target.closest('[data-fbset]');if(s){fpBrancas.push(brNovaFicha(s.dataset.fbset));draw();setTimeout(()=>{const c=L.querySelector(`[data-bri="${fpBrancas.length-1}"]`);if(c)c.scrollIntoView({behavior:'smooth',block:'center'})},50);return}
+    if(e.target.closest('[data-fbok]')||e.target===m){m.remove();fbRegerar()}})}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-fbabrir]');if(!b)return;e.preventDefault();fbAbrir()});
 
 /* ================= LISTA DE MATERIAL (matérias-primas da Granda) ================= */
@@ -5888,20 +5879,20 @@ const BR_SETORES=['SERRALHERIA','P1','ROUTER','PINTURA','IMPRESSÃO','ELÉTRICA'
 const brQtd=f=>Math.max(1,Math.round(num(f.qtd))||1);
 const brImgs=f=>{if(!f.imgs)f.imgs=f.img?[f.img]:[];delete f.img;return f.imgs};
 const brNovaFicha=setor=>({id:'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),setor,titulo:'',qtd:1,imgs:[],texto:'',linhas:[{desc:'',med:'',q:1,un:'un'}]});
-function brUI(){const L=$('#brLista');if(!L)return;if($('#brAddSet2'))$('#brAddSet2').hidden=!brFichas.length;
-  L.innerHTML=brFichas.length?brFichas.map((f,i)=>{const cor=SETORES[f.setor]||'#666';return `<div class="card" style="border-left:6px solid ${cor};margin:10px 0;padding:12px" data-bri="${i}">
+function brListaHTML(lista){return lista.length?lista.map((f,i)=>{const cor=SETORES[f.setor]||'#666';return `<div class="card" style="border-left:6px solid ${cor};margin:10px 0;padding:12px" data-bri="${i}">
     <div class="row" style="justify-content:space-between;align-items:center;gap:6px"><b style="color:${cor}">FP ${i+1} — ${esc(lSetNome(f.setor))}</b><div class="row" style="gap:4px"><button class="btn ghost sm" type="button" data-bra="up">↑</button><button class="btn ghost sm" type="button" data-bra="down">↓</button><button class="btn ghost sm" type="button" data-bra="dup">Duplicar</button><button class="btn danger sm" type="button" data-bra="del">Remover</button></div></div>
     <div class="g2" style="margin-top:8px"><div><label class="f">Setor</label><select data-brk="setor">${BR_SETORES.map(s=>`<option value="${s}"${s===f.setor?' selected':''}>${s==='MONTAGEM'?'MONTAGEM DE ACM':s}</option>`).join('')}</select></div><div><label class="f">Título da ficha</label><input type="text" data-brk="titulo" value="${esc(f.titulo)}" placeholder="ex.: ESTRUTURA DO TOTEM"></div></div><div class="row" style="gap:8px;align-items:center;margin-top:6px"><label class="f" style="margin:0">Qtd. de peças</label><input type="number" inputmode="numeric" min="1" data-brk="qtd" value="${brQtd(f)}" style="width:80px;max-width:80px;font-weight:700"><span class="note" style="margin:0">sai como <b>${brQtd(f)}X</b> na FP e na expedição/qualidade</span></div>
     <label class="f">Imagens da ficha (até 4 — foto, print do projeto)</label><div class="row" style="gap:8px;align-items:center">${brImgs(f).length<4?`<label class="btn ghost sm" style="display:inline-flex;align-items:center;cursor:pointer">Enviar imagem<input type="file" accept="image/*" multiple data-brimg="1" hidden></label><div class="colaZona" contenteditable="true" spellcheck="false">Colar print aqui (toque e segure → Colar, ou Ctrl+V)</div>`:'<span class="note">Limite de 4 imagens nesta FP.</span>'}</div>${brImgs(f).length?`<div class="row" style="gap:8px;margin-top:6px;flex-wrap:wrap">${brImgs(f).map((im,n)=>`<div style="display:flex;flex-direction:column;gap:4px;width:150px"><div style="position:relative;align-self:flex-start"><img src="${im.src}" style="height:64px;max-width:150px;border:1px solid var(--line);border-radius:6px;display:block"><button class="btn danger sm" type="button" data-brimdel="${n}" style="position:absolute;top:-8px;right:-8px;padding:0 7px;min-height:0;line-height:20px;border-radius:50%">×</button></div><input type="text" data-brleg="${n}" value="${esc(im.leg||'')}" placeholder="Legenda da foto" style="padding:5px 7px;font-size:12.5px"></div>`).join('')}</div>`:''}
     <label class="f">Instruções / observações</label><textarea data-brk="texto" rows="3" placeholder="o que fazer nesta etapa">${esc(f.texto)}</textarea>
     <label class="f">Quantitativo</label><div class="row note" style="gap:6px;margin:0;font-size:11px;font-weight:700;text-transform:uppercase;flex-wrap:nowrap"><span style="flex:3;min-width:150px">Descrição</span><span style="flex:1;min-width:80px">Medida (mm)</span><span style="width:70px">Qtd. *</span><span style="width:56px">Un.</span><span style="width:34px"></span></div>${f.linhas.map((l,j)=>`<div class="row" style="gap:6px;margin-top:4px;flex-wrap:wrap"><input type="text" data-brl="${j}" data-brc="desc" value="${esc(l.desc)}" placeholder="ex.: ACM 3mm branco" style="flex:3;min-width:150px"><input type="text" data-brl="${j}" data-brc="med" value="${esc(l.med)}" placeholder="ex.: 1200 x 600" style="flex:1;min-width:80px"><input type="number" inputmode="decimal" data-brl="${j}" data-brc="q" value="${l.q}" title="quantidade" style="width:70px;max-width:70px;font-weight:700"><input type="text" data-brl="${j}" data-brc="un" value="${esc(l.un)}" style="width:56px;max-width:56px"><button class="btn ghost sm" type="button" data-brld="${j}">×</button></div>`).join('')}
-    <button class="btn ghost sm" type="button" data-bra="lin" style="margin-top:6px">+ Linha</button></div>`}).join(''):'<p class="note">Nenhuma ficha ainda. Use os botões acima para adicionar.</p>';
+    <button class="btn ghost sm" type="button" data-bra="lin" style="margin-top:6px">+ Linha</button></div>`}).join(''):'<p class="note">Nenhuma ficha ainda.</p>'}
+function brUI(){const L=$('#brLista');if(!L)return;if($('#brAddSet2'))$('#brAddSet2').hidden=!brFichas.length;
+  L.innerHTML=brListaHTML(brFichas);
   const A=$('#brArqLista');if(A)A.innerHTML=brArqs.length?brArqs.map((f,i)=>`<div class="row" style="gap:6px;align-items:center;margin-top:3px"><b style="font-size:13px">📎 ${esc(f.name)}</b><span class="note">${(f.b64.length*0.75/1048576).toFixed(1).replace('.',',')} MB</span><button class="btn ghost sm" type="button" data-brad="${i}">Remover</button></div>`).join(''):'Nenhum arquivo anexado.';if(A)A.innerHTML+=`<div class="note" style="margin-top:6px;color:#2b8a3e">✓ Entram sempre no ZIP: a FP em PDF${(matAdd||[]).length?', a RM em planilha (.xlsx)'+((matAdd||[]).some(x=>x.pi)?', a PI em planilha (.xlsx) e em PDF':''):' e, se houver material, a RM e a PI em planilha (.xlsx)'}.</div>`}
 function brSujo(){if(typeof pedAtual!=='undefined'&&pedAtual)pedSujo=true}
 function brCtx(){const d=$('#entrega').value;return{obsBelow:true,os:$('#os').value.trim(),item:$('#item').value||'1',descItem:($('#brDesc').value.trim()||'ITEM').toUpperCase(),cliente:$('#cliente').value.trim(),vendedor:$('#vendedor').value.trim(),projetista:$('#projetista').value.trim(),endereco:$('#endereco').value.trim(),entrega:d?d.split('-').reverse().join('/'):''}}
-function brFolhas(){const ctx=brCtx();const un=1;const pages=[],tags=[];const obsG=$('#brObs').value.trim();
-  const wrap=(t,max)=>{const out=[];String(t||'').split('\n').forEach(par=>{let l='';par.split(/\s+/).forEach(w=>{if((l+' '+w).trim().length>max){out.push(l);l=w}else l=(l+' '+w).trim()});out.push(l)});return out};
-  brFichas.forEach(f=>{const linhas=f.linhas.filter(l=>String(l.desc).trim()||String(l.med).trim());const per=10;let k=0;
+function brFichaPgs(f,ctx,obsG,pages,tags){const wrap=(t,max)=>{const out=[];String(t||'').split('\n').forEach(par=>{let l='';par.split(/\s+/).forEach(w=>{if((l+' '+w).trim().length>max){out.push(l);l=w}else l=(l+' '+w).trim()});out.push(l)});return out};
+const linhas=f.linhas.filter(l=>String(l.desc).trim()||String(l.med).trim());const per=10;let k=0;
     do{const P=[];frame(P,ctx,{setor:f.setor});{const qF=brQtd(f);P.push({t:'text',x:18,y:31,s:`${String(qF).replace('.',',')}X`,size:7,bold:true,italic:true,color:'#000000'})}P.push({t:'text',x:PW/2,y:30,s:fit((f.titulo||f.setor).toUpperCase(),200,4.2),size:4.2,bold:true,color:'#000000',anchor:'middle'});
       const temTab=linhas.length>0,temTxt=!!(f.texto.trim()||obsG);const yTab=temTab?Math.max(118,166-6-5.2*(Math.min(per,linhas.length-k)+1)):168;
       const imgW=temTxt?190:270,imgH=yTab-42-4;
@@ -5920,7 +5911,10 @@ function brFolhas(){const ctx=brCtx();const un=1;const pages=[],tags=[];const ob
         linhas.slice(k,k+per).forEach((l,i)=>{const y=yTab+5.2*(i+1);let x=12;const q=num(l.q)||0;const v=[String(k+i+1),String(l.desc),String(l.med||'—'),String(q).replace('.',','),String(l.un||'')];
           cols.forEach(([h,w],c)=>{P.push({t:'rect',x,y,w,h:5.2,fill:i%2?'#ffffff':'#f8f9fa',stroke:'#adb5bd',lw:0.1},{t:'text',x:c===1?x+1.5:x+w/2,y:y+3.6,s:fit(v[c],w-2,2.5),size:2.5,bold:c===1,color:'#000000',anchor:c===1?'start':'middle'});x+=w});});
 }
-      pages.push(P);tags.push(f.setor);k+=per}while(k<linhas.length)});
+      pages.push(P);tags.push(f.setor);k+=per}while(k<linhas.length)}
+function brFolhas(){const ctx=brCtx();const un=1;const pages=[],tags=[];const obsG=$('#brObs').value.trim();
+  const wrap=(t,max)=>{const out=[];String(t||'').split('\n').forEach(par=>{let l='';par.split(/\s+/).forEach(w=>{if((l+' '+w).trim().length>max){out.push(l);l=w}else l=(l+' '+w).trim()});out.push(l)});return out};
+  brFichas.forEach(f=>brFichaPgs(f,ctx,obsG,pages,tags));
   // EXPEDIÇÃO e QUALIDADE automáticas: uma linha por ficha, com a imagem e o quantitativo dela
   const SEM_VOL=['QUALIDADE','EXPEDIÇÃO','INSTALAÇÃO'];
   const vols=brFichas.filter(f=>!SEM_VOL.includes(f.setor)).map(f=>{const L=f.linhas.filter(l=>String(l.desc).trim()||String(l.med).trim());const im=brImgs(f)[0];
@@ -5945,22 +5939,7 @@ function brLimpa(){brFichas=[];brArqs=[];brBuild=null;$('#brDesc').value='';$('#
   $('#brAddSet').innerHTML=BR_SETORES.map(s=>`<button class="btn ghost sm" type="button" data-bradd="${s}" style="border-color:${SETORES[s]||'#666'};color:${SETORES[s]||'#666'}">+ FP de ${esc(lSetNome(s))}</button>`).join('');
   if($('#brAddSet2')){$('#brAddSet2').innerHTML=$('#brAddSet').innerHTML;$('#brAddSet2').hidden=!brFichas.length;$('#brAddSet2').onclick=e=>$('#brAddSet').onclick(e)}
   $('#brAddSet').onclick=e=>{const b=e.target.closest('[data-bradd]');if(!b)return;brFichas.push(brNovaFicha(b.dataset.bradd));brUI();brSujo();setTimeout(()=>{const c=document.querySelector(`#brLista [data-bri="${brFichas.length-1}"]`);if(c)c.scrollIntoView({behavior:'smooth',block:'center'})},50)};
-  const L=$('#brLista');
-  L.addEventListener('input',e=>{const c=e.target.closest('[data-bri]');if(!c)return;const f=brFichas[+c.dataset.bri];const t=e.target;
-    if(t.dataset.brk&&t.dataset.brk!=='setor')f[t.dataset.brk]=t.dataset.brk==='qtd'?(Math.round(num(t.value))||1):t.value;if(t.dataset.brleg!=null){const im=brImgs(f)[+t.dataset.brleg];if(im)im.leg=t.value}if(t.dataset.brl!=null){const l=f.linhas[+t.dataset.brl];l[t.dataset.brc]=t.dataset.brc==='q'?num(t.value):t.value}brSujo()});
-  L.addEventListener('change',async e=>{const c=e.target.closest('[data-bri]');if(!c)return;const f=brFichas[+c.dataset.bri];const t=e.target;
-    if(t.dataset.brk==='setor'){f.setor=t.value;brUI()}
-    if(t.dataset.brimg&&t.files.length){const L=brImgs(f);let fora=0;for(const fl of t.files){if(L.length>=4){fora++;continue}const r=await shrinkImage(fl,1600,'image/jpeg');L.push({src:r.url,w:r.w,h:r.h})}if(fora)$('#brMsg').innerHTML=`<div class="msg err">Limite de 4 imagens por FP — ${fora} imagem(ns) ficou(aram) de fora.</div>`;brUI()}brSujo()});
-  L.addEventListener('click',e=>{const c=e.target.closest('[data-bri]');if(!c)return;const i=+c.dataset.bri,f=brFichas[i];const a=e.target.closest('[data-bra]');const ld=e.target.closest('[data-brld]');
-    const im=e.target.closest('[data-brimdel]');if(im){brImgs(f).splice(+im.dataset.brimdel,1);brUI();brSujo();return}
-    if(ld){f.linhas.splice(+ld.dataset.brld,1);if(!f.linhas.length)f.linhas.push({desc:'',med:'',q:1,un:'un'});brUI();brSujo();return}
-    if(!a)return;const k=a.dataset.bra;
-    if(k==='del'){if(!confirm('Remover esta ficha?'))return;brFichas.splice(i,1)}
-    else if(k==='up'&&i>0)[brFichas[i-1],brFichas[i]]=[brFichas[i],brFichas[i-1]];
-    else if(k==='down'&&i<brFichas.length-1)[brFichas[i+1],brFichas[i]]=[brFichas[i],brFichas[i+1]];
-    else if(k==='dup')brFichas.splice(i+1,0,{...JSON.parse(JSON.stringify(f)),id:'f'+Date.now().toString(36)});
-    else if(k==='lin')f.linhas.push({desc:'',med:'',q:1,un:'un'});
-        brUI();brSujo()});
+  brBind($('#brLista'),()=>brFichas,brUI,brSujo);
   $('#brArq').onchange=async e=>{for(const f of e.target.files){const buf=new Uint8Array(await f.arrayBuffer());brArqs.push({name:f.name,b64:b64(buf)})}e.target.value='';brUI();brSujo();
     const tot=brArqs.reduce((a,f)=>a+f.b64.length*0.75,0);if(tot>15*1048576)$('#brMsg').innerHTML='<div class="msg err">Arquivos somam mais de 15 MB — podem não salvar junto com o item.</div>'};
   $('#brArqLista').onclick=e=>{const b=e.target.closest('[data-brad]');if(!b)return;brArqs.splice(+b.dataset.brad,1);brUI();brSujo()};
@@ -5973,6 +5952,24 @@ function brLimpa(){brFichas=[];brArqs=[];brBuild=null;$('#brDesc').value='';$('#
     try{const pi=brBuild.pages.filter(P=>P._setor==='PI');if(pi.length)z.file(nomeArq(`${base} - PI produtos de instalacao.pdf`),toPDF(pi))}catch(e){}
     await zipRmPi(z,base);await salvar(nomeArq(`${base} - arquivos de producao.zip`),await z.generateAsync({type:'blob'}))};
   brUI()})();
+
+function brBind(L,getL,rerender,sujo){
+  L.addEventListener('input',e=>{const c=e.target.closest('[data-bri]');if(!c)return;const f=getL()[+c.dataset.bri];const t=e.target;
+    if(t.dataset.brk&&t.dataset.brk!=='setor')f[t.dataset.brk]=t.dataset.brk==='qtd'?(Math.round(num(t.value))||1):t.value;if(t.dataset.brleg!=null){const im=brImgs(f)[+t.dataset.brleg];if(im)im.leg=t.value}if(t.dataset.brl!=null){const l=f.linhas[+t.dataset.brl];l[t.dataset.brc]=t.dataset.brc==='q'?num(t.value):t.value}sujo()});
+  L.addEventListener('change',async e=>{const c=e.target.closest('[data-bri]');if(!c)return;const f=getL()[+c.dataset.bri];const t=e.target;
+    if(t.dataset.brk==='setor'){f.setor=t.value;rerender()}
+    if(t.dataset.brimg&&t.files.length){const L=brImgs(f);let fora=0;for(const fl of t.files){if(L.length>=4){fora++;continue}const r=await shrinkImage(fl,1600,'image/jpeg');L.push({src:r.url,w:r.w,h:r.h})}if(fora)$('#brMsg').innerHTML=`<div class="msg err">Limite de 4 imagens por FP — ${fora} imagem(ns) ficou(aram) de fora.</div>`;rerender()}sujo()});
+  L.addEventListener('click',e=>{const c=e.target.closest('[data-bri]');if(!c)return;const i=+c.dataset.bri,f=getL()[i];const a=e.target.closest('[data-bra]');const ld=e.target.closest('[data-brld]');
+    const im=e.target.closest('[data-brimdel]');if(im){brImgs(f).splice(+im.dataset.brimdel,1);rerender();sujo();return}
+    if(ld){f.linhas.splice(+ld.dataset.brld,1);if(!f.linhas.length)f.linhas.push({desc:'',med:'',q:1,un:'un'});rerender();sujo();return}
+    if(!a)return;const k=a.dataset.bra;
+    if(k==='del'){if(!confirm('Remover esta ficha?'))return;getL().splice(i,1)}
+    else if(k==='up'&&i>0)[getL()[i-1],getL()[i]]=[getL()[i],getL()[i-1]];
+    else if(k==='down'&&i<getL().length-1)[getL()[i+1],getL()[i]]=[getL()[i],getL()[i+1]];
+    else if(k==='dup')getL().splice(i+1,0,{...JSON.parse(JSON.stringify(f)),id:'f'+Date.now().toString(36)});
+    else if(k==='lin')f.linhas.push({desc:'',med:'',q:1,un:'un'});
+        rerender();sujo()});
+}
 
 /* ---------- COTAS: manda um vetor (PDF) e sai uma folha cotada (padrão ou detalhada) ---------- */
 let CTO=null;function ctv(id){if(CTO&&id in CTO)return CTO[id];const e=$('#'+id);return e?e.value:''}
@@ -6177,10 +6174,10 @@ function ctComCotas(fn){const w=function(...a){if(typeof abaAtual==='function'&&
       r.pages.splice(idx+1,0,...ps);if(Array.isArray(r.tags))r.tags.splice(idx+1,0,...ps.map(P=>P._setor||c.setor))});
   // chave de cada folha (setor + ordem) — usada pelo X de excluir folha
   {const cnt={};r.pages.forEach(P=>{const st=P._setor||'FP';cnt[st]=(cnt[st]||0)+1;P._key=st+'#'+cnt[st]})}
-  if(compExcl.length){const keep=r.pages.map(P=>!compExcl.includes(P._key));const tg=Array.isArray(r.tags)?r.tags.filter((t,i)=>keep[i]):r.tags;r.pages=r.pages.filter((P,i)=>keep[i]);if(Array.isArray(r.tags))r.tags=tg}
+  if(compExcl.length){const keep=r.pages.map(P=>!compExcl.includes(P._key)&&!compExcl.includes((P._setor||'FP')+'#*'));const tg=Array.isArray(r.tags)?r.tags.filter((t,i)=>keep[i]):r.tags;r.pages=r.pages.filter((P,i)=>keep[i]);if(Array.isArray(r.tags))r.tags=tg}
   if(mexe&&!fs){numeraSetores(r.pages);r.pages.forEach((P,i)=>footer(P,r.ctx,i+1,r.pages.length))}return r};w._ct=true;return w}
 function ctListaRender(){document.querySelectorAll('.ctLista').forEach(el=>{el.innerHTML=`<div class="card" style="border:1.5px solid #f783ac;background:#fff0f6"><div class="row" style="justify-content:space-between;align-items:center"><b style="color:#c2255c">📐 Cotas deste item</b><button class="btn sm" type="button" data-ctnova style="background:#c2255c;color:#fff">+ Nova cota</button></div>`+
-  (compCotas.length?compCotas.map((c,i)=>`<div class="row" style="gap:8px;align-items:center;border-top:1px solid #fcc2d7;padding:7px 0;margin-top:6px"><div style="flex:1;min-width:0"><b>Cota ${esc(c.setor==='COTAS'?'':c.setor.toLowerCase())}</b> — ${esc(c.desc||c.nome)}<div class="note" style="margin:0">${c.modo==='detalhada'?'detalhada':'padrão'} • ${esc(c.nome)}${c.mat?' • '+esc(c.mat):''}</div></div><button class="btn ghost sm" type="button" data-cted="${i}">Editar</button><button class="btn ghost sm" type="button" data-ctdel="${i}" style="color:#c92a2a">✕</button></div>`).join(''):'<div class="note" style="margin:6px 0 0">Nenhuma cota ainda. As cotas saem junto com as folhas do setor escolhido (ex.: cota da serralheria junto com a serralheria).</div>')+'</div>'+(compExcl.length?`<div class="card" style="border:1.5px solid #ffc9c9;background:#fff5f5"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div><b style="color:#c92a2a">Folhas excluídas desta FP:</b> ${compExcl.map(k=>esc(k.replace('#',' '))).join(', ')}</div><button class="btn ghost sm" type="button" data-exrest>Restaurar todas</button></div></div>`:'')})}
+  (compCotas.length?compCotas.map((c,i)=>`<div class="row" style="gap:8px;align-items:center;border-top:1px solid #fcc2d7;padding:7px 0;margin-top:6px"><div style="flex:1;min-width:0"><b>Cota ${esc(c.setor==='COTAS'?'':c.setor.toLowerCase())}</b> — ${esc(c.desc||c.nome)}<div class="note" style="margin:0">${c.modo==='detalhada'?'detalhada':'padrão'} • ${esc(c.nome)}${c.mat?' • '+esc(c.mat):''}</div></div><button class="btn ghost sm" type="button" data-cted="${i}">Editar</button><button class="btn ghost sm" type="button" data-ctdel="${i}" style="color:#c92a2a">✕</button></div>`).join(''):'<div class="note" style="margin:6px 0 0">Nenhuma cota ainda. As cotas saem junto com as folhas do setor escolhido (ex.: cota da serralheria junto com a serralheria).</div>')+'</div>'+(compExcl.length?`<div class="card" style="border:1.5px solid #ffc9c9;background:#fff5f5"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><div><b style="color:#c92a2a">Folhas excluídas desta FP:</b> ${compExcl.map(k=>esc(/#\*$/.test(k)?'setor '+k.replace('#*','').toLowerCase()+' inteiro':k.replace('#',' '))).join(', ')}</div><button class="btn ghost sm" type="button" data-exrest>Restaurar todas</button></div></div>`:'')})}
 function ctTipoDe(a){return a==='novo'?'letra':a==='testeiras'?(tModo==='desenho'?'estrutura':'testeira'):a==='modelo'?'modelo3d':a==='bobs'?(bModo==='comp'?'bobscomp':bModo==='cant'?'bobscant':bModo==='tela'?'bobstela':'bobs'):a==='branco'?'branco':null}
 let ctBase=null;const ctSig=()=>JSON.stringify([ctNome,ctBytes?ctBytes.length:0,$('#ctSetor').value,$('#ctDesc').value,$('#ctMat').value,$('#ctObs').value,$('#ctQtd').value,$('#ctLarg').value,ctModo,ctArqs.length]);
 function ctPendente(){return !!(ctVolta&&ctBytes&&ctSig()!==ctBase)}
@@ -6215,14 +6212,15 @@ document.addEventListener('DOMContentLoaded',()=>{
   window.addEventListener('beforeunload',e=>{if(ctPendente()){e.preventDefault();e.returnValue=''}});});
 
 // ---------- X em cada folha: excluir a folha da FP (com confirmação) ----------
-function fpExclPergunta(key,rotulo){let m=$('#exModal');if(m)m.remove();m=document.createElement('div');m.id='exModal';m.className='modal on';m.style.zIndex=10001;
-  m.innerHTML=`<div class="sheet" style="max-width:420px"><div style="font-weight:700;font-size:16px;margin-bottom:6px">Excluir esta folha da FP?</div><div class="note" style="margin:0 0 12px">Folha: <b>${esc(rotulo)}</b>. Ela deixa de sair na FP deste item (e na FP completa do pedido). Dá para restaurar depois no quadro "Folhas excluídas".</div><div class="row" style="gap:8px;justify-content:flex-end"><button class="btn ghost" type="button" data-ex="n">Cancelar</button><button class="btn" type="button" data-ex="s" style="background:#c92a2a;color:#fff">Excluir folha</button></div></div>`;
+function fpExclPergunta(key,rotulo,setor){let m=$('#exModal');if(m)m.remove();m=document.createElement('div');m.id='exModal';m.className='modal on';m.style.zIndex=10001;
+  m.innerHTML=`<div class="sheet" style="max-width:420px"><div style="font-weight:700;font-size:16px;margin-bottom:6px">${setor?'Excluir o setor inteiro da FP?':'Excluir esta folha da FP?'}</div><div class="note" style="margin:0 0 12px">${setor?'Setor':'Folha'}: <b>${esc(rotulo)}</b>. ${setor?'Todas as folhas dele deixam':'Ela deixa'} de sair na FP deste item (e na FP completa do pedido). Dá para restaurar depois no quadro "Folhas excluídas".</div><div class="row" style="gap:8px;justify-content:flex-end"><button class="btn ghost" type="button" data-ex="n">Cancelar</button><button class="btn" type="button" data-ex="s" style="background:#c92a2a;color:#fff">${setor?'Excluir setor':'Excluir folha'}</button></div></div>`;
   m.addEventListener('click',async e=>{const b=e.target.closest('[data-ex]');if(!b&&e.target!==m)return;m.remove();if(b&&b.dataset.ex==='s'){if(!compExcl.includes(key))compExcl.push(key);if(typeof pedSujo!=='undefined')pedSujo=true;ctListaRender();await ctPosSalvar(ctTipoDe(abaAtual()))}});document.body.appendChild(m)}
 document.addEventListener('DOMContentLoaded',()=>{
   if(typeof toSVG==='function'){const _t=toSVG;window.toSVG=function(P){const s=_t(P);return P&&P._key?s.replace('<svg','<svg data-pgkey="'+String(P._key).replace(/"/g,'')+'"'):s}}
   const marca=()=>{if(!CT_ABAS.includes(abaAtual()))return;document.querySelectorAll('#tab-'+abaAtual()+' .pg').forEach(pg=>{const sv=pg.querySelector('svg[data-pgkey]');if(!sv||pg.querySelector('.pgX'))return;pg.style.position='relative';
     const b=document.createElement('button');b.type='button';b.className='pgX';b.title='Excluir esta folha da FP';b.textContent='✕';b.dataset.key=sv.dataset.pgkey;pg.appendChild(b)})};
   new MutationObserver(()=>{clearTimeout(marca.t);marca.t=setTimeout(marca,60)}).observe(document.body,{childList:true,subtree:true});
+  document.addEventListener('click',e=>{const sx=e.target.closest('[data-setx]');if(sx){e.preventDefault();e.stopPropagation();const st=sx.dataset.setx;fpExclPergunta(st+'#*',typeof lSetNome==='function'?lSetNome(st):st,true);return}}, true);
   document.addEventListener('click',e=>{const x=e.target.closest('.pgX');if(x){e.preventDefault();e.stopPropagation();const k=x.dataset.key,[st,n]=k.split('#');fpExclPergunta(k,`${st.charAt(0)+st.slice(1).toLowerCase()} — folha ${n}`);return}
     if(e.target.closest('[data-exrest]')){compExcl=[];if(typeof pedSujo!=='undefined')pedSujo=true;ctListaRender();ctPosSalvar(ctTipoDe(abaAtual()))}},true)});
 
