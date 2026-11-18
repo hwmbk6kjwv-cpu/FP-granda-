@@ -321,7 +321,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
         <label style="display:flex;gap:6px;align-items:center;font-size:13.5px;margin-top:6px;font-weight:600"><input type="checkbox" id="l3dLuz"> 💡 Letra com LED dentro (iluminada)</label><p class="note" id="l3dLuzNota" hidden style="margin:2px 0 4px;color:#5f3dc4">Com LED: cúpula interna em filamento <b>BRANCO</b> (reflete a luz).</p><div id="l3dLatBox" hidden style="margin:2px 0 6px"><span style="font-size:13px;font-weight:600">Lateral da letra iluminada?</span> <button type="button" class="chip" data-latluz="1" style="padding:5px 12px;font-size:13px">Sim</button> <button type="button" class="chip" data-latluz="0" style="padding:5px 12px;font-size:13px">Não</button><input type="checkbox" id="l3dLatLuz" hidden><p class="note" id="l3dLatNota" style="margin:3px 0 0"></p></div>
         <div class="row" style="gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap"><label class="f" style="margin:0">Cor do filamento</label><select id="l3dCor" style="max-width:160px"><option>BRANCO</option><option>PRETO</option><option>CINZA</option><option>AZUL</option><option>VERMELHO</option><option>LARANJA</option><option>BRANCO TRANSLÚCIDO</option></select>
         <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="l3dFundo" checked> Fundo impresso junto</label></div>
-        <div class="row" style="gap:14px;align-items:center;margin-top:8px;flex-wrap:wrap"><label style="display:flex;gap:6px;align-items:center;font-size:13px">Acrílico da frente <select id="l3dAcrMod"><option value="int">Interno (encaixado na letra)</option><option value="bi">Borda infinita (mesma medida da letra, rebaixo 3 mm)</option></select></label><label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="l3dCapa"> Interior branco para LED (capa interna em PETG branco com fundo, 0,5 mm menor que a cavidade)</label><label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="l3dPvc"> PVC 2 mm para LED no fundo (1 mm menor que a capa)</label></div>
+        <div class="row" style="gap:14px;align-items:center;margin-top:8px;flex-wrap:wrap"><label style="display:flex;gap:6px;align-items:center;font-size:13px">Acrílico da frente <select id="l3dAcrMod"><option value="int">Interno (encaixado na letra)</option><option value="bi">Borda infinita (mesma medida da letra, rebaixo 3 mm)</option></select></label><label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="l3dCapa"> Interior branco para LED (capa interna em PETG branco com fundo, 0,5 mm menor que a cavidade)</label><label id="l3dSepBox" style="display:flex;gap:6px;align-items:center;font-size:13px;font-weight:700;color:#c2255c"><input type="checkbox" id="l3dSep"> Fundo separado da lateral (LED primeiro no fundo, depois encaixa a lateral) <small id="l3dSepNota" class="note" style="margin:0;font-weight:400"></small></label></div>
         <p class="note" style="margin:6px 0 0">Parede 2,5 mm; face com 4 mm para o acrílico encaixar justo; degrau de 1,5 mm abaixo. STL de cada letra sai em "Arquivos de produção".</p></div>
       <div id="acrFBox" style="margin-top:12px;padding:10px;border:1.5px solid #74c0fc;background:#e7f5ff;border-radius:10px"><b style="color:#1864ab">Fundo das letras</b>
         <label style="display:flex;gap:6px;align-items:center;font-size:13px;margin-top:6px"><input type="checkbox" id="l3dAcrF"> Colocar fundo (placa maior que o desenho, atrás das letras)</label>
@@ -1819,7 +1819,9 @@ const circTxt=c=>`FONTE ${c.n} (${c.fonte} W): LETRA${c.letras.length>1?'S':''} 
    - últimos L3D.face mm: só a parede — o acrílico 4 mm entra justo (mesmo contorno do arquivo da router) */
 const L3D={parede:2.5,face:4,apoio:1.5,apoioH:999,fundo:2.5,dens:1.27,perda:1.05,rolo:1000,mesa:[400,400],gm:2.98,capa:1.2,capaFolga:0.5,pvc:2,pvcFolga:1};
 const l3dBI=()=>!!($('#l3dAcrMod')&&$('#l3dAcrMod').value==='bi');const L3D_BI={rebaixo:3,folga:1,lab:1};
-const l3dCapa=()=>!!($('#l3dCapa')&&$('#l3dCapa').checked);const l3dPvc=()=>!!($('#l3dPvc')&&$('#l3dPvc').checked);
+const l3dCapa=()=>!!($('#l3dCapa')&&$('#l3dCapa').checked);
+// fundo separado da lateral (só com a capa branca e o fundo impresso): fundos e laterais em arquivos separados — monta o LED no fundo e depois desce a lateral
+const l3dSep=()=>!!($('#l3dSep')&&$('#l3dSep').checked)&&l3dCapa()&&!($('#l3dFundo')&&!$('#l3dFundo').checked);const l3dPvc=()=>false; // PVC no fundo da letra 3D foi retirado: o fundo é impresso (junto ou separado da lateral)
 // recuo do PVC 2 mm a partir do contorno externo da letra: cavidade − 0,5 (capa) − 1 mm
 const l3dPvcOff=()=>-(L3D.parede+L3D.apoio+(l3dCapa()?L3D.capaFolga:0)+L3D.pvcFolga);
 const l3dFundo=()=>!($('#l3dFundo')&&!$('#l3dFundo').checked);
@@ -1838,12 +1840,13 @@ function l3dLetra(reg,H0){const bi=l3dBI();if(bi){const fr=Math.max(0,(parseFloa
   // sólidos SOBREPOSTOS (todos partem da mesa): o fatiador une sem faces coincidentes
   const cheio=l3dDiff(reg,[]);
   const slabs=[{z0:0,z1:fz,regs:cheio},{z0:0,z1:zA,regs:comApoio},{z0:0,z1:H,regs:parede}].filter(s=>s.z1-s.z0>0.01&&s.regs.length);
+  const sep=l3dSep()&&fz>0?{fundo:[{z0:0,z1:fz,regs:cheio}],lat:[{z0:fz,z1:zA,regs:comApoio},{z0:fz,z1:H,regs:parede}].filter(x=>x.z1-x.z0>0.01&&x.regs.length)}:null;
   const vol=l3dAreaR(cheio)*fz+l3dAreaR(comApoio)*(zA-fz)+l3dAreaR(parede)*(H-zA); // mm³ (sem contar a sobreposição)
   // capa interna branca (interior branco p/ LED): contorno da cavidade − 0,5 mm, parede de L3D.capa e FUNDO com a mesma espessura, do fundo (ou do PVC) até o degrau do acrílico
   let capa=null;if(l3dCapa()){const cO=toC(offset(reg,-(L3D.parede+L3D.apoio+L3D.capaFolga),'centro'));const cI=toC(offset(cO,-L3D.capa,'centro'));const z0=fz+(l3dPvc()?L3D.pvc:0),hC=zA-z0;
-    const regs=l3dDiff(cO,cI),fundoC=l3dDiff(cO,[]),eC=L3D.capa;if(hC>eC+1&&regs.length)capa={z0,h:hC,slabs:[{z0:0,z1:eC,regs:fundoC},{z0:eC,z1:hC,regs}],out:fromC(cO),inn:fromC(cI),vol:l3dAreaR(fundoC)*eC+l3dAreaR(regs)*(hC-eC)}}
+    const regs=l3dDiff(cO,cI),fundoC=l3dDiff(cO,[]),eC=L3D.capa;if(hC>eC+1&&regs.length)capa={z0,h:hC,slabs:[{z0:0,z1:eC,regs:fundoC},{z0:eC,z1:hC,regs}],sep:l3dSep()?{fundo:[{z0:0,z1:eC,regs:fundoC}],lat:[{z0:eC,z1:hC,regs}]}:null,out:fromC(cO),inn:fromC(cI),vol:l3dAreaR(fundoC)*eC+l3dAreaR(regs)*(hC-eC)}}
   const pvc=l3dPvc()?offset(reg,l3dPvcOff(),'centro'):null;
-  return{slabs,vol,acr:fromC(acr),apo:fromC(apo),capa,pvc,Hp:H,acrBI,rr:reg}}
+  return{slabs,vol,acr:fromC(acr),apo:fromC(apo),capa,pvc,Hp:H,acrBI,rr:reg,sep,fz}}
 // STL binário de várias camadas (cada camada é um sólido fechado)
 function l3dSTL(slabs,dx=0,dy=0){const tris=l3dTris(slabs,dx,dy);return l3dBin(tris)}
 function l3dTris(slabs,dx=0,dy=0){const tris=[];
@@ -1872,6 +1875,19 @@ function l3dCalc(cp,H){const Ls=ordenaPecas(regionsOf(cp).map(r=>{const ps=fromC
   const res=Ls.map((g,k)=>{const G=l3dLetra(g.r,H);const gr=G.vol/1000*L3D.dens;return{...g,...G,k,gr,m:gr/L3D.gm,mesa:Math.max(g.bb.w,g.bb.h)>Math.max(...L3D.mesa)-10||Math.min(g.bb.w,g.bb.h)>Math.min(...L3D.mesa)-10}});
   res.forEach(x=>x.grC=x.capa?x.capa.vol/1000*L3D.dens:0);const grTot=res.reduce((a,x)=>a+x.gr,0),grCapa=res.reduce((a,x)=>a+x.grC,0);return{Ls:res,H,grTot,grComPerda:grTot*L3D.perda,mTot:grTot*L3D.perda/L3D.gm,grCapa,grCapaPerda:grCapa*L3D.perda}}
 function l3dArquivos(R,base){const out=[];
+  const baixa=(sl,z)=>sl.map(x=>({...x,z0:x.z0-z,z1:x.z1-z})); // cada peça separada começa na mesa
+  const peso=sl=>sl.reduce((a,x)=>a+l3dAreaR(x.regs)*(x.z1-x.z0),0)/1000*L3D.dens;
+  if(R.Ls.some(g=>g.sep)){
+    R.Ls.forEach(g=>{if(!g.sep)return;const Hp=g.Hp||R.H;const hl=Hp-g.fz;
+      out.push({name:nomeArq(`${base} - LETRA 3D ${g.k+1} FUNDO (${f0(g.bb.w)}x${f0(g.bb.h)}x${String(g.fz).replace(".",",")}).stl`),label:`STL — FUNDO da letra ${g.k+1} (${f0(peso(g.sep.fundo))} g)${g.mesa?' — PASSA DA MESA':''}`,buf:l3dSTL(g.sep.fundo,g.bb.x0,g.bb.y0),dim:`${f0(g.bb.w)} × ${f0(g.bb.h)} × ${String(g.fz).replace(".",",")} mm`,mime:'model/stl'},
+        {name:nomeArq(`${base} - LETRA 3D ${g.k+1} LATERAL (${f0(g.bb.w)}x${f0(g.bb.h)}x${f0(hl)}).stl`),label:`STL — LATERAL da letra ${g.k+1}, sem fundo (${f0(peso(g.sep.lat))} g)${g.mesa?' — PASSA DA MESA':''}`,buf:l3dSTL(baixa(g.sep.lat,g.fz),g.bb.x0,g.bb.y0),dim:`${f0(g.bb.w)} × ${f0(g.bb.h)} × ${f0(hl)} mm`,mime:'model/stl'})});
+    R.Ls.forEach(g=>{if(!g.capa||!g.capa.sep)return;const b=bbox(g.capa.out);const e=L3D.capa,hl=g.capa.h-e;
+      out.push({name:nomeArq(`${base} - CAPA BRANCA ${g.k+1} FUNDO (${f0(b.w)}x${f0(b.h)}x${String(e).replace('.',',')}).stl`),label:`STL — fundo branco da letra ${g.k+1} (onde vai o LED)`,buf:l3dSTL(g.capa.sep.fundo,b.x0,b.y0),dim:`${f0(b.w)} × ${f0(b.h)} × ${String(e).replace('.',',')} mm`,mime:'model/stl'},
+        {name:nomeArq(`${base} - CAPA BRANCA ${g.k+1} LATERAL (${f0(b.w)}x${f0(b.h)}x${f0(hl)}).stl`),label:`STL — lateral branca da letra ${g.k+1}, sem fundo`,buf:l3dSTL(baixa(g.capa.sep.lat,e),b.x0,b.y0),dim:`${f0(b.w)} × ${f0(b.h)} × ${f0(hl)} mm`,mime:'model/stl'})});
+    if(R.Ls.length>1){const b=bbox(R.Ls.flatMap(g=>g.ps));const fz=R.Ls[0].fz;
+      out.push({name:nomeArq(`${base} - LETRAS 3D CONJUNTO FUNDOS.stl`),label:'STL — todos os fundos na posição',buf:l3dSTL(R.Ls.flatMap(g=>g.sep?g.sep.fundo:[]),b.x0,b.y0),dim:`${f0(b.w)} × ${f0(b.h)} × ${String(fz).replace(".",",")} mm`,mime:'model/stl'},
+        {name:nomeArq(`${base} - LETRAS 3D CONJUNTO LATERAIS.stl`),label:'STL — todas as laterais na posição',buf:l3dSTL(R.Ls.flatMap(g=>g.sep?baixa(g.sep.lat,g.fz):[]),b.x0,b.y0),dim:`${f0(b.w)} × ${f0(b.h)} × ${f0(((R.Ls[0].Hp)||R.H)-fz)} mm`,mime:'model/stl'})}
+    return out}
   R.Ls.forEach(g=>{out.push({name:nomeArq(`${base} - LETRA 3D ${g.k+1} (${f0(g.bb.w)}x${f0(g.bb.h)}x${g.Hp||R.H}).stl`),label:`STL — letra ${g.k+1} (${f0(g.gr)} g de PETG)${g.mesa?' — PASSA DA MESA':''}`,buf:l3dSTL(g.slabs,g.bb.x0,g.bb.y0),dim:`${f0(g.bb.w)} × ${f0(g.bb.h)} × ${g.Hp||R.H} mm`,mime:'model/stl'})});
   R.Ls.forEach(g=>{if(!g.capa)return;const b=bbox(g.capa.out);out.push({name:nomeArq(`${base} - CAPA INTERNA BRANCA ${g.k+1} (${f0(b.w)}x${f0(b.h)}x${f0(g.capa.h)}).stl`),label:`STL — capa interna branca da letra ${g.k+1} (${f0(g.grC)} g de PETG branco)`,buf:l3dSTL(g.capa.slabs,b.x0,b.y0),dim:`${f0(b.w)} × ${f0(b.h)} × ${f0(g.capa.h)} mm`,mime:'model/stl'})});
   if(R.Ls.length>1){const b=bbox(R.Ls.flatMap(g=>g.ps));out.push({name:nomeArq(`${base} - LETRAS 3D CONJUNTO.stl`),label:`STL — todas as letras na posição (${f0(R.grTot)} g)`,buf:l3dSTL(R.Ls.flatMap(g=>g.slabs),b.x0,b.y0),dim:`${f0(b.w)} × ${f0(b.h)} × ${(R.Ls[0]&&R.Ls[0].Hp)||R.H} mm`,mime:'model/stl'})}
@@ -1879,7 +1895,7 @@ function l3dArquivos(R,base){const out=[];
 // folha da IMPRESSÃO 3D
 function l3dFolha(P,ctx,pg,R,orig){const H=R.H;const cor=l3dCor();
   P.push({t:'text',x:PW/2,y:30,s:pg.titulo||'LETRA CAIXA EM 3D — IMPRESSÃO EM PETG',size:4.4,bold:true,color:'#000000',anchor:'middle'});
-  P.push({t:'text',x:PW/2,y:35.4,s:`PROFUNDIDADE ${H} MM  •  PAREDE ${String(L3D.parede).replace('.',',')} MM (${String(L3D.parede+L3D.apoio).replace('.',',')} ABAIXO DA FACE)  •  ${l3dFundo()?'FUNDO IMPRESSO JUNTO':'SEM FUNDO'}  •  ${l3dBI()?`ACRÍLICO 4 MM BORDA INFINITA (IMPRESSÃO ${H-L3D_BI.lab} MM + ${L3D_BI.lab} MM DO ACRÍLICO)`:'ACRÍLICO 4 MM TRANSLÚCIDO ENCAIXADO'}  •  PETG ${cor[0]}`,size:2.6,bold:true,color:'#5f3dc4',anchor:'middle'});{const ex=[l3dCapa()?'CAPA INTERNA BRANCA P/ LED (PETG BRANCO, −0,5 MM)':'',l3dPvc()?'FUNDO EM PVC 2 MM BRANCO P/ LED (−1 MM DA CAPA)':'',l3dAcrF()?`ACRÍLICO ${l3dAcrF()} MM TRANSPARENTE NO FUNDO (+20 MM)`:''].filter(Boolean);if(ex.length)P.push({t:'text',x:PW/2,y:39,s:ex.join('  •  '),size:2.4,bold:true,color:'#1c7ed6',anchor:'middle'})}
+  P.push({t:'text',x:PW/2,y:35.4,s:`PROFUNDIDADE ${H} MM  •  PAREDE ${String(L3D.parede).replace('.',',')} MM (${String(L3D.parede+L3D.apoio).replace('.',',')} ABAIXO DA FACE)  •  ${l3dFundo()?(l3dSep()?'FUNDO SEPARADO DA LATERAL':'FUNDO IMPRESSO JUNTO'):'SEM FUNDO'}  •  ${l3dBI()?`ACRÍLICO 4 MM BORDA INFINITA (IMPRESSÃO ${H-L3D_BI.lab} MM + ${L3D_BI.lab} MM DO ACRÍLICO)`:'ACRÍLICO 4 MM TRANSLÚCIDO ENCAIXADO'}  •  PETG ${cor[0]}`,size:2.6,bold:true,color:'#5f3dc4',anchor:'middle'});{const ex=[l3dCapa()?'CAPA INTERNA BRANCA P/ LED (PETG BRANCO, −0,5 MM)':'',l3dPvc()?'FUNDO EM PVC 2 MM BRANCO P/ LED (−1 MM DA CAPA)':'',l3dAcrF()?`ACRÍLICO ${l3dAcrF()} MM TRANSPARENTE NO FUNDO (+20 MM)`:'',l3dSep()?'MONTAGEM: FUNDO → FUNDO BRANCO → LED → LATERAL BRANCA → LATERAL (COLAR NO FUNDO) → ACRÍLICO':''].filter(Boolean);if(ex.length)P.push({t:'text',x:PW/2,y:39,s:ex.join('  •  '),size:2.4,bold:true,color:'#1c7ed6',anchor:'middle'})}
   // desenho das letras: contorno (preto), acrílico/cavidade (rosa), apoio (verde)
   const bb=bbox(orig);const BX=14,BY=40,BW=180,BH=56;const s=Math.min(BW/bb.w,BH/bb.h);const dx=BX+(BW-bb.w*s)/2,dy=BY+(BH-bb.h*s)/2;
   const map=p=>p.map(([x,y])=>[dx+(x-bb.x0)*s,dy+(bb.y1-y)*s]);
@@ -1904,7 +1920,8 @@ function l3dFolha(P,ctx,pg,R,orig){const H=R.H;const cor=l3dCor();
    P.push({t:'text',x:x0+wP/2,y:yT-1.5,s:`${nm(L3D.parede)}`,size:2.1,bold:true,color:'#5f3dc4',anchor:'middle'},
      {t:'text',x:x0+wP+wA+1.5,y:yF+4,s:`DEGRAU ${nm(L3D.apoio)} (apoio)`,size:2,bold:true,color:'#2f9e44'},
      {t:'text',x:x0+(wP+wA)/2,y:yb-hFu-3,s:`${nm(L3D.parede+L3D.apoio)}`,size:2,bold:true,color:'#ffffff',anchor:'middle'},
-     {t:'text',x:xR-1,y:fz?yb-hFu-1.2:yb-1.2,s:fz?`FUNDO ${nm(L3D.fundo)} MM`:'SEM FUNDO (ABERTO)',size:2,bold:true,color:'#5f3dc4',anchor:'end'})}
+     {t:'text',x:xR-1,y:fz?yb-hFu-1.2:yb-1.2,s:fz?`FUNDO ${nm(L3D.fundo)} MM`:'SEM FUNDO (ABERTO)',size:2,bold:true,color:'#5f3dc4',anchor:'end'});
+   if(fz&&l3dSep())P.push({t:'line',x1:x0-2,y1:yb-hFu,x2:xR+2,y2:yb-hFu,color:'#e03131',w:0.5,dash:[1.2,0.8]},{t:'text',x:x0-3,y:yb-hFu+1,s:'SEPARADO',size:1.9,bold:true,color:'#e03131',anchor:'end'})}
   // tabela por letra
   const cols=[['LETRA',16],['MEDIDAS (mm)',40],['ÁREA ACRÍLICO',30],['PETG (g)',26],['FILAMENTO (m)',28],['IMPRESSÃO',42]];let y=118,x=14;
   cols.forEach(([h,w])=>{P.push({t:'rect',x,y,w,h:5,fill:'#5f3dc4',stroke:'#000000',lw:0.15},{t:'text',x:x+w/2,y:y+3.5,s:h,size:2.2,bold:true,color:'#ffffff',anchor:'middle'});x+=w});y+=5;
@@ -1914,7 +1931,7 @@ function l3dFolha(P,ctx,pg,R,orig){const H=R.H;const cor=l3dCor();
   // totais
   const X2=200,Y2=118;P.push({t:'rect',x:X2,y:Y2,w:86,h:44,r:2,fill:'#f3f0ff',stroke:'#7048e8',lw:0.35});
   [[`PETG ${cor[0]} 1,75 MM — ${cor[1]?'cód. '+cor[1]:'SEM CADASTRO'}`,2.6,true],[`Peças: ${f0(R.grTot)} g  (+${Math.round((L3D.perda-1)*100)}% perda = ${f0(R.grComPerda)} g)`,2.5,false],[`Filamento: ${String(R.mTot.toFixed(1)).replace('.',',')} m  •  ${String((R.grComPerda/L3D.rolo).toFixed(2)).replace('.',',')} rolo(s) de 1 kg`,2.5,true],
-   ['Imprimir com o FUNDO na mesa e a face para cima.',2.2,false],[`Parede e fundo 100% sólidos (paredes de ${String(L3D.parede).replace('.',',')} e ${String(L3D.parede+L3D.apoio).replace('.',',')} mm).`,2.2,false],[l3dBI()?`Acrílico borda infinita: por cima da letra, rebaixo de 3 mm entra na cavidade.`:'Acrílico entra JUSTO na face e apoia no degrau.',2.2,false],(R.grCapa>0?[`CAPA BRANCA (PETG BRANCO): ${f0(R.grCapa)} g (+perda = ${f0(R.grCapaPerda)} g) — STL separado`,2.2,true]:[`Mesa considerada: ${L3D.mesa[0]} x ${L3D.mesa[1]} mm.`,2.2,false]),['Arquivos STL: em "Arquivos de produção" (1 por letra).',2.2,true]]
+   ['Imprimir com o FUNDO na mesa e a face para cima.',2.2,false],[`Parede e fundo 100% sólidos (paredes de ${String(L3D.parede).replace('.',',')} e ${String(L3D.parede+L3D.apoio).replace('.',',')} mm).`,2.2,false],[l3dBI()?`Acrílico borda infinita: por cima da letra, rebaixo de 3 mm entra na cavidade.`:'Acrílico entra JUSTO na face e apoia no degrau.',2.2,false],(R.grCapa>0?[`CAPA BRANCA (PETG BRANCO): ${f0(R.grCapa)} g (+perda = ${f0(R.grCapaPerda)} g) — STL separado`,2.2,true]:[`Mesa considerada: ${L3D.mesa[0]} x ${L3D.mesa[1]} mm.`,2.2,false]),[(l3dSep()?'STL: FUNDO e LATERAL separados (2 por letra).':'Arquivos STL: em "Arquivos de produção" (1 por letra).'),2.2,true]]
    .forEach(([s2,sz,b],i)=>P.push({t:'text',x:X2+3,y:Y2+5+i*5,s:fit(s2,80,sz),size:sz,bold:b,color:b?'#3b2a99':'#000000'}));
   [['#000000','Contorno externo (parede)'],['#e64980',`Acrílico / cavidade (${String(L3D.parede).replace('.',',')} mm p/ dentro)`],['#2f9e44',`Degrau de apoio (${String(L3D.parede+L3D.apoio).replace('.',',')} mm p/ dentro)`],...(l3dCapa()?[['#1c7ed6','Capa interna branca (−0,5)']]:[]),...(l3dPvc()?[['#f08c00','PVC 2 mm (−1 da capa)']]:[])].forEach(([c,t],i,A)=>{const xx=14+(i%3)*62,yy=i<3?0:4.2;P.push({t:'rect',x:xx,y:108.5+yy,w:4,h:2.6,fill:c==='#000000'?'#e5dbff':'#ffffff',stroke:c,lw:0.5},{t:'text',x:xx+5.5,y:110.8+yy,s:t,size:2.2,color:'#000000'})})
 }
@@ -1952,17 +1969,21 @@ function l3dGrupo3D(R,o){o=Object.assign({acr:true,corte:false,exp:false},o||{})
     if(o.corte){ // corte: mostra só a metade de baixo da letra para ver o perfil da parede
       const yc=(L.bb.y0+L.bb.y1)/2;const clip=[[{X:Math.round((L.bb.x0-10)*S),Y:Math.round((L.bb.y0-10)*S)},{X:Math.round((L.bb.x1+10)*S),Y:Math.round((L.bb.y0-10)*S)},{X:Math.round((L.bb.x1+10)*S),Y:Math.round(yc*S)},{X:Math.round((L.bb.x0-10)*S),Y:Math.round(yc*S)}]];
       slabs=slabs.map(sl=>({...sl,regs:sl.regs.flatMap(r=>{const c=new ClipperLib.Clipper();c.AddPaths(r,ClipperLib.PolyType.ptSubject,true);c.AddPaths(clip,ClipperLib.PolyType.ptClip,true);const tr=new ClipperLib.PolyTree();c.Execute(ClipperLib.ClipType.ctIntersection,tr,ClipperLib.PolyFillType.pftNonZero,ClipperLib.PolyFillType.pftNonZero);const o=[];const w=n=>{for(const ch of n.Childs()){if(!ch.IsHole()){o.push([ch.Contour(),...ch.Childs().map(h=>h.Contour())]);ch.Childs().forEach(h=>w(h))}}};w(tr);return o})}))}
-    const geo=l3vGeo(l3dTris(slabs,ox,oy));const me=new THREE.Mesh(geo,mP);g.add(me);g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo,25),lm));
-    if(L.capa){const gc=l3vGeo(l3dTris(L.capa.slabs.map(x=>({...x,z0:x.z0+L.capa.z0+GX*2,z1:x.z1+L.capa.z0+GX*2})),ox,oy));g.add(new THREE.Mesh(gc,new THREE.MeshLambertMaterial({color:0xffffff,side:THREE.DoubleSide})));g.add(new THREE.LineSegments(new THREE.EdgesGeometry(gc,25),new THREE.LineBasicMaterial({color:0x1c7ed6,transparent:true,opacity:0.6})))}
-    if(L.pvc){const z0=(l3dFundo()?L3D.fundo:0)+GX;const gv=l3vGeo(l3dTris([{z0,z1:z0+L3D.pvc,regs:l3dDiff(toC(L.pvc),[])}],ox,oy));g.add(new THREE.Mesh(gv,new THREE.MeshLambertMaterial({color:0xffe8cc,side:THREE.DoubleSide})))}
-    if(o.acr&&!o.corte&&L.acr){const Hp=L.Hp||R.H;const acr=L.acrBI?[{z0:Hp-L3D_BI.rebaixo+GX*3,z1:Hp+GX*3,regs:l3dDiff(toC(L.acrBI),[])},{z0:Hp+GX*3,z1:Hp+L3D_BI.lab+GX*3,regs:l3dDiff(L.rr||L.r,[])}]:[{z0:R.H-L3D.face+GX*3,z1:R.H+GX*3,regs:l3dDiff(toC(L.acr),[])}];const ga=l3vGeo(l3dTris(acr,ox,oy));g.add(new THREE.Mesh(ga,mA))}});
+    // fundo separado: na vista explodida cada peça na ordem da montagem (fundo → PVC → fundo branco + LED → lateral branca → lateral → acrílico)
+    const SP=!!(L.sep&&o.exp&&!o.corte),nv=SP?{pvc:1,cf:l3dPvc()?2:1,cl:l3dPvc()?3:2,lat:l3dPvc()?4:3,acr:l3dPvc()?5:4}:{pvc:1,cf:2,cl:2,lat:0,acr:3};
+    const up=(sl,d)=>sl.map(x=>({...x,z0:x.z0+d,z1:x.z1+d}));
+    const pecas=SP?[L.sep.fundo,up(L.sep.lat,GX*nv.lat)]:[slabs];
+    pecas.forEach(sl=>{const geo=l3vGeo(l3dTris(sl,ox,oy));g.add(new THREE.Mesh(geo,mP));g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo,25),lm))});
+    if(L.capa){const cs=SP&&L.capa.sep?up(L.capa.sep.fundo,L.capa.z0+GX*nv.cf).concat(up(L.capa.sep.lat,L.capa.z0+GX*nv.cl)):up(L.capa.slabs,L.capa.z0+GX*2);const gc=l3vGeo(l3dTris(cs,ox,oy));g.add(new THREE.Mesh(gc,new THREE.MeshLambertMaterial({color:0xffffff,side:THREE.DoubleSide})));g.add(new THREE.LineSegments(new THREE.EdgesGeometry(gc,25),new THREE.LineBasicMaterial({color:0x1c7ed6,transparent:true,opacity:0.6})))}
+    if(L.pvc){const z0=(l3dFundo()?L3D.fundo:0)+GX*nv.pvc;const gv=l3vGeo(l3dTris([{z0,z1:z0+L3D.pvc,regs:l3dDiff(toC(L.pvc),[])}],ox,oy));g.add(new THREE.Mesh(gv,new THREE.MeshLambertMaterial({color:0xffe8cc,side:THREE.DoubleSide})))}
+    if(o.acr&&!o.corte&&L.acr){const Hp=L.Hp||R.H;const GA=GX*nv.acr;const acr=L.acrBI?[{z0:Hp-L3D_BI.rebaixo+GA,z1:Hp+GA,regs:l3dDiff(toC(L.acrBI),[])},{z0:Hp+GA,z1:Hp+L3D_BI.lab+GA,regs:l3dDiff(L.rr||L.r,[])}]:[{z0:R.H-L3D.face+GA,z1:R.H+GA,regs:l3dDiff(toC(L.acr),[])}];const ga=l3vGeo(l3dTris(acr,ox,oy));g.add(new THREE.Mesh(ga,mA))}});
   // acrílico transparente no fundo (+20 mm do desenho)
   if(l3dAcrF()&&!o.corte){try{const es=l3dAcrF();const co=new ClipperLib.ClipperOffset(10,0.005*S);co.AddPaths(toC(R.Ls.flatMap(x=>x.ps)),ClipperLib.JoinType.jtMiter,ClipperLib.EndType.etClosedPolygon);let o=[];const FC=fundoCfg();co.Execute(o,FC.borda*S);
     const ar=q=>ClipperLib.Clipper.Area(q);const mx=o.reduce((m,q)=>Math.abs(ar(q))>Math.abs(ar(m))?q:m,o[0]);o=o.filter(q=>Math.sign(ar(q))===Math.sign(ar(mx)));if(FC.junta)o=toC(acrPecaUnica(fromC(o)));if(FC.raio)o=toC(arredExt(fromC(o),FC.raio));
     const pl=[{z0:-es,z1:0,regs:l3dDiff(o,[])}];const gp=l3vGeo(l3dTris(pl,ox,oy));g.add(new THREE.Mesh(gp,((FC.mat==='ACM'||FC.pint||!/CRISTAL/.test(FC.cor))?new THREE.MeshLambertMaterial({color:new THREE.Color(FC.hex||'#ced4da'),side:THREE.DoubleSide}):new THREE.MeshLambertMaterial({color:0xa5d8ff,transparent:true,opacity:0.35,depthWrite:false,side:THREE.DoubleSide}))));g.add(new THREE.LineSegments(new THREE.EdgesGeometry(gp,25),lm))}catch(e){console.error('acrílico fundo 3D',e)}}
   {const LI=o.ledInfo;if(LI&&((LI.fitas&&LI.fitas.length)||(LI.mods&&LI.mods.length))){const aceso=o.led!==false;const hx=l3dKelvin(+(String(typeof selLed!=='undefined'?selLed:'6500').match(/\d+/)||[6500])[0]);
     const mLed=aceso?new THREE.MeshBasicMaterial({color:new THREE.Color(hx)}):new THREE.MeshLambertMaterial({color:0x868e96});const mFita=new THREE.MeshLambertMaterial({color:0xadb5bd});
-    const z=(l3dFundo()?L3D.fundo:0)+(l3dPvc()?L3D.pvc:0)+(l3dCapa()?L3D.capa:0)+(o.exp?Math.max(40,R.H*0.9)*(l3dCapa()?2:l3dPvc()?1:0):0); // vista explodida: o LED vai junto da peça onde fica (capa branca, senão PVC, senão a própria letra)
+    const z=(l3dFundo()?L3D.fundo:0)+(l3dPvc()?L3D.pvc:0)+(l3dCapa()?L3D.capa:0)+(o.exp?Math.max(40,R.H*0.9)*(l3dCapa()?(l3dSep()?(l3dPvc()?2:1):2):l3dPvc()?1:0):0); // vista explodida: o LED vai junto da peça onde fica (capa branca, senão PVC, senão a própria letra)
     const lmL=new THREE.LineBasicMaterial({color:0x495057});const add=(regs,z0,z1,mat,ed)=>{if(!regs.length)return;const ge=l3vGeo(l3dTris([{z0,z1,regs}],ox,oy));g.add(new THREE.Mesh(ge,mat));if(ed)g.add(new THREE.LineSegments(new THREE.EdgesGeometry(ge,25),lmL))};
     (LI.fitas||[]).forEach(f=>l3dFitaZig(add,f.linhas,z,mFita,mLed));
     (LI.mods||[]).forEach(m=>{if(m.rect)add(l3dDiff(toC([m.rect]),[]),z,z+5,new THREE.MeshLambertMaterial({color:0xe9ecef}))})}}
@@ -1973,10 +1994,10 @@ function l3vMonta(){const R=l3vUlt;if(!R)return;{const lb=$('#l3vLedBt');if(lb)l
   const {g,all}=l3dGrupo3D(R,{acr:L3V.acr,corte:L3V.corte,exp:L3V.exp,led:L3V.led,ledInfo:LI3});
   // gira para a face ficar de frente (z da letra -> para a câmera)
   g.rotation.set(0,0,0);L3V.scene.add(L3V.grp=g);
-  {const GX=L3V.exp?Math.max(40,R.H*0.9):0;const D=R.H+GX*3;L3V.tg=[0,0,D/2];const cv=$('#l3dCv');const asp=(cv.clientWidth||900)/(cv.clientHeight||420);L3V.R=Math.max(all.w*1.15/(0.64*asp),all.h*1.6/0.64,D*(L3V.exp?1.6:3))*(L3V.exp?1.1:1)}
+  {const GX=L3V.exp?Math.max(40,R.H*0.9):0;const D=R.H+GX*(l3dSep()?(l3dPvc()?5:4):3);L3V.tg=[0,0,D/2];const cv=$('#l3dCv');const asp=(cv.clientWidth||900)/(cv.clientHeight||420);L3V.R=Math.max(all.w*1.15/(0.64*asp),all.h*1.6/0.64,D*(L3V.exp?1.6:3))*(L3V.exp?1.1:1)}
   // eixo Y do three = altura da letra; câmera olha a partir de +z (face)
   l3vDraw();
-  $('#l3dInfo').textContent=`${R.Ls.length} letra(s) • profundidade ${R.H} mm${l3dBI()?` (impressão ${R.H-L3D_BI.lab} + acrílico borda infinita)`:''} • parede ${String(L3D.parede).replace('.',',')} mm (${String(L3D.parede+L3D.apoio).replace('.',',')} abaixo da face) • ${l3dFundo()?'fundo impresso':'sem fundo'}${l3dAcrF()?(()=>{const F=fundoCfg();return ` + ${F.mat==='ACM'?'ACM':'acrílico'} ${F.es} mm ${F.cor.toLowerCase()}${F.pint?' pintado '+F.pint:''} no fundo (+${F.borda} mm)`})():''}${l3dCapa()?' + capa interna branca':''}${l3dPvc()?' + PVC 2 mm':''} • PETG ${cor} ${Math.round(R.grTot)} g`}
+  l3dSepSync();$('#l3dInfo').textContent=`${l3dSep()?'FUNDO SEPARADO • ':''}${R.Ls.length} letra(s) • profundidade ${R.H} mm${l3dBI()?` (impressão ${R.H-L3D_BI.lab} + acrílico borda infinita)`:''} • parede ${String(L3D.parede).replace('.',',')} mm (${String(L3D.parede+L3D.apoio).replace('.',',')} abaixo da face) • ${l3dFundo()?'fundo impresso':'sem fundo'}${l3dAcrF()?(()=>{const F=fundoCfg();return ` + ${F.mat==='ACM'?'ACM':'acrílico'} ${F.es} mm ${F.cor.toLowerCase()}${F.pint?' pintado '+F.pint:''} no fundo (+${F.borda} mm)`})():''}${l3dCapa()?' + capa interna branca':''}${l3dPvc()?' + PVC 2 mm':''} • PETG ${cor} ${Math.round(R.grTot)} g`}
 document.querySelectorAll('[data-l3v]').forEach(b=>b.onclick=()=>{const k=b.dataset.l3v;
   if(k==='acr'){L3V.acr=!L3V.acr;b.textContent='Acrílico: '+(L3V.acr?'sim':'não');l3vMonta();return}
   if(k==='led'){L3V.led=!L3V.led;b.textContent='LED: '+(L3V.led?'aceso':'apagado');l3vMonta();return}
@@ -2002,7 +2023,7 @@ function l3dPrevia(){const card=$('#l3dCard');if(!card)return;try{
     $('#l3dInfo').textContent=`${Ls.length} letra(s) • ${I.mat}${I.pint?' pintada':''} • ${f0(b.w)} × ${f0(b.h)} mm${F?` + fundo ${F.mat==='ACM'?'ACM':'acrílico'} ${F.es} mm ${F.cor.toLowerCase()} (+${F.borda} mm)`:''} • prévia 3D`;return}
   const R=l3dCalc(cp,+selCaixa||80);card.hidden=false;l3vUlt=R;if(!l3vInit()){$('#l3dInfo').textContent='Visualizador 3D indisponível neste aparelho.';return}l3vMonta();
   $('#l3dInfo').textContent+=' • prévia (antes de gerar a FP)'}catch(e){console.error('prévia 3D',e)}}
-['#l3dAcrMod','#l3dCor','#l3dFundo','#l3dAcrF','#l3dAcrEsp','#fdBorda','#fdJunta','#l3dCapa','#l3dPvc','#largReal','#fresaD'].forEach(sel=>{const el=document.querySelector(sel);if(el)el.addEventListener('change',l3dPrevAgenda)});
+['#l3dSep','#l3dAcrMod','#l3dCor','#l3dFundo','#l3dAcrF','#l3dAcrEsp','#fdBorda','#fdJunta','#l3dCapa','#l3dPvc','#largReal','#fresaD'].forEach(sel=>{const el=document.querySelector(sel);if(el)el.addEventListener('change',l3dPrevAgenda)});
 
 // cor da luz pela temperatura (K) — aproximação de Tanner Helland
 function l3dKelvin(k){const t=Math.max(1000,Math.min(40000,+k||6500))/100;let r,g,b;r=t<=66?255:329.698727446*Math.pow(t-60,-0.1332047592);g=t<=66?99.4708025861*Math.log(t)-161.1195681661:288.1221695283*Math.pow(t-60,-0.0755148492);b=t>=66?255:t<=19?0:138.5177312231*Math.log(t-10)-305.0447927307;
@@ -2161,6 +2182,10 @@ function l3dSnap3D(R){if(!window.THREE||!R)return null;try{const W=1400,Hh=760;
   const x0=Math.min(...cs.map(v=>v.x)),x1=Math.max(...cs.map(v=>v.x)),y0=Math.min(...cs.map(v=>v.y)),y1=Math.max(...cs.map(v=>v.y));const cx=(x0+x1)/2,cy=(y0+y1)/2;let hw=(x1-x0)/2*1.04,hh=(y1-y0)/2*1.04;if(hw/hh>W/Hh)hh=hw*Hh/W;else hw=hh*W/Hh;
   Object.assign(cam,{left:cx-hw,right:cx+hw,top:cy+hh,bottom:cy-hh});cam.updateProjectionMatrix();l3dSnapR.render(sc,cam);
   const src=l3dSnapR.domElement.toDataURL('image/jpeg',0.9);g.traverse(x=>{if(x.geometry)x.geometry.dispose()});l3dSnapR.setSize(1200,700,false);return{src,w:W,h:Hh}}catch(e){console.error('foto 3D explodida',e);return null}}
+
+// mostra a opção de fundo separado só com o interior branco + fundo impresso
+function l3dSepSync(){const ok=l3dCapa()&&l3dFundo();const c=$('#l3dSep'),n=$('#l3dSepNota'),b=$('#l3dSepBox');if(c)c.disabled=!ok;if(b)b.style.opacity=ok?1:0.55;if(n)n.textContent=ok?'':'(marque o interior branco para LED e o fundo impresso)'}
+document.addEventListener('change',e=>{if(e.target&&['l3dCapa','l3dFundo','l3dCor','l3dLuz'].includes(e.target.id))l3dSepSync()});document.addEventListener('click',e=>{if(e.target&&e.target.closest&&e.target.closest('#l3dCard,#tab-novo'))setTimeout(l3dSepSync,0)});setTimeout(l3dSepSync,0);
 
 
 /* ---------- Folha padrão Granda (A4 deitada, mm) ---------- */
