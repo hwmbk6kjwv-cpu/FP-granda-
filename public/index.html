@@ -1124,7 +1124,7 @@ const PT=25.4/72;let src=null; // {name, polys:[[x,y]...] em mm, warnings}
 function bezTol(p0,p1,p2,p3,tol){
   const L=Math.hypot(p1[0]-p0[0],p1[1]-p0[1])+Math.hypot(p2[0]-p1[0],p2[1]-p1[1])+Math.hypot(p3[0]-p2[0],p3[1]-p2[1]);
   const dd=Math.max(Math.hypot(p0[0]-2*p1[0]+p2[0],p0[1]-2*p1[1]+p2[1]),Math.hypot(p1[0]-2*p2[0]+p3[0],p1[1]-2*p2[1]+p3[1]));
-  const n=Math.max(2,Math.min(4000,Math.ceil(Math.sqrt(6*dd/(8*tol))),Math.ceil(L/20)));const out=[];
+  const n=Math.max(2,Math.min(4000,Math.max(Math.ceil(Math.sqrt(6*dd/(8*tol))),Math.ceil(L/20))));const out=[];
   for(let i=1;i<=n;i++){const t=i/n,u=1-t;out.push([u*u*u*p0[0]+3*u*u*t*p1[0]+3*u*t*t*p2[0]+t*t*t*p3[0],u*u*u*p0[1]+3*u*u*t*p1[1]+3*u*t*t*p2[1]+t*t*t*p3[1]])}
   return out}
 // paths: [{s:[x,y], it:[{L:[x,y]}|{C:[[..],[..],[..]]}]}] em mm
@@ -1161,8 +1161,8 @@ async function readPdf(buf){
         else if(op===O.curveTo){cv([[c[k],c[k+1]],[c[k+2],c[k+3]],[c[k+4],c[k+5]]]);k+=6}
         else if(op===O.curveTo2){cv([cur,[c[k],c[k+1]],[c[k+2],c[k+3]]]);k+=4}
         else if(op===O.curveTo3){cv([[c[k],c[k+1]],[c[k+2],c[k+3]],[c[k+2],c[k+3]]]);k+=4}
-        else if(op===O.closePath){push();cur=ini}
-        else if(op===O.rectangle){push();const[x,y,w,h]=[c[k],c[k+1],c[k+2],c[k+3]];k+=4;pending.push({s:A([x,y]),it:[[x+w,y],[x+w,y+h],[x,y+h]].map(q=>({L:A(q)}))});cur=[x,y]}
+        else if(op===O.closePath){if(sub)sub.fechado=true;push();cur=ini}
+        else if(op===O.rectangle){push();const[x,y,w,h]=[c[k],c[k+1],c[k+2],c[k+3]];k+=4;pending.push({fechado:true,s:A([x,y]),it:[[x+w,y],[x+w,y+h],[x,y+h]].map(q=>({L:A(q)}))});cur=[x,y]}
       }
       push();curG=cur||[0,0];iniG=ini||curG;
     }
@@ -1175,6 +1175,9 @@ async function readPdf(buf){
   }
   let paths=polys;let mm=flattenPaths(paths,1,0.05);
   const warnings=[];
+  // contornos abertos na arte (sem fechar o caminho e com as pontas afastadas): o sistema fecha com uma reta
+  {let ab=0;for(const p of polys){if(p.fechado||!p.it.length)continue;const last=p.it[p.it.length-1];const e=last.L||last.C[2];if(Math.hypot(e[0]-p.s[0],e[1]-p.s[1])>0.5)ab++}
+   if(ab)warnings.push(`A arte tem ${ab} contorno(s) ABERTO(S) (as pontas não se encontram). O sistema fecha com uma reta entre as pontas — confira no arquivo original e feche os caminhos antes de mandar para a produção.`)}
   const before=mm.length;
   const isRect=(p,b)=>p.length<=5&&p.every(([x,y])=>(Math.abs(x-b.x0)<0.5||Math.abs(x-b.x1)<0.5)&&(Math.abs(y-b.y0)<0.5||Math.abs(y-b.y1)<0.5));
   const keep=mm.map(p=>{const b=bbox([p]);return !(b.w>=pageW*0.97&&b.h>=pageH*0.97&&isRect(p,b))});
@@ -2318,6 +2321,13 @@ function saidaFio(g,pos){const cp=toC(g.ps);const b=g.bb;const cx=(b.x0+b.x1)/2;
     if(pos==='sup'){for(let y=b.y1;y>=b.y0;y-=1)if(inside([x,y],cp)){edge=y;break}if(edge!=null&&inside([x,edge-10],cp)&&inside([x,edge-13],cp))return[x,edge-10]}
     else{for(let y=b.y0;y<=b.y1;y+=1)if(inside([x,y],cp)){edge=y;break}if(edge!=null&&inside([x,edge+10],cp)&&inside([x,edge+13],cp))return[x,edge+10]}}
   return null}
+// furo Ø6 da saída do fio: precisa ficar inteiro dentro do PVC, com 3 mm de parede até qualquer borda (inclusive diagonais e miolos);
+// se não couber onde caiu, vai para o ponto seguro mais perto
+function saidaDentro(cs,polys){const regs=regionsOf(toC(polys));const seg=regs.map(r=>offF(r,-6));
+  return cs.map(c=>{let k=regs.findIndex(r=>inside(c,r));if(k<0){let bd=1e9;regs.forEach((r,i)=>{const b=bbox(fromC(r));const d=Math.hypot((b.x0+b.x1)/2-c[0],(b.y0+b.y1)/2-c[1]);if(d<bd){bd=d;k=i}})}
+    const sf=seg[k];if(!sf||!sf.length)return null;if(inside(c,sf))return c;
+    for(let R=1;R<=60;R++){let best=null;for(let a=0;a<64;a++){const q=[c[0]+R*Math.cos(a*Math.PI/32),c[1]+R*Math.sin(a*Math.PI/32)];if(inside(q,sf)){best=q;break}}if(best)return best}
+    return null}).filter(Boolean)}
 function furosPVC(polys,extra=0){const furos=[];
   regionsOf(toC(polys)).forEach(rg=>{const ps=fromC(rg);const b=bbox(ps);const tam=Math.max(b.w,b.h)+extra;const n=nFuros(tam);
     // furos no centro do traço (mesma linha base da elétrica)
@@ -2491,6 +2501,7 @@ function buildDoc(){
        const ext=lines.filter(l=>/EXTERNO/i.test(l.legenda||''));ext.forEach(l=>{const hol=[],out=[];l.polys.forEach(p=>{const n=l.polys.filter(q=>q!==p&&pin(p[0],q)).length;(n%2?hol:out).push(p)});
          if(hol.length){l.polys=out;lines.push({cor:RC['CORTE INTERNO'],legenda:'CORTE INTERNO (miolos das letras)',offset:l.offset,noOff:true,polys:hol})}})}
       lines.push({cor:RC['REBAIXO'],legenda:`FURO Ø${FURO_D} — REBAIXO 3 MM (NÃO FURAR TOTAL) — ${furosDoc.length} furos no centro do traço`,offset:0,noOff:true,polys:furosDoc.map(f=>circ(f.c,FURO_D/2))});
+      if(saidasFio&&saidasFio.length){try{saidasFio=saidaDentro(saidasFio,lines.filter(l=>/EXTERNO|miolos/i.test(l.legenda||'')).flatMap(l=>l.polys))}catch(e){console.error('saída',e)}}
       if(saidasFio&&saidasFio.length)lines.push({cor:RC['CORTE INTERNO'],legenda:`FURO Ø6 — SAÍDA DO FIO (${saidasFio.length}) — CORTE INTERNO`,offset:0,noOff:true,polys:saidasFio.map(c=>circ(c,3,24))})}
     const BX=30,BY=42,BW=254,BH=94;
     const s=SC;const dx=BX+(BW-bb.w*s)/2,dy=BY+(BH-bb.h*s)/2;
@@ -2518,6 +2529,7 @@ function buildDoc(){
     const opts=job.sizes.map(([w,h])=>({w,h,...nestSheets(job.pieces,w,h,gap,mg)}));
     const ok=opts.filter(o=>!o.naoCabe.length);const pool=ok.length?ok:opts;
     const best=pool.slice().sort((a,b)=>(b.util-a.util)||(a.sheets.length-b.sheets.length))[0];
+    try{best.prob=nestConfere(job.pieces,best,gap)}catch(e){console.error('confere',e);best.prob=['não foi possível conferir o encaixe']}
     nests.push({...job,opts,best});
     nestNaFolha(pages[job.after],job,best,opts,gap,mg);
   }
@@ -2788,7 +2800,7 @@ async function carregaLetra(nome,bytes){resetOut();const f={name:nome};
 }
 document.querySelectorAll('#tab-novo input').forEach(i=>{if(i.type!=='file')i.addEventListener('input',resetOut)});
 // DXF fiel: polilinhas exatamente com os pontos calculados (sem curvas aproximadas), mm, 1:1, uma camada por cor
-const DXF_DE=new WeakMap();
+const DXF_DE=new WeakMap(),VEC_DE=new WeakMap();
 function vecDXF(vec){const all=vec.flatMap(v=>v.polys);if(!all.length)return null;const b=bbox(all);const nm=c=>'COR_'+String(c||'#000000').replace('#','').toUpperCase();
   const aci=c=>{const h=String(c||'').toLowerCase();return{'#000000':7,'#ff0000':1,'#e03131':1,'#0000ff':5,'#00ff00':3,'#00cc44':3,'#ff00ff':6,'#e000ff':6,'#00e1ff':4,'#ff5500':30,'#ffff00':2}[h]||7};
   const rgb=c=>{const h=String(c||'#000000').replace('#','');return parseInt(h.length===3?h.split('').map(x=>x+x).join(''):h,16)||0};
@@ -2799,16 +2811,27 @@ function vecDXF(vec){const all=vec.flatMap(v=>v.polys);if(!all.length)return nul
   p(0,'SECTION');p(2,'ENTITIES');
   for(const v of vec)for(const q of v.polys){if(!q||q.length<2)continue;p(0,'LWPOLYLINE');p(8,nm(v.color));p(62,aci(v.color));p(420,rgb(v.color));p(90,q.length);p(70,v.aberto?0:1);for(const pt of q){p(10,f(pt[0]-b.x0));p(20,f(pt[1]-b.y0))}}
   p(0,'ENDSEC');p(0,'EOF');return L.join('\r\n')+'\r\n'}
+// a curva ajustada só vai para o arquivo se seguir a linha calculada (desvio < 0,05 mm) e começar/terminar no mesmo ponto;
+// senão o arquivo sai com os pontos exatos (polilinha), como no DXF
+function curvaFiel(p,f,aberto){const TOL=0.05,G=2;const H=new Map();const key=(x,y)=>Math.floor(x/G)+','+Math.floor(y/G);
+  const n=p.length,m=aberto?n-1:n;for(let i=0;i<m;i++){const a=p[i],b=p[(i+1)%n];const ns=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/(G/2)));let ult=null;
+    for(let j=0;j<=ns;j++){const t=j/ns;const k=key(a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t);if(k===ult)continue;ult=k;const L=H.get(k)||H.set(k,[]).get(k);if(L[L.length-1]!==i)L.push(i)}}
+  const dist=q=>{let best=1e9;const cx=Math.floor(q[0]/G),cy=Math.floor(q[1]/G);for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){for(const i of H.get((cx+dx)+','+(cy+dy))||[]){const a=p[i],b=p[(i+1)%n];const vx=b[0]-a[0],vy=b[1]-a[1];const L=vx*vx+vy*vy;let t=L?((q[0]-a[0])*vx+(q[1]-a[1])*vy)/L:0;t=Math.max(0,Math.min(1,t));const d=Math.hypot(a[0]+vx*t-q[0],a[1]+vy*t-q[1]);if(d<best)best=d}}return best};
+  if(dist(f.s)>TOL)return false;let cur=f.s;
+  for(const sg of f.segs){if(sg.L){if(dist(sg.L)>TOL)return false;const mid=[(cur[0]+sg.L[0])/2,(cur[1]+sg.L[1])/2];if(dist(mid)>TOL)return false;cur=sg.L;continue}
+    const [c1,c2,e]=sg.C;for(let k=1;k<=12;k++){const t=k/12,u=1-t;const q=[u*u*u*cur[0]+3*u*u*t*c1[0]+3*u*t*t*c2[0]+t*t*t*e[0],u*u*u*cur[1]+3*u*u*t*c1[1]+3*u*t*t*c2[1]+t*t*t*e[1]];if(dist(q)>TOL)return false}cur=e}
+  const fim=f.s;if(Math.hypot(cur[0]-fim[0],cur[1]-fim[1])>TOL)return false;
+  return true}
 // arquivo de produção: só os vetores, em tamanho real (1:1), uma peça por arquivo
 function vecPDF(vec,M=10){
   const all=vec.flatMap(v=>v.polys);if(!all.length)return null;const b=bbox(all);
   const W=b.w+2*M,H=b.h+2*M;const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:[W,H],orientation:W>H?'l':'p',compress:true});
   for(const v of vec){doc.setDrawColor(...hex(v.color));doc.setLineWidth(0.1);const X=q=>M+q[0]-b.x0,Y=q=>M+b.y1-q[1];
-    for(const p of v.polys){const f=p.length>8?fitCurves(p,0.02):null;
+    for(const p of v.polys){let f=p.length>8&&!v.aberto?fitCurves(p,0.02):null;if(f&&!curvaFiel(p,f,v.aberto)){f=null;vecPDF.recusas=(vecPDF.recusas||0)+1}
       if(f){doc.moveTo(X(f.s),Y(f.s));for(const sg of f.segs){if(sg.L)doc.lineTo(X(sg.L),Y(sg.L));else{const [c1,c2,e]=sg.C;doc.curveTo(X(c1),Y(c1),X(c2),Y(c2),X(e),Y(e))}}}
       else p.forEach((q,i)=>{i?doc.lineTo(X(q),Y(q)):doc.moveTo(X(q),Y(q))});
       if(!v.aberto)doc.close();doc.stroke()}}
-  const buf=doc.output('arraybuffer');try{const dx=vecDXF(vec);if(dx)DXF_DE.set(buf,dx)}catch(e){console.error('DXF',e)}
+  const buf=doc.output('arraybuffer');try{const dx=vecDXF(vec);if(dx)DXF_DE.set(buf,dx)}catch(e){console.error('DXF',e)}VEC_DE.set(buf,vec);
   return {buf,w:b.w,h:b.h};
 }
 function letraArqs(d,msg){const out=[];
@@ -2825,6 +2848,7 @@ function letraArqs(d,msg){const out=[];
       B.sheets.forEach((sh,k)=>{const vec=[{color:'#adb5bd',polys:[[[0,0],[B.w,0],[B.w,B.h],[0,B.h]]]}];
         sh.items.forEach(it=>{const pc=pieceAt(N.pieces[it.i],it);pc.lines.forEach(l=>vec.push(l))});
         const v=vecPDF(vec);if(v)out.push({name:nomeArq(`${base} - ${N.nome} CHAPA ${k+1} de ${B.sheets.length} (${B.w}x${B.h}).pdf`),label:`${N.nome==='ACRILICO FUNDO'?'Acrílico do fundo':N.nome==='ACM FUNDO'?'ACM do fundo':N.nome==='ACRILICO'?'Acrílico':'Chapa galvanizada'} — chapa ${k+1} de ${B.sheets.length} (${wm}x${hm} m, encaixe pronto)`,buf:v.buf,dim:`${sh.items.length} peças`})});
+      if(msg&&B.prob&&B.prob.length)$('#outMsg').insertAdjacentHTML('beforeend',`<div class="msg err"><b>⚠ Encaixe de ${esc(N.nome)} NÃO conferiu:</b> ${esc(B.prob.join('; '))}. Não mande este arquivo para a máquina — me avise.</div>`);
       if(msg)$('#outMsg').insertAdjacentHTML('beforeend',`<div class="msg ok"><b>${N.nome==='ACRILICO FUNDO'?'Acrílico do fundo':N.nome==='ACM FUNDO'?'ACM do fundo':N.nome==='ACRILICO'?'Acrílico':'Chapa galvanizada'}: ${B.sheets.length} chapa(s) de ${wm}x${hm} m</b> (${(B.util*100).toFixed(1).replace('.',',')}% de aproveitamento).${N.opts.filter(o=>o!==B).map(o=>` Com ${(o.w/1000).toLocaleString('pt-BR')}x${(o.h/1000).toLocaleString('pt-BR')} m seriam ${o.sheets.length} chapa(s), ${(o.util*100).toFixed(1).replace('.',',')}%.`).join('')}${B.naoCabe.length?` ${B.naoCabe.length} peça(s) maiores que a chapa — precisam de emenda.`:''}</div>`)}
     return out}
 let prodFiles=[];
@@ -2844,8 +2868,11 @@ $('#gerar').onclick=()=>{
     $('#baixar').hidden=false;$('#gerar').textContent='Atualizar FP';
     // arquivos de produção separados
     prodFiles=letraArqs(d,true).filter(arqOk);
+    {const av=[];prodFiles.forEach(f=>{if(f.semZip||/MOLDE/i.test(f.label))return;const v=VEC_DE.get(f.buf);if(!v)return;let r=[];try{r=auditaVec(v)}catch(e){console.error('auditoria',e)}
+       if(r.length){f.aviso=r.join('; ');av.push(`<b>${esc(f.label)}</b>: ${esc(f.aviso)}`)}});
+     $('#outMsg').insertAdjacentHTML('beforeend',av.length?`<div class="msg err"><b>⚠ Conferência dos arquivos de produção:</b><br>${av.join('<br>')}<br>Confira antes de mandar para a máquina.</div>`:`<div class="msg ok">✓ Arquivos de produção conferidos: nenhuma linha se cruzando, contornos fechados${d.nests.length?', encaixe sem sobreposição e dentro da chapa':''}.</div>`)}
     $('#prodFiles').hidden=!prodFiles.length;
-    $('#prodFiles').innerHTML=`<label class="f">Arquivos de produção (tamanho real 1:1)</label>`+prodFiles.map((f,i)=>`<div class="row" style="justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:6px"><div><b style="font-size:14px">${esc(f.label)}</b><div class="note">${f.dim}</div></div><div class="row" style="gap:6px">${DXF_DE.has(f.buf)?`<button class="btn ghost sm" data-pfdxf="${i}" style="border-color:#2b8a3e;color:#2b8a3e">DXF</button>`:''}<button class="btn ghost sm" data-pf="${i}">${DXF_DE.has(f.buf)?'PDF':'Baixar'}</button></div></div>`).join('')+(prodFiles.length>1&&window.JSZip?`<button class="btn acc sm" id="pfZip">Baixar todos (ZIP) — corte, instalação, expedição e RM</button>`:'');
+    $('#prodFiles').innerHTML=`<label class="f">Arquivos de produção (tamanho real 1:1)</label>`+prodFiles.map((f,i)=>`<div class="row" style="justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:6px"><div><b style="font-size:14px">${esc(f.label)}</b><div class="note">${f.dim}</div>${f.aviso?`<div class="note" style="color:#c92a2a;font-weight:600">⚠ ${esc(f.aviso)}</div>`:''}</div><div class="row" style="gap:6px">${DXF_DE.has(f.buf)?`<button class="btn ghost sm" data-pfdxf="${i}" style="border-color:#2b8a3e;color:#2b8a3e">DXF</button>`:''}<button class="btn ghost sm" data-pf="${i}">${DXF_DE.has(f.buf)?'PDF':'Baixar'}</button></div></div>`).join('')+(prodFiles.length>1&&window.JSZip?`<button class="btn acc sm" id="pfZip">Baixar todos (ZIP) — corte, instalação, expedição e RM</button>`:'');
   }catch(err){$('#outMsg').innerHTML=`<div class="msg err">Erro ao gerar: ${esc(err.message)}</div>`;console.error(err)}
 };
 $('#prodFiles').onclick=async e=>{const b=e.target.closest('button');if(!b)return;
@@ -2869,14 +2896,15 @@ const NEST_ROT=24;
 // pieces: [{outer:[poly...] (mm, contorno de corte), lines:[{color,polys}] }]
 function rotPts(polys,ang){if(!ang)return polys.map(p=>p.slice());const c=Math.cos(ang),s=Math.sin(ang);return polys.map(p=>p.map(([x,y])=>[x*c-y*s,x*s+y*c]))}
 function rasterMask(polys,cell){
-  const b=bbox(polys);const W=Math.max(1,Math.ceil(b.w/cell)+1),H=Math.max(1,Math.ceil(b.h/cell)+1);
+  const b=bbox(polys);const W=Math.max(1,Math.ceil(b.w/cell)+2),H=Math.max(1,Math.ceil(b.h/cell)+2);
   const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');g.fillStyle='#000';g.beginPath();
   for(const p of polys){p.forEach(([x,y],i)=>{const X=(x-b.x0)/cell,Y=(y-b.y0)/cell;i?g.lineTo(X,Y):g.moveTo(X,Y)});g.closePath()}
   g.fill('nonzero');
-  // garante cobertura das bordas (contorno)
-  g.lineWidth=1.2;g.strokeStyle='#000';g.stroke();
+  // conservador: qualquer célula tocada pela peça conta como ocupada (antes, células com pouca cobertura —
+  // traços finos e diagonais — ficavam livres e outra peça podia passar por cima)
+  g.lineWidth=2;g.strokeStyle='#000';g.stroke();
   const d=g.getImageData(0,0,W,H).data;const spans=[];
-  for(let y=0;y<H;y++){let x=0;while(x<W){while(x<W&&d[(y*W+x)*4+3]<60)x++;if(x>=W)break;const x0=x;while(x<W&&d[(y*W+x)*4+3]>=60)x++;spans.push([y,x0,x-1])}}
+  for(let y=0;y<H;y++){let x=0;while(x<W){while(x<W&&d[(y*W+x)*4+3]===0)x++;if(x>=W)break;const x0=x;while(x<W&&d[(y*W+x)*4+3]>0)x++;spans.push([y,x0,x-1])}}
   return {W,H,spans,b};
 }
 function nestSheets(pieces,sheetW,sheetH,gap,margin,cell){
@@ -2926,16 +2954,45 @@ function piecesFromLines(lines){
   const ext=lines.filter(l=>l.polys.length).sort((a,b)=>b.offset-a.offset)[0];if(!ext)return[];
   const regs=regionsOf(toC(ext.polys));
   return regs.map(reg=>{const regP=fromC(reg);
-    const own=lines.map(l=>({color:l.cor,polys:l.polys.filter(p=>inside(p[0],reg)||regP.some(q=>q===p))}));
-    // a própria linha externa entra inteira
-    own.forEach(o=>{if(o.color===ext.cor&&!o.polys.length)o.polys=regP});
+    // a linha externa entra com a região inteira (contorno + miolos); as outras pelo teste robusto
+    const own=lines.map(l=>({color:l.cor,polys:l===ext?regP:l.polys.filter(p=>pertence(p,reg))}));
     return {outer:regP,lines:own}});
 }
 
 // peças a partir dos vetores da página (1º item = contorno externo)
 function piecesFromVec(vec){if(!vec||!vec.length||!vec[0].polys.length)return[];
   const regs=regionsOf(toC(vec[0].polys));
-  return regs.map(reg=>{const regP=fromC(reg);return {outer:regP,lines:vec.map((v,k)=>({color:v.color,polys:k===0?regP:v.polys.filter(p=>inside(p[0],reg))}))}})}
+  return regs.map(reg=>{const regP=fromC(reg);return {outer:regP,lines:vec.map((v,k)=>({color:v.color,polys:k===0?regP:v.polys.filter(p=>pertence(p,reg))}))}})}
+
+// a linha p pertence à região reg? usa vértices que não estejam em cima de nenhuma borda
+// (o 1º ponto de um miolo fica na borda do furo e o teste simples o jogava fora)
+function pertence(p,reg){const n=p.length,st=Math.max(1,Math.floor(n/24));
+  for(let i=0;i<n;i+=st){const q={X:Math.round(p[i][0]*S),Y:Math.round(p[i][1]*S)};let c=0,borda=false;
+    for(const r of reg){const k=ClipperLib.Clipper.PointInPolygon(q,r);if(k===-1){borda=true;break}if(k)c++}
+    if(!borda)return c%2===1}
+  // todos os pontos na borda: é a própria borda desta região só se coincidir com um dos seus contornos
+  const b=bbox([p]);return reg.some(r=>{const rb=bbox(fromC([r]));return Math.abs(rb.x0-b.x0)<0.05&&Math.abs(rb.x1-b.x1)<0.05&&Math.abs(rb.y0-b.y0)<0.05&&Math.abs(rb.y1-b.y1)<0.05})}
+// conferência final do encaixe com a geometria exata (não com a grade): peças sobrepostas, perto demais ou fora da chapa
+function nestConfere(pieces,res,gap){const prob=[];const fol=Math.max(0,gap/2-0.5);
+  res.sheets.forEach((sh,k)=>{const P=sh.items.map(it=>{const pc=pieceAt(pieces[it.i],it);const all=pc.lines.flatMap(l=>l.polys).concat(pc.outer);return{b:bbox(all),c:fol?offF(toC(pc.outer),fol):toC(pc.outer)}});
+    P.forEach((p,i)=>{if(p.b.x0<-0.01||p.b.y0<-0.01||p.b.x1>res.sheetW+0.01||p.b.y1>res.sheetH+0.01)prob.push(`chapa ${k+1}: peça fora da chapa`)});
+    for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const a=P[i].b,b=P[j].b;if(a.x1+gap<b.x0||b.x1+gap<a.x0||a.y1+gap<b.y0||b.y1+gap<a.y0)continue;
+      const c=new ClipperLib.Clipper();c.AddPaths(P[i].c,ClipperLib.PolyType.ptSubject,true);c.AddPaths(P[j].c,ClipperLib.PolyType.ptClip,true);const o=[];c.Execute(ClipperLib.ClipType.ctIntersection,o,ClipperLib.PolyFillType.pftNonZero,ClipperLib.PolyFillType.pftNonZero);
+      const ar=o.reduce((s,q)=>s+Math.abs(ClipperLib.Clipper.Area(q)),0)/(S*S);if(ar>0.05)prob.push(`chapa ${k+1}: duas peças ${fol?'a menos de '+gap+' mm':'sobrepostas'}`)}});
+  return [...new Set(prob)]}
+// auditoria do arquivo de corte: linhas que se cruzam (peças por cima uma da outra) e contornos que se cortam
+function auditaVec(vec){const G=5;const H=new Map();const segs=[];let cid=0;
+  for(const v of vec){if(v.aberto||/^#(000000|00e1ff|adb5bd)$/i.test(v.color||''))continue;
+    for(const p of v.polys){if(!p||p.length<3)continue;const id=cid++;const n=p.length;
+      for(let i=0;i<n;i++){const a=p[i],b=p[(i+1)%n];if(a[0]===b[0]&&a[1]===b[1])continue;const si=segs.length;segs.push({a,b,id,i,n});
+        const x0=Math.floor(Math.min(a[0],b[0])/G),x1=Math.floor(Math.max(a[0],b[0])/G),y0=Math.floor(Math.min(a[1],b[1])/G),y1=Math.floor(Math.max(a[1],b[1])/G);
+        if((x1-x0+1)*(y1-y0+1)>2500)continue;for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){const k=x+','+y;(H.get(k)||H.set(k,[]).get(k)).push(si)}}}}
+  const cr=(a,b,c,d)=>{const o=(p,q,r)=>(q[0]-p[0])*(r[1]-p[1])-(q[1]-p[1])*(r[0]-p[0]);const d1=o(a,b,c),d2=o(a,b,d),d3=o(c,d,a),d4=o(c,d,b);return d1*d2<-1e-9&&d3*d4<-1e-9};
+  const vistos=new Set();let entre=0,proprio=0;const pares=new Set();
+  for(const L of H.values())for(let x=0;x<L.length;x++)for(let y=x+1;y<L.length;y++){const s1=segs[L[x]],s2=segs[L[y]];const key=L[x]<L[y]?L[x]+'_'+L[y]:L[y]+'_'+L[x];if(vistos.has(key))continue;vistos.add(key);
+    if(s1.id===s2.id){const dd=Math.abs(s1.i-s2.i);if(dd<=1||dd===s1.n-1)continue}
+    if(!cr(s1.a,s1.b,s2.a,s2.b))continue;if(s1.id===s2.id)proprio++;else{const pk=Math.min(s1.id,s2.id)+'_'+Math.max(s1.id,s2.id);if(!pares.has(pk)){pares.add(pk);entre++}}}
+  const out=[];if(entre)out.push(`${entre} par(es) de linhas se cruzando (peças por cima uma da outra)`);if(proprio)out.push(`${proprio} ponto(s) onde um contorno corta ele mesmo`);return out}
 
 let tEdFace=0;
 /* ================= TESTEIRAS (estrutura em metalon) ================= */
@@ -6827,7 +6884,7 @@ $('#pedGerarSel').onclick=()=>pedGerarFP(true);
 async function pedGerarFP(parcial){let its=(pedAtual.itens||[]).slice().sort((a,b)=>a.n-b.n);if(parcial)its=its.filter(i=>pedSel.has(i.id));if(!its.length){$('#pedMsg').innerHTML=`<div class="msg err">${parcial?'Selecione ao menos um item.':'O pedido ainda não tem itens.'}</div>`;return}
   pedParcial=parcial;const btn=parcial?$('#pedGerarSel'):$('#pedGerar');btn.disabled=true;const todas=[],geralL=[],grpExp={};const juntoN=new Set((pedAtual.itens||[]).filter(i=>i.junto).map(i=>+i.n));const salvo={item:$('#item').value,ia:itemAtual};
   try{for(const [k,it] of its.entries()){$('#pedMsg').innerHTML=`<div class="msg ok">Gerando item ${it.n} (${k+1} de ${its.length}) — ${TIPO_NOME[it.tipo]}…</div>`;await new Promise(r=>setTimeout(r,30));
-      await itemAbrir(it,false);FOOT_SKIP=true;window.ultProd=null;let r;try{r=buildItem(it.tipo)}finally{FOOT_SKIP=false}
+      await itemAbrir(it,false);FOOT_SKIP=true;window.ultProd=null;let r;try{r=buildItem(it.tipo)}catch(er){throw new Error(`item ${it.n}${it.desc?' ('+it.desc+')':''}: ${er.message}`)}finally{FOOT_SKIP=false}
       // componentes juntos: a expedição sai UMA linha por grupo (a peça montada); a qualidade continua com todos
       // item com componentes juntos: a expedição do item sai UMA vez, com uma linha por componente que ficou (grupo = peça montada); a qualidade continua com todos
       let pgs=r.pages.map((P,j)=>({P,j}));if(juntoN.has(+it.n)){const pr=window.ultProd;const E=grpExp[it.n]||(grpExp[it.n]={ctx:r.ctx,n:it.n,L:new Map(),pos:0});const kk=it.junto||it.id;
@@ -6873,14 +6930,14 @@ function custoAuto(){try{if(!pedAtual||!itemAtual||itemAtual.novo||!matUlt||!mat
 
 /* ---------- RM + PI do pedido: primeiro cada produto, no final tudo somado ---------- */
 async function pedGerarRM(){let its=(pedAtual.itens||[]).slice().sort((a,b)=>a.n-b.n);if(pedSel.size)its=its.filter(i=>pedSel.has(i.id));if(!its.length){$('#pedMsg').innerHTML='<div class="msg err">O pedido ainda não tem itens.</div>';return}
-  const btn=$('#pedRM');btn.disabled=true;const salvo={item:$('#item').value,ia:itemAtual};const rmP=[],piP=[],somaRM=new Map(),somaPI=new Map(),rmXls=[],piXls=[];let ctx0=null;const nums=n=>+String(n).replace(',','.')||0;
+  const btn=$('#pedRM');btn.disabled=true;const salvo={item:$('#item').value,ia:itemAtual};const rmP=[],piP=[],somaRM=new Map(),somaPI=new Map(),rmXls=[],piXls=[];let ctx0=null;const pulados=[];const nums=n=>+String(n).replace(',','.')||0;
   try{for(const [k,it] of its.entries()){$('#pedMsg').innerHTML=`<div class="msg ok">Lendo a RM do item ${it.n} (${k+1} de ${its.length})…</div>`;await new Promise(r=>setTimeout(r,30));
-      rmUlt=null;await itemAbrir(it,false);FOOT_SKIP=true;try{buildItem(it.tipo)}finally{FOOT_SKIP=false}const R=rmUlt;if(!R)continue;ctx0=ctx0||R.ctx;
+      rmUlt=null;await itemAbrir(it,false);FOOT_SKIP=true;try{buildItem(it.tipo)}catch(er){console.error(er);pulados.push(`item ${it.n}${it.desc?' ('+it.desc+')':''}: ${er.message}`);continue}finally{FOOT_SKIP=false}const R=rmUlt;if(!R){pulados.push(`item ${it.n}${it.desc?' ('+it.desc+')':''}: não gerou RM`);continue}ctx0=ctx0||R.ctx;
       {const nm=nomeArq(`Item ${it.n} - ${TIPO_NOME[it.tipo]||it.tipo}${it.desc?' - '+it.desc:''} (${k+1})`).replace(/\.+$/,'');rmXls.push({nome:nm,rows:R.rows.slice()});if(R.pi.length)piXls.push({nome:nm,pi:R.pi.slice()})}
       folhasMaterial(R.ctx,R.prod,R.rows).forEach(P=>rmP.push({P,ctx:R.ctx}));if(R.pi.length)folhasPI(R.ctx,R.prod,R.pi).forEach(P=>piP.push({P,ctx:R.ctx}));
       R.rows.forEach(r=>{const key=r.cod!=null?'c'+r.cod:'d'+r.desc;const o=somaRM.get(key);if(o){o.q=Math.round((nums(o.q)+nums(r.q))*1000)/1000;o.tot+=r.tot;o.itens.add(it.n);o.semPreco=o.semPreco||r.semPreco}else somaRM.set(key,{...r,q:nums(r.q),itens:new Set([it.n])})});
       R.pi.forEach(r=>{const ml=/ml/i.test(r.q);const key=(r.cod!=null?r.cod:r.nome)+'|'+(ml?'ml':r.un);const v=ml?nums(String(r.q).replace(/\D+$/,'')):nums(r.q);const o=somaPI.get(key);if(o){o.v+=v;o.itens.add(it.n)}else somaPI.set(key,{...r,v,ml,itens:new Set([it.n])})})}
-    if(!rmP.length)throw new Error('nenhum item gerou RM');
+    if(!rmP.length)throw new Error('nenhum item gerou RM'+(pulados.length?' — '+pulados.join('; '):''));
     const ctxT={...ctx0,item:'TOTAL',descItem:'TODOS OS PRODUTOS DO PEDIDO (SOMADOS)'},prodT={nome:`TODOS OS PRODUTOS DO PEDIDO SOMADOS (${its.length} componentes)`,un:1};
     const rowsT=[...somaRM.values()].map(r=>({...r,uso:'itens '+[...r.itens].join(', ')}));
     const piT=[...somaPI.values()].map(r=>({...r,q:r.ml?`${Math.round(r.v)} ml`:String(Math.round(r.v*100)/100).replace('.',','),uso:'itens '+[...r.itens].join(', ')}));
@@ -6893,6 +6950,7 @@ async function pedGerarRM(){let its=(pedAtual.itens||[]).slice().sort((a,b)=>a.n
     try{z.file(`${bz} - RM TOTAL.xlsx`,await rmXlsx(rowsT,`${bz} - RM total`));if(piT.length)z.file(`${bz} - PI TOTAL.xlsx`,await piXlsx(piT,`${bz} - PI total`));
       for(const x of rmXls)z.file(`Por produto/${x.nome} - RM.xlsx`,await rmXlsx(x.rows,x.nome+' - RM'));for(const x of piXls)z.file(`Por produto/${x.nome} - PI.xlsx`,await piXlsx(x.pi,x.nome+' - PI'))}catch(e){console.error('xlsx',e)}
     $('#pedMsg').insertAdjacentHTML('beforeend','<div class="msg ok">ZIP com o PDF + planilhas (XLSX) da RM e da PI: total e por produto.</div>');
+    if(pulados.length)$('#pedMsg').insertAdjacentHTML('beforeend',`<div class="msg err"><b>⚠ Ficaram FORA da RM (corrija e gere de novo):</b><br>${pulados.map(esc).join('<br>')}</div>`);
     await salvar(bz+'.zip',await z.generateAsync({type:'blob'}))}
   catch(e){console.error(e);$('#pedMsg').innerHTML=`<div class="msg err">Erro ao gerar a RM: ${esc(e.message)}</div>`}
   finally{btn.disabled=false;$('#item').value=salvo.item;itemAtual=salvo.ia;pedBarRender()}}
@@ -7132,7 +7190,7 @@ function osCompHtml(n){const cs=(pedAtual.itens||[]).filter(i=>+i.n===+n);if(!cs
     return `<div class="osComp" style="flex-wrap:wrap;border-color:#ae3ec9;background:#f8f0fc">${v?`<input type="checkbox" data-sel="${ids}" title="Selecionar"${ck?' checked':''}>`:''}<div class="osCompT"><b>${num} — ${[...new Set(g.map(i=>TIPO_NOME[i.tipo]||i.tipo))].join(' + ')} <small style="color:#ae3ec9;font-weight:700">⛓ ${g.length} juntos</small></b><span>${esc(g[0].desc||'')}<button class="btn ghost sm" data-rename="${g[0].id}" title="Editar nome" style="padding:2px 7px;margin-left:4px;font-size:12px">✎ Editar</button></span></div>${selo(cg)}<button class="btn acc sm" data-juntoab="${jk}">Abrir ${ab?'▴':'▾'}</button><button class="btn ghost sm" data-separar="${jk}" title="Separar de novo" style="padding:4px 8px">Separar</button>
       ${ab?`<div style="flex-basis:100%;display:flex;flex-direction:column;gap:4px;margin-top:6px;padding-left:22px">${g.map((it,j)=>`<div class="osComp" style="margin:0"><div class="osCompT"><b>${num}${String.fromCharCode(97+j)} — ${esc(TIPO_NOME[it.tipo]||it.tipo)}</b><span>${esc(it.desc||'')}<button class="btn ghost sm" data-rename="${it.id}" title="Editar nome" style="padding:2px 7px;margin-left:4px;font-size:12px">✎ Editar</button></span></div>${selo(+it.custo)}<button class="btn acc sm" data-abrir="${it.id}">Abrir</button><button class="btn ghost sm" data-del="${it.id}" title="Excluir esta parte" style="color:#c92a2a;padding:4px 8px">✕</button></div>`).join('')}</div>`:''}</div>`}).join('')}
     ${selRows>=2?`<div style="margin-top:6px"><button class="btn sm" data-juntar="${n}" style="background:#ae3ec9;color:#fff">⛓ Juntar os ${selRows} selecionados em um só</button></div>`:''}
-    ${ct>0?(()=>{const pc=vi>0?ct/vi*100:null;const [nv,cor,bg]=pc!=null?margemNivel(pc):['','#212529','#f1f3f5'];return `<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:8px;padding:8px 10px;border-radius:9px;background:${bg};color:${cor};font-size:13px"><span>Custo do item ${n}${vv?` (${gs.length} componentes)`:''}: <b style="font-size:15px">${r0(ct)}</b></span>${vi>0?`<span>Venda: ${r0(vi)}</span><b style="font-size:16px">${pc.toFixed(1).replace('.',',')}% ${nv?`<small style="font-size:11px">${nv}</small>`:''}</b>`:'<span>sem valor de venda</span>'}</div>`})():''}
+    ${ct>0?(()=>{const pc=vi>0?ct/vi*100:null;const [nv,cor,bg]=pc!=null?margemNivel(pc):['','#212529','#f1f3f5'];return `<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:8px;padding:8px 10px;border-radius:9px;background:${bg};color:${cor};font-size:13px"><span>Custo do item ${n}${vv?` (${gs.length} componentes)`:''}: <b style="font-size:15px">${r0(ct)}</b></span>${vi>0?`<span>Venda: ${r0(vi)}</span><b style="font-size:16px">${pc.toFixed(1).replace('.',',')}% ${nv?`<small style="font-size:11px">${nv}</small>`:''}</b>`:'<span>sem valor de venda</span>'}</div>`})():''}${(()=>{const oi=(pedAtual.osItens||[]).find(x=>+x.n===+n);if(!oi||(!oi.manual&&+oi.sub>0))return'';return `<div class="row" style="gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap"><label class="note" style="margin:0;font-weight:700">Valor de venda do item ${n} (R$):</label><input type="text" inputmode="decimal" data-osvenda="${n}" value="${+oi.sub>0?String((+oi.sub).toFixed(2)).replace('.',','):''}" placeholder="0,00" style="max-width:160px;padding:6px 8px"><span class="note" style="margin:0">— para comparar com o custo da RM</span></div>`})()}
     <div style="margin-top:6px"><button class="btn ghost sm" data-compmenu="${n}">+ Componente</button><div class="row" data-comptipos="${n}" style="gap:4px;margin-top:6px;flex-wrap:wrap" hidden>${OS_TIPOS.map(([t,l])=>`<button class="btn ghost sm" data-compnovo="${t}" data-compn="${n}">+ ${l}</button>`).join('')}</div></div></div>`}
 function osListaRender(){pedTotRender();pedProgRender();if(typeof pedCotasUI==='function')pedCotasUI();const box=$('#osLista');if(!box)return;const L=(pedAtual&&pedAtual.osItens)||[];if(!pedAtual){box.innerHTML='';return}
   if(osAplicaVenda()){setTimeout(()=>{pedAbertoRender();pedSalvar(pedAtual)},0);return}
@@ -7248,6 +7306,10 @@ function osPrincipal(nv){const L=pedAtual.osItens||[];const o=L.find(i=>+i.n===n
 // tocar na área branca do componente = abrir (o botão Abrir continua)
 document.addEventListener('click',e=>{const row=e.target.closest&&e.target.closest('.osComp');if(!row)return;if(e.target.closest('button,input,select,textarea,a,label,[data-rename]'))return;
   const ab=[...row.children].map(c=>c.matches&&c.matches('[data-abrir],[data-juntoab]')?c:null).find(Boolean)||row.querySelector(':scope > [data-abrir], :scope > [data-juntoab]');if(ab){e.preventDefault();ab.click()}});
+
+// valor de venda digitado (pedidos lançados à mão / itens sem valor na OS)
+document.addEventListener('change',e=>{const t=e.target;if(!t.dataset||t.dataset.osvenda==null||!pedAtual)return;const oi=(pedAtual.osItens||[]).find(x=>+x.n===+t.dataset.osvenda);if(!oi)return;
+  const raw=t.value.trim();const v=num(raw.includes(',')?raw.replace(/\./g,'').replace(',','.'):raw);oi.sub=v>0?Math.round(v*100)/100:0;pedSalvar(pedAtual);setTimeout(()=>{if(typeof pedAbertoRender==='function')pedAbertoRender();else osListaRender();if(typeof pedTotRender==='function')pedTotRender()},0)});
 
 renderTypes();renderLogo();initStore();
 
