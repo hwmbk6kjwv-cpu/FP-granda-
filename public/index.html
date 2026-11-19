@@ -1992,7 +1992,7 @@ function l3dGrupo3D(R,o){o=Object.assign({acr:true,corte:false,exp:false},o||{})
       const yc=(L.bb.y0+L.bb.y1)/2;const clip=[[{X:Math.round((L.bb.x0-10)*S),Y:Math.round((L.bb.y0-10)*S)},{X:Math.round((L.bb.x1+10)*S),Y:Math.round((L.bb.y0-10)*S)},{X:Math.round((L.bb.x1+10)*S),Y:Math.round(yc*S)},{X:Math.round((L.bb.x0-10)*S),Y:Math.round(yc*S)}]];
       slabs=slabs.map(sl=>({...sl,regs:sl.regs.flatMap(r=>{const c=new ClipperLib.Clipper();c.AddPaths(r,ClipperLib.PolyType.ptSubject,true);c.AddPaths(clip,ClipperLib.PolyType.ptClip,true);const tr=new ClipperLib.PolyTree();c.Execute(ClipperLib.ClipType.ctIntersection,tr,ClipperLib.PolyFillType.pftNonZero,ClipperLib.PolyFillType.pftNonZero);const o=[];const w=n=>{for(const ch of n.Childs()){if(!ch.IsHole()){o.push([ch.Contour(),...ch.Childs().map(h=>h.Contour())]);ch.Childs().forEach(h=>w(h))}}};w(tr);return o})}))}
     // fundo separado: na vista explodida cada peça na ordem da montagem (fundo → PVC → fundo branco + LED → lateral branca → lateral → acrílico)
-    const SP=!!(L.capa&&L.capa.sep&&o.exp&&!o.corte),nv=SP?{pvc:1,cf:1,cl:2,lat:0,acr:3}:{pvc:1,cf:2,cl:2,lat:0,acr:3};
+    const SP=!!(L.capa&&L.capa.sep&&o.exp&&!o.corte),hU=(L.Hp||R.H)/Math.max(1,GX),nv=SP?{pvc:1,cf:hU+0.6,cl:hU+1.6,lat:0,acr:hU*2+2.2}:{pvc:1,cf:2,cl:2,lat:0,acr:3};
     const up=(sl,d)=>sl.map(x=>({...x,z0:x.z0+d,z1:x.z1+d}));
     const pecas=[slabs];
     pecas.forEach(sl=>{const geo=l3vGeo(l3dTris(sl,ox,oy));g.add(new THREE.Mesh(geo,mP));g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo,25),lm))});
@@ -2005,7 +2005,7 @@ function l3dGrupo3D(R,o){o=Object.assign({acr:true,corte:false,exp:false},o||{})
     const pl=[{z0:-es,z1:0,regs:l3dDiff(o,[])}];const gp=l3vGeo(l3dTris(pl,ox,oy));g.add(new THREE.Mesh(gp,((FC.mat==='ACM'||FC.pint||!/CRISTAL/.test(FC.cor))?new THREE.MeshLambertMaterial({color:new THREE.Color(FC.hex||'#ced4da'),side:THREE.DoubleSide}):new THREE.MeshLambertMaterial({color:0xa5d8ff,transparent:true,opacity:0.35,depthWrite:false,side:THREE.DoubleSide}))));g.add(new THREE.LineSegments(new THREE.EdgesGeometry(gp,25),lm))}catch(e){console.error('acrílico fundo 3D',e)}}
   {const LI=o.ledInfo;if(LI&&((LI.fitas&&LI.fitas.length)||(LI.mods&&LI.mods.length))){const aceso=o.led!==false;const hx=l3dKelvin(+(String(typeof selLed!=='undefined'?selLed:'6500').match(/\d+/)||[6500])[0]);
     const mLed=aceso?new THREE.MeshBasicMaterial({color:new THREE.Color(hx)}):new THREE.MeshLambertMaterial({color:0x868e96});const mFita=new THREE.MeshLambertMaterial({color:0xadb5bd});
-    const z=(l3dFundo()?L3D.fundo:0)+(l3dPvc()?L3D.pvc:0)+(l3dCapa()?L3D.capa:0)+(o.exp?Math.max(40,R.H*0.9)*(l3dCapa()?(l3dSep()?1:2):l3dPvc()?1:0):0); // vista explodida: o LED vai junto da peça onde fica (capa branca, senão PVC, senão a própria letra)
+    const z=(l3dFundo()?L3D.fundo:0)+(l3dPvc()?L3D.pvc:0)+(l3dCapa()?L3D.capa:0)+(o.exp?(l3dCapa()&&l3dSep()?(R.H+Math.max(40,R.H*0.9)*0.6):Math.max(40,R.H*0.9)*(l3dCapa()?2:l3dPvc()?1:0)):0); // vista explodida: o LED vai junto da peça onde fica (capa branca, senão PVC, senão a própria letra)
     const lmL=new THREE.LineBasicMaterial({color:0x495057});const add=(regs,z0,z1,mat,ed)=>{if(!regs.length)return;const ge=l3vGeo(l3dTris([{z0,z1,regs}],ox,oy));g.add(new THREE.Mesh(ge,mat));if(ed)g.add(new THREE.LineSegments(new THREE.EdgesGeometry(ge,25),lmL))};
     (LI.fitas||[]).forEach(f=>l3dFitaZig(add,f.linhas,z,mFita,mLed));
     (LI.mods||[]).forEach(m=>{if(m.rect)add(l3dDiff(toC([m.rect]),[]),z,z+5,new THREE.MeshLambertMaterial({color:0xe9ecef}))})}}
@@ -2016,7 +2016,7 @@ function l3vMonta(){const R=l3vUlt;if(!R)return;{const lb=$('#l3vLedBt');if(lb)l
   const {g,all}=l3dGrupo3D(R,{acr:L3V.acr,corte:L3V.corte,exp:L3V.exp,led:L3V.led,ledInfo:LI3});
   // gira para a face ficar de frente (z da letra -> para a câmera)
   g.rotation.set(0,0,0);L3V.scene.add(L3V.grp=g);
-  {const GX=L3V.exp?Math.max(40,R.H*0.9):0;const D=R.H+GX*3;L3V.tg=[0,0,D/2];const cv=$('#l3dCv');const asp=(cv.clientWidth||900)/(cv.clientHeight||420);L3V.R=Math.max(all.w*1.15/(0.64*asp),all.h*1.6/0.64,D*(L3V.exp?1.6:3))*(L3V.exp?1.1:1)}
+  {const GX=L3V.exp?Math.max(40,R.H*0.9):0;const D=R.H+GX*(l3dCapa()&&l3dSep()&&L3V.exp?4.5:3);L3V.tg=[0,0,D/2];const cv=$('#l3dCv');const asp=(cv.clientWidth||900)/(cv.clientHeight||420);L3V.R=Math.max(all.w*1.15/(0.64*asp),all.h*1.6/0.64,D*(L3V.exp?1.6:3))*(L3V.exp?1.1:1)}
   // eixo Y do three = altura da letra; câmera olha a partir de +z (face)
   l3vDraw();
   l3dSepSync();$('#l3dInfo').textContent=`${l3dSep()?'CAPA BRANCA COM FUNDO SEPARADO • ':''}${R.Ls.length} letra(s) • profundidade ${R.H} mm${l3dBI()?` (impressão ${R.H-L3D_BI.lab} + acrílico borda infinita)`:''} • parede ${String(L3D.parede).replace('.',',')} mm (${String(L3D.parede+L3D.apoio).replace('.',',')} abaixo da face) • ${l3dFundo()?'fundo impresso':'sem fundo'}${l3dAcrF()?(()=>{const F=fundoCfg();return ` + ${F.mat==='ACM'?'ACM':'acrílico'} ${F.es} mm ${F.cor.toLowerCase()}${F.pint?' pintado '+F.pint:''} no fundo (+${F.borda} mm)`})():''}${l3dCapa()?' + capa interna branca':''}${l3dPvc()?' + PVC 2 mm':''} • PETG ${cor} ${Math.round(R.grTot)} g`}
@@ -6962,6 +6962,27 @@ function daeDe(pecas,titulo){const esc2=s=>String(s).replace(/[<>&"]/g,c=>({'<':
 function dPecas3D(){if(typeof dModel==='undefined'||!dModel)return[];return dBoxes().map((b,i)=>{const p=dModel.pecas[i]||{};const reg=b.poly?[b.poly,...(b.holes||[]).map(h=>h.slice().reverse())]:[[[b.x0,b.y0],[b.x1,b.y0],[b.x1,b.y1],[b.x0,b.y1]]];
   return{nome:`${p.ref||'P'+(i+1)} ${p.nome||''} ${p.perfil||''}`.trim(),cor:b.cor||'#adb5bd',tris:l3dTris([{z0:b.z0,z1:b.z1,regs:[reg.map(r=>toC([r])[0])]}]).map(tr=>[tr[0],tr[2],tr[1]].map(q=>[q[0],q[1],-q[2]]))}})}
 document.addEventListener('click',e=>{if(!(e.target.closest&&e.target.closest('#dDae')))return;const P=dPecas3D();if(!P.length){alert('Monte o 3D primeiro.');return}salvar(nomeArq(((($('#dDesc')||{}).value||'ESTRUTURA').trim())+' (SketchUp).dae'),daeDe(P,dModel.titulo))});
+
+// ---------- SketchUp (.dae) de QUALQUER 3D do sistema: pega o que está na cena, peça por peça, com a cor ----------
+function daeDaCena(scene){const out=[];if(!scene)return out;scene.updateMatrixWorld(true);const v=new THREE.Vector3();let n=0;
+  scene.traverse(o=>{if(!o.isMesh||!o.visible||o.userData.semDae)return;let vis=true;for(let p=o.parent;p;p=p.parent)if(p.visible===false)vis=false;if(!vis)return;
+    const mt=Array.isArray(o.material)?o.material[0]:o.material;if(mt&&mt.transparent&&mt.opacity<0.5&&mt.depthWrite===false&&o.geometry&&o.geometry.type==='PlaneGeometry')return; // chão
+    const g=o.geometry;if(!g||!g.attributes||!g.attributes.position)return;const pos=g.attributes.position,idx=g.index;const nT=idx?idx.count/3:pos.count/3;
+    const mats=o.isInstancedMesh?Array.from({length:o.count},(_,i)=>{const m=new THREE.Matrix4();o.getMatrixAt(i,m);return new THREE.Matrix4().multiplyMatrices(o.matrixWorld,m)}):[o.matrixWorld];
+    const cor=mt&&mt.color?'#'+mt.color.getHexString():'#adb5bd';
+    mats.forEach(M=>{const tris=[];for(let t=0;t<nT;t++){const tri=[];for(let k=0;k<3;k++){const ii=idx?idx.getX(t*3+k):t*3+k;v.fromBufferAttribute(pos,ii).applyMatrix4(M);tri.push([v.x,v.y,v.z])}tris.push(tri)}
+      if(tris.length)out.push({nome:o.name||(o.parent&&o.parent.name)||`peça ${++n}`,cor,tris})})});
+  return out}
+const DAE_VIEW={l3dCv:()=>typeof L3V!=='undefined'&&L3V.scene,m3d:()=>typeof M3!=='undefined'&&M3.scene,b3d:()=>typeof B3!=='undefined'&&B3.scene,t3d:()=>typeof V3!=='undefined'&&V3.scene,ttCv:()=>TT3.scene,pl3:()=>typeof pl3!=='undefined'&&pl3.sc};
+function daeBaixar(id){const sc=(DAE_VIEW[id]||(()=>null))();const P=daeDaCena(sc);if(!P.length){alert('Gere o 3D primeiro (a visualização está vazia).');return}
+  const d=(document.querySelector('section:not([hidden]) input[id$="Desc"]')||{}).value||($('#os')&&$('#os').value?'OS '+$('#os').value:'')||'modelo 3D';
+  salvar(nomeArq(`${d.trim()||'modelo 3D'} (SketchUp).dae`),daeDe(P,d))}
+// botão "⬇ SketchUp" em todas as barras de visualização 3D (e na placa, que cria o 3D na hora)
+function daeBotoes(){Object.keys(DAE_VIEW).forEach(id=>{if(id==='pl3')return;const cv=document.getElementById(id);if(!cv)return;const bar=cv.parentElement&&cv.parentElement.querySelector('.v3bar');if(!bar||bar.querySelector('[data-daev]'))return;
+    bar.insertAdjacentHTML('beforeend',`<button type="button" data-daev="${id}" title="Baixar este 3D para abrir no SketchUp (Arquivo › Importar › .dae)" style="font-weight:700;color:#c2255c">⬇ SketchUp</button>`)});
+  if(typeof pl3!=='undefined'&&pl3.r){const cv=pl3.r.domElement;const h=cv.parentElement;if(h&&!h.querySelector('[data-daev]')){h.style.position=h.style.position||'relative';h.insertAdjacentHTML('beforeend',`<button type="button" class="btn ghost sm" data-daev="pl3" style="position:absolute;right:8px;top:8px;color:#c2255c;font-weight:700">⬇ SketchUp</button>`)}}}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-daev]');if(!b)return;e.preventDefault();e.stopPropagation();daeBaixar(b.dataset.daev)},true);
+daeBotoes();setInterval(daeBotoes,2000);
 
 /* ---------- COTAS: manda um vetor (PDF) e sai uma folha cotada (padrão ou detalhada) ---------- */
 let CTO=null;function ctv(id){if(CTO&&id in CTO)return CTO[id];const e=$('#'+id);return e?e.value:''}
