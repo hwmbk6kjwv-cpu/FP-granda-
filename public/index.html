@@ -336,7 +336,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
           <div style="grid-column:1/-1"><canvas id="fdPrev" style="width:100%;height:auto;display:block;background:#fff;border:1px solid #a5d8ff;border-radius:8px"></canvas><div class="note" id="fdPrevInfo" style="margin:4px 0 0"></div></div>
           <p class="note" style="grid-column:1/-1;margin:0">Só o contorno de fora das letras (sem os furos do O, A, R…). Sem juntar, cada letra sai numa peça — se a borda for maior que a metade do espaço entre as letras, elas se encostam e viram uma peça.</p></div></div></div>
     <div class="card" id="ledCard"><h2>4. LED</h2><div class="leds" id="ledPick"></div><label class="f" style="margin-top:12px">Potência do módulo de LED</label><div class="leds" id="ledWPick"></div>
-      <div class="g2"><div><label class="f">Rabicho do fio por letra (mm)</label><input type="number" id="ledRab" value="3000" step="100" min="0"></div><div><label class="f">Saída do fio na letra</label><select id="ledSaida"><option value="inf">Inferior centralizado</option><option value="sup">Superior centralizado</option></select></div></div>
+      <div class="g2"><div><label class="f">Rabicho do fio por letra (mm)</label><input type="number" id="ledRab" value="3000" step="100" min="0"></div><div><label class="f">Saída do fio na letra</label><select id="ledSaida"><option value="inf">Inferior centralizado</option><option value="meio">Centralizado no meio da letra</option><option value="sup">Superior centralizado</option></select></div></div>
       <details id="ledEsp" class="ledEsp"><summary>Configurações avançadas de LED <span class="badge" id="ledEspUso" hidden>em uso</span><span class="seta">▾</span></summary>
       <div class="g2"><div><label class="f">Distância centro a centro (mm) <span class="badge">opcional</span></label><input type="number" step="1" id="ledGap" placeholder="Padrão do tipo: 80" inputmode="decimal"></div>
       <div><label class="f">Borda até a 1ª fileira (mm) <span class="badge">opcional</span></label><input type="number" step="1" id="ledMarg" placeholder="Padrão do tipo: 45" inputmode="decimal"></div></div>
@@ -2372,6 +2372,8 @@ const FURO_D=3;
 function nFuros(tam){return Math.max(4,Math.ceil(tam/100-1e-9)-1)}
 function circ(c,r,n=20){const o=[];for(let k=0;k<n;k++){const a=2*Math.PI*k/n;o.push([c[0]+r*Math.cos(a),c[1]+r*Math.sin(a)])}return o}
 function saidaFio(g,pos){const cp=toC(g.ps);const b=g.bb;const cx=(b.x0+b.x1)/2;
+  if(pos==='meio'){const cy=(b.y0+b.y1)/2;// meio da letra; se o meio cair num vazio (miolo do O, entre as pernas do A…), vai para o ponto da letra mais perto do centro
+    if(inside([cx,cy],cp))return[cx,cy];for(let r=2;r<Math.max(b.w,b.h);r+=2)for(let a=0;a<48;a++){const q=[cx+r*Math.cos(a*Math.PI/24),cy+r*Math.sin(a*Math.PI/24)];if(inside(q,cp)&&inside([q[0]+3,q[1]],cp)&&inside([q[0]-3,q[1]],cp)&&inside([q[0],q[1]+3],cp)&&inside([q[0],q[1]-3],cp))return q}return null}
   for(const dx of [0,5,-5,10,-10,15,-15,20,-20,30,-30,40,-40]){const x=cx+dx;let edge=null;
     if(pos==='sup'){for(let y=b.y1;y>=b.y0;y-=1)if(inside([x,y],cp)){edge=y;break}if(edge!=null&&inside([x,edge-10],cp)&&inside([x,edge-13],cp))return[x,edge-10]}
     else{for(let y=b.y0;y<=b.y1;y+=1)if(inside([x,y],cp)){edge=y;break}if(edge!=null&&inside([x,edge+10],cp)&&inside([x,edge+13],cp))return[x,edge+10]}}
@@ -3239,6 +3241,12 @@ function isoPrims(P,boxes,R){
   const I=(x,y,z)=>{const q=pr(x,y,z);return[ix+(q[0]-bx0)*si,iy+(by1-q[1])*si]};
   const bs=boxes.slice().sort((a,b)=>((b.x0+b.x1)-(b.y0+b.y1)+(b.z0+b.z1))-((a.x0+a.x1)-(a.y0+a.y1)+(a.z0+a.z1)));
   for(const b of bs){const {x0,x1,y0,y1,z0,z1}=b;const lw=0.06;
+    // peça com contorno recortado (tubo curvo, chapa recortada): lados visíveis + frente com o contorno real, não a caixa
+    if(b.poly&&b.poly.length>2&&!b.wire){const rings=[b.poly,...(b.holes||[])];const sg=q=>{let a=0;for(let i=0;i<q.length;i++){const p=q[i],r=q[(i+1)%q.length];a+=p[0]*r[1]-r[0]*p[1]}return a};
+      const sides=[];rings.forEach((q,ri)=>{const ccw=sg(q)>0,out=ri===0?ccw:!ccw;for(let i=0;i<q.length;i++){const a=q[i],c=q[(i+1)%q.length];let nx=c[1]-a[1],ny=-(c[0]-a[0]);if(!out){nx=-nx;ny=-ny}
+        if(-nx+ny<=0)continue;sides.push({a,c,k:(a[0]+c[0])/2-(a[1]+c[1])/2,sh:Math.abs(nx)>Math.abs(ny)?0.7:1.0})}});
+      sides.sort((u,v)=>v.k-u.k).forEach(sd=>P.push({t:'polyf',pts:[[sd.a[0],sd.a[1],z0],[sd.c[0],sd.c[1],z0],[sd.c[0],sd.c[1],z1],[sd.a[0],sd.a[1],z1]].map(q=>I(...q)),fill:shade(b.cor,sd.sh),stroke:shade(b.cor,sd.sh),lw:0.05}));
+      P.push({t:'pathfill',polys:rings.map(q=>q.map(([x,y])=>I(x,y,z0))),fill:shade(b.cor,0.88)},{t:'path',pts:b.poly.concat([b.poly[0]]).map(([x,y])=>I(x,y,z0)),color:'#1a1a1a',w:0.06});continue}
     const face=(pts,c)=>P.push(b.wire?{t:'poly',pts:pts.map(q=>I(...q)),color:b.cor==='#ffffff'||b.cor==='#f7f7f5'?'#868e96':b.cor,w:0.22}:{t:'polyf',pts:pts.map(q=>I(...q)),fill:c,stroke:'#1a1a1a',lw});
     face([[x0,y0,z0],[x0,y1,z0],[x0,y1,z1],[x0,y0,z1]],shade(b.cor,0.7));
     face([[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],shade(b.cor,1.0));
@@ -4214,7 +4222,7 @@ function caixaCheck(P,x,y,s=5){P.push({t:'rect',x,y,w:s,h:s,r:0.6,fill:'#ffffff'
 function miniDesenho(P,d,bx,by,bw,bh){if(!d)return;if(d.img){const im=d.img,sc=Math.min(bw/im.w,bh/im.h),w=im.w*sc,h=im.h*sc;P.push({t:'img',x:bx+(bw-w)/2,y:by+(bh-h)/2,w,h,src:im.src,fmt:'JPEG'});return}const ps=d.polys||[];const rs=d.rects||[];
   const all=ps.concat(rs.map(r=>[[r.x0,r.y0],[r.x1,r.y1]]));if(!all.length)return;const b=bbox(all);if(!(b.w>0||b.h>0))return;
   const s=Math.min(bw/Math.max(b.w,1),bh/Math.max(b.h,1));const ox=bx+(bw-b.w*s)/2,oy=by+(bh-b.h*s)/2;const M=([x,y])=>[ox+(x-b.x0)*s,oy+(b.y1-y)*s];
-  rs.forEach(r=>{const [x0,y1]=M([r.x0,r.y1]);P.push({t:'rect',x:x0,y:y1,w:Math.max(0.2,(r.x1-r.x0)*s),h:Math.max(0.2,(r.y1-r.y0)*s),fill:r.cor||'#dee2e6',stroke:'#495057',lw:0.06})});
+  rs.forEach(r=>{if(r.poly){P.push({t:'pathfill',polys:[r.poly,...(r.holes||[])].map(q=>q.map(M)),fill:r.cor||'#dee2e6'});return}const [x0,y1]=M([r.x0,r.y1]);P.push({t:'rect',x:x0,y:y1,w:Math.max(0.2,(r.x1-r.x0)*s),h:Math.max(0.2,(r.y1-r.y0)*s),fill:r.cor||'#dee2e6',stroke:'#495057',lw:0.06})});
   if(ps.length)P.push({t:'pathfill',polys:ps.map(p=>p.map(M)),fill:d.fill||'#e9ecef'});ps.forEach(p=>P.push({t:'poly',pts:p.map(M),color:d.cor||'#212529',w:0.15}))}
 
 const PANELA='parafuso auto-atarraxante cabeça panela Phillips (DIN 7981, 5,5 x 25 mm)';
@@ -4267,7 +4275,7 @@ function folhaInstalacao(ctx,prod){const P=[];frame(P,ctx,{setor:setorInst()});P
   const pc=prod.contorno&&prod.contorno.length?prod.contorno:[[[0,0],[W,0],[W,H],[0,H]]];const pb=bbox(pc);const kx=W/Math.max(pb.w,1),ky=H/Math.max(pb.h,1);
   const PM=([x,y])=>[X(L0+(x-pb.x0)*kx),Y(B0+(y-pb.y0)*ky)];
   P.push({t:'rect',x:X(L0),y:Y(B0+H),w:W*s,h:H*s,fill:'#fff0f6',stroke:'#d6336c',lw:0.15});
-  if(prod.contornoRects)prod.contornoRects.forEach(r=>{const a=PM([r.x0,r.y1]),b=PM([r.x1,r.y0]);P.push({t:'rect',x:a[0],y:a[1],w:Math.max(0.2,b[0]-a[0]),h:Math.max(0.2,b[1]-a[1]),fill:r.cor||'#dee2e6',stroke:'#495057',lw:0.05})});
+  if(prod.contornoRects)prod.contornoRects.forEach(r=>{if(r.poly){P.push({t:'pathfill',polys:[r.poly,...(r.holes||[])].map(q=>q.map(PM)),fill:r.cor||'#dee2e6'},{t:'path',pts:r.poly.concat([r.poly[0]]).map(PM),color:'#495057',w:0.08});return}const a=PM([r.x0,r.y1]),b=PM([r.x1,r.y0]);P.push({t:'rect',x:a[0],y:a[1],w:Math.max(0.2,b[0]-a[0]),h:Math.max(0.2,b[1]-a[1]),fill:r.cor||'#dee2e6',stroke:'#495057',lw:0.05})});
   else{P.push({t:'pathfill',polys:pc.map(p=>p.map(PM)),fill:'#ffc9de'});pc.forEach(p=>P.push({t:'poly',pts:p.map(PM),color:'#212529',w:0.15}))}
   // arte da peça (adesivo / placa): a imagem ou o texto em vetor por cima do contorno
   try{const x0=X(L0),y0=Y(B0+H),w=W*s,h=H*s;if(prod.imgInst){const im=prod.imgInst;const k=Math.min(w/im.w,h/im.h),iw=im.w*k,ih=im.h*k;P.push({t:'rect',x:x0,y:y0,w,h,fill:'#ffffff',stroke:'#495057',lw:0.05},{t:'img',x:x0+(w-iw)/2,y:y0+(h-ih)/2,w:iw,h:ih,src:im.src,fmt:'JPEG'})}
@@ -4508,8 +4516,8 @@ function prodTesteira(M,o,ctx){const comp=M.comp;const vols=[];const b3=bbox3(M.
 function prodEstrutura(bs,L,un,ctx,titulo){const b3=bbox3(bs);let kg=0;
   (L||[]).forEach(r=>{const m=String(r.perfil||'').match(/(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)/i);const t=numBR(r.parede);if(m&&t&&/tubo|metalon|barra/i.test((r.tipo||'')+' '+(r.nome||'')))kg+=(r.len||0)*(r.q||1)/1000*tuboKgM(numBR(m[1]),numBR(m[2]),t)});
   return{tipo:'estrutura',mat:matEstrutura(L,un),anc:{peca:'ESTRUTURA',auto:4*un,onde:'pontos de fixação da estrutura (estimado)'},nome:ctx.descItem||titulo,W:b3.x1-b3.x0,H:b3.y1-b3.y0,D:b3.z1-b3.z0,un,
-    volumes:[{desc:'ESTRUTURA',cont:titulo||'Estrutura metálica',dims:`${f0(b3.x1-b3.x0)} x ${f0(b3.y1-b3.y0)} x ${f0(b3.z1-b3.z0)}`,q:un,kg,draw:{rects:bs.map(b=>({x0:b.x0,y0:b.y0,x1:b.x1,y1:b.y1,cor:b.cor}))}}],
-    contornoRects:bs.map(b=>({x0:b.x0,y0:b.y0,x1:b.x1,y1:b.y1,cor:b.cor})),contorno:[[[b3.x0,b3.y0],[b3.x1,b3.y0],[b3.x1,b3.y1],[b3.x0,b3.y1]]],checks:['MEDIDAS','SOLDAS','ACABAMENTO']}}
+    volumes:[{desc:'ESTRUTURA',cont:titulo||'Estrutura metálica',dims:`${f0(b3.x1-b3.x0)} x ${f0(b3.y1-b3.y0)} x ${f0(b3.z1-b3.z0)}`,q:un,kg,draw:{rects:bs.map(b=>({x0:b.x0,y0:b.y0,x1:b.x1,y1:b.y1,cor:b.cor,poly:b.poly,holes:b.holes}))}}],
+    contornoRects:bs.map(b=>({x0:b.x0,y0:b.y0,x1:b.x1,y1:b.y1,cor:b.cor,poly:b.poly,holes:b.holes})),contorno:[[[b3.x0,b3.y0],[b3.x1,b3.y0],[b3.x1,b3.y1],[b3.x0,b3.y1]]],checks:['MEDIDAS','SOLDAS','ACABAMENTO']}}
 
 /* ---------- interface: foto de instalação e posição ---------- */
 let instSlot=null;
@@ -5199,8 +5207,13 @@ function dSoldas(){const P=dModel.pecas;const pts=[];const seen=new Set();const 
     const x0=Math.max(a.x0,b.x0)-t,x1=Math.min(a.x1,b.x1)+t,y0=Math.max(a.y0,b.y0)-t,y1=Math.min(a.y1,b.y1)+t,z0=Math.max(a.z0,b.z0)-t,z1=Math.min(a.z1,b.z1)+t;
     if(x0>x1||y0>y1||z0>z1)continue;const q=[(x0+x1)/2,(y0+y1)/2,(z0+z1)/2];const k=q.map(v=>Math.round(v/30)).join('_');if(seen.has(k))continue;seen.add(k);pts.push(q)}
   return pts}
-function dArea(){let area=0,lin=0;dModel.pecas.forEach(p=>{const d=[p.x1-p.x0,p.y1-p.y0,p.z1-p.z0].sort((a,b)=>a-b);
-  if(p.tipo==='chapa'){area+=2*d[1]*d[2]}else{area+=2*(d[0]+d[1])*d[2];lin+=d[2]}});return{area,lin}}
+function dArea(){let area=0,lin=0;let BX=[];try{BX=dBoxes()}catch(er){}
+  const per=q=>q.reduce((t,v,i)=>{const w=q[(i+1)%q.length];return t+Math.hypot(w[0]-v[0],w[1]-v[1])},0),ar=q=>{let a=0;for(let i=0;i<q.length;i++){const[x1,y1]=q[i],[x2,y2]=q[(i+1)%q.length];a+=x1*y2-x2*y1}return Math.abs(a/2)};
+  dModel.pecas.forEach((p,i)=>{const b=BX[i];const d=[p.x1-p.x0,p.y1-p.y0,p.z1-p.z0].sort((a,b)=>a-b);
+    if(b&&b.poly&&b.poly.length>2){// contorno real (tubo curvo / chapa recortada): lateral do contorno x espessura + as duas faces
+      const pr=per(b.poly)+(b.holes||[]).reduce((t,h)=>t+per(h),0),a=ar(b.poly)-(b.holes||[]).reduce((t,h)=>t+ar(h),0),e=Math.abs(b.z1-b.z0);area+=pr*e+2*a;
+      if(p.tipo!=='chapa')lin+=(+p.comprimento)||pr/2;return}
+    if(p.tipo==='chapa'){area+=2*d[1]*d[2]}else{area+=2*(d[0]+d[1])*d[2];lin+=d[2]}});return{area,lin}}
 
 // anotações à mão no desenho: na peça (p.nota) ou livres (dSrc.notas) — entram no pedido do 3D e numa folha da FP
 function dNotaEditor(alvo,x,y){const ed=$('#dNotaEd');if(!ed)return;const p=alvo.tipo==='peca'?dSrc.pecas.find(q=>q.id===alvo.id):null;const n=alvo.tipo==='nota'?dSrc.notas[alvo.i]:null;const v=p?(p.nota||''):n?n.t:'';
@@ -6910,14 +6923,17 @@ function tt3Init(){if(TT3.r||TT3.fail)return!!TT3.r;const cv=$('#ttCv');if(!cv||
     else if(TT3.ptr.size===2){const [a,b]=[...TT3.ptr.values()];const dd=Math.hypot(a[0]-b[0],a[1]-b[1]);if(TT3.pinch)TT3.R*=TT3.pinch/dd;TT3.pinch=dd}tt3Draw()});
   const up=e=>{TT3.ptr.delete(e.pointerId);TT3.pinch=0};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
   cv.addEventListener('wheel',e=>{e.preventDefault();TT3.R*=Math.pow(1.0015,e.deltaY);tt3Draw()},{passive:false});
+  cv.addEventListener('webglcontextlost',e=>{e.preventDefault();// muitos 3D abertos: o navegador derruba o mais antigo → recria este
+    const n=cv.cloneNode(false);cv.replaceWith(n);TT3.r=null;TT3.scene=null;TT3.grp=null;TT3.fail=false;setTimeout(()=>{if(!$('#tab-totem').hidden)tt3Monta(true)},100)});
   if(window.ResizeObserver)new ResizeObserver(()=>tt3Draw()).observe(cv);return true}
 function tt3Draw(){if(!TT3.r)return;const cv=TT3.r.domElement;const w=cv.clientWidth,h=cv.clientHeight;if(!w)return;
   if(cv.width!==Math.round(w*TT3.r.getPixelRatio())||cv.height!==Math.round(h*TT3.r.getPixelRatio()))TT3.r.setSize(w,h,false);
   const hh=TT3.R*0.32,ww=hh*w/h;Object.assign(TT3.cam,{left:-ww,right:ww,top:hh,bottom:-hh});TT3.cam.updateProjectionMatrix();const [tx,ty,tz]=TT3.tg;
   TT3.cam.position.set(tx+TT3.R*Math.sin(TT3.ph)*Math.sin(TT3.th),ty+TT3.R*Math.cos(TT3.ph),tz+TT3.R*Math.sin(TT3.ph)*Math.cos(TT3.th));TT3.cam.lookAt(tx,ty,tz);TT3.r.render(TT3.scene,TT3.cam)}
-function tt3Monta(manterCam){const info=$('#tt3Info');let G;try{G=ttGeo()}catch(e){if(info)info.textContent='Preencha: '+e.message;return}
-  if(!tt3Init()){if(info)info.textContent='Este navegador não abriu o 3D.';return}
-  const pcs=tt3Pecas(G);TT3.ult={G,pcs};
+function tt3Aviso(t){let o=$('#tt3Ov');const cv=$('#ttCv');if(!cv)return;if(!o){cv.parentElement.style.position='relative';cv.insertAdjacentHTML('afterend','<div id="tt3Ov" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:80%;text-align:center;background:#fff;border:1.5px solid #f783ac;color:#c2255c;font-weight:700;border-radius:12px;padding:12px 16px;pointer-events:none"></div>');o=$('#tt3Ov')}o.textContent=t||'';o.hidden=!t}
+function tt3Monta(manterCam){const info=$('#tt3Info');let G;try{G=ttGeo()}catch(e){if(info)info.textContent='Preencha: '+e.message;tt3Aviso('Para montar o 3D: '+e.message);return}
+  if(!tt3Init()){if(info)info.textContent='Este navegador não abriu o 3D.';tt3Aviso('O navegador não abriu o 3D (WebGL). Recarregue a página.');return}
+  let pcs;try{pcs=tt3Pecas(G)}catch(e){console.error('3D do totem',e);tt3Aviso('Erro ao montar o 3D: '+e.message);return}tt3Aviso('');TT3.ult={G,pcs};
   if(TT3.grp){TT3.scene.remove(TT3.grp);TT3.grp.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()})}
   const g=new THREE.Group();const fm=TT3.fech;
   pcs.forEach(p=>{if(p.fech&&fm==='nao')return;const geo=l3vGeo(p.tris);const tr=p.fech&&fm==='tr';
@@ -6947,12 +6963,12 @@ async function tt3ParaCotas(){if(!TT3.ult)tt3Monta();const by=tt3OBJ(true);if(!b
     else if(v==='dae'){if(!TT3.ult)tt3Monta();if(TT3.ult)salvar(nomeArq((ttv('ttDesc').trim()||'TOTEM')+' (SketchUp).dae'),daeDe(TT3.ult.pcs,ttv('ttDesc')||'TOTEM'))}
     else if(v==='centro'){TT3.ult=null;tt3Monta(false)}else tt3Vista(v)});
   // ao entrar na aba, monta
-  new MutationObserver(()=>{if(!T.hidden)setTimeout(()=>tt3Monta(!!TT3.grp),50)}).observe(T,{attributes:true,attributeFilter:['hidden']})})();
+  new MutationObserver(()=>{if(!T.hidden)setTimeout(()=>{if(TT3.r&&TT3.r.getContext&&TT3.r.getContext().isContextLost&&TT3.r.getContext().isContextLost()){const cv=$('#ttCv');const n=cv.cloneNode(false);cv.replaceWith(n);TT3.r=null;TT3.scene=null;TT3.grp=null}tt3Monta(!!TT3.grp)},50)}).observe(T,{attributes:true,attributeFilter:['hidden']})})();
 
 // COLLADA (.dae) — abre no SketchUp (Arquivo › Importar), cada peça vira um grupo com a sua cor. mm, Y para cima.
-function daeDe(pecas,titulo){const esc2=s=>String(s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));const cores=[...new Set(pecas.map(p=>p.cor||'#999999'))];
+function daeDe(pecas,titulo){pecas=pecas.map(p=>{const tris=p.tris.filter(([a,b,c])=>Math.hypot((b[1]-a[1])*(c[2]-a[2])-(b[2]-a[2])*(c[1]-a[1]),(b[2]-a[2])*(c[0]-a[0])-(b[0]-a[0])*(c[2]-a[2]),(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]))>1e-6).map(t=>t.map(q=>q.slice()));daeOrienta(tris);return{...p,tris}}).filter(p=>p.tris.length);const esc2=s=>String(s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));const cores=[...new Set(pecas.map(p=>p.cor||'#999999'))];
   const rgb=h=>{h=h.replace('#','');return[0,2,4].map(i=>(parseInt(h.slice(i,i+2),16)/255).toFixed(4)).join(' ')};const mid=c=>'m'+c.replace('#','');
-  let fx='',mt='',geo='',nod='';cores.forEach(c=>{fx+=`<effect id="${mid(c)}-fx"><profile_COMMON><technique sid="common"><lambert><diffuse><color>${rgb(c)} 1</color></diffuse></lambert></technique></profile_COMMON></effect>`;mt+=`<material id="${mid(c)}" name="${mid(c)}"><instance_effect url="#${mid(c)}-fx"/></material>`});
+  let fx='',mt='',geo='',nod='';cores.forEach(c=>{fx+=`<effect id="${mid(c)}-fx"><profile_COMMON><technique sid="common"><lambert><diffuse><color>${rgb(c)} 1</color></diffuse></lambert></technique><extra><technique profile="GOOGLEEARTH"><double_sided>1</double_sided></technique></extra></profile_COMMON><extra><technique profile="MAX3D"><double_sided>1</double_sided></technique></extra></effect>`;mt+=`<material id="${mid(c)}" name="${mid(c)}"><instance_effect url="#${mid(c)}-fx"/></material>`});
   pecas.forEach((p,i)=>{const id='g'+i;const pos=[],idx=[];p.tris.forEach(t=>{t.forEach(q=>{pos.push(q[0].toFixed(2),q[1].toFixed(2),q[2].toFixed(2))})});for(let k=0;k<p.tris.length*3;k++)idx.push(k);
     geo+=`<geometry id="${id}" name="${esc2(p.nome)}"><mesh><source id="${id}-p"><float_array id="${id}-pa" count="${pos.length}">${pos.join(' ')}</float_array><technique_common><accessor source="#${id}-pa" count="${pos.length/3}" stride="3"><param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/></accessor></technique_common></source><vertices id="${id}-v"><input semantic="POSITION" source="#${id}-p"/></vertices><triangles material="mat" count="${p.tris.length}"><input semantic="VERTEX" source="#${id}-v" offset="0"/><p>${idx.join(' ')}</p></triangles></mesh></geometry>`;
     nod+=`<node id="n${i}" name="${esc2(p.nome)}"><instance_geometry url="#${id}"><bind_material><technique_common><instance_material symbol="mat" target="#${mid(p.cor||'#999999')}"/></technique_common></bind_material></instance_geometry></node>`});
@@ -6963,6 +6979,18 @@ function dPecas3D(){if(typeof dModel==='undefined'||!dModel)return[];return dBox
   return{nome:`${p.ref||'P'+(i+1)} ${p.nome||''} ${p.perfil||''}`.trim(),cor:b.cor||'#adb5bd',tris:l3dTris([{z0:b.z0,z1:b.z1,regs:[reg.map(r=>toC([r])[0])]}]).map(tr=>[tr[0],tr[2],tr[1]].map(q=>[q[0],q[1],-q[2]]))}})}
 document.addEventListener('click',e=>{if(!(e.target.closest&&e.target.closest('#dDae')))return;const P=dPecas3D();if(!P.length){alert('Monte o 3D primeiro.');return}salvar(nomeArq(((($('#dDesc')||{}).value||'ESTRUTURA').trim())+' (SketchUp).dae'),daeDe(P,dModel.titulo))});
 
+// deixa todas as faces de uma malha viradas para o mesmo lado (vizinhas percorrem a aresta em sentidos opostos) e, em cada parte fechada, para fora.
+// No 3D do sistema as faces aparecem dos dois lados; no SketchUp uma face do avesso aparece cinza/azulada como se faltasse pedaço.
+function daeOrienta(tris){const n=tris.length;if(!n)return;const K=p=>Math.round(p[0]*100)+','+Math.round(p[1]*100)+','+Math.round(p[2]*100);
+  const vk=tris.map(t=>t.map(K));const E=new Map();vk.forEach((t,i)=>{for(let k=0;k<3;k++){const a=t[k],b=t[(k+1)%3];const key=a<b?a+'|'+b:b+'|'+a;(E.get(key)||E.set(key,[]).get(key)).push(i)}});
+  const flip=i=>{const t=tris[i];const x=t[1];t[1]=t[2];t[2]=x;const v=vk[i];const y=v[1];v[1]=v[2];v[2]=y};
+  const dir=(i,a,b)=>{const t=vk[i];for(let k=0;k<3;k++)if(t[k]===a&&t[(k+1)%3]===b)return 1;return-1};
+  const vis=new Uint8Array(n);
+  for(let s0=0;s0<n;s0++){if(vis[s0])continue;const comp=[s0];vis[s0]=1;for(let q=0;q<comp.length;q++){const i=comp[q];const t=vk[i];
+      for(let k=0;k<3;k++){const a=t[k],b=t[(k+1)%3];const key=a<b?a+'|'+b:b+'|'+a;const L=E.get(key);if(!L||L.length!==2)continue;const j=L[0]===i?L[1]:L[0];if(vis[j])continue;
+        if(dir(j,a,b)===1)flip(j); // a vizinha percorre a aresta no mesmo sentido → está do avesso
+        vis[j]=1;comp.push(j)}}
+    let vol=0;comp.forEach(i=>{const [a,b,c]=tris[i];vol+=a[0]*(b[1]*c[2]-b[2]*c[1])-a[1]*(b[0]*c[2]-b[2]*c[0])+a[2]*(b[0]*c[1]-b[1]*c[0])});if(vol<0)comp.forEach(flip)}}
 // ---------- SketchUp (.dae) de QUALQUER 3D do sistema: pega o que está na cena, peça por peça, com a cor ----------
 function daeDaCena(scene){const out=[];if(!scene)return out;scene.updateMatrixWorld(true);const v=new THREE.Vector3();let n=0;
   scene.traverse(o=>{if(!o.isMesh||!o.visible||o.userData.semDae)return;let vis=true;for(let p=o.parent;p;p=p.parent)if(p.visible===false)vis=false;if(!vis)return;
@@ -6970,7 +6998,13 @@ function daeDaCena(scene){const out=[];if(!scene)return out;scene.updateMatrixWo
     const g=o.geometry;if(!g||!g.attributes||!g.attributes.position)return;const pos=g.attributes.position,idx=g.index;const nT=idx?idx.count/3:pos.count/3;
     const mats=o.isInstancedMesh?Array.from({length:o.count},(_,i)=>{const m=new THREE.Matrix4();o.getMatrixAt(i,m);return new THREE.Matrix4().multiplyMatrices(o.matrixWorld,m)}):[o.matrixWorld];
     const cor=mt&&mt.color?'#'+mt.color.getHexString():'#adb5bd';
-    mats.forEach(M=>{const tris=[];for(let t=0;t<nT;t++){const tri=[];for(let k=0;k<3;k++){const ii=idx?idx.getX(t*3+k):t*3+k;v.fromBufferAttribute(pos,ii).applyMatrix4(M);tri.push([v.x,v.y,v.z])}tris.push(tri)}
+    mats.forEach(M=>{const tris=[];const esp=M.determinant()<0; // peça espelhada (escala negativa): inverte a ordem dos vértices para a face não sair do avesso
+      for(let t=0;t<nT;t++){const tri=[];for(let k=0;k<3;k++){const ii=idx?idx.getX(t*3+k):t*3+k;v.fromBufferAttribute(pos,ii).applyMatrix4(M);tri.push([v.x,v.y,v.z])}
+        const a=tri[0],b=tri[1],c=tri[2];const cx=(b[1]-a[1])*(c[2]-a[2])-(b[2]-a[2])*(c[1]-a[1]),cy=(b[2]-a[2])*(c[0]-a[0])-(b[0]-a[0])*(c[2]-a[2]),cz=(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
+        if(Math.hypot(cx,cy,cz)<1e-6)continue; // triângulo sem área (o SketchUp descarta e abre buraco)
+        tris.push(esp?[tri[0],tri[2],tri[1]]:tri)}
+      // malha fechada com o volume negativo = virada para dentro → desvira tudo
+      daeOrienta(tris);
       if(tris.length)out.push({nome:o.name||(o.parent&&o.parent.name)||`peça ${++n}`,cor,tris})})});
   return out}
 const DAE_VIEW={l3dCv:()=>typeof L3V!=='undefined'&&L3V.scene,m3d:()=>typeof M3!=='undefined'&&M3.scene,b3d:()=>typeof B3!=='undefined'&&B3.scene,t3d:()=>typeof V3!=='undefined'&&V3.scene,ttCv:()=>TT3.scene,pl3:()=>typeof pl3!=='undefined'&&pl3.sc};
@@ -7229,7 +7263,7 @@ async function ctGuardar(){if(!$('#ctSetor').value){ctToast('Escolha para qual s
   const c={id:ctEdit>=0&&compCotas[ctEdit]?compCotas[ctEdit].id:'c'+Date.now().toString(36),setor:$('#ctSetor').value,setores:ctSetSel.slice(),modo:ctModo,desc:$('#ctDesc').value.trim(),mat:$('#ctMat').value.trim(),obs:$('#ctObs').value.trim(),qtd:$('#ctQtd').value||'1',larg:$('#ctLarg').value,un:$('#ctUn').value,eixo:$('#ctEixo').value,nome:ctNome,ref,n:ctBytes.length,arqs,cores:ct3&&ct3.cores&&Object.keys(ct3.cores).length?{...ct3.cores}:null,_bytes:ctBytes,_src:ctSrc,_3d:ct3};
   if(ctEdit>=0&&compCotas[ctEdit])compCotas[ctEdit]=c;else compCotas.push(c);if(typeof pedSujo!=='undefined')pedSujo=true;const tp=ctVolta&&ctVolta.tipo;const nIt=$('#item').value;ctSair();await ctPosSalvar(tp);
   // volta para o pedido (o item já foi gravado com a cota)
-  if(typeof pedAtual!=='undefined'&&pedAtual){try{irAba('pedidos');if(typeof pedAbertoRender==='function')pedAbertoRender();window.scrollTo(0,0)}catch(e){console.error(e)}}
+  if(typeof pedAtual!=='undefined'&&pedAtual){try{irAba('pedidos');if(typeof pedAbertoRender==='function')pedAbertoRender();pedIrItem(parseInt(nIt))}catch(e){console.error(e)}}
   ctToast(`✓ Cota salva no item ${nIt||''} — ${(c.setores||[c.setor]).map(x=>x==='GERAL'?'FP Geral':x.toLowerCase()).join(' + ')}`)}
 // depois de salvar/excluir uma cota: grava o item no pedido e atualiza a FP do projeto na tela
 async function ctPosSalvar(tp){try{if(tp&&typeof pedAtual!=='undefined'&&pedAtual&&typeof itemSalvar==='function')await itemSalvar(tp)}catch(e){console.error('salvar item',e)}
@@ -7412,7 +7446,7 @@ function pedBarRender(){isbRender();try{tipoTrocaRender()}catch(e){}const bar=$(
   const it=itemAtual&&itemAtual.tipo===tipo?itemAtual:null;
   bar.innerHTML=`<div class="in"><span><b>Pedido ${esc(pedAtual.os||'—')}${pedAtual.nome?' — '+esc(pedAtual.nome):''}</b> · ${esc(pedAtual.cliente||'sem cliente')} · proj. ${esc(pedAtual.projetista||'—')} · ${it?`${it.novo?'novo ':''}item ${esc($('#item').value||it.n)} (${TIPO_NOME[tipo]})`:`${TIPO_NOME[tipo]} ainda não está no pedido`}</span>
     <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap"><button class="btn pink" id="pbSalvar">${it&&!it.novo?'Salvar alterações no item':'Salvar como item '+esc($('#item').value||'')}</button><button class="btn ghost" id="pbVer" style="background:#fff">Ver pedido</button></span></div><div id="pbMsg" class="note" style="padding:4px 2px"></div>`;
-  $('#pbVer').onclick=()=>{const v={aba:abaAtual(),ia:itemAtual?{...itemAtual}:null,item:$('#item').value,tipo};irAba('pedidos');pedAbrir(pedAtual);itemVolta=v;voltaItemRender()};$('#pbSalvar').onclick=()=>itemSalvar(tipo)}
+  $('#pbVer').onclick=()=>{const v={aba:abaAtual(),ia:itemAtual?{...itemAtual}:null,item:$('#item').value,tipo};irAba('pedidos');pedAbrir(pedAtual);itemVolta=v;voltaItemRender();pedIrItem(v.ia&&v.ia.n||parseInt(v.item))};$('#pbSalvar').onclick=()=>itemSalvar(tipo)}
 $('#item').addEventListener('input',()=>pedBarRender());
 document.querySelectorAll('#tModo button').forEach(b=>b.addEventListener('click',()=>setTimeout(pedBarRender,0)));
 // ---------- captura e restauração do estado de cada tipo ----------
@@ -7733,6 +7767,11 @@ function voltaItemRender(){let el=$('#voltaItem');const tp=$('#tab-pedidos');if(
     const it=w.ia&&(pedAtual.itens||[]).find(i=>i.id===w.ia.id);
     if(w.recarregar&&it){w._abrindo=true;try{await itemAbrir(it,true)}catch(e){console.error(e)}itemVolta=null;voltaItemRender();window.scrollTo(0,0);return}
     itemVolta=null;voltaItemRender();if(w.ia)itemAtual=w.ia;if(w.item)$('#item').value=w.item;irAba(w.aba);try{pedBarRender()}catch(e){}window.scrollTo(0,0)}}
+
+// no pedido, abre e rola até o item em que estava trabalhando (com um destaque rápido)
+function pedIrItem(n){n=+n;if(!n)return;try{if(typeof osAbertos!=='undefined')osAbertos.add(n);if(typeof osListaRender==='function')osListaRender()}catch(e){}
+  setTimeout(()=>{const el=document.querySelector(`[data-osbox="${n}"]`);if(!el)return;const y=el.getBoundingClientRect().top+window.scrollY-130;window.scrollTo({top:Math.max(0,y),behavior:'smooth'});
+    el.style.transition='box-shadow .3s';el.style.boxShadow='0 0 0 4px #e64980';setTimeout(()=>{el.style.boxShadow=''},1800)},120)}
 
 /* ===================== LER ORDEM DE SERVIÇO (PDF) =====================
    Lê nº da OS, cliente, vendedor, endereço, entrega e a lista de itens (com a foto de cada um).
