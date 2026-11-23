@@ -4860,6 +4860,7 @@ function matResolve(N){return N.filter(n=>n.q>0||n.m2>0||n.litros>0).map(n=>{con
     if(!m&&(n.m2>0||n.litros>0)&&!q)q=n.m2>0?Math.round(n.m2*100)/100:Math.round(n.litros*100)/100;
     let vu=m?+m[3]||0:0,data=m?m[5]||'':'',semPreco=false;if(m&&!(vu>0)){const pp=mpPreco[m[0]];if(pp&&pp.valor>0){vu=pp.valor;data=pp.data+' (manual)'}else semPreco=true}
     const qm=matQtd[n.k]!=null;if(qm)q=matQtd[n.k];
+    if(n.semCor&&!(r&&r.manual))return{...n,q,qtdManual:qm,desc:`${n.desc} — COR SEM CADASTRO: cadastrar ou trocar${m?` (preço de referência do cód. ${m[0]})`:''}`,uso:(n.uso||'')+(qm?' • qtd. manual':extra),cod:null,nome:n.refNome,unMP:m?m[2]:n.un,vu,tot:vu*q,data,semPreco};
     return{...n,q,qtdManual:qm,uso:(n.uso||'')+(qm?' • qtd. manual':extra),cod:m?m[0]:null,nome:m?m[1]:null,unMP:(n.un==='m'&&/^fitaled\|/.test(n.k||''))?'m':m?m[2]:n.un,vu,tot:vu*q,data,semPreco,manual:r&&r.manual}})}
 const mpData=d=>{const m=String(d||'').match(/(\d{2})\/(\d{2})\/(\d{4})/);return m?+(m[3]+m[2]+m[1]):0};
 // cor (hex) de cada tinta do cadastro, pela referência escrita no nome: Pantone, RAL, Oracal ou nome da cor
@@ -4889,16 +4890,23 @@ function mpTinta(tipo,CI,cliente,acab){const pre=tipo==='GALVIMAX'?/^TINTA GALVI
   if(!TINTA_HEX)TINTA_HEX=MP.map(r=>/^TINTA/i.test(r[1])?tintaHex(r[1]):null);
   const cand=MP.map((r,i)=>i).filter(i=>pre.test(mpNorm(MP[i][1])));if(!cand.length)return -1;
   const alvo=corAlvo(CI);const code=mpNorm(CI.code||'').replace(/\s+/g,'');const cli=mpNorm(cliente||'').split(/[^A-Z0-9]+/).filter(w=>w.length>2);
-  let best=-1,bs=1e9,bd=0;cand.forEach(i=>{const n=MPN[i],nc=n.replace(/\s+/g,'');let s;
+  let best=-1,bs=1e9,bd=0,braw=1e9;const qual=mpTinta.qualquer;cand.forEach(i=>{const n=MPN[i],nc=n.replace(/\s+/g,'');let s;
     if(code&&code.length>=3&&nc.includes(code))s=-20;else if(alvo&&TINTA_HEX[i])s=dE(alvo,TINTA_HEX[i]);else if(alvo)s=999;else s=500;
-    if(cli.some(w=>n.includes(' '+w)||n.includes('('+w))&&s<35)s-=25;if(acab&&n.includes(mpNorm(acab)))s-=1;
-    const d=mpData(MP[i][5]);if(s<bs-0.5||(Math.abs(s-bs)<=0.5&&d>bd)){best=i;bs=s;bd=d}});return bs<400?best:-1}
+    const raw=s;if(qual)s=0;if(cli.some(w=>n.includes(' '+w)||n.includes('('+w))&&s<35)s-=25;if(acab&&n.includes(mpNorm(acab)))s-=1;
+    const d=mpData(MP[i][5]);if(s<bs-0.5||(Math.abs(s-bs)<=0.5&&d>bd)){best=i;bs=s;bd=d;braw=raw}});if(qual||mpTinta.semLimite)return best;return braw<=TINTA_DE_MAX?best:-1}
+const TINTA_DE_MAX=12; // diferença de cor máxima (ΔE) para aceitar uma tinta do cadastro como a mesma cor
+function mpTintaPerto(tipo,CI){mpTinta.semLimite=true;try{return mpTinta(tipo,CI,'','')}finally{mpTinta.semLimite=false}}
+// cor sem tinta no cadastro → cadastra um item PROVISÓRIO com o preço da tinta de cor mais parecida
+function mpTintaProv(tipo,CI,ref){if(!(CI&&(CI.code||CI.hex)))return -1;let rf=mpTintaPerto(tipo,CI);if(rf<0)rf=mpTintaRef(tipo);if(rf<0)return -1;const m=MP[rf];let v=+m[3]||0;if(!(v>0)&&mpPreco[m[0]])v=mpPreco[m[0]].valor||0;
+  const vol=(String(m[1]).match(/\d+(?:,\d+)?\s*L\b/i)||['0,9L'])[0].replace(/\s+/g,'');const nome=`${tipo==='GALVIMAX'?'TINTA GALVIMAX':tipo} ${vol} REF ${CI.nome&&CI.code&&mpNorm(CI.nome).includes(mpNorm(CI.code))?CI.nome:ref} - TEMPORARIO`.toUpperCase();
+  const ja=MP.findIndex(x=>mpProv(x)&&mpNorm(x[1])===mpNorm(nome));if(ja>=0)return ja;const r=mpCadastra(nome,m[2]||'un',v,`Temporário: cor sem tinta no cadastro — preço copiado da tinta cód. ${m[0]} (${m[1]})`);return MP.findIndex(x=>String(x[0])===String(r[0]))}
+function mpTintaRef(tipo){mpTinta.qualquer=true;try{return mpTinta(tipo,{},'','')}finally{mpTinta.qualquer=false}}
 // tinta pela área pintada (+ catalisador e wash primer quando for PU)
 function needsTinta(area,quem){const out=[];if(!(area>0))return out;const CI=typeof corInfo==='function'?corInfo():{};const ref=[CI.code?`${CI.esc} ${CI.code}`:'',CI.nome||''].filter(Boolean).join(' — ')||'cor a definir';
   const tipo=($('#pTinta')&&$('#pTinta').value)||'TINTA PU';const pu=tipo==='TINTA PU';const nomeT={'TINTA PU':'PU','TINTA DUCO':'Duco','GALVIMAX':'Galvimax','TINTA EPOXI':'Epóxi'}[tipo]||tipo;
-  const cli=($('#cliente')&&$('#cliente').value)||'';const acab=$('#pAcab')?$('#pAcab').value:'';const it=mpTinta(tipo,CI,cli,acab);
+  const cli=($('#cliente')&&$('#cliente').value)||'';const acab=$('#pAcab')?$('#pAcab').value:'';let it=mpTinta(tipo,CI,cli,acab);if(it<0){try{it=mpTintaProv(tipo,CI,ref)}catch(e){console.error('tinta provisória',e);it=-1}}
   const L=area*MPP.demaos/MPP.tintaRend;
-  out.push({k:`tinta|${tipo}|${ref}`,desc:`Tinta ${nomeT} — cor ref.: ${ref}`,litros:L,un:'un',uso:`${quem}: ${f2(area)} m² x ${MPP.demaos} demãos`,busca:it>=0?{must:[MP[it][1]]}:{must:['TINTA ZZZ-SEM-COR']}});
+  out.push({k:`tinta|${tipo}|${ref}`,desc:`Tinta ${nomeT} — cor ref.: ${ref}`,litros:L,un:'un',uso:`${quem}: ${f2(area)} m² x ${MPP.demaos} demãos`,...(it>=0?{busca:{must:[MP[it][1]]}}:(()=>{const rf=mpTintaRef(tipo);return{busca:rf>=0?{must:[MP[rf][1]]}:{must:['TINTA ZZZ-SEM-COR']},semCor:true,refNome:`${tipo} ${ref}`.toUpperCase(),refDe:rf>=0?MP[rf][0]:null}})())});
   if(pu){out.push({k:'tinta|catpu',desc:'Catalisador PU',litros:L*MPP.puCatMl/1000,un:'un',uso:`${MPP.puCatMl} ml por litro de tinta`,busca:{must:['CATALISADOR','PU']}});
     const Wl=area/MPP.washRend;out.push({k:'tinta|wash',desc:'Wash primer',litros:Wl,un:'un',uso:`fundo: ${f2(area)} m² ÷ ${MPP.washRend} m²/L`,busca:{must:['WASH PRIMER'],want:['600ML']}},{k:'tinta|washcat',desc:'Catalisador do wash primer',litros:Wl*MPP.washCat,un:'un',uso:`${String(MPP.washCat).replace('.',',')} L por litro de wash`,busca:{must:['CATALISADOR','WASH']}})}
   if(tipo==='TINTA EPOXI')out.push({k:'tinta|catepox',desc:'Catalisador epóxi',litros:L/4,un:'un',uso:'relação 4:1 (4 de tinta para 1 de catalisador)',busca:{must:['CATALISADOR','EPOX']}});
