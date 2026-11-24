@@ -4855,8 +4855,24 @@ function matLetras(defs,regs,ledInfo,ctx,nests,nb,np,L){const N=[];const temLed=
   if(np&&!plana)N.push({k:'let|panela',desc:'Parafuso cabeça panela (lateral)',q:np,un:'un',uso:'lateral das letras',busca:{must:['CABECA PANELA','2.9X6.5']}});
   {const Q=Math.max(1,(ctx&&ctx.qtd)||1);if(Q>1)N.forEach(it=>{if(/^(acr|acrf|acmf|pvc)\|/.test(it.k||'')||it.k==='galv20'||it.unica)return;['q','m2','litros','m','kg','metros'].forEach(f=>{if(typeof it[f]==='number')it[f]*=Q});if(it.uso)it.uso+=` — x${Q} jogos`})}
   return N}
-function matEstrutura(L,un){const g={};(L||[]).forEach(r=>{if(!/tubo|metalon|barra/i.test((r.tipo||'')+' '+(r.nome||'')))return;const k=(r.perfil||'')+'|'+(r.parede||'');(g[k]=g[k]||[]);for(let i=0;i<(r.q||1)*un;i++)g[k].push(r.len||0)});
-  return Object.entries(g).map(([k,lens])=>{const [p,w]=k.split('|');return needMetalon(p,w,mpBarras(lens),'estrutura')})}
+// estrutura por desenho: cada perfil (metalon, cantoneira, U, Ue, viga W, tubo redondo, barra chata/redonda) vira barras de 6 m
+function mpPol(s){s=String(s||'').trim();const m=s.match(/^(\d+)\.(\d+)\/(\d+)$/);if(m)return +m[1]+m[2]/m[3];const f=s.match(/^(\d+)\/(\d+)$/);if(f)return f[1]/f[2];return parseFloat(s.replace(',','.'))||0}
+function needPerfil(r,lens){const t=typeof dTipoN==='function'?dTipoN(r):null;const s=` ${r.tipo||''} ${r.perfil||''} ${r.nome||''} `.toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const pf=String(r.perfil||'').toUpperCase().replace(/^\s*(L|U|UE|W|I|Ø|O)\s+/,'').replace(/\s+/g,'');const par=String(r.parede||'').replace('.',',').trim();const sc=r.secao||{};const nb=mpBarras(lens);
+  const tot=lens.reduce((a,b)=>a+b,0);const uso=`estrutura — ${lens.length} peça(s), ${f2(tot/1000)} m`;const base={q:nb,un:'un',uso};
+  if(/BARRA CHATA/.test(s)){const m=pf.match(/([\d.\/]+)X#?([\d.\/]+)/);return{k:`bchata|${pf}`,desc:`Barra chata ${r.perfil||''} — barra 6 m`,...base,busca:m?{must:['BARRA CHATA',`#${m[2]}`,` X ${m[1]}`]}:{must:['BARRA CHATA']}}}
+  if(t==='l'){// cantoneira: "1.1/2x3/16" (pol.) ou "50x50x5" (mm)
+    const pf2=pf.replace(/^(\d+)(\d\/\d+)$/,'$1X$2');let m=pf2.match(/^([\d.\/]+)X#?([\d.\/]+)$/)||pf2.match(/^([\d.\/]+)X[\d.\/]+X#?([\d.\/]+)$/);const alu=/ALUMIN/.test(s);{const fp=String(r.parede||'').match(/(\d+\/\d+)/);if(m&&!/\//.test(m[2])&&fp)m[2]=fp[1];else if(!m&&fp&&/^[\d.\/]+$/.test(pf2))m=[0,pf2,fp[1]]}
+    if(m&&!/MM/.test(pf)&&mpPol(m[1])<12)return{k:`cant|${m[1]}x${m[2]}|${alu}`,desc:`Cantoneira ${alu?'de alumínio':'de ferro'} ${m[1]}" x ${m[2]}" — barra 6 m`,...base,busca:{must:[alu?'CANTONEIRA DE ALUMINIO':'CANTONEIRA DE FERRO',`${m[1]} X #${m[2]}`]}};
+    const mm=pf.match(/(\d+)X(\d+)(?:X([\d,]+))?/);return{k:`cant|${pf}`,desc:`Cantoneira ${r.perfil||''}${par?' esp. '+par:''} — barra 6 m`,...base,busca:mm?{must:[alu?'CANTONEIRA DE ALUMINIO':'CANTONEIRA',`${mm[1]}X${mm[2]}`],want:[mm[3]||par]}:{must:['CANTONEIRA']}}}
+  if(t==='u'||t==='ue'){const a=Math.round(+sc.a||0),b=Math.round(+sc.b||0);const m=pf.match(/(\d+)X(\d+)/);const A=m?m[1]:a,B=m?m[2]:b;const e=String(+sc.e||parseFloat(par.replace(',','.'))||'').replace('.',',');
+    return{k:`perfu|${t}|${A}x${B}|${e}`,desc:`${t==='ue'?'Perfil U enrijecido (Ue)':'Viga U'} ${A}x${B}${t==='ue'&&sc.c?'x'+Math.round(sc.c):''}${e?' x '+e+' mm':''} — barra 6 m`,...base,busca:t==='ue'?{must:[['ENRIJEC','UE '],`${A}X${B}`],want:[e+'MM']}:{must:['VIGA U',`${A}X${B}`],want:[e?`${e}MM`:'',e?`X${e}`:'']}}}
+  if(t==='w'){const m=String(r.perfil||'').toUpperCase().match(/([WI])\s*(\d+)/);return{k:`viga|${m?m[1]+m[2]:pf}`,desc:`Viga ${r.perfil||''} — barra 6 m`,...base,busca:m?{must:['VIGA',`${m[1]} ${m[2]}`]}:{must:['VIGA W']}}}
+  if(t==='tr'||t==='br'){const d=+sc.a||parseFloat(String(r.perfil||'').replace(',','.').replace(/[^\d.]/g,''))||0;return{k:`tred|${t}|${r.perfil}|${par}`,desc:`${t==='tr'?'Tubo redondo':'Barra redonda'} ${r.perfil||''}${par&&t==='tr'?' x '+par:''} — barra 6 m`,...base,busca:t==='tr'?(()=>{const pm=String(r.perfil||'').toUpperCase().match(/([\d.\/]+)\s*(?:POL|")/);return pm?{must:['TUBO REDONDO',` ${pm[1]} POL`],want:[par.replace(/\s*mm/i,'')]}:null})()||{must:['TUBO REDONDO'],want:[String(r.perfil||'').toUpperCase().replace(/Ø|DIAM\.?/g,'').trim(),par]}:{must:['BARRA REDONDA'],want:[String(r.perfil||'')]}}}
+  return needMetalon(r.perfil||'',r.parede||'',nb,uso)}
+function matEstrutura(L,un){const g={};(L||[]).forEach(r=>{const s=(r.tipo||'')+' '+(r.nome||'')+' '+(r.perfil||'');if(/chapa|fechamento|tampa/i.test(r.tipo||'')&&!/tubo|metalon|perfil|viga|cantoneira/i.test(s))return;
+    if(!(typeof dTipoN==='function'&&dTipoN(r))&&!/tubo|metalon|barra|perfil|viga|cantoneira/i.test(s))return;const k=[r.tipo,r.perfil,r.parede].join('|');(g[k]=g[k]||{r,lens:[]});for(let i=0;i<(r.q||1)*un;i++)g[k].lens.push(r.len||0)});
+  const out={};Object.values(g).forEach(({r,lens})=>{const n=needPerfil(r,lens);if(out[n.k]){out[n.k].lens.push(...lens)}else out[n.k]={r,lens:lens.slice()}});return Object.values(out).map(({r,lens})=>needPerfil(r,lens))}
 // resolve códigos e valores
 function matResolve(N){return N.filter(n=>n.q>0||n.m2>0||n.litros>0).map(n=>{const r=mpItem(n.k,n.busca);
     if(r&&r.cust){const c=r.cust;const q=matQtd[n.k]!=null?matQtd[n.k]:(n.q||0);return{...n,q,cod:'MANUAL',nome:c.nome,unMP:c.un||n.un,vu:c.valor||0,tot:(c.valor||0)*q,data:c.data||'',manual:true}}
@@ -5091,6 +5107,7 @@ REGRAS DO MODELO:
 PERFIS (você é especialista em perfis de aço e serralheria — use a nomenclatura e as medidas comerciais brasileiras):
 - tubo_quadrado / tubo_retangular (metalon): "40x40", "80x40", parede em mm (0,9 / 1,2 / 1,5 / 2,0 / 2,65 / 3,0) ou chapa nº (#18=1,2; #16=1,5; #14=1,9; #13=2,25; #11=3,0).
 - tubo_redondo: diâmetro externo x parede (Ø 33,4 / 42,2 / 48,3 / 60,3 / 76,2 / 88,9 / 101,6 / 114,3 mm; Schedule/DIN). barra_redonda: maciça (Ø em mm ou pol.).
+- "cantoneira de 1 1/8" ou "cantoneira 1 x 1/8" no jeito de falar da serralheria = aba 1" x espessura 1/8" → perfil "L 1x1/8", secao a=b=25,4, e=3,17.
 - cantoneira (L) de abas iguais: "L 1x1/8", "L 1.1/2x3/16", "L 2x1/4" (aba x espessura em polegadas; 1"=25,4 mm) ou em mm (L 50x50x5). Seção em L: duas abas a 90°.
 - perfil_u (U simples, laminado ou dobrado): "U 75x40x3" (altura da alma x aba x espessura) ou "U 4\"" laminado. Seção em U: alma + 2 abas, SEM dobra na ponta.
 - perfil_u_enrijecido (Ue, "U enrijecido"): "Ue 100x50x17x2,0" (alma x aba x enrijecedor x espessura): igual ao U, mas cada aba termina com uma dobra para dentro (enrijecedor c).
@@ -5149,8 +5166,11 @@ function dForma(p){if(!dSrc||!p||/-T\d/.test(String(p.ref||'')))return null;cons
 function dBoxes(){return dModel?dModel.pecas.map(p=>{const b={x0:p.x0,x1:p.x1,y0:p.y0,y1:p.y1,z0:p.z0,z1:p.z1,cor:p.cor,...(dForma(p)||{})};try{const x=dPerfilExt(p,b);if(x)b.ext=x}catch(e){console.error('perfil 3D',e)}return b}):[]}
 // peça inclinada (diagonal) desenhada como polígono: comprimento = maior lado do polígono
 function dCompInclinada(p){try{const f=dForma(p);if(!f||(f.holes||[]).length)return 0;const q=f.poly;let a=0,L=0;for(let i=0;i<q.length;i++){const[x1,y1]=q[i],[x2,y2]=q[(i+1)%q.length];a+=x1*y2-x2*y1;L=Math.max(L,Math.hypot(x2-x1,y2-y1))}const W=p.x1-p.x0,H=p.y1-p.y0;return Math.abs(a/2)<0.8*W*H?L:0}catch(e){return 0}}
+// nome do material para legenda: tipo + perfil + parede (o material vem antes do nome da peça)
+function dPerfilNome(p){const t=typeof dTipoN==='function'?dTipoN(p):null;const N={l:'CANTONEIRA',u:'VIGA U',ue:'PERFIL Ue',w:'VIGA',tr:'TUBO REDONDO',br:'BARRA REDONDA',tq:'METALON'}[t]||String(p.tipo||'').replace(/_/g,' ').toUpperCase();
+  const pf=String(p.perfil||'').replace(/^\s*(L|U|UE|W|I|Ø)\s+/i,'');const pa=String(p.parede||'').trim();return `${N} ${pf}${pa&&!/\//.test(pf)&&!pf.includes(pa.replace(/\s*mm/i,''))?' #'+pa:''}`.replace(/\s+/g,' ').trim()}
 function dLista(){const rows=[];(dModel?dModel.pecas:[]).forEach(p=>{const ci=dCompInclinada(p);const len=Math.round((ci>0?Math.max(ci,0):p.comprimento)*10)/10;const k=[p.tipo,p.perfil,p.parede,p.nome,len].join('|');
-  let r=rows.find(r=>r.k===k);if(!r){r={k,tipo:p.tipo||'tubo',perfil:p.perfil||'',parede:p.parede||'',nome:p.nome||p.ref,cor:p.cor,len,q:0,refs:[],obs:new Set()};rows.push(r)}r.q++;r.refs.push(p.ref);if(p.obs)r.obs.add(p.obs)});
+  let r=rows.find(r=>r.k===k);if(!r){r={k,tipo:p.tipo||'tubo',perfil:p.perfil||'',parede:p.parede||'',nome:p.nome||p.ref,secao:p.secao||null,abertura:p.abertura||'',cor:p.cor,len,q:0,refs:[],obs:new Set()};rows.push(r)}r.q++;r.refs.push(p.ref);if(p.obs)r.obs.add(p.obs)});
   rows.forEach((r,i)=>{r.item=i+1;r.total=r.len*r.q});return rows}
 function dRender3D(){if(tModo!=='desenho')return;
   if(!dModel){$('#t3dInfo').textContent=dSrc?'Escreva a descrição e toque em "Montar 3D".':'Envie o PDF da estrutura para começar.';if(V3.grp){V3.scene.remove(V3.grp);V3.grp=null;v3Draw()}return}
@@ -5210,7 +5230,7 @@ function dFolhas(){const un=Math.max(1,Math.round(num($('#dUn').value))||1);cons
    cotaH(P,Z(bb.z0),Z(bb.z1),Y(bb.y0)+7,Y(bb.y0),fmI(D),2.4);P.push({t:'text',x:Z(bb.z0)+D*s/2,y:Y(bb.y0)+15,s:'LATERAL',size:3,bold:true,color:'#000000',anchor:'middle'});
    // legendas: padrão de serralharia + cores deste desenho
    legendaSerr(P,220,137,66,dModel.pecas.map(p=>p.perfil));
-   const cores=[];dModel.pecas.forEach(p=>{if(p.tipo==='chapa')return;const r=L.find(r=>r.refs.includes(p.ref));if(!cores.some(c=>c.cor===p.cor))cores.push({cor:p.cor,txt:`${r?r.item+' - ':''}${p.nome}${p.perfil?' '+p.perfil:''}${p.parede?' #'+p.parede:''}`})});
+   const cores=[];dModel.pecas.forEach(p=>{if(p.tipo==='chapa')return;const r=L.find(r=>r.refs.includes(p.ref));if(!cores.some(c=>c.cor===p.cor))cores.push({cor:p.cor,txt:`${r?r.item+' - ':''}${dPerfilNome(p)} — ${p.nome||''}`})});
    const lh=4.4,lw=largo?118:66,lx2=largo?96:220,ly=largo?167-5-lh*cores.length:137-4-5-lh*cores.length;
    P.push({t:'rect',x:lx2,y:ly,w:lw,h:4.5,fill:'#5fd35f',stroke:'#000000',lw:0.2},{t:'text',x:lx2+lw/2,y:ly+3.2,s:'LEGENDA DO DESENHO',size:2.3,bold:true,color:'#000000',anchor:'middle'});
    P.push({t:'rect',x:lx2,y:ly+4.5,w:lw,h:lh*cores.length+0.5,stroke:'#000000',lw:0.2,fill:'#ffffff'});
