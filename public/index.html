@@ -5193,15 +5193,16 @@ function dFolhas(){const un=Math.max(1,Math.round(num($('#dUn').value))||1);cons
    const ISO=isoPrims(P,bs,{x:28,y:44,w:240,h:isoH});isoCotas(P,ISO,bb);if(dPint==='soldas')protecaoSoldas(P,ISO,dSoldas(),un);
    P.push({t:'text',x:PW/2,y:cabe?tTop-4:120,s:`CONJUNTO: ${f0(bb.x1-bb.x0)} (L) x ${f0(bb.y1-bb.y0)} (A) x ${f0(bb.z1-bb.z0)} (P) mm`,size:2.8,bold:true,color:COR_DIM,anchor:'middle'});
    const wrap=(t,w,sz)=>{const out=[];let l='';t.split(/\s+/).forEach(wd=>{if(((l+' '+wd).trim().length)*sz*0.5>w){out.push(l);l=wd}else l=(l+' '+wd).trim()});if(l)out.push(l);return out};
-   pages.push(P);tags.push('MONTAGEM');
+   const D_MONT=false; // folha de montagem + lista de corte: retirada (o plano de corte cobre) — pedido do Guilherme
+   if(D_MONT){pages.push(P);tags.push('MONTAGEM')}
    {const N=dFolhaNotas(ctx,pg);if(N){pages.push(N);tags.push('ANOTAÇÕES')}}
    // lista de corte (na mesma folha se couber)
    const cols=[['Nº',9],['COR',14],['PEÇA',58],['PERFIL',22],['PAREDE',18],['COMPR. (MM)',22],['QTD.',12],['TOTAL (MM)',24],['OBS.',94]];let rh=4.6;
    const tabela=(P,rows,ty)=>{let x=12;cols.forEach(([h,w])=>{P.push({t:'rect',x,y:ty,w,h:rh,fill:'#e6e6e6',stroke:'#000000',lw:0.2},{t:'text',x:x+w/2,y:ty+3.3,s:h,size:2.3,bold:true,color:'#000000',anchor:'middle'});x+=w});
      rows.forEach((r,i)=>{const yy=ty+rh*(i+1);let x=12;const v=[String(r.item),'',`${r.nome} (${r.refs.join(', ')})`,r.perfil,r.parede,f1(r.len),String(r.q),f1(r.total),[...r.obs].join(' / ')];
        cols.forEach(([h,w],k)=>{P.push({t:'rect',x,y:yy,w,h:rh,fill:k===1?r.cor:'#ffffff',stroke:'#000000',lw:0.2});if(k!==1)P.push({t:'text',x:k===2||k===8?x+1.2:x+w/2,y:yy+3.3,s:fit(v[k],w-2,2.3),size:2.3,color:'#000000',anchor:k===2||k===8?undefined:'middle'});x+=w})});return ty+rh*(rows.length+1)};
-   if(cabe){rh=rhF;const ye=tabela(P,L,tTop);P.push({t:'text',x:12,y:ye+4,s:`Quantidades por unidade — total para ${un} un. multiplicar por ${un}.`,size:2.3,color:'#555555'})}
-   else{let i=0;const per=Math.floor((160-36)/rh)-1;while(i<L.length){const Q=[];frame(Q,ctx,pg);Q.push({t:'text',x:PW/2,y:30,s:'LISTA DE CORTE',size:4.2,bold:true,color:'#000000',anchor:'middle'});tabela(Q,L.slice(i,i+per),36);i+=per;pages.push(Q);tags.push('LISTA')}}
+   if(D_MONT){   if(cabe){rh=rhF;const ye=tabela(P,L,tTop);P.push({t:'text',x:12,y:ye+4,s:`Quantidades por unidade — total para ${un} un. multiplicar por ${un}.`,size:2.3,color:'#555555'})}
+   else{let i=0;const per=Math.floor((160-36)/rh)-1;while(i<L.length){const Q=[];frame(Q,ctx,pg);Q.push({t:'text',x:PW/2,y:30,s:'LISTA DE CORTE',size:4.2,bold:true,color:'#000000',anchor:'middle'});tabela(Q,L.slice(i,i+per),36);i+=per;pages.push(Q);tags.push('LISTA')}}}
   }
   // VISTAS: frente (x,y) e lateral (z,y) com cotas no padrão da testeira
   {const P=[];frame(P,ctx,pg);P._ref=null;P.push({t:'text',x:PW/2,y:30,s:'VISTAS E MEDIDAS',size:4.2,bold:true,color:'#000000',anchor:'middle'});
@@ -5236,12 +5237,12 @@ function dFolhas(){const un=Math.max(1,Math.round(num($('#dUn').value))||1);cons
    P.push({t:'rect',x:lx2,y:ly+4.5,w:lw,h:lh*cores.length+0.5,stroke:'#000000',lw:0.2,fill:'#ffffff'});
    cores.forEach((c,k)=>{const y=ly+5.2+k*lh;P.push({t:'rect',x:lx2+2,y,w:6,h:3.2,fill:c.cor,stroke:'#000000',lw:0.15},{t:'text',x:lx2+10,y:y+2.6,s:fit(c.txt,lw-12,2.4),size:2.4,color:'#000000'})});
    pages.push(P);tags.push('VISTAS')}
-  // PLANO DE CORTE (só tubos), barras de 6 m
-  {const barra=6000,serra=3;const grp={};L.filter(r=>/tubo|metalon/i.test(r.tipo+' '+r.nome)||r.tipo==='tubo').forEach(r=>{const k=`${r.perfil} ${r.parede}`.trim();(grp[k]=grp[k]||{cor:r.cor,pcs:[]});for(let i=0;i<r.q*un;i++)grp[k].pcs.push({len:r.len,item:r.item})});
+  // PLANO DE CORTE (todos os perfis em barra: metalon, tubo redondo, U, Ue, cantoneira, viga, barra chata/redonda), barras de 6 m
+  {const barra=6000,serra=3;const grp={};L.filter(r=>{const s=r.tipo+' '+r.nome+' '+r.perfil;if(/chapa|fechamento|tampa/i.test(r.tipo||'')&&!/tubo|metalon|perfil|viga|cantoneira/i.test(s))return false;return dTipoN(r)||/tubo|metalon|barra|perfil|viga|cantoneira/i.test(s)||r.tipo==='tubo'}).forEach(r=>{const k=dPerfilNome(r);(grp[k]=grp[k]||{cor:r.cor,pcs:[]});for(let i=0;i<r.q*un;i++)grp[k].pcs.push({len:r.len,item:r.item})});
    if(Object.keys(grp).length){let P=null,y=0;const novo=()=>{P=[];frame(P,ctx,pg);P.push({t:'text',x:PW/2,y:30,s:`PLANO DE CORTE — BARRAS DE ${f0(barra)} MM (${un} UN.)`,size:4,bold:true,color:'#000000',anchor:'middle'});pages.push(P);tags.push('PLANO');y=38};novo();
     for(const [k,g] of Object.entries(grp)){g.pcs.sort((a,b)=>b.len-a.len);const bars=[];
       for(const pc of g.pcs){if(pc.len>barra){bars.push({pcs:[pc],used:pc.len,emenda:true});continue}let b=bars.find(b=>!b.emenda&&b.used+serra+pc.len<=barra);if(!b){b={pcs:[],used:0};bars.push(b)}b.used+=(b.pcs.length?serra:0)+pc.len;b.pcs.push(pc)}
-      if(y>150)novo();P.push({t:'text',x:14,y:y+3,s:`TUBO ${k.toUpperCase()} — ${bars.length} BARRA${bars.length>1?'S':''}`,size:3,bold:true,color:'#000000'});y+=6;
+      if(y>150)novo();P.push({t:'text',x:14,y:y+3,s:`${k.toUpperCase()} — ${bars.length} BARRA${bars.length>1?'S':''}`,size:3,bold:true,color:'#000000'});y+=6;
       const sc=240/barra;for(const b of bars){if(y>160)novo();P.push({t:'rect',x:40,y,w:barra*sc,h:6,fill:'#f1f3f5',stroke:'#000000',lw:0.2});let xx=40;
         b.pcs.forEach(pc=>{const w=Math.min(pc.len,barra)*sc;P.push({t:'rect',x:xx,y,w,h:6,fill:g.cor,stroke:'#000000',lw:0.2},{t:'text',x:xx+w/2,y:y+4.1,s:`${f1(pc.len)} (${pc.item})`,size:w>22?2.4:1.8,color:escuro(g.cor)?'#ffffff':'#000000',anchor:'middle'});xx+=w+serra*sc});
         if(b.emenda)P.push({t:'text',x:283,y:y+4.1,s:'EMENDAR',size:2.2,bold:true,color:'#c92a2a',anchor:'end'});y+=9}
