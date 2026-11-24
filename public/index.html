@@ -5167,7 +5167,7 @@ function dBoxes(){return dModel?dModel.pecas.map(p=>{const b={x0:p.x0,x1:p.x1,y0
 // peça inclinada (diagonal) desenhada como polígono: comprimento = maior lado do polígono
 function dCompInclinada(p){try{const f=dForma(p);if(!f||(f.holes||[]).length)return 0;const q=f.poly;let a=0,L=0;for(let i=0;i<q.length;i++){const[x1,y1]=q[i],[x2,y2]=q[(i+1)%q.length];a+=x1*y2-x2*y1;L=Math.max(L,Math.hypot(x2-x1,y2-y1))}const W=p.x1-p.x0,H=p.y1-p.y0;return Math.abs(a/2)<0.8*W*H?L:0}catch(e){return 0}}
 // nome do material para legenda: tipo + perfil + parede (o material vem antes do nome da peça)
-function dPerfilNome(p){const t=typeof dTipoN==='function'?dTipoN(p):null;const N={l:'CANTONEIRA',u:'VIGA U',ue:'PERFIL Ue',w:'VIGA',tr:'TUBO REDONDO',br:'BARRA REDONDA',tq:'METALON'}[t]||String(p.tipo||'').replace(/_/g,' ').toUpperCase();
+function dPerfilNome(p){if(dFuro(p))return `FURO ${String(p.perfil||'').replace(/^\s*furo\s*/i,'')}`.trim().toUpperCase();const t=typeof dTipoN==='function'?dTipoN(p):null;const N={l:'CANTONEIRA',u:'VIGA U',ue:'PERFIL Ue',w:'VIGA',tr:'TUBO REDONDO',br:'BARRA REDONDA',tq:'METALON'}[t]||String(p.tipo||'').replace(/_/g,' ').toUpperCase();
   const pf=String(p.perfil||'').replace(/^\s*(L|U|UE|W|I|Ø)\s+/i,'');const pa=String(p.parede||'').trim();return `${N} ${pf}${pa&&!/\//.test(pf)&&!pf.includes(pa.replace(/\s*mm/i,''))?' #'+pa:''}`.replace(/\s+/g,' ').trim()}
 function dLista(){const rows=[];(dModel?dModel.pecas:[]).forEach(p=>{const ci=dCompInclinada(p);const len=Math.round((ci>0?Math.max(ci,0):p.comprimento)*10)/10;const k=[p.tipo,p.perfil,p.parede,p.nome,len].join('|');
   let r=rows.find(r=>r.k===k);if(!r){r={k,tipo:p.tipo||'tubo',perfil:p.perfil||'',parede:p.parede||'',nome:p.nome||p.ref,secao:p.secao||null,abertura:p.abertura||'',cor:p.cor,len,q:0,refs:[],obs:new Set()};rows.push(r)}r.q++;r.refs.push(p.ref);if(p.obs)r.obs.add(p.obs)});
@@ -5210,7 +5210,8 @@ function dFolhas(){const un=Math.max(1,Math.round(num($('#dUn').value))||1);cons
    const nCor=new Set(dModel.pecas.filter(p=>p.tipo!=='chapa').map(p=>p.cor)).size;const legH=Math.max(30,5+4.4*nCor+1);
    const sW=Math.min(214/(W+D),92/H);const largo=48+H*sW+18<=167-legH-3;const s=largo?sW:Math.min(150/(W+D),104/H);
    const ox=30,oy=48;const X=x=>ox+(x-bb.x0)*s,Y=y=>oy+(bb.y1-y)*s;const fs=3;
-   bs.slice().sort((a,b)=>b.z0-a.z0).forEach(b=>{if(b.poly){P.push({t:'polyf',pts:b.poly.map(([x,y])=>[X(x),Y(y)]),fill:b.cor,stroke:'#1a1a1a',lw:0.12});(b.holes||[]).forEach(h=>P.push({t:'polyf',pts:h.map(([x,y])=>[X(x),Y(y)]),fill:'#ffffff',stroke:'#1a1a1a',lw:0.12}))}else P.push({t:'rect',x:X(b.x0),y:Y(b.y1),w:Math.max(0.3,(b.x1-b.x0)*s),h:Math.max(0.3,(b.y1-b.y0)*s),fill:b.cor,stroke:'#1a1a1a',lw:0.12})});
+   const FU=dModel.pecas.map((p,i)=>dFuro(p)?i:-1).filter(i=>i>=0);
+   bs.map((b,i)=>[b,i]).filter(([b,i])=>!FU.includes(i)).map(([b])=>b).sort((a,b)=>b.z0-a.z0).forEach(b=>{if(b.poly){P.push({t:'polyf',pts:b.poly.map(([x,y])=>[X(x),Y(y)]),fill:b.cor,stroke:'#1a1a1a',lw:0.12});(b.holes||[]).forEach(h=>P.push({t:'polyf',pts:h.map(([x,y])=>[X(x),Y(y)]),fill:'#ffffff',stroke:'#1a1a1a',lw:0.12}))}else P.push({t:'rect',x:X(b.x0),y:Y(b.y1),w:Math.max(0.3,(b.x1-b.x0)*s),h:Math.max(0.3,(b.y1-b.y0)*s),fill:b.cor,stroke:'#1a1a1a',lw:0.12})});
    // totais
    cotaH(P,X(bb.x0),X(bb.x1),Y(bb.y1)-7,Y(bb.y1),fmI(W),fs);cotaV(P,X(bb.x0)-8,Y(bb.y1),Y(bb.y0),X(bb.x0),fmI(H),fs);
    // correntes: embaixo pelos eixos das peças verticais; à direita pelas bordas das peças
@@ -5221,17 +5222,23 @@ function dFolhas(){const un=Math.max(1,Math.round(num($('#dUn').value))||1);cons
    // largura de cada peça horizontal que não ocupa a largura toda (ex.: travessa do T)
    {const feitos=[];dModel.pecas.filter(p=>p.tipo!=='chapa'&&(p.x1-p.x0)>(p.y1-p.y0)*1.5&&(p.x1-p.x0)<W*0.97).forEach(p=>{if(feitos.some(f=>Math.abs(f[0]-p.x0)<2&&Math.abs(f[1]-p.x1)<2))return;feitos.push([p.x0,p.x1]);
      cotaH(P,X(p.x0),X(p.x1),Y(p.y1)-4,Y(p.y1),fmI(p.x1-p.x0),fs*0.8)})}
+   // furos: círculo vazado + diâmetro + posição cotada a partir da esquerda e de baixo
+   if(FU.length){const fp=FU.map(i=>dModel.pecas[i]);fp.forEach(p=>{const cx=X((p.x0+p.x1)/2),cy=Y((p.y0+p.y1)/2),r=Math.max(0.8,Math.min(p.x1-p.x0,p.y1-p.y0)/2*s);
+       P.push({t:'circle',x:cx,y:cy,r,fill:'#ffffff',stroke:'#000000',lw:0.25},{t:'line',x1:cx-r-1,y1:cy,x2:cx+r+1,y2:cy,color:'#000000',w:0.12},{t:'line',x1:cx,y1:cy-r-1,x2:cx,y2:cy+r+1,color:'#000000',w:0.12})});
+     const d0=Math.min(...fp.map(p=>p.x1-p.x0));P.push({t:'text',x:X((fp[0].x0+fp[0].x1)/2),y:Y(bb.y0)+4.5,anchor:'middle',s:`${fp.length} FURO${fp.length>1?'S':''} Ø${String(Math.round(d0*10)/10).replace('.',',')}`,size:2.6,bold:true,color:'#c92a2a'});
+     const fx=junta([bb.x0,...fp.map(p=>(p.x0+p.x1)/2),bb.x1],1);for(let k=0;k+1<fx.length;k++)cotaH(P,X(fx[k]),X(fx[k+1]),Y(bb.y0)+13,Y(bb.y0),fmI(fx[k+1]-fx[k]),fs*0.85);
+     const fy=junta(fp.map(p=>(p.y0+p.y1)/2),1);if(fy.length)cotaV(P,X(bb.x0)-15,Y(fy[0]),Y(bb.y0),X(bb.x0),fmI(fy[0]-bb.y0),fs*0.85)}
    // nº da lista em cada peça
-   dModel.pecas.forEach(p=>{const r=L.find(r=>r.refs.includes(p.ref));if(!r||p.tipo==='chapa')return;const cx=X((p.x0+p.x1)/2),cy=Y((p.y0+p.y1)/2);
+   dModel.pecas.forEach(p=>{const r=L.find(r=>r.refs.includes(p.ref));if(!r||p.tipo==='chapa'||dFuro(p))return;const cx=X((p.x0+p.x1)/2),cy=Y((p.y0+p.y1)/2);
      P.push({t:'circle',x:cx,y:cy,r:2,fill:'#ffffff',stroke:'#000000',lw:0.2},{t:'text',x:cx,y:cy+0.9,s:String(r.item),size:2.3,bold:true,color:'#000000',anchor:'middle'})});
-   P.push({t:'text',x:ox+W*s/2,y:Y(bb.y0)+15,s:`FRENTE · ESC. 1:${Math.round(1/s)}`,size:3,bold:true,color:'#000000',anchor:'middle'});
+   P.push({t:'text',x:ox+W*s/2,y:Y(bb.y0)+(FU.length?21:15),s:`FRENTE · ESC. 1:${Math.round(1/s)}`,size:3,bold:true,color:'#000000',anchor:'middle'});
    // lateral
-   const lx=X(bb.x1)+26;const Z=z=>lx+(z-bb.z0)*s;
-   bs.slice().sort((a,b)=>a.x1-b.x1).forEach(b=>P.push({t:'rect',x:Z(b.z0),y:Y(b.y1),w:Math.max(0.3,(b.z1-b.z0)*s),h:Math.max(0.3,(b.y1-b.y0)*s),fill:b.cor,stroke:'#1a1a1a',lw:0.12}));
+   const lx=X(bb.x1)+26;const Z=z=>lx+(z-bb.z0)*s;const bsL=bs.filter((b,i)=>!FU.includes(i));
+   bsL.slice().sort((a,b)=>a.x1-b.x1).forEach(b=>P.push({t:'rect',x:Z(b.z0),y:Y(b.y1),w:Math.max(0.3,(b.z1-b.z0)*s),h:Math.max(0.3,(b.y1-b.y0)*s),fill:b.cor,stroke:'#1a1a1a',lw:0.12}));
    cotaH(P,Z(bb.z0),Z(bb.z1),Y(bb.y0)+7,Y(bb.y0),fmI(D),2.4);P.push({t:'text',x:Z(bb.z0)+D*s/2,y:Y(bb.y0)+15,s:'LATERAL',size:3,bold:true,color:'#000000',anchor:'middle'});
    // legendas: padrão de serralharia + cores deste desenho
-   legendaSerr(P,220,137,66,dModel.pecas.map(p=>p.perfil));
-   const cores=[];dModel.pecas.forEach(p=>{if(p.tipo==='chapa')return;const r=L.find(r=>r.refs.includes(p.ref));if(!cores.some(c=>c.cor===p.cor))cores.push({cor:p.cor,txt:`${r?r.item+' - ':''}${dPerfilNome(p)} — ${p.nome||''}`})});
+   legendaSerr(P,220,137,66,dModel.pecas.filter(p=>!dFuro(p)).map(p=>p.perfil));
+   const cores=[];dModel.pecas.forEach(p=>{if(p.tipo==='chapa')return;const r=L.find(r=>r.refs.includes(p.ref));if(!cores.some(c=>c.cor===p.cor))cores.push({cor:p.cor,txt:`${r?r.item+' - ':''}${dPerfilNome(p)} — ${p.nome||''}`,nm:dPerfilNome(p),its:[]});{const c=cores.find(c=>c.cor===p.cor);if(r&&!c.its.includes(r.item))c.its.push(r.item);if(c.its.length>1)c.txt=`${c.its.join(', ')} - ${dFuro(p)?`FURO${c.its.length>1?'S':''} ${String(p.perfil||'').replace(/^\s*furo\s*/i,'')}`:c.nm}`}});
    const lh=4.4,lw=largo?118:66,lx2=largo?96:220,ly=largo?167-5-lh*cores.length:137-4-5-lh*cores.length;
    P.push({t:'rect',x:lx2,y:ly,w:lw,h:4.5,fill:'#5fd35f',stroke:'#000000',lw:0.2},{t:'text',x:lx2+lw/2,y:ly+3.2,s:'LEGENDA DO DESENHO',size:2.3,bold:true,color:'#000000',anchor:'middle'});
    P.push({t:'rect',x:lx2,y:ly+4.5,w:lw,h:lh*cores.length+0.5,stroke:'#000000',lw:0.2,fill:'#ffffff'});
@@ -5311,7 +5318,8 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 
 // ===== PERFIS REAIS no 3D: cantoneira (L), U, U enrijecido, viga W/I, tubo quadrado/retangular/redondo, barra redonda =====
 // a peça continua sendo a caixa (x0..z1) do modelo; a seção do perfil é desenhada dentro dela, ao longo do maior lado
-function dTipoN(p){const s=` ${p.tipo||''} ${p.perfil||''} ${p.nome||''} `.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[_\-]/g,' ');
+const dFuro=p=>/^\s*(furo|fura[cç])/i.test(p.tipo||'')||/^\s*(furo|fura[cç])/i.test(p.perfil||'')||/^\s*(furo|fura[cç])/i.test(p.nome||'');
+function dTipoN(p){if(dFuro(p))return null;const s=` ${p.tipo||''} ${p.perfil||''} ${p.nome||''} `.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[_\-]/g,' ');
   if(/barra chata|chapa|\bfechamento\b|\btampa\b/.test(s)&&!/tubo|perfil|viga|cantoneira/.test(s))return null;
   if(/enrijec|\bue\b|\bu e\b/.test(s))return'ue';if(/tubo redond|tubo o\b|\bø|tubo d\s?\d/.test(s))return'tr';if(/barra redond|vergalh|\btarugo/.test(s))return'br';
   if(/cantoneira|\bl\s?\d|\bl\b/.test(s))return'l';if(/viga\s?[wih]\b|perfil\s?[wih]\b|\bw\s?\d{2,3}|\bi\s?\d{2,3}/.test(s))return'w';if(/perfil\s?u|viga\s?u|\bu\s?\d|\bu\b/.test(s))return'u';
