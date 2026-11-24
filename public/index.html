@@ -609,10 +609,12 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
       <label class="f" style="margin-top:14px">Pintura da estrutura</label>
       <div class="leds" id="dPintModo"><button data-m="nao" class="sel"><b>Sem pintura</b></button><button data-m="toda"><b>Pintar toda a estrutura</b></button><button data-m="soldas"><b>Só proteção nas soldas</b><span class="note" style="display:block">sem pintura, sem cor</span></button></div>
       <div id="dPintSlot" hidden></div>
+      <div class="dAnx" data-anx="m" style="margin-top:6px"><div class="row" style="gap:6px;align-items:center;flex-wrap:wrap"><label class="btn ghost sm" style="cursor:pointer">📎 Anexar imagem ou PDF<input type="file" accept="image/*,application/pdf,.pdf" multiple hidden data-anxin="m"></label><span class="note" style="margin:0">foto, croqui, print ou PDF para a inteligência entender melhor — também dá para colar (Ctrl+V) no texto</span></div><div class="row anxLista" style="gap:6px;flex-wrap:wrap;margin-top:6px"></div></div>
       <div class="row" style="margin-top:12px;gap:8px"><button class="btn pink" id="dMontar" disabled>Montar 3D</button><span class="note" id="dStatus"></span></div>
       <div id="dAltBox" hidden>
         <label class="f" style="margin-top:14px">3. Alterações (se precisar mudar algo no modelo)</label>
         <textarea id="dAlt" rows="3" placeholder="Ex.: o azul deve aparecer já encaixado dentro do rosa, 200 mm para dentro."></textarea>
+        <div class="dAnx" data-anx="a" style="margin-top:6px"><div class="row" style="gap:6px;align-items:center;flex-wrap:wrap"><label class="btn ghost sm" style="cursor:pointer">📎 Anexar imagem ou PDF<input type="file" accept="image/*,application/pdf,.pdf" multiple hidden data-anxin="a"></label><span class="note" style="margin:0">foto, croqui, print ou PDF para a inteligência entender melhor — também dá para colar (Ctrl+V) no texto</span></div><div class="row anxLista" style="gap:6px;flex-wrap:wrap;margin-top:6px"></div></div>
         <div class="row" style="margin-top:10px;gap:8px"><button class="btn acc" id="dAplicar">Aplicar alteração</button><button class="btn ghost sm" id="dDesfazer" hidden>Desfazer última</button></div>
       </div>
       <div id="dMsg"></div>
@@ -3444,6 +3446,10 @@ function v3Set(boxes){if(!v3Init())return false;
   if(V3.grp){V3.scene.remove(V3.grp);V3.grp.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
   const g=new THREE.Group();const mats={};const lm=new THREE.LineBasicMaterial({color:0x222222,transparent:true,opacity:0.55});
   boxes.forEach(b=>{const dx=Math.max(1,b.x1-b.x0),dy=Math.max(1,b.y1-b.y0),dz=Math.max(1,b.z1-b.z0);
+    if(b.ext){try{const X=b.ext;const sh=new THREE.Shape(X.sec.map(([u,v])=>new THREE.Vector2(u,v)));(X.holes||[]).forEach(h=>sh.holes.push(new THREE.Path(h.map(([u,v])=>new THREE.Vector2(u,v)))));
+      const geo=new THREE.ExtrudeGeometry(sh,{depth:X.len,bevelEnabled:false,curveSegments:4});const mk=b.cor+'|ds';const m=mats[mk]||(mats[mk]=new THREE.MeshLambertMaterial({color:b.cor,side:THREE.DoubleSide}));
+      const M=new THREE.Matrix4().makeBasis(new THREE.Vector3(X.U[0],X.U[1],-X.U[2]),new THREE.Vector3(X.V[0],X.V[1],-X.V[2]),new THREE.Vector3(X.D[0],X.D[1],-X.D[2]));M.setPosition(X.o[0],X.o[1],-X.o[2]);
+      const mesh=new THREE.Mesh(geo,m);mesh.matrixAutoUpdate=false;mesh.matrix.copy(M);g.add(mesh);const ed=new THREE.LineSegments(new THREE.EdgesGeometry(geo,25),lm);ed.matrixAutoUpdate=false;ed.matrix.copy(M);g.add(ed);return}catch(e){console.error('perfil 3D',e)}}
     if(b.poly){try{const sh=new THREE.Shape(b.poly.map(([x,y])=>new THREE.Vector2(x,y)));(b.holes||[]).forEach(h=>sh.holes.push(new THREE.Path(h.map(([x,y])=>new THREE.Vector2(x,y)))));
       const geo=new THREE.ExtrudeGeometry(sh,{depth:dz,bevelEnabled:false});const mk=b.cor;const m=mats[mk]||(mats[mk]=new THREE.MeshLambertMaterial({color:b.cor}));const mesh=new THREE.Mesh(geo,m);mesh.position.set(0,0,-b.z1);g.add(mesh);
       const ed=new THREE.LineSegments(new THREE.EdgesGeometry(geo,20),lm);ed.position.copy(mesh.position);g.add(ed);return}catch(e){console.error('forma 3D',e)}}
@@ -5062,7 +5068,7 @@ function dBotao(){$('#dMontar').disabled=!(dSrc&&$('#dTxt').value.trim().length>
 $('#dTxt').addEventListener('input',dBotao);
 
 /* ---------- pedido ao Claude ---------- */
-const D_SCHEMA=`{"titulo":"nome curto da estrutura","resumo":"1 a 3 frases do que é e como monta","pecas":[{"ref":"P1","nome":"Barra base","tipo":"tubo | chapa | outro","perfil":"80x40","parede":"1,5 mm","material":"Metalon","cor":"#rrggbb (a cor da peça no desenho)","x0":0,"x1":0,"y0":0,"y1":0,"z0":0,"z1":0,"comprimento":0,"obs":"texto curto ou vazio"}],"notas":["observações de fabricação/montagem"]}`;
+const D_SCHEMA=`{"titulo":"nome curto da estrutura","resumo":"1 a 3 frases do que é e como monta","pecas":[{"ref":"P1","nome":"Barra base","tipo":"tubo_quadrado | tubo_retangular | tubo_redondo | cantoneira | perfil_u | perfil_u_enrijecido | viga_w | viga_i | barra_chata | barra_redonda | chapa | outro","perfil":"ex.: 80x40 / U 100x50 / L 1.1/2x3/16 / W 150x13 / Ø 48,3","parede":"1,5 mm","material":"Metalon / aço carbono / galvanizado","secao":{"a":0,"b":0,"e":0,"c":0,"tf":0,"tw":0},"abertura":"lado(s) para onde o perfil abre: frente | tras | cima | baixo | esquerda | direita (U: 1 lado; cantoneira: 2 lados, ex. 'tras+direita'; tubos/viga: vazio)","cor":"#rrggbb (a cor da peça no desenho)","x0":0,"x1":0,"y0":0,"y1":0,"z0":0,"z1":0,"comprimento":0,"obs":"texto curto ou vazio"}],"notas":["observações de fabricação/montagem"]}`;
 function dPrompt(){const P=dSrc.pecas.map(p=>({id:p.id,cor:p.cor,nome_cor:p.nome,x0:p.x0,y0:p.y0,largura:p.w,altura:p.h,formato:(p.ret?'retângulo':'forma livre')+(p.vazado?' — CONTORNO VAZADO (só a borda; o miolo é vazio, não é chapa cheia)':''),...(p.nota?{informacao_do_projetista:p.nota}:{})}));
   return `Você é projetista de serralheria da Granda Comunicação Visual. Monte o modelo 3D de uma estrutura metálica a partir de um desenho e de uma descrição.
 
@@ -5082,6 +5088,19 @@ REGRAS DO MODELO:
 - Fechamentos/tampas de chapa citados: crie peças extras tipo "chapa" (ref = ref da peça + "-T1", "-T2"), com a espessura citada, nas pontas certas, mesma seção do tubo; coloque-as por fora da ponta do tubo.
 - comprimento = maior dimensão da caixa (mm). Para chapa, comprimento = maior lado.
 - Use a cor do desenho em "cor". Não invente peças que não estejam no desenho ou na descrição.
+PERFIS (você é especialista em perfis de aço e serralheria — use a nomenclatura e as medidas comerciais brasileiras):
+- tubo_quadrado / tubo_retangular (metalon): "40x40", "80x40", parede em mm (0,9 / 1,2 / 1,5 / 2,0 / 2,65 / 3,0) ou chapa nº (#18=1,2; #16=1,5; #14=1,9; #13=2,25; #11=3,0).
+- tubo_redondo: diâmetro externo x parede (Ø 33,4 / 42,2 / 48,3 / 60,3 / 76,2 / 88,9 / 101,6 / 114,3 mm; Schedule/DIN). barra_redonda: maciça (Ø em mm ou pol.).
+- cantoneira (L) de abas iguais: "L 1x1/8", "L 1.1/2x3/16", "L 2x1/4" (aba x espessura em polegadas; 1"=25,4 mm) ou em mm (L 50x50x5). Seção em L: duas abas a 90°.
+- perfil_u (U simples, laminado ou dobrado): "U 75x40x3" (altura da alma x aba x espessura) ou "U 4\"" laminado. Seção em U: alma + 2 abas, SEM dobra na ponta.
+- perfil_u_enrijecido (Ue, "U enrijecido"): "Ue 100x50x17x2,0" (alma x aba x enrijecedor x espessura): igual ao U, mas cada aba termina com uma dobra para dentro (enrijecedor c).
+- viga_w / viga_i (perfil I/H laminado): "W 150x13,0" (altura x kg/m), "W 200x15", "I 4\"" — duas mesas (tf) + alma (tw).
+- barra_chata: "1.1/2x3/16". chapa: espessura em mm ou nº.
+- secao (sempre em mm, números): a = altura/maior lado da seção, b = largura/aba, e = espessura (parede/aba/alma), c = enrijecedor (só Ue), tf/tw = mesa/alma (só viga). Converta polegadas para mm.
+- A caixa da peça (x0..z1) é o envelope externo do perfil: o maior lado é o comprimento e os outros dois lados são a seção. Use a medida que aparece no desenho para x/y e a outra medida da seção para a profundidade z.
+- abertura: para onde fica o lado aberto do U (o oposto da alma), ou os dois lados abertos da cantoneira (o canto do L fica no lado oposto). Ex.: quadro com U de frente para trás = "tras"; cantoneira com uma aba na frente e outra virada para dentro do quadro = os lados abertos são "tras" e o lado de dentro (esquerda/direita/cima/baixo conforme a peça).
+- Respeite o que o projetista escrever ("o verde é U", "o amarelo é cantoneira"): o tipo dele manda. Cada cor/peça pode ser um perfil diferente — NÃO repita o mesmo perfil para tudo.
+- Não monte U, L ou viga juntando várias caixas: use UMA peça com tipo + secao + abertura (o sistema desenha a seção real).
 - Se algo for ambíguo, escolha o mais comum em serralheria. "notas": no máximo 3 itens bem curtos (até 12 palavras cada), só o que realmente falta definir; pode ser vazio.
 
 Responda SOMENTE com JSON válido neste formato (sem texto fora do JSON):
@@ -5099,7 +5118,9 @@ function dValida(m){if(!m||!Array.isArray(m.pecas))throw new Error('resposta sem
 async function dPedir(msgs){const sample=window.claude&&claude.use?await claude.use('sample'):null;
   if(!sample)throw new Error('O assistente não está disponível nesta visualização. Abra o sistema pelo link no claude.ai.');
   const opts={modelTier:'complex',cache:false,onText:({text})=>{$('#dStatus').textContent=text&&text!=='Thinking...'?`montando… (${text.length} caracteres)`:'pensando…'}};
-  try{const lim=await sample.limits();if(lim&&lim.images){const im=await dImagem();if(im)opts.images=[im]}}catch(e){}
+  const anx=dAnx[dAnxUso]||[];let semImg=false;try{const lim=await sample.limits();if(lim&&lim.images){const im=await dImagem();opts.images=[...(im?[im]:[]),...anx.map(a=>a.blob)];if(!opts.images.length)delete opts.images}else semImg=anx.length>0}catch(e){semImg=anx.length>0}
+  if(semImg)throw new Error('Esta visualização não aceita imagens para a inteligência — tire os anexos ou abra pelo link no claude.ai.');
+  if(anx.length){msgs=msgs.slice();const u=msgs[msgs.length-1];msgs[msgs.length-1]={...u,content:u.content+`\n\nANEXOS DO PROJETISTA: depois da imagem 1 (o desenho das peças) vêm ${anx.length} imagem(ns) que ele mandou para explicar melhor: ${anx.map((a,i)=>`imagem ${i+2} = ${a.nome}`).join('; ')}. Use-as para entender perfis, formatos, posição das abas e a montagem; as medidas continuam vindo do desenho.`}}
   const r=await sample(msgs,opts);let t=(r.text||'').trim();const a=t.indexOf('{'),b=t.lastIndexOf('}');if(a<0||b<0)throw new Error('a resposta não veio em JSON');
   return {raw:t.slice(a,b+1),model:dValida(JSON.parse(t.slice(a,b+1)))}}
 async function dRodar(msgs,btn){btn.disabled=true;$('#dMsg').innerHTML='';$('#dStatus').textContent='pensando…';
@@ -5107,9 +5128,9 @@ async function dRodar(msgs,btn){btn.disabled=true;$('#dMsg').innerHTML='';$('#dS
     $('#dStatus').textContent=`${model.pecas.length} peça(s) no modelo`;$('#dAltBox').hidden=false;$('#dDesfazer').hidden=!dPrevModels.length;$('#dResCard').hidden=false;v3Fit=true;dRender3D()}
   catch(e){$('#dStatus').textContent='';$('#dMsg').innerHTML=`<div class="msg err">${e.code==='not_granted'?'Permissão para usar o Claude não concedida.':e.code==='rate_limited'?'Muitas solicitações seguidas — aguarde um pouco e tente de novo.':'Não consegui montar: '+esc(e.message||e.code)}</div>`}
   finally{btn.disabled=false;dBotao()}}
-$('#dMontar').onclick=()=>{if(!dSrc)return;dModel=null;dPrevModels=[];dRodar([{role:'user',content:dPrompt()}],$('#dMontar'))};
-$('#dAplicar').onclick=()=>{const t=$('#dAlt').value.trim();if(!t||!dHist.length)return;
-  dRodar(dHist.concat([{role:'user',content:`ALTERAÇÃO pedida pelo projetista:\n"""${t}"""\nAplique a alteração mantendo todo o resto. Responda SOMENTE com o JSON completo atualizado, no mesmo formato.`}]),$('#dAplicar')).then(()=>{if(dModel)$('#dAlt').value=''})};
+$('#dMontar').onclick=()=>{if(!dSrc)return;dAnxUso='m';dModel=null;dPrevModels=[];dRodar([{role:'user',content:dPrompt()}],$('#dMontar'))};
+$('#dAplicar').onclick=()=>{const t=$('#dAlt').value.trim();if(!t||!dHist.length)return;dAnxUso='a';
+  dRodar(dHist.concat([{role:'user',content:`ALTERAÇÃO pedida pelo projetista:\n"""${t}"""\nAplique a alteração mantendo todo o resto. Responda SOMENTE com o JSON completo atualizado, no mesmo formato.`}]),$('#dAplicar')).then(()=>{if(dModel){$('#dAlt').value='';dAnx.a=[];dAnxRender()}})};
 $('#dDesfazer').onclick=()=>{if(!dPrevModels.length)return;dModel=dPrevModels.pop();dHist=dHist.slice(0,-2);$('#dDesfazer').hidden=!dPrevModels.length;v3Fit=true;dRender3D()};
 
 /* ---------- 3D, tabela e folhas ---------- */
@@ -5125,7 +5146,7 @@ function dForma(p){if(!dSrc||!p||/-T\d/.test(String(p.ref||'')))return null;cons
   const A=ar(sp.poly),P=per(sp.poly);const holes=(sp.holes||[]).filter(h=>(A-ar(h))/P>4);
   const reto=!holes.length&&A>=0.97*sp.w*sp.h; // só é retângulo cheio se preencher a própria caixa (diagonais/inclinadas não)if(reto)return null;
   const m=([x,y])=>[p.x0+(x-sp.x0)/sp.w*W,p.y0+(y-sp.y0)/sp.h*H];return{poly:sp.poly.map(m),holes:holes.map(h=>h.map(m))}}
-function dBoxes(){return dModel?dModel.pecas.map(p=>({x0:p.x0,x1:p.x1,y0:p.y0,y1:p.y1,z0:p.z0,z1:p.z1,cor:p.cor,...(dForma(p)||{})})):[]}
+function dBoxes(){return dModel?dModel.pecas.map(p=>{const b={x0:p.x0,x1:p.x1,y0:p.y0,y1:p.y1,z0:p.z0,z1:p.z1,cor:p.cor,...(dForma(p)||{})};try{const x=dPerfilExt(p,b);if(x)b.ext=x}catch(e){console.error('perfil 3D',e)}return b}):[]}
 // peça inclinada (diagonal) desenhada como polígono: comprimento = maior lado do polígono
 function dCompInclinada(p){try{const f=dForma(p);if(!f||(f.holes||[]).length)return 0;const q=f.poly;let a=0,L=0;for(let i=0;i<q.length;i++){const[x1,y1]=q[i],[x2,y2]=q[(i+1)%q.length];a+=x1*y2-x2*y1;L=Math.max(L,Math.hypot(x2-x1,y2-y1))}const W=p.x1-p.x0,H=p.y1-p.y0;return Math.abs(a/2)<0.8*W*H?L:0}catch(e){return 0}}
 function dLista(){const rows=[];(dModel?dModel.pecas:[]).forEach(p=>{const ci=dCompInclinada(p);const len=Math.round((ci>0?Math.max(ci,0):p.comprimento)*10)/10;const k=[p.tipo,p.perfil,p.parede,p.nome,len].join('|');
@@ -5228,6 +5249,7 @@ function dSoldas(){const P=dModel.pecas;const pts=[];const seen=new Set();const 
 function dArea(){let area=0,lin=0;let BX=[];try{BX=dBoxes()}catch(er){}
   const per=q=>q.reduce((t,v,i)=>{const w=q[(i+1)%q.length];return t+Math.hypot(w[0]-v[0],w[1]-v[1])},0),ar=q=>{let a=0;for(let i=0;i<q.length;i++){const[x1,y1]=q[i],[x2,y2]=q[(i+1)%q.length];a+=x1*y2-x2*y1}return Math.abs(a/2)};
   dModel.pecas.forEach((p,i)=>{const b=BX[i];const d=[p.x1-p.x0,p.y1-p.y0,p.z1-p.z0].sort((a,b)=>a-b);
+    if(b&&b.ext){const pe=per(b.ext.sec)+(b.ext.t==='tq'||b.ext.t==='tr'?0:0);area+=pe*b.ext.len;if(p.tipo!=='chapa')lin+=b.ext.len;return}
     if(b&&b.poly&&b.poly.length>2){// contorno real (tubo curvo / chapa recortada): lateral do contorno x espessura + as duas faces
       const pr=per(b.poly)+(b.holes||[]).reduce((t,h)=>t+per(h),0),a=ar(b.poly)-(b.holes||[]).reduce((t,h)=>t+ar(h),0),e=Math.abs(b.z1-b.z0);area+=pr*e+2*a;
       if(p.tipo!=='chapa')lin+=(+p.comprimento)||pr/2;return}
@@ -5252,6 +5274,61 @@ function dFolhaNotas(ctx,pg){const ns=dSrc&&((dSrc.notas||[]).length||dSrc.pecas
   const li=[];dSrc.pecas.forEach(p=>{if(p.nota)li.push({x:p.x0+p.w/2,y:p.y0+p.h/2,t:`${p.id}: ${p.nota}`})});(dSrc.notas||[]).forEach(n=>li.push(n));
   li.forEach((n,i)=>{const tx=218,ty=48+i*9;P.push({t:'circle',x:X(n.x),y:Y(n.y),r:1.6,fill:'#c2255c',stroke:'#ffffff',lw:0.3},{t:'line',x1:X(n.x),y1:Y(n.y),x2:tx-1,y2:ty-1,color:'#c2255c',w:0.25},{t:'circle',x:tx+2,y:ty-1,r:2.4,fill:'#c2255c',stroke:'#c2255c',lw:0.2},{t:'text',x:tx+2,y:ty,s:String(i+1),size:2.3,bold:true,color:'#ffffff',anchor:'middle'},{t:'text',x:tx+6,y:ty,s:fit(n.t,70,2.6),size:2.6,bold:true,color:'#000000'})});
   return P}
+
+// ===== anexos (imagem / PDF) para a inteligência entender melhor — construção ('m') e alterações ('a') =====
+let dAnx={m:[],a:[]},dAnxUso='m';const D_ANX_MAX=6;
+async function dAnxImg(blob){const url=URL.createObjectURL(blob);try{const im=await new Promise((ok,er)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=er;i.src=url});const s=Math.min(1,1600/Math.max(im.width,im.height));const cv=document.createElement('canvas');cv.width=Math.max(1,Math.round(im.width*s));cv.height=Math.max(1,Math.round(im.height*s));const g=cv.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,cv.width,cv.height);g.drawImage(im,0,0,cv.width,cv.height);return await new Promise(r=>cv.toBlob(r,'image/jpeg',0.88))}finally{URL.revokeObjectURL(url)}}
+async function dAnxPdf(file){const doc=await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;const out=[];for(let n=1;n<=Math.min(doc.numPages,3);n++){const p=await doc.getPage(n);const v0=p.getViewport({scale:1});const vp=p.getViewport({scale:Math.min(3,1600/Math.max(v0.width,v0.height))});const cv=document.createElement('canvas');cv.width=Math.ceil(vp.width);cv.height=Math.ceil(vp.height);const g=cv.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,cv.width,cv.height);await p.render({canvasContext:g,viewport:vp}).promise;out.push({nome:file.name+(doc.numPages>1?` (pág. ${n})`:''),blob:await new Promise(r=>cv.toBlob(r,'image/jpeg',0.88))})}return out}
+async function dAnxAdd(k,files){for(const f of files){if(dAnx[k].length>=D_ANX_MAX){alert(`Máximo de ${D_ANX_MAX} anexos.`);break}
+  try{if(/pdf/i.test(f.type)||/\.pdf$/i.test(f.name||''))dAnx[k].push(...(await dAnxPdf(f)).slice(0,D_ANX_MAX-dAnx[k].length));else if(/^image\//.test(f.type))dAnx[k].push({nome:f.name||'imagem colada',blob:await dAnxImg(f)});else alert('Envie imagem (JPG, PNG…) ou PDF: '+f.name)}catch(e){console.error(e);alert('Não consegui ler '+(f.name||'o arquivo')+': '+e.message)}}dAnxRender()}
+function dAnxRender(){document.querySelectorAll('.dAnx').forEach(bx=>{const k=bx.dataset.anx;const L=bx.querySelector('.anxLista');L.querySelectorAll('img').forEach(i=>URL.revokeObjectURL(i.src));
+  L.innerHTML=dAnx[k].map((a,i)=>`<span style="display:inline-flex;gap:5px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:3px 6px;background:#fff;font-size:12px"><img alt="" style="width:42px;height:42px;object-fit:cover;border-radius:4px"><span class="anxNm" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span><button type="button" class="btn ghost sm" data-anxdel="${k}|${i}" style="padding:1px 7px">✕</button></span>`).join('');
+  [...L.children].forEach((el,i)=>{el.querySelector('img').src=URL.createObjectURL(dAnx[k][i].blob);el.querySelector('.anxNm').textContent=dAnx[k][i].nome})})}
+document.addEventListener('change',e=>{const k=e.target.dataset&&e.target.dataset.anxin;if(!k)return;dAnxAdd(k,[...e.target.files]);e.target.value=''});
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-anxdel]');if(!b)return;const[k,i]=b.dataset.anxdel.split('|');dAnx[k].splice(+i,1);dAnxRender()});
+[['#dTxt','m'],['#dAlt','a']].forEach(([s,k])=>{const t=$(s);if(t)t.addEventListener('paste',e=>{const f=[...((e.clipboardData&&e.clipboardData.files)||[])].filter(x=>/^image\/|pdf/.test(x.type));if(f.length){e.preventDefault();dAnxAdd(k,f)}})});
+
+// ===== PERFIS REAIS no 3D: cantoneira (L), U, U enrijecido, viga W/I, tubo quadrado/retangular/redondo, barra redonda =====
+// a peça continua sendo a caixa (x0..z1) do modelo; a seção do perfil é desenhada dentro dela, ao longo do maior lado
+function dTipoN(p){const s=` ${p.tipo||''} ${p.perfil||''} ${p.nome||''} `.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[_\-]/g,' ');
+  if(/barra chata|chapa|\bfechamento\b|\btampa\b/.test(s)&&!/tubo|perfil|viga|cantoneira/.test(s))return null;
+  if(/enrijec|\bue\b|\bu e\b/.test(s))return'ue';if(/tubo redond|tubo o\b|\bø|tubo d\s?\d/.test(s))return'tr';if(/barra redond|vergalh|\btarugo/.test(s))return'br';
+  if(/cantoneira|\bl\s?\d|\bl\b/.test(s))return'l';if(/viga\s?[wih]\b|perfil\s?[wih]\b|\bw\s?\d{2,3}|\bi\s?\d{2,3}/.test(s))return'w';if(/perfil\s?u|viga\s?u|\bu\s?\d|\bu\b/.test(s))return'u';
+  if(/tubo|metalon/.test(s))return'tq';return null}
+function dEspN(p,t){const sc=p.secao||{};if(+sc.e>0)return +sc.e;const s=String(p.parede||'');const f=s.match(/(\d+)\s*\/\s*(\d+)/);if(f&&(/"|pol|''/.test(s)||!/mm/.test(s)))return 25.4*f[1]/f[2];const n=parseFloat(s.replace(',','.'));if(n>0)return n;return{tq:1.5,tr:2,l:3.17,u:3,ue:2,w:6}[t]||2}
+const D_LADOS={esquerda:[0,-1],direita:[0,1],baixo:[1,-1],cima:[1,1],frente:[2,-1],tras:[2,1],'trás':[2,1],fora:null,dentro:null};
+function dAbre(p){const s=String(p.abertura||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');return Object.keys(D_LADOS).filter(k=>D_LADOS[k]&&s.includes(k.normalize('NFD').replace(/[̀-ͯ]/g,''))).map(k=>D_LADOS[k])}
+const dCirc=(cx,cy,r,n=28)=>Array.from({length:n},(_,i)=>[cx+r*Math.cos(2*Math.PI*i/n),cy+r*Math.sin(2*Math.PI*i/n)]);
+// seção no retângulo W(u) x H(v); "open" = lados abertos {u:±1|0, v:±1|0}
+function dSecao(t,W,H,e,open,p){const sc=p.secao||{};e=Math.max(0.5,Math.min(e,Math.min(W,H)/2.2));
+  const fu=q=>open.u<0?q.map(([u,v])=>[W-u,v]):q,fv=q=>open.v<0?q.map(([u,v])=>[u,H-v]):q;
+  if(t==='tq')return{sec:[[0,0],[W,0],[W,H],[0,H]],holes:[[[e,e],[W-e,e],[W-e,H-e],[e,H-e]]]};
+  if(t==='tr'||t==='br'){const r=Math.min(W,H)/2;return{sec:dCirc(W/2,H/2,r),holes:t==='tr'&&r-e>0.5?[dCirc(W/2,H/2,r-e)]:[]}}
+  if(t==='l')return{sec:fv(fu([[0,0],[W,0],[W,e],[e,e],[e,H],[0,H]]))};
+  if(t==='u'||t==='ue'){// abertura num eixo só: canônico abre para +v (alma em v=0)
+    const mk=(W,H)=>{if(t==='u')return[[0,0],[W,0],[W,H],[W-e,H],[W-e,e],[e,e],[e,H],[0,H]];const c=Math.min(+sc.c||Math.max(10,H*0.25),H-e*2);
+      return[[0,0],[W,0],[W,H],[W-c,H],[W-c,H-e],[W-e,H-e],[W-e,e],[e,e],[e,H-e],[c,H-e],[c,H],[0,H]]};
+    if(open.v){const q=mk(W,H);return{sec:open.v<0?q.map(([u,v])=>[u,H-v]):q}}const q=mk(H,W).map(([a,b])=>[b,a]);return{sec:open.u<0?q.map(([u,v])=>[W-u,v]):q}}
+  if(t==='w'){const tw=+sc.tw||e,tf=+sc.tf||Math.max(e*1.45,5);const mk=(W,H)=>[[0,0],[W,0],[W,tf],[W/2+tw/2,tf],[W/2+tw/2,H-tf],[W,H-tf],[W,H],[0,H],[0,H-tf],[W/2-tw/2,H-tf],[W/2-tw/2,tf],[0,tf]];
+    const altV=sc.alma?/v|vert|cima|baixo|y/.test(String(sc.alma)):H>=W;return{sec:altV?mk(W,H):mk(H,W).map(([a,b])=>[b,a])}}
+  return null}
+function dPerfilExt(p,b){const t=dTipoN(p);if(!t)return null;const e=dEspN(p,t);const ab=dAbre(p);
+  const AX=[[1,0,0],[0,1,0],[0,0,1]];
+  if(b.poly&&b.poly.length>2){// peça inclinada (diagonal) no plano x-y: comprimento ao longo do maior lado, seção = largura perpendicular x profundidade
+    const q=b.poly;let L=0,d=[1,0];q.forEach((v,i)=>{const w=q[(i+1)%q.length];const l=Math.hypot(w[0]-v[0],w[1]-v[1]);if(l>L){L=l;d=[(w[0]-v[0])/l,(w[1]-v[1])/l]}});
+    if(d[1]<0||(Math.abs(d[1])<1e-9&&d[0]<0))d=[-d[0],-d[1]];const n=[-d[1],d[0]];const pd=q.map(v=>v[0]*d[0]+v[1]*d[1]),pn=q.map(v=>v[0]*n[0]+v[1]*n[1]);
+    const n0=Math.min(...pn),n1=Math.max(...pn),W=n1-n0,H=b.z1-b.z0;if(!(W>1&&H>1))return null;const cx=q.reduce((s,v)=>s+v[0],0)/q.length,cy=q.reduce((s,v)=>s+v[1],0)/q.length;const cd=(Math.min(...pd)+Math.max(...pd))/2;
+    const len=Math.min(L,Math.max(...pd)-Math.min(...pd));const c0=cx*d[0]+cy*d[1];
+    const op={u:0,v:0};ab.forEach(([a,s])=>{if(a===2)op.v=s;else{const dot=a===0?n[0]:n[1];if(Math.abs(dot)>0.2)op.u=s*Math.sign(dot)}});
+    if(t==='l'){if(!op.v)op.v=1;if(!op.u)op.u=1}if((t==='u'||t==='ue')&&!op.u&&!op.v)op.v=1;
+    const S=dSecao(t,W,H,e,op,p);if(!S)return null;const s0=(c0-cd)+cd-len/2; // início ao longo de d, centrado no polígono
+    const o=[d[0]*s0+n[0]*n0,d[1]*s0+n[1]*n0,b.z0];return{o,U:[n[0],n[1],0],V:[0,0,1],D:[d[0],d[1],0],len,...S,t}}
+  const dims=[b.x1-b.x0,b.y1-b.y0,b.z1-b.z0];const la=dims.indexOf(Math.max(...dims));const cr=[0,1,2].filter(a=>a!==la);const[a1,a2]=cr;const W=dims[a1],H=dims[a2];if(!(W>1&&H>1))return null;
+  const op={u:0,v:0};ab.forEach(([a,s])=>{if(a===a1)op.u=s;else if(a===a2)op.v=s});
+  if(t==='l'){if(!op.u)op.u=1;if(!op.v)op.v=a2===2?1:1}
+  if((t==='u'||t==='ue')&&!op.u&&!op.v){if(a2===2)op.v=1;else op.u=1} // padrão: abre para trás
+  if((t==='u'||t==='ue')&&op.u&&op.v)op.u=0;
+  const S=dSecao(t,W,H,e,op,p);if(!S)return null;return{o:[b.x0,b.y0,b.z0],U:AX[a1],V:AX[a2],D:AX[la],len:dims[la],...S,t}}
 
 /* ================= MODELO 3D (STL / OBJ do SketchUp ou SolidWorks → peças, cotas e folhas) ================= */
 let mSrc=null,mPecas=[],mBuild=null,mSel='SERRALHERIA';
@@ -7032,7 +7109,7 @@ function daeDe(pecas,titulo){pecas=pecas.map(p=>{const tris=p.tris.filter(([a,b,
 // peças do 3D da "estrutura por desenho" no mesmo formato (mm, Y para cima, frente em +Z)
 function dPecas3D(){if(typeof dModel==='undefined'||!dModel)return[];return dBoxes().map((b,i)=>{const p=dModel.pecas[i]||{};const reg=b.poly?[b.poly,...(b.holes||[]).map(h=>h.slice().reverse())]:[[[b.x0,b.y0],[b.x1,b.y0],[b.x1,b.y1],[b.x0,b.y1]]];
   return{nome:`${p.ref||'P'+(i+1)} ${p.nome||''} ${p.perfil||''}`.trim(),cor:b.cor||'#adb5bd',tris:l3dTris([{z0:b.z0,z1:b.z1,regs:[reg.map(r=>toC([r])[0])]}]).map(tr=>[tr[0],tr[2],tr[1]].map(q=>[q[0],q[1],-q[2]]))}})}
-document.addEventListener('click',e=>{if(!(e.target.closest&&e.target.closest('#dDae')))return;const P=dPecas3D();if(!P.length){alert('Monte o 3D primeiro.');return}salvar(nomeArq(((($('#dDesc')||{}).value||'ESTRUTURA').trim())+' (SketchUp).dae'),daeDe(P,dModel.titulo))});
+document.addEventListener('click',e=>{if(!(e.target.closest&&e.target.closest('#dDae')))return;const P=typeof V3!=='undefined'&&V3.grp?daeDaCena(V3.scene):dPecas3D();if(!P.length){alert('Monte o 3D primeiro.');return}salvar(nomeArq(((($('#dDesc')||{}).value||'ESTRUTURA').trim())+' (SketchUp).dae'),daeDe(P,dModel.titulo))});
 
 // deixa todas as faces de uma malha viradas para o mesmo lado (vizinhas percorrem a aresta em sentidos opostos) e, em cada parte fechada, para fora.
 // No 3D do sistema as faces aparecem dos dois lados; no SketchUp uma face do avesso aparece cinza/azulada como se faltasse pedaço.
