@@ -6737,7 +6737,7 @@ function plFlatten(cmds){const out=[];let cur=null,st=null,x=0,y=0;const add=(a,
 // devolve os contornos do texto em mm (y para cima, origem no canto inferior esquerdo da placa)
 function plTextoGeo(L,A,v,altFix){v=v||plVar[plVarSel]||{};const txt=String(v.txt||'').replace(/\r/g,'');const ox=+v.dx||0,oy=+v.dy||0;const linhas=txt.split('\n').map(s=>s.trim()).filter(Boolean);if(!linhas.length)return null;
   const C=plFontCache[plFontKey];const font=C&&C.font;if(!font)throw new Error('carregando a fonte… gere a FP de novo em 1 segundo');
-  const U=1000;const capU=((font.tables.os2&&font.tables.os2.sCapHeight)||font.unitsPerEm*0.7)/font.unitsPerEm*U;const entre=Math.max(0,num($('#plEntre').value)||0)/100;
+  const U=1000;const capU=(()=>{try{const bb=font.getPath('H',0,0,U).getBoundingBox();const h=-bb.y1;if(h>U*0.3&&h<U*1.1)return h}catch(e){}return((font.tables.os2&&font.tables.os2.sCapHeight)||font.unitsPerEm*0.7)/font.unitsPerEm*U})();const entre=Math.max(0,num($('#plEntre').value)||0)/100;
   const ls=linhas.map(s=>{const P=font.getPath(s,0,0,U);const bb=P.getBoundingBox();return{s,P,x0:bb.x1,x1:bb.x2,w:bb.x2-bb.x1}});
   const pitch=capU*(1+entre);const blocoH=capU+(ls.length-1)*pitch;const blocoW=Math.max(...ls.map(l=>l.w));
   const mg=Math.max(0,num($('#plMg').value)||0);const aw=Math.max(10,L-2*mg),ah=Math.max(10,A-2*mg);const alt=altFix>0?altFix:num($('#plAltLetra').value);
@@ -6772,7 +6772,8 @@ function plVarInfo(){const v=plVar[plVarSel]||{};const A=plVarAtivas();if($('#pl
 function plSvgPlaca(L,A,TG,maxW,maxH,id){const s=Math.min(maxW/L,maxH/A),W=L*s,H=A*s;const d=TG?TG.polys.map(pp=>'M'+pp.map(([x,y])=>`${(x*s).toFixed(1)} ${((A-y)*s).toFixed(1)}`).join('L')+'Z').join(''):'';
   return{s,html:`<svg ${id?`id="${id}"`:''} viewBox="-2 -2 ${W+4} ${H+4}" style="width:100%;max-width:${Math.round(W+4)}px;height:auto;display:block;background:#fff;border:1px solid var(--line);border-radius:8px;${id?'touch-action:none;cursor:move':''}"><rect x="0" y="0" width="${W}" height="${H}" fill="${plFundoHex()}" stroke="#adb5bd" stroke-width="1"/><g class="plTxtG"><path d="${d}" fill="${plTxtHex()}" fill-rule="evenodd"/></g></svg>`}}
 async function plTxtPrev(){const box=$('#plTxtPrev');if(!box||plSrc!=='txt')return;const L=num($('#plL').value),A=num($('#plA').value);
-  if(!(L>0&&A>0)){box.innerHTML='<span class="note">Informe a largura e a altura da placa (lá em cima) para ver a placa.</span>';return}
+  if(!(L>0&&A>0)){box.innerHTML=`<div class="msg" style="background:#fff4e6;border:1px solid #ffc078;padding:10px;border-radius:8px">Para ver a placa, informe o tamanho:<div class="row" style="gap:8px;margin-top:8px;align-items:end"><div><label class="f">Largura (mm)</label><input type="number" inputmode="decimal" data-plmed="plL" value="${L||''}" style="width:110px"></div><div><label class="f">Altura (mm)</label><input type="number" inputmode="decimal" data-plmed="plA" value="${A||''}" style="width:110px"></div></div></div>`;
+    box.querySelectorAll('[data-plmed]').forEach(i=>i.addEventListener('change',()=>{const d=$('#'+i.dataset.plmed);d.value=i.value;d.dispatchEvent(new Event('input',{bubbles:true}))}));return}
   try{await plFonteCarrega(plFontKey)}catch(e){box.innerHTML=`<div class="msg err">${esc(e.message)}</div>`;return}
   let VG;try{VG=plVarGeos(L,A)}catch(e){box.innerHTML=`<span class="note">${esc(e.message)}</span>`;return}
   const v=plVar[plVarSel];const g=VG.find(x=>x.v===v);const TG=g?g.TG:null;
@@ -8072,7 +8073,11 @@ function osListaRender(){pedTotRender();pedProgRender();if(typeof pedCotasUI==='
 // começa o projeto do item já com a descrição, a venda e a foto da OS
 const OS_DESC={letra:'#descItem',testeira:'#tDesc',estrutura:'#dDesc',bobs:'#bDesc',branco:'#brDesc',cotas:'#ctDesc',modelo3d:'#mDesc'};
 // número, descrição e venda do item vêm da OS (PDF) sempre que o item existir nela
+// medidas da OS ("0.900 × 0.300 m", "300x100 mm", "30 x 10 cm") → [larg, alt] em mm
+function osMedMm(s){s=String(s||'').toLowerCase();const m=s.match(/(\d+(?:[.,]\d+)?)\s*[x×*]\s*(\d+(?:[.,]\d+)?)/);if(!m)return null;let a=parseFloat(m[1].replace(',','.')),b=parseFloat(m[2].replace(',','.'));
+  const f=/mm/.test(s)?1:/cm/.test(s)?10:/\bm\b|m$|metro/.test(s)?1000:(a<20&&b<20?1000:1);return [Math.round(a*f),Math.round(b*f)]}
 function osPreenche(tipo,n){const it=pedAtual&&(pedAtual.osItens||[]).find(i=>+i.n===+n);if(!it)return;
+  try{if(tipo==='placa'&&it.med&&$('#plL')&&!num($('#plL').value)&&!num($('#plA').value)){const mm=osMedMm(it.med);if(mm&&mm[0]>0&&mm[1]>0){$('#plL').value=mm[0];$('#plA').value=mm[1];$('#plL').dispatchEvent(new Event('input',{bubbles:true}))}}}catch(e){}
   try{const t=it.titulo||'';if(t){if($('#descItem'))$('#descItem').value=t;const d=$(OS_DESC[tipo]);if(d)d.value=t;['#descItem',OS_DESC[tipo]].forEach(x=>{const e=x&&$(x);if(e)e.dispatchEvent(new Event('input',{bubbles:true}))})}
     const jaTem=(pedAtual.itens||[]).some(i=>+i.n===+n&&+i.venda>0);if($('#itemVenda'))$('#itemVenda').value=it.sub&&!jaTem?vendaFmt(it.sub):'';if(it.img){refImg=it.img;if(typeof refRender==='function')refRender()}}catch(e){console.error(e)}}
 function osFazer(tipo,n){const it=(pedAtual.osItens||[]).find(i=>+i.n===+n);novoComp(tipo,n);if(!it)return;
