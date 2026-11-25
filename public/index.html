@@ -3219,11 +3219,11 @@ function cotaV(P,x,y1,y2,xObj,txt,fs,cor){const c=cor||COR_DIM,ym=(y1+y2)/2,tw=t
   else{P.push({t:'line',x1:x,y1,x2:x,y2,color:c,w:0.15});P.push({t:'text',x:x-0.8,y:ym,s:txt,size:fs*0.8,color:c,anchor:'middle',angle:90})}}
 const COR_DIM='#2a6f97';
 function legendaSerr(P,lx,ly,lw,usados){const nz=s=>normPerfil(s);let itens=LEG_SERR.concat(Object.entries(perfisCustom).sort().map(([k,c])=>[k.toUpperCase(),c]));
-  if(usados){const U=[...new Set(usados.map(nz).filter(z=>/\d/.test(z)))];itens=U.map(z=>[z.toUpperCase(),STD_PERF[z]||perfisCustom[z]||corPerfil(z)]);if(!itens.length)return}
+  if(usados&&usados.length&&Array.isArray(usados[0]))itens=usados;else if(usados){const U=[...new Set(usados.map(nz).filter(z=>/\d/.test(z)))];itens=U.map(z=>[z.toUpperCase(),STD_PERF[z]||perfisCustom[z]||corPerfil(z)]);if(!itens.length)return}
   const rows=Math.ceil(itens.length/2);const h=rows*4.6+1.6;ly-=Math.max(0,h-20);
   P.push({t:'rect',x:lx,y:ly,w:lw,h:4.5,fill:'#5fd35f',stroke:'#000000',lw:0.2},{t:'text',x:lx+lw/2,y:ly+3.2,s:'LEGENDA PADRÃO - SERRALHERIA',size:2.3,bold:true,color:'#000000',anchor:'middle'});
   P.push({t:'rect',x:lx,y:ly+4.5,w:lw,h:Math.max(20,h),stroke:'#000000',lw:0.2,fill:'#ffffff'});
-  itens.forEach(([t,c],i)=>{const col=i%2,row=Math.floor(i/2);const x=lx+3+col*lw/2,y=ly+7+row*4.6;P.push({t:'rect',x,y,w:5,h:3.2,fill:c,stroke:'#000000',lw:0.15},{t:'text',x:x+7,y:y+2.6,s:t,size:2.3,color:'#000000'})})}
+  itens.forEach(([t,c],i)=>{const col=i%2,row=Math.floor(i/2);const x=lx+3+col*lw/2,y=ly+7+row*4.6;P.push({t:'rect',x,y,w:5,h:3.2,fill:c,stroke:'#000000',lw:0.15},{t:'text',x:x+7,y:y+2.6,s:typeof fit==='function'?fit(t,lw/2-9,2.3):t,size:2.3,color:'#000000'})})}
 /* cores por perfil: legenda padrão + perfis novos (criados e guardados automaticamente) */
 let perfisCustom={};
 function normPerfil(p){const m=String(p||'').match(/(\d+(?:[.,]\d+)?)\s*[xX×]\s*(\d+(?:[.,]\d+)?)/);if(!m)return String(p||'').trim().toLowerCase();
@@ -5172,7 +5172,12 @@ function dPerfilNome(p){if(dFuro(p))return `FURO ${String(p.perfil||'').replace(
 function dLista(){const rows=[];(dModel?dModel.pecas:[]).forEach(p=>{const ci=dCompInclinada(p);const len=Math.round((ci>0?Math.max(ci,0):p.comprimento)*10)/10;const k=[p.tipo,p.perfil,p.parede,p.nome,len].join('|');
   let r=rows.find(r=>r.k===k);if(!r){r={k,tipo:p.tipo||'tubo',perfil:p.perfil||'',parede:p.parede||'',nome:p.nome||p.ref,secao:p.secao||null,abertura:p.abertura||'',cor:p.cor,len,q:0,refs:[],obs:new Set()};rows.push(r)}r.q++;r.refs.push(p.ref);if(p.obs)r.obs.add(p.obs)});
   rows.forEach((r,i)=>{r.item=i+1;r.total=r.len*r.q});return rows}
-function dRender3D(){if(tModo!=='desenho')return;
+// cor padrão por MATERIAL (legenda padrão da serralheria): metalon pela medida (cores fixas da legenda); U, Ue, cantoneira, viga, tubo redondo… cada um com a sua cor, guardada para sempre
+function dCorMat(p){if(dFuro(p))return p.cor||'#2fb32f';const t=dTipoN(p);if(!t||t==='tq')return p.perfil?corPerfil(p.perfil):(p.cor||'#888888');
+  const pf=String(p.perfil||'').toLowerCase().replace(/^\s*(l|u|ue|w|i|ø)\s+/,'').replace(/\s+/g,'').replace(/^(\d+)(\d\/\d+)$/,'$1x$2').replace(/[×*]/g,'x').replace(/\(.*\)/,'');
+  const k=`${t}:${pf}`;if(perfisCustom[k])return perfisCustom[k];const c=corNova();perfisCustom[k]=c;salvarPerfis();return c}
+function dCoresPadrao(){if(!dModel)return;dModel.pecas.forEach(p=>{try{p.cor=dCorMat(p)}catch(e){}})}
+function dRender3D(){if(tModo!=='desenho')return;dCoresPadrao();
   if(!dModel){$('#t3dInfo').textContent=dSrc?'Escreva a descrição e toque em "Montar 3D".':'Envie o PDF da estrutura para começar.';if(V3.grp){V3.scene.remove(V3.grp);V3.grp=null;v3Draw()}return}
   const bs=dBoxes();const ok3=v3Set(bs);$('#t3dNote').hidden=ok3;if(!ok3){const P=[];isoPrims(P,bs,{x:10,y:10,w:PW-20,h:PH-20});$('#t3dAlt').innerHTML=toSVG(P)}
   const bb=bbox3(bs);$('#t3dInfo').textContent=`${dModel.pecas.length} peça(s) • conjunto ${f0(bb.x1-bb.x0)} × ${f0(bb.y1-bb.y0)} × ${f0(bb.z1-bb.z0)} mm (L × A × P)`;
@@ -5183,7 +5188,7 @@ function dRender3D(){if(tModo!=='desenho')return;
   try{dBuild=dFolhas();{const C=setorChips(dBuild.pages,dSel,'data-dpg');dSel=C.sel;$('#dPgPick').innerHTML=C.html;$('#dPrev').innerHTML=C.shown.map(P=>`<div class="pg">${toSVG(P)}</div>`).join('')}$('#dBaixar').disabled=false}
   catch(e){console.error(e);$('#dMsg').innerHTML=`<div class="msg err">${esc(e.message)}</div>`;$('#dBaixar').disabled=true}}
 $('#dPgPick').onclick=e=>{const b=e.target.closest('[data-dpg]');if(!b)return;dSel=b.dataset.dpg;dRender3D()};
-function dFolhas(){const un=Math.max(1,Math.round(num($('#dUn').value))||1);const d=$('#entrega').value;
+function dFolhas(){dCoresPadrao();const un=Math.max(1,Math.round(num($('#dUn').value))||1);const d=$('#entrega').value;
   const ctx={obsBelow:true,os:$('#os').value.trim(),item:$('#item').value||'1',descItem:$('#dDesc').value.trim()||'ESTRUTURA',cliente:$('#cliente').value.trim(),vendedor:$('#vendedor').value.trim(),projetista:$('#projetista').value.trim(),endereco:$('#endereco').value.trim(),entrega:d?d.split('-').reverse().join('/'):''};
   const pg={setor:'SERRALHERIA'};const pages=[],tags=[];const bs=dBoxes();const L=dLista();const bb=bbox3(bs);
   // MONTAGEM
@@ -5205,13 +5210,13 @@ function dFolhas(){const un=Math.max(1,Math.round(num($('#dUn').value))||1);cons
    else{let i=0;const per=Math.floor((160-36)/rh)-1;while(i<L.length){const Q=[];frame(Q,ctx,pg);Q.push({t:'text',x:PW/2,y:30,s:'LISTA DE CORTE',size:4.2,bold:true,color:'#000000',anchor:'middle'});tabela(Q,L.slice(i,i+per),36);i+=per;pages.push(Q);tags.push('LISTA')}}}
   }
   // VISTAS: frente (x,y) e lateral (z,y) com cotas no padrão da testeira
-  {const P=[];frame(P,ctx,pg);P._ref=null;P.push({t:'text',x:PW/2,y:30,s:'VISTAS E MEDIDAS',size:4.2,bold:true,color:'#000000',anchor:'middle'});
+  {const P=[];frame(P,ctx,pg);P._ref=null;P.push({t:'text',x:PW/2,y:30,s:'VISTAS E MEDIDAS',size:4.2,bold:true,color:'#000000',anchor:'middle'},{t:'text',x:18,y:31,s:`${un}X`,size:7,bold:true,italic:true,color:'#000000'});
    const W=bb.x1-bb.x0,H=bb.y1-bb.y0,D=bb.z1-bb.z0;
    const nCor=new Set(dModel.pecas.filter(p=>p.tipo!=='chapa').map(p=>p.cor)).size;const legH=Math.max(30,5+4.4*nCor+1);
    const sW=Math.min(214/(W+D),92/H);const largo=48+H*sW+18<=167-legH-3;const s=largo?sW:Math.min(150/(W+D),104/H);
    const ox=30,oy=48;const X=x=>ox+(x-bb.x0)*s,Y=y=>oy+(bb.y1-y)*s;const fs=3;
    const FU=dModel.pecas.map((p,i)=>dFuro(p)?i:-1).filter(i=>i>=0);
-   bs.map((b,i)=>[b,i]).filter(([b,i])=>!FU.includes(i)).map(([b])=>b).sort((a,b)=>b.z0-a.z0).forEach(b=>{if(b.poly){P.push({t:'polyf',pts:b.poly.map(([x,y])=>[X(x),Y(y)]),fill:b.cor,stroke:'#1a1a1a',lw:0.12});(b.holes||[]).forEach(h=>P.push({t:'polyf',pts:h.map(([x,y])=>[X(x),Y(y)]),fill:'#ffffff',stroke:'#1a1a1a',lw:0.12}))}else P.push({t:'rect',x:X(b.x0),y:Y(b.y1),w:Math.max(0.3,(b.x1-b.x0)*s),h:Math.max(0.3,(b.y1-b.y0)*s),fill:b.cor,stroke:'#1a1a1a',lw:0.12})});
+   bs.map((b,i)=>[b,i]).filter(([b,i])=>!FU.includes(i)).map(([b])=>b).sort((a,b)=>b.z0-a.z0).forEach(b=>{const sm=dSecMundo(b,2);if(sm){P.push({t:'polyf',pts:sm.sec.map(q=>[X(q[0]),Y(q[1])]),fill:b.cor,stroke:'#1a1a1a',lw:0.12});sm.holes.forEach(h=>P.push({t:'polyf',pts:h.map(q=>[X(q[0]),Y(q[1])]),fill:'#ffffff',stroke:'#1a1a1a',lw:0.12}));return}if(b.poly){P.push({t:'polyf',pts:b.poly.map(([x,y])=>[X(x),Y(y)]),fill:b.cor,stroke:'#1a1a1a',lw:0.12});(b.holes||[]).forEach(h=>P.push({t:'polyf',pts:h.map(([x,y])=>[X(x),Y(y)]),fill:'#ffffff',stroke:'#1a1a1a',lw:0.12}))}else P.push({t:'rect',x:X(b.x0),y:Y(b.y1),w:Math.max(0.3,(b.x1-b.x0)*s),h:Math.max(0.3,(b.y1-b.y0)*s),fill:b.cor,stroke:'#1a1a1a',lw:0.12})});
    // totais
    cotaH(P,X(bb.x0),X(bb.x1),Y(bb.y1)-7,Y(bb.y1),fmI(W),fs);cotaV(P,X(bb.x0)-8,Y(bb.y1),Y(bb.y0),X(bb.x0),fmI(H),fs);
    // correntes: embaixo pelos eixos das peças verticais; à direita pelas bordas das peças
@@ -5234,10 +5239,10 @@ function dFolhas(){const un=Math.max(1,Math.round(num($('#dUn').value))||1);cons
    P.push({t:'text',x:ox+W*s/2,y:Y(bb.y0)+(FU.length?21:15),s:`FRENTE · ESC. 1:${Math.round(1/s)}`,size:3,bold:true,color:'#000000',anchor:'middle'});
    // lateral
    const lx=X(bb.x1)+26;const Z=z=>lx+(z-bb.z0)*s;const bsL=bs.filter((b,i)=>!FU.includes(i));
-   bsL.slice().sort((a,b)=>a.x1-b.x1).forEach(b=>P.push({t:'rect',x:Z(b.z0),y:Y(b.y1),w:Math.max(0.3,(b.z1-b.z0)*s),h:Math.max(0.3,(b.y1-b.y0)*s),fill:b.cor,stroke:'#1a1a1a',lw:0.12}));
+   bsL.slice().sort((a,b)=>a.x1-b.x1).forEach(b=>{const sm=dSecMundo(b,0);if(sm){P.push({t:'polyf',pts:sm.sec.map(q=>[Z(q[2]),Y(q[1])]),fill:b.cor,stroke:'#1a1a1a',lw:0.15});sm.holes.forEach(h=>P.push({t:'polyf',pts:h.map(q=>[Z(q[2]),Y(q[1])]),fill:'#ffffff',stroke:'#1a1a1a',lw:0.15}));return}P.push({t:'rect',x:Z(b.z0),y:Y(b.y1),w:Math.max(0.3,(b.z1-b.z0)*s),h:Math.max(0.3,(b.y1-b.y0)*s),fill:b.cor,stroke:'#1a1a1a',lw:0.12})});
    cotaH(P,Z(bb.z0),Z(bb.z1),Y(bb.y0)+7,Y(bb.y0),fmI(D),2.4);P.push({t:'text',x:Z(bb.z0)+D*s/2,y:Y(bb.y0)+15,s:'LATERAL',size:3,bold:true,color:'#000000',anchor:'middle'});
    // legendas: padrão de serralharia + cores deste desenho
-   legendaSerr(P,220,137,66,dModel.pecas.filter(p=>!dFuro(p)).map(p=>p.perfil));
+   {const it=[];dModel.pecas.filter(p=>!dFuro(p)).forEach(p=>{const n=dPerfilNome(p).toUpperCase();if(!it.some(x=>x[0]===n))it.push([n,p.cor])});legendaSerr(P,220,137,66,it)}
    const cores=[];dModel.pecas.forEach(p=>{if(p.tipo==='chapa')return;const r=L.find(r=>r.refs.includes(p.ref));if(!cores.some(c=>c.cor===p.cor))cores.push({cor:p.cor,txt:`${r?r.item+' - ':''}${dPerfilNome(p)} — ${p.nome||''}`,nm:dPerfilNome(p),its:[]});{const c=cores.find(c=>c.cor===p.cor);if(r&&!c.its.includes(r.item))c.its.push(r.item);if(c.its.length>1)c.txt=`${c.its.join(', ')} - ${dFuro(p)?`FURO${c.its.length>1?'S':''} ${String(p.perfil||'').replace(/^\s*furo\s*/i,'')}`:c.nm}`}});
    const lh=4.4,lw=largo?118:66,lx2=largo?96:220,ly=largo?167-5-lh*cores.length:137-4-5-lh*cores.length;
    P.push({t:'rect',x:lx2,y:ly,w:lw,h:4.5,fill:'#5fd35f',stroke:'#000000',lw:0.2},{t:'text',x:lx2+lw/2,y:ly+3.2,s:'LEGENDA DO DESENHO',size:2.3,bold:true,color:'#000000',anchor:'middle'});
@@ -5246,14 +5251,14 @@ function dFolhas(){const un=Math.max(1,Math.round(num($('#dUn').value))||1);cons
    // DETALHAMENTO: o que é cada número do desenho (peça, perfil, comprimento de corte, quantidade)
    {const LD=L.filter(r=>!r.refs.every(rf=>{const p=dModel.pecas.find(q=>q.ref===rf);return p&&dFuro(p)}));const rr=4.2,fsz=2.2;
     const zR=Z(bb.z1)+12;let R;if(!largo&&286-zR>=110)R={x:zR,y:40,w:286-zR,h:ly-4-40};else{const y0=Y(bb.y0)+(FU.length?27:21);R={x:12,y:y0,w:274,h:Math.min(ly,137)-4-y0}}
-    const cab=[['Nº',8],['COR',9],['PEÇA',0],['PERFIL',34],['COMPR. (MM)',20],['QTD.',10]];const fixo=cab.reduce((s,c)=>s+c[1],0);cab[2][1]=Math.max(30,R.w-fixo);
+    const cab=[['Nº',8],['COR',9],['PEÇA',0],['PERFIL',34],['COMPR. (MM)',20],['QTD./UN',13],[`TOTAL (${un} UN)`,19]];const fixo=cab.reduce((s,c)=>s+c[1],0);cab[2][1]=Math.max(30,R.w-fixo);
     const cabem=Math.max(0,Math.floor((R.h-6)/rr)-1);const aqui=LD.length<=cabem?LD:LD.slice(0,Math.max(0,cabem-1));const resto=LD.slice(aqui.length);
     const tab=(Q,rows,x0,y0,cols,rh,sz)=>{let x=x0;cols.forEach(([h,w])=>{Q.push({t:'rect',x,y:y0,w,h:rh,fill:'#e6e6e6',stroke:'#000000',lw:0.2},{t:'text',x:x+w/2,y:y0+rh*0.72,s:h,size:sz,bold:true,color:'#000000',anchor:'middle'});x+=w});
-      rows.forEach((r,i)=>{const yy=y0+rh*(i+1);let x=x0;const v=[String(r.item),'',`${r.nome}`,dPerfilNome(r),f1(r.len),String(r.q)];cols.forEach(([h,w],k)=>{Q.push({t:'rect',x,y:yy,w,h:rh,fill:k===1?r.cor:'#ffffff',stroke:'#000000',lw:0.2});if(k!==1)Q.push({t:'text',x:k===2?x+1:x+w/2,y:yy+rh*0.72,s:fit(v[k],w-2,sz),size:sz,color:'#000000',anchor:k===2?undefined:'middle'});x+=w})});return y0+rh*(rows.length+1)};
-    if(aqui.length){P.push({t:'text',x:R.x,y:R.y-1.5,s:'DETALHAMENTO DAS PEÇAS (por unidade)',size:2.6,bold:true,color:'#000000'});const ye=tab(P,aqui,R.x,R.y,cab,rr,fsz);
+      rows.forEach((r,i)=>{const yy=y0+rh*(i+1);let x=x0;const v=[String(r.item),'',`${r.nome}`,dPerfilNome(r),f1(r.len),String(r.q),String(r.q*un)];cols.forEach(([h,w],k)=>{Q.push({t:'rect',x,y:yy,w,h:rh,fill:k===1?r.cor:'#ffffff',stroke:'#000000',lw:0.2});if(k!==1)Q.push({t:'text',x:k===2?x+1:x+w/2,y:yy+rh*0.72,s:fit(v[k],w-2,sz),size:sz,color:'#000000',anchor:k===2?undefined:'middle'});x+=w})});return y0+rh*(rows.length+1)};
+    if(aqui.length){P.push({t:'text',x:R.x,y:R.y-1.5,s:`DETALHAMENTO DAS PEÇAS — ${un} UNIDADE${un>1?'S':''}`,size:2.6,bold:true,color:'#000000'});const ye=tab(P,aqui,R.x,R.y,cab,rr,fsz);
       if(resto.length)P.push({t:'text',x:R.x,y:ye+3.5,s:`+ ${resto.length} peça(s) na folha seguinte (DETALHAMENTO)`,size:2.3,bold:true,color:'#c92a2a'})}
     pages.push(P);tags.push('VISTAS');
-    for(let i=0;i<resto.length;){const Q=[];frame(Q,ctx,pg);Q.push({t:'text',x:PW/2,y:30,s:'DETALHAMENTO DAS PEÇAS (por unidade)',size:4,bold:true,color:'#000000',anchor:'middle'});
+    for(let i=0;i<resto.length;){const Q=[];frame(Q,ctx,pg);Q.push({t:'text',x:PW/2,y:30,s:`DETALHAMENTO DAS PEÇAS — ${un} UNIDADE${un>1?'S':''}`,size:4,bold:true,color:'#000000',anchor:'middle'});
       const cb=cab.map(c=>c.slice());cb[2][1]=274-fixo;const per=Math.floor((160-40)/4.6)-1;const part=resto.slice(i,i+per);tab(Q,part,12,40,cb,4.6,2.4);i+=part.length;pages.push(Q);tags.push('DETALHAMENTO')}}}
   // PLANO DE CORTE (todos os perfis em barra: metalon, tubo redondo, U, Ue, cantoneira, viga, barra chata/redonda), barras de 6 m
   {const barra=6000,serra=3;const grp={};L.filter(r=>{const s=r.tipo+' '+r.nome+' '+r.perfil;if(/chapa|fechamento|tampa/i.test(r.tipo||'')&&!/tubo|metalon|perfil|viga|cantoneira/i.test(s))return false;return dTipoN(r)||/tubo|metalon|barra|perfil|viga|cantoneira/i.test(s)||r.tipo==='tubo'}).forEach(r=>{const k=dPerfilNome(r);(grp[k]=grp[k]||{cor:r.cor,pcs:[]});for(let i=0;i<r.q*un;i++)grp[k].pcs.push({len:r.len,item:r.item})});
@@ -5352,6 +5357,8 @@ function dSecao(t,W,H,e,open,p){const sc=p.secao||{};e=Math.max(0.5,Math.min(e,M
   if(t==='w'){const tw=+sc.tw||e,tf=+sc.tf||Math.max(e*1.45,5);const mk=(W,H)=>[[0,0],[W,0],[W,tf],[W/2+tw/2,tf],[W/2+tw/2,H-tf],[W,H-tf],[W,H],[0,H],[0,H-tf],[W/2-tw/2,H-tf],[W/2-tw/2,tf],[0,tf]];
     const altV=sc.alma?/v|vert|cima|baixo|y/.test(String(sc.alma)):H>=W;return{sec:altV?mk(W,H):mk(H,W).map(([a,b])=>[b,a])}}
   return null}
+// seção do perfil vista de ponta: devolve polígonos (contorno e furos) em coordenadas do mundo [x,y,z] quando a peça corre ao longo do eixo 'ax' da vista
+function dSecMundo(b,ax){const X=b.ext;if(!X||Math.abs(X.D[ax])<0.9)return null;const W=([u,v])=>[0,1,2].map(k=>X.o[k]+u*X.U[k]+v*X.V[k]);return{sec:X.sec.map(W),holes:(X.holes||[]).map(h=>h.map(W))}}
 function dPerfilExt(p,b){const t=dTipoN(p);if(!t)return null;const e=dEspN(p,t);const ab=dAbre(p);
   const AX=[[1,0,0],[0,1,0],[0,0,1]];
   if(b.poly&&b.poly.length>2){// peça inclinada (diagonal) no plano x-y: comprimento ao longo do maior lado, seção = largura perpendicular x profundidade
