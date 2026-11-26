@@ -6608,6 +6608,14 @@ function plCtx(){const d=$('#entrega').value;return{obsBelow:true,os:$('#os').va
 function plGeo(L,A){const f=plFundo;if(f.mat==='acm'&&f.refil){const a=f.aba;const corte=[[0,a],[a,a],[a,0],[a+L,0],[a+L,a],[2*a+L,a],[2*a+L,a+A],[a+L,a+A],[a+L,2*a+A],[a,2*a+A],[a,a+A],[0,a+A]];
     const us=[[[a,0],[a,2*a+A]],[[a+L,0],[a+L,2*a+A]],[[0,a],[2*a+L,a]],[[0,a+A],[2*a+L,a+A]]];return{corte,us,W:L+2*a,H:A+2*a}}
   return{corte:[[0,0],[L,0],[L,A],[0,A]],us:[],W:L,H:A}}
+// aproveitamento do ACM do fundo: todas as placas encaixadas nas chapas (1220/1250 ou 1500 x 5000), escolhe a largura com menos área de chapa
+function plAcmNest(G,un){if(plFundo.mat!=='acm'||!(un>0)||typeof acmNest!=='function')return null;const largs=(typeof ACM_LARG!=='undefined'&&ACM_LARG[plFundo.esp])||[1220,1500];
+  const a=plFundo.refil?plFundo.aba:0;const vin=a?[[[a,a],[a,a+G.H-2*a]],[[G.W-a,a],[G.W-a,G.H-a]],[[a,a],[G.W-a,a]],[[a,G.H-a],[G.W-a,G.H-a]]]:[];
+  const itens=Array.from({length:Math.min(un,2000)},(_,k)=>({id:String(k+1),bw:G.W,bh:G.H,area:G.W*G.H,pts:G.corte,vin}));
+  const opc=largs.map(SW=>{if(Math.min(G.W,G.H)>SW-2*ACM_MARG||Math.max(G.W,G.H)>ACM_LEN-2*ACM_MARG)return null;const bins=acmNest(itens,SW);if(!bins)return null;return{SW,bins,n:bins.length,aprov:itens.reduce((s,i)=>s+i.area,0)/(bins.length*SW*ACM_LEN)}}).filter(Boolean);
+  if(!opc.length)return null;const E=opc.slice().sort((x,y)=>x.n*x.SW-y.n*y.SW)[0];return{...E,opc}}
+function plNestM2(G,un,aF){return aF*1.15} // RM pela área + 15% (a sobra da chapa volta para o estoque)
+function plNestUso(G,un){const E=plAcmNest(G,un);return E?`fundo da placa ${f0(G.W)} x ${f0(G.H)} mm x ${un} + 15% — aproveitamento: ${E.n} chapa(s) ${f2(E.SW/1000)} x 5,00 m (${Math.round(E.aprov*100)}%)`:`fundo da placa ${f0(G.W)} x ${f0(G.H)} mm x ${un} + 15% de perda`}
 function plFolhas(){const ctx=plCtx();const pages=[],tags=[];const un=plUnTotal();const L=num($('#plL').value)||0,A=num($('#plA').value)||0;
   if(!(L>0&&A>0))throw new Error('informe a largura e a altura da placa');const pint=$('#pcPint').checked;const CI=pint&&typeof corInfo==='function'?corInfo():null;const G=plGeo(L,A);const area=L*A/1e6;
   const caixaInfo=(P,linhas,x,y,w)=>{let yy=y;P.push({t:'rect',x,y:y-5,w,h:linhas.length*8.6+6,r:1.5,fill:'#f8f9fa',stroke:'#495057',lw:0.35});linhas.forEach(([a,b])=>{P.push({t:'text',x:x+3,y:yy,s:a,size:2.2,bold:true,color:'#495057'},{t:'text',x:x+3,y:yy+3.7,s:fit(String(b),w-6,2.5),size:2.5,bold:true,color:'#000000'});yy+=8.6})};
@@ -6625,6 +6633,17 @@ function plFolhas(){const ctx=plCtx();const pages=[],tags=[];const un=plUnTotal(
       {t:'line',x1:205,y1:118,x2:213,y2:118,color:'#c2255c',w:0.35,dash:[1.5,1]},{t:'text',x:215,y:119,s:'rosa: USINAGEM (V) nas linhas da placa',size:2.1,color:'#000000'},
       {t:'text',x:205,y:125,s:`Depois cortar / refilar a aba lateral de ${f0(plFundo.aba)} mm.`,size:2.2,bold:true,color:'#000000'},{t:'text',x:205,y:130,s:'Arquivo de corte em 1:1 (PDF + DXF).',size:2.1,color:'#495057'})}
     pages.push(P);tags.push('ROUTER')}
+  // 1b) ROUTER: aproveitamento das placas na chapa de ACM
+  {const E=plAcmNest(G,un);if(E){const lay=[];E.bins.forEach(b=>{const key=b.pcs.map(p=>`${Math.round(p.x)},${Math.round(p.y)},${p.rot}`).sort().join(';');const g=lay.find(x=>x.key===key);if(g)g.n++;else lay.push({key,n:1,b})});
+    const s=262/ACM_LEN;let P=null,y=0;const novo=()=>{P=[];frame(P,ctx,{setor:'ROUTER'});P.push({t:'text',x:PW/2,y:30,s:`ACM — APROVEITAMENTO: ${E.n} CHAPA${E.n>1?'S':''} ${f2(E.SW/1000)} X 5,00 M`,size:4.2,bold:true,color:'#000000',anchor:'middle'},
+      {t:'text',x:PW/2,y:35.5,s:`${un} placa(s) de ${f0(G.W)} x ${f0(G.H)} mm (corte) — ${plFundoNome()}`,size:2.5,bold:true,color:'#495057',anchor:'middle'},
+      {t:'text',x:PW/2,y:40,s:E.opc.map(x=>`${f2(x.SW/1000)} x 5,00: ${x.n} chapa(s), aproveitamento ${Math.round(x.aprov*100)}%`).join('   •   ')+'   (escolhida a de menor área)',size:2.3,bold:true,color:COR_DIM,anchor:'middle'});
+      if(typeof acmLegenda==='function')acmLegenda(P,206,163);pages.push(P);tags.push('ROUTER');y=45};novo();
+    lay.forEach(g=>{const h=E.SW*s;if(y+h+9>160)novo();const X=24;P.push({t:'text',x:14,y:y+4,s:`${g.n}x`,size:3.4,bold:true,color:'#000000'},{t:'rect',x:X,y,w:ACM_LEN*s,h,fill:'#f1f3f5',stroke:'#000000',lw:0.2});
+      g.b.pcs.forEach(pc=>{const it=pc.it;const tr=q=>{const r=pc.rot?[q[1],it.bw-q[0]]:q;return[X+(pc.x+r[0])*s,y+h-(pc.y+r[1])*s]};P.push({t:'polyf',pts:it.pts.map(tr),fill:fundoCor,stroke:ACM_CORTE,lw:0.25});
+        it.vin.forEach(([a,b])=>{const p1=tr(a),p2=tr(b);P.push({t:'line',x1:p1[0],y1:p1[1],x2:p2[0],y2:p2[1],color:ACM_VINCO,w:0.1})});
+        const w=pc.rot?it.bh:it.bw,hh=pc.rot?it.bw:it.bh;const cx=X+(pc.x+w/2)*s,cy=y+h-(pc.y+hh/2)*s;if(w*s>7)P.push({t:'text',x:cx,y:cy+0.8,s:it.id,size:2,bold:true,color:'#000000',anchor:'middle'})});
+      const usado=Math.max(...g.b.pcs.map(pc=>pc.x+(pc.rot?pc.it.bh:pc.it.bw)))+ACM_MARG;P.push({t:'text',x:14,y:y+9,s:`${g.b.pcs.length} pç`,size:2.3,bold:true,color:'#000000'},{t:'text',x:X,y:y+h+4,s:`usa ${f0(usado)} mm do comprimento da chapa${usado<ACM_LEN-300?` — dá para cortar de um retalho de ${f0(E.SW)} x ${f0(Math.ceil(usado/50)*50)} mm`:''}`,size:2.3,bold:true,color:COR_DIM});y+=h+9})}}
   // 2) PINTURA
   if(pint&&CI){const P=[];frame(P,ctx,{setor:'PINTURA'});P.push({t:'text',x:PW/2,y:30,s:'PINTURA — PLACA DE SINALIZAÇÃO',size:4.4,bold:true,color:'#000000',anchor:'middle'});
     P.push({t:'rect',x:14,y:44,w:270,h:30,r:2,fill:'#f1f3f5',stroke:'#212529',lw:0.6},{t:'rect',x:18,y:49,w:18,h:20,r:1.5,fill:CI.hex||'#cccccc',stroke:'#495057',lw:0.3},
@@ -6657,8 +6676,8 @@ function plFolhas(){const ctx=plCtx();const pages=[],tags=[];const un=plUnTotal(
   xfPaginas(ctx,'#xfPl',pages,tags);
   // RM
   const N=[];const f=plFundo;const aFundo=G.W*G.H/1e6*un;
-  if(f.mat==='acm'&&f.acmCor){const c=f.acmCor,cw=String(c.nome||'').split(/\s+/).filter(w=>w.length>2);N.push({k:`placa|acm|${f.esp}|${c.marca||''}|${c.nome||''}`,desc:`ACM ${f.esp} mm ${plAcmCorDesc(c)}`,m2:aFundo*1.15,un:'un',uso:`fundo da placa ${f0(G.W)} x ${f0(G.H)} mm x ${un} + 15% de perda`,busca:{must:['ACM',[`0${f.esp}MM`,` ${f.esp}MM`,`X ${f.esp}MM`]],want:[...cw,c.marca||'']}})}
-  else if(f.mat==='acm'){const x=plAcmLista(f.esp).find(r=>String(r.cod)===String(f.acmCod));N.push({k:'placa|acm|'+(x?x.cod:f.esp),desc:x?x.nome:`ACM ${f.esp} mm (cor a definir)`,m2:aFundo*1.15,un:'un',uso:`fundo da placa ${f0(G.W)} x ${f0(G.H)} mm x ${un} + 15% de perda`,busca:x?{must:[x.nome]}:{must:['ACM',[`0${f.esp}MM`,` ${f.esp}MM`]],want:['BRANCO']}})}
+  if(f.mat==='acm'&&f.acmCor){const c=f.acmCor,cw=String(c.nome||'').split(/\s+/).filter(w=>w.length>2);N.push({k:`placa|acm|${f.esp}|${c.marca||''}|${c.nome||''}`,desc:`ACM ${f.esp} mm ${plAcmCorDesc(c)}`,m2:plNestM2(G,un,aFundo),un:'un',uso:plNestUso(G,un),busca:{must:['ACM',[`0${f.esp}MM`,` ${f.esp}MM`,`X ${f.esp}MM`]],want:[...cw,c.marca||'']}})}
+  else if(f.mat==='acm'){const x=plAcmLista(f.esp).find(r=>String(r.cod)===String(f.acmCod));N.push({k:'placa|acm|'+(x?x.cod:f.esp),desc:x?x.nome:`ACM ${f.esp} mm (cor a definir)`,m2:plNestM2(G,un,aFundo),un:'un',uso:plNestUso(G,un),busca:x?{must:[x.nome]}:{must:['ACM',[`0${f.esp}MM`,` ${f.esp}MM`]],want:['BRANCO']}})}
   else if(f.mat==='pvc')N.push({k:'placa|pvc|'+f.esp,desc:`PVC expandido ${f.esp} mm`,m2:aFundo*1.15,un:'un',uso:`fundo da placa x ${un} + 15% de perda`,busca:{must:['PVC EXPANDIDO',[`${String(f.esp).padStart(2,'0')}MM`,` ${f.esp}MM`]]}});
   else N.push({k:'placa|acr|'+f.esp+'|'+f.acrCor,desc:`Acrílico ${f.esp} mm ${f.acrCor}`,m2:aFundo*1.15,un:'un',uso:`fundo da placa x ${un} + 15% de perda`,busca:{must:['ACRILICO',[`0${f.esp}MM`,` ${f.esp}MM`]],want:[f.acrCor]}});
   if(pint)needsTinta(aFundo,'placa de sinalização').forEach(x=>N.push(x));
@@ -6676,6 +6695,9 @@ function plFolhas(){const ctx=plCtx();const pages=[],tags=[];const un=plUnTotal(
 function plArquivos(r){const out=[];if(!r)return out;const base=`OS ${r.ctx.os||'sem número'} - item ${r.ctx.item}`;const G=r.G;
   const v=vecPDF([{color:'#1c7ed6',polys:[G.corte]},...(G.us.length?[{color:'#c2255c',polys:G.us,aberto:true}]:[])],10);
   if(v)out.push({name:nomeArq(`${base} - PLACA FUNDO ${plFundoNome().replace(/ — .*?(?= •|$)/,'')} ${f0(G.W)}x${f0(G.H)}${G.us.length?' (corte azul + usinagem rosa)':''}.pdf`),buf:v.buf});
+  try{const un=plUnTotal();const E=plAcmNest(G,un);if(E&&un>1)E.bins.forEach((b,i)=>{const cor=[],vin=[];b.pcs.forEach(pc=>{const it=pc.it;const tr=q=>{const rr=pc.rot?[q[1],it.bw-q[0]]:q;return[pc.x+rr[0],pc.y+rr[1]]};cor.push(it.pts.map(tr));it.vin.forEach(([p,q])=>vin.push([tr(p),tr(q)]))});
+      const vx=vecPDF([{color:'#adb5bd',polys:[[[0,0],[ACM_LEN,0],[ACM_LEN,E.SW],[0,E.SW]]]},{color:'#1c7ed6',polys:cor},...(vin.length?[{color:'#c2255c',polys:vin,aberto:true}]:[])],10);
+      if(vx)out.push({name:nomeArq(`${base} - PLACA FUNDO APROVEITAMENTO chapa ${i+1} de ${E.bins.length} - ${b.pcs.length} pecas - ACM ${plFundo.esp}mm ${E.SW}x5000.pdf`),buf:vx.buf})})}catch(e){console.error('aproveitamento placa',e)}
   if(plSrc==='txt'&&plFrente.tipo!=='nenhum'){try{const VG=plVarGeos(r.L,r.A);const nmT=plFrente.tipo==='acrilico'?'TEXTO ACRILICO 3MM (router)':plFrente.tipo==='adesivo'?'TEXTO ADESIVO (plotter de recorte)':'TEXTO ARTE (impressao UV)';
       VG.forEach(g=>{if(!g.TG)return;const vt=vecPDF([{color:'#adb5bd',polys:[[[0,0],[r.L,0],[r.L,r.A],[0,r.A]]]},{color:'#000000',polys:g.TG.polys}],10);
         if(vt)out.push({name:nomeArq(`${base} - ${nmT} - ${VG.length>1?`PLACA ${String(g.n).padStart(2,'0')} (${g.q} un) - `:''}${plFontNome(plFontKey)} - placa ${f0(r.L)}x${f0(r.A)}.pdf`),buf:vt.buf})})}catch(e){console.error('texto',e)}}
