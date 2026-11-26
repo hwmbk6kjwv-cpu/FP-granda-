@@ -2901,7 +2901,7 @@ function vecPDF(vec,M=10){
   return {buf,w:b.w,h:b.h};
 }
 function letraArqs(d,msg){const out=[];
-    const base=`OS ${d.ctx.os||'sem número'} - item ${d.ctx.item}`;const cnt={};
+    const base=`OS ${d.ctx.os||'sem número'} - ${itemArq(d.ctx.item)}`;const cnt={};
     {const v=vecPDF([{color:'#000000',polys:d.orig}]);if(v)out.push({name:nomeArq(`${base} - ORIGINAL.pdf`),label:'ORIGINAL (arquivo do cliente em linha preta)',buf:v.buf,dim:`${fmt(v.w)} × ${fmt(v.h)} mm`})}
     {const b=bbox(d.orig),MG=50;const rect=[[b.x0-MG,b.y0-MG],[b.x1+MG,b.y0-MG],[b.x1+MG,b.y1+MG],[b.x0-MG,b.y1+MG]];
      const v=vecPDF([{color:'#000000',polys:[rect]},{color:'#000000',polys:d.orig},...(d.furos?[{color:'#e03131',polys:d.furos.map(f=>circ(f.c,FURO_D/2))}]:[])],1);if(v)out.push({name:nomeArq(`${base} - MOLDE KRAFT (P1).pdf`),label:'MOLDE KRAFT — setor P1 (arte + margem de 5 cm)',buf:v.buf,dim:`${fmt(v.w)} × ${fmt(v.h)} mm`})}
@@ -2928,7 +2928,7 @@ $('#gerar').onclick=()=>{
     lastPdf=toPDF(d.pages);lastLed=d.ledInfo;renderLedAdj(d.ledInfo);lDoc=d;try{l3dMostra(d)}catch(er){console.error('3D',er)};
     {const li=d.pages.findIndex(P=>P.some(p=>p.t==='text'&&/DISTRIBUIÇÃO DE LED/.test(p.s||'')));if(ledFoco&&li>=0)lSel=d.pages[li]._setor||'OUTRAS'}
     lPrevRender();
-    lastName=`OS ${d.ctx.os||'sem número'} - ${d.ctx.cliente||src.name.replace(/\.pdf$/i,'')} - item ${d.ctx.item}.pdf`.replace(/[\\/:*?"<>|]/g,'-');
+    lastName=`OS ${d.ctx.os||'sem número'} - ${d.ctx.cliente||src.name.replace(/\.pdf$/i,'')} - ${itemArq(d.ctx.item)}.pdf`.replace(/[\\/:*?"<>|]/g,'-');
     const thin=d.info.flatMap(i=>i.lines.filter(l=>!l.polys.length).map(l=>l.legenda));
     $('#outMsg').innerHTML=`<div class="msg ok">${d.pages.length} página(s) gerada(s). Original: ${fmt(d.W)} × ${fmt(d.H)} mm. FP em A4; arquivos de produção em tamanho real.${d.ledInfo?` LED: ${d.ledInfo.mods.length} módulos, ${d.ledInfo.watts.toLocaleString('pt-BR',{maximumFractionDigits:1})} W (+25% = ${(d.ledInfo.watts*LED_FOLGA).toLocaleString('pt-BR',{maximumFractionDigits:1})} W) → ${d.ledInfo.circ?d.ledInfo.circ.lista.map(c=>'F'+c.n+' '+c.fonte+'W').join(', '):reatorTxt(d.ledInfo.watts*LED_FOLGA)}.`:''}</div>`+(d.W+20>5080||d.H+20>5080?'<div class="msg warn">A peça passa de 5,08 m: alguns leitores de PDF cortam páginas desse tamanho. Abra os arquivos de produção no Corel ou Illustrator.</div>':'')+(thin.length?`<div class="msg warn">Linhas que sumiram (letra fina demais para a medida): ${esc(thin.join(', '))}</div>`:'')+(pagesOf(types.find(x=>x.id===selType)).length?'':'<div class="msg warn">Esse tipo ainda não tem páginas configuradas — gerei só o original. Configure em "Cadastros".</div>');
     $('#baixar').hidden=false;$('#gerar').textContent='Atualizar FP';
@@ -2943,10 +2943,10 @@ $('#gerar').onclick=()=>{
 };
 $('#prodFiles').onclick=async e=>{const b=e.target.closest('button');if(!b)return;
   if(b.id==='pfZip'){const z=new JSZip();prodFiles.forEach(f=>{if(!f.semZip){z.file(f.name,f.buf.slice(0));const dx=DXF_DE.get(f.buf);if(dx)z.file(f.name.replace(/\.pdf$/i,'')+'.dxf',dx)}});
-    const bz=`OS ${$('#os').value.trim()||'sem número'} - item ${$('#item').value||1}`;
+    const bz=`OS ${$('#os').value.trim()||'sem número'} - ${itemArq($('#item').value||1)}`;
     try{if(lDoc&&lDoc.pages){for(const [st,nm] of [['INSTALAÇÃO','PROJETO DE INSTALACAO'],['EXPEDIÇÃO','FP EXPEDICAO']]){const pg=lDoc.pages.filter(P=>P._setor===st);if(pg.length)z.file(nomeArq(`${bz} - ${nm}.pdf`),toPDF(pg))}}}catch(er){console.error(er)}
     try{if(lDoc&&lDoc.pages){const pg=lDoc.pages.filter(P=>P._setor==='PI');if(pg.length)z.file(nomeArq(`${bz} - PI produtos de instalacao.pdf`),toPDF(pg))}}catch(er){console.error(er)}
-    await zipRmPi(z,bz);const blob=await z.generateAsync({type:'blob'});await salvar(nomeArq(`OS ${$('#os').value.trim()||'sem número'} - item ${$('#item').value||1} - arquivos de producao.zip`),blob);return}
+    await zipRmPi(z,bz);const blob=await z.generateAsync({type:'blob'});await salvar(nomeArq(`OS ${$('#os').value.trim()||'sem número'} - ${itemArq($('#item').value||1)} - arquivos de producao.zip`),blob);return}
   if(b.dataset.pfdxf!=null){const f=prodFiles[+b.dataset.pfdxf];const dx=f&&DXF_DE.get(f.buf);if(dx)await salvar(f.name.replace(/\.pdf$/i,'')+'.dxf',new Blob([dx],{type:'application/dxf'}));return}
   const f=prodFiles[+b.dataset.pf];if(f)await salvar(f.name,new Blob([f.buf.slice(0)],{type:f.mime||'application/pdf'}))};
 $('#baixar').onclick=async()=>{
@@ -3570,7 +3570,7 @@ document.querySelectorAll('#tOpts input,#tOpts select,#tOpts textarea').forEach(
 ['#os','#cliente','#vendedor','#projetista','#endereco','#entrega'].forEach(s=>{const el=$(s);if(el)el.addEventListener('input',()=>{if(!$('#tab-testeiras').hidden)tAtualizar()})});
 $('#t40').addEventListener('change',()=>{$('#tH40box').hidden=!$('#t40').checked;tAtualizar()});
 $('#tBaixar').onclick=async()=>{if(!lastBuild)return;const r=lastBuild;const pdf=toPDF(r.pages);
-  const name=`OS ${r.ctx.os||'sem número'} - testeira ${r.M.comp.map(c=>f0(c.F.W)+'x'+f0(c.F.H)).join(' + ')} - item ${r.ctx.item}.pdf`.replace(/[\\/:*?"<>|]/g,'-');
+  const name=`OS ${r.ctx.os||'sem número'} - testeira ${r.M.comp.map(c=>f0(c.F.W)+'x'+f0(c.F.H)).join(' + ')} - ${itemArq(r.ctx.item)}.pdf`.replace(/[\\/:*?"<>|]/g,'-');
   try{const dl=window.claude&&claude.use?await claude.use('downloads'):null;
   if(!dl){$('#tMsg').insertAdjacentHTML('beforeend','<div class="msg err">Download indisponível nesta visualização. Abra o sistema pelo link no claude.ai.</div>');return}
   await dl.save({filename:name,data:new Blob([pdf],{type:'application/pdf'})})}catch(e){if(e&&e.code==='declined')return;$('#tMsg').insertAdjacentHTML('beforeend',`<div class="msg err">Não foi possível baixar (${esc(e.code||e.message)}).</div>`)}};
@@ -3706,8 +3706,8 @@ $('#tPintModo').onclick=e=>{const b=e.target.closest('button');if(!b)return;tPin
 function pickerCasa(){const pk=$('#pPicker');if($('#tab-testeiras').hidden){$('#pintCard').appendChild(pk);return}
   if(tModo==='desenho'){if(dPint==='toda')$('#dPintSlot').appendChild(pk)}else if(tPint==='toda')$('#tPintSlot').appendChild(pk)}
 
-$('#tAcmFiles').onclick=async()=>{if(!lastBuild||!lastBuild.M.acm)return;const r=lastBuild;const fs=acmArquivos(r.M.acm,`OS ${r.ctx.os||'sem número'} - item ${r.ctx.item}`).filter(arqOk);
-  let blob,name;{const z=new JSZip();fs.forEach(f=>z.file(f.name,f.buf));await zipRmPi(z,`OS ${r.ctx.os||'sem número'} - item ${r.ctx.item}`);blob=await z.generateAsync({type:'blob'});name=nomeArq(`OS ${r.ctx.os||'sem número'} - item ${r.ctx.item} - ACM router.zip`)}
+$('#tAcmFiles').onclick=async()=>{if(!lastBuild||!lastBuild.M.acm)return;const r=lastBuild;const fs=acmArquivos(r.M.acm,`OS ${r.ctx.os||'sem número'} - ${itemArq(r.ctx.item)}`).filter(arqOk);
+  let blob,name;{const z=new JSZip();fs.forEach(f=>z.file(f.name,f.buf));await zipRmPi(z,`OS ${r.ctx.os||'sem número'} - ${itemArq(r.ctx.item)}`);blob=await z.generateAsync({type:'blob'});name=nomeArq(`OS ${r.ctx.os||'sem número'} - ${itemArq(r.ctx.item)} - ACM router.zip`)}
   try{const dl=window.claude&&claude.use?await claude.use('downloads'):null;if(!dl){$('#tMsg').insertAdjacentHTML('beforeend','<div class="msg err">Download indisponível nesta visualização.</div>');return}await dl.save({filename:name,data:blob})}catch(e){if(e&&e.code==='declined')return;$('#tMsg').insertAdjacentHTML('beforeend',`<div class="msg err">Não foi possível baixar (${esc(e.code||e.message)}).</div>`)}};
 
 $('#tDivMsg').addEventListener('click',e=>{if(e.target.id==='tDivManter'){tFaces.forEach(f=>{if(!cabeLim(f.W,f.H))f.semDiv=true});$('#tDivMsg').innerHTML='<div class="msg ok">Estrutura mantida no tamanho original (sem divisão).</div>';tAtualizar();return}const dv=e.target.closest('[data-dir]');if(!dv)return;for(let i=tFaces.length-1;i>=0;i--)dividirFace(i,dv.dataset.dir);renderFaces();acmUI();v3Fit=true;tAtualizar()});
@@ -5276,7 +5276,7 @@ function dFolhas(){dCoresPadrao();const un=Math.max(1,Math.round(num($('#dUn').v
   {const pr=prodEstrutura(bs,L,un,ctx,dModel.titulo);pr.semAnc=true;if(dPint==='toda'){try{const A=dArea();pr.mat.push(...needsTinta(A.area*un/1e6,'estrutura'))}catch(err){console.error('tinta',err)}}paginasFinais(pages,tags,ctx,pr)}
   if(!FOOT_SKIP){numeraSetores(pages);pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length))}
   return {pages,tags,ctx}}
-$('#dBaixar').onclick=async()=>{if(!dBuild)return;const pdf=toPDF(dBuild.pages);const name=`OS ${dBuild.ctx.os||'sem número'} - estrutura - item ${dBuild.ctx.item}.pdf`.replace(/[\\/:*?"<>|]/g,'-');
+$('#dBaixar').onclick=async()=>{if(!dBuild)return;const pdf=toPDF(dBuild.pages);const name=`OS ${dBuild.ctx.os||'sem número'} - estrutura - ${itemArq(dBuild.ctx.item)}.pdf`.replace(/[\\/:*?"<>|]/g,'-');
   try{const dl=window.claude&&claude.use?await claude.use('downloads'):null;if(!dl){$('#dMsg').innerHTML='<div class="msg err">Download indisponível nesta visualização. Abra o sistema pelo link no claude.ai.</div>';return}
     await dl.save({filename:name,data:new Blob([pdf],{type:'application/pdf'})})}catch(e){if(e&&e.code==='declined')return;$('#dMsg').innerHTML=`<div class="msg err">Não foi possível baixar (${esc(e.code||e.message)}).</div>`}};
 let dPint='nao';let dTimer=null;function dAtualizar(){clearTimeout(dTimer);dTimer=setTimeout(()=>{if(dModel)dRender3D()},120)}
@@ -5623,7 +5623,7 @@ function mFolhasRender(){if(!mSrc||!mPecas.length){$('#mResCard').hidden=true;re
     {const C=setorChips(mBuild.pages,mSel,'data-mpg');mSel=C.sel;$('#mPgPick').innerHTML=C.html;$('#mPrev').innerHTML=C.shown.map(P=>`<div class="pg">${toSVG(P)}</div>`).join('')}$('#mBaixar').disabled=false}
   catch(e){console.error(e);$('#mInfo').insertAdjacentHTML('beforeend',`<div class="msg err">${esc(e.message)}</div>`)}}
 $('#mPgPick').onclick=e=>{const b=e.target.closest('[data-mpg]');if(!b)return;mSel=b.dataset.mpg;mFolhasRender()};
-$('#mBaixar').onclick=async()=>{if(!mBuild)return;const pdf=toPDF(mBuild.pages);const name=`OS ${mBuild.ctx.os||'sem número'} - modelo 3D - item ${mBuild.ctx.item}.pdf`.replace(/[\\/:*?"<>|]/g,'-');
+$('#mBaixar').onclick=async()=>{if(!mBuild)return;const pdf=toPDF(mBuild.pages);const name=`OS ${mBuild.ctx.os||'sem número'} - modelo 3D - ${itemArq(mBuild.ctx.item)}.pdf`.replace(/[\\/:*?"<>|]/g,'-');
   try{const dl=window.claude&&claude.use?await claude.use('downloads'):null;if(!dl){$('#mInfo').insertAdjacentHTML('beforeend','<div class="msg err">Download indisponível nesta visualização. Abra o sistema pelo link no claude.ai.</div>');return}
     await dl.save({filename:name,data:new Blob([pdf],{type:'application/pdf'})})}catch(e){if(e&&e.code==='declined')return;$('#mInfo').insertAdjacentHTML('beforeend',`<div class="msg err">Não foi possível baixar (${esc(e.code||e.message)}).</div>`)}};
 
@@ -5949,8 +5949,8 @@ function bobsRender(){try{bobsBuild=bobsFolhas();const C=setorChips(bobsBuild.pa
   catch(e){console.error(e);$('#bMsg').innerHTML=`<div class="msg err">Erro: ${esc(e.message)}</div>`}}
 $('#bGerar').onclick=()=>bobsRender();
 $('#bPgPick').onclick=e=>{const b=e.target.closest('[data-bpg]');if(!b)return;bobsSel=b.dataset.bpg;bobsRender()};
-$('#bBaixar').onclick=async()=>{if(!bobsBuild)return;await salvar(nomeArq(`OS ${bobsBuild.ctx.os||'sem número'} - Bobs requadro - item ${bobsBuild.ctx.item}.pdf`),new Blob([toPDF(bobsBuild.pages)],{type:'application/pdf'}))};
-$('#bFiles').onclick=async e=>{const b=e.target.closest('[data-bf]');if(!b)return;const base=`OS ${$('#os').value.trim()||'sem número'} - item ${$('#item').value||1}`;
+$('#bBaixar').onclick=async()=>{if(!bobsBuild)return;await salvar(nomeArq(`OS ${bobsBuild.ctx.os||'sem número'} - Bobs requadro - ${itemArq(bobsBuild.ctx.item)}.pdf`),new Blob([toPDF(bobsBuild.pages)],{type:'application/pdf'}))};
+$('#bFiles').onclick=async e=>{const b=e.target.closest('[data-bf]');if(!b)return;const base=`OS ${$('#os').value.trim()||'sem número'} - ${itemArq($('#item').value||1)}`;
   if(b.dataset.bf==='zip'){const z=new JSZip();bobsFiles.forEach(f=>{const v=vecPDF(f.vec);if(v){z.file(nomeArq(`${base} - ${f.name}`),v.buf);const dx=DXF_DE.get(v.buf);if(dx)z.file(nomeArq(`${base} - ${f.name}`).replace(/\.pdf$/i,'')+'.dxf',dx)}});bArtes.forEach(f=>z.file(nomeArq(`${base} - ARTE IMPRESSAO - ${f.name}`),f.buf));
     try{if(bobsBuild){const pi=bobsBuild.pages.filter(P=>P._setor==='PI');if(pi.length)z.file(nomeArq(`${base} - PI produtos de instalacao.pdf`),toPDF(pi))}}catch(e){console.error(e)}await zipRmPi(z,base);await salvar(nomeArq(`${base} - Bobs arquivos.zip`),await z.generateAsync({type:'blob'}));return}
   const f=bobsFiles[+b.dataset.bf];const v=f&&vecPDF(f.vec);if(v)await salvar(nomeArq(`${base} - ${f.name}`),new Blob([v.buf],{type:'application/pdf'}))};
@@ -6398,8 +6398,8 @@ function brLimpa(){brFichas=[];brArqs=[];brBuild=null;$('#brDesc').value='';$('#
   $('#brGerar').onclick=()=>brRender();
   $('#brPgPick').onclick=e=>{const b=e.target.closest('[data-brpg]');if(!b)return;brSel=b.dataset.brpg;brRender()};
   $('#brRM').onclick=()=>matAddPopup('brPrev',false);$('#brPI').onclick=()=>matAddPopup('brPrev',true);
-  $('#brBaixar').onclick=async()=>{if(!brBuild)brRender();if(!brBuild)return;await salvar(nomeArq(`OS ${brBuild.ctx.os||'sem número'} - item ${brBuild.ctx.item} - ${brBuild.ctx.descItem} - FP.pdf`),new Blob([toPDF(brBuild.pages)],{type:'application/pdf'}))};
-  $('#brZip').onclick=async()=>{brRender();if(!brBuild)return;const base=`OS ${brBuild.ctx.os||'sem número'} - item ${brBuild.ctx.item}`;const z=new JSZip();
+  $('#brBaixar').onclick=async()=>{if(!brBuild)brRender();if(!brBuild)return;await salvar(nomeArq(`OS ${brBuild.ctx.os||'sem número'} - ${itemArq(brBuild.ctx.item)} - ${brBuild.ctx.descItem} - FP.pdf`),new Blob([toPDF(brBuild.pages)],{type:'application/pdf'}))};
+  $('#brZip').onclick=async()=>{brRender();if(!brBuild)return;const base=`OS ${brBuild.ctx.os||'sem número'} - ${itemArq(brBuild.ctx.item)}`;const z=new JSZip();
     z.file(nomeArq(`${base} - ${brBuild.ctx.descItem} - FP.pdf`),toPDF(brBuild.pages));brArqs.forEach(f=>z.file(nomeArq(`${base} - ${f.name}`),unb64(f.b64)));
     try{const pi=brBuild.pages.filter(P=>P._setor==='PI');if(pi.length)z.file(nomeArq(`${base} - PI produtos de instalacao.pdf`),toPDF(pi))}catch(e){}
     await zipRmPi(z,base);await salvar(nomeArq(`${base} - arquivos de producao.zip`),await z.generateAsync({type:'blob'}))};
@@ -6501,7 +6501,7 @@ async function adCarrega(f){const buf=new Uint8Array(await f.arrayBuffer());adAr
   ['#adDesc','#adUn','#adL','#adA','#adAplic','#adObs','#adMasc'].forEach(s=>$(s).addEventListener('change',adSujo));
   $('#adGerar').onclick=()=>adRender();
   $('#adPgPick').onclick=e=>{const b=e.target.closest('[data-adpg]');if(!b||e.target.closest('[data-setx],[data-fbabrir]'))return;adSel=b.dataset.adpg;adRender()};
-  $('#adBaixar').onclick=async()=>{if(!adBuild)adRender();if(!adBuild)return;const c=adBuild.ctx;const z=new JSZip();const base=`OS ${c.os||'sem número'} - item ${c.item} - ${c.descItem}`;z.file(nomeArq(base+' - FP.pdf'),toPDF(adBuild.pages));if(adArq)z.file(nomeArq(`OS ${c.os||'sem número'} - item ${c.item} - ${adArq.nome}`),unb64(adArq.b64));
+  $('#adBaixar').onclick=async()=>{if(!adBuild)adRender();if(!adBuild)return;const c=adBuild.ctx;const z=new JSZip();const base=`OS ${c.os||'sem número'} - ${itemArq(c.item)} - ${c.descItem}`;z.file(nomeArq(base+' - FP.pdf'),toPDF(adBuild.pages));if(adArq)z.file(nomeArq(`OS ${c.os||'sem número'} - ${itemArq(c.item)} - ${adArq.nome}`),unb64(adArq.b64));
     try{if(rmUlt&&rmUlt.rows&&rmUlt.rows.length)z.file(nomeArq(base+' - RM.xlsx'),await rmXlsx(rmUlt.rows,base+' - RM'))}catch(e){}await salvar(nomeArq(base+'.zip'),await z.generateAsync({type:'blob'}))};
   adUI()})();
 
@@ -6718,7 +6718,7 @@ function plFolhas(){const ctx=plCtx();const pages=[],tags=[];const un=plUnTotal(
   paginasFinais(pages,tags,ctx,prod);pages.forEach((P,i)=>{P._setor=P._setor||tags[i]});
   if(!FOOT_SKIP){numeraSetores(pages);pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length))}
   return{pages,tags,ctx,G,L,A}}
-function plArquivos(r){const out=[];if(!r)return out;const base=`OS ${r.ctx.os||'sem número'} - item ${r.ctx.item}`;const G=r.G;
+function plArquivos(r){const out=[];if(!r)return out;const base=`OS ${r.ctx.os||'sem número'} - ${itemArq(r.ctx.item)}`;const G=r.G;
   const v=vecPDF([{color:'#1c7ed6',polys:[G.corte]},...(G.us.length?[{color:'#c2255c',polys:G.us,aberto:true}]:[])],10);
   if(v)out.push({name:nomeArq(`${base} - PLACA FUNDO ${plFundoNome().replace(/ — .*?(?= •|$)/,'')} ${f0(G.W)}x${f0(G.H)}${G.us.length?' (corte azul + usinagem rosa)':''}.pdf`),buf:v.buf});
   try{const un=plUnTotal();const E=plAcmNest(G,un);if(E&&un>1)E.bins.forEach((b,i)=>{const cor=[],vin=[];b.pcs.forEach(pc=>{const it=pc.it;const tr=q=>{const rr=pc.rot?[q[1],it.bw-q[0]]:q;return[pc.x+rr[0],pc.y+rr[1]]};cor.push(it.pts.map(tr));it.vin.forEach(([p,q])=>vin.push([tr(p),tr(q)]))});
@@ -6809,7 +6809,7 @@ async function plCarrega(f){const buf=new Uint8Array(await f.arrayBuffer());plAr
   $('#tab-placa').addEventListener('change',e=>{const t=e.target;if(t.id==='plAcmBusca'||/^plAcmMan/.test(t.id))return;if(t.id==='plAcm'){plFundo.acmCod=t.value}else if(t.id==='plRefil'){plFundo.refil=t.checked;plUI()}else if(t.id==='plAba'){plFundo.aba=Math.max(5,num(t.value)||20)}else if(t.id==='pcPint')plPicker();else if(t.id==='plArq'){const f=t.files[0];t.value='';if(f)plCarrega(f);return}plSujo()});
   $('#plGerar').onclick=()=>plRender();
   $('#plPgPick').onclick=e=>{const b=e.target.closest('[data-plpg]');if(!b||e.target.closest('[data-setx],[data-fbabrir],[data-fbatual],[data-volabrir],[data-arqabrir]'))return;plSel=b.dataset.plpg;plRender()};
-  $('#plBaixar').onclick=async()=>{if(!plBuild)plRender();if(!plBuild)return;const c=plBuild.ctx;const z=new JSZip();const base=`OS ${c.os||'sem número'} - item ${c.item} - ${c.descItem}`;z.file(nomeArq(base+' - FP.pdf'),toPDF(plBuild.pages));
+  $('#plBaixar').onclick=async()=>{if(!plBuild)plRender();if(!plBuild)return;const c=plBuild.ctx;const z=new JSZip();const base=`OS ${c.os||'sem número'} - ${itemArq(c.item)} - ${c.descItem}`;z.file(nomeArq(base+' - FP.pdf'),toPDF(plBuild.pages));
     plArquivos(plBuild).filter(arqOk).forEach(f=>{z.file(f.name,f.buf);const dx=DXF_DE.get(f.buf);if(dx)z.file(f.name.replace(/\.pdf$/i,'')+'.dxf',dx)});try{await zipRmPi(z,base)}catch(e){}await salvar(nomeArq(base+'.zip'),await z.generateAsync({type:'blob'}))};
   document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>setTimeout(plPicker,30)));
   plUI()})();
@@ -7123,7 +7123,7 @@ function ttFolhas(){const ctx=ttCtx();const G=ttGeo();const pages=[],tags=[];con
   if(!FOOT_SKIP){numeraSetores(pages);pages.forEach((P,i)=>footer(P,ctx,i+1,pages.length))}
   return{pages,tags,ctx,G,FP,furos,cortes}}
 
-function ttArquivos(r){const out=[];if(!r)return out;const base=`OS ${r.ctx.os||'sem número'} - item ${r.ctx.item}`;const G=r.G;const nb=G.cols.length*G.un;
+function ttArquivos(r){const out=[];if(!r)return out;const base=`OS ${r.ctx.os||'sem número'} - ${itemArq(r.ctx.item)}`;const G=r.G;const nb=G.cols.length*G.un;
   const fl=vecPDF([{color:'#ff00c0',polys:[r.FP.map(([x,y])=>[x+G.fl.L/2,y+G.fl.L/2])]},{color:'#ff5500',polys:r.furos.map(([x,y])=>ttCirc(x+G.fl.L/2,y+G.fl.L/2,G.ch.bar[2]/2))}],10);
   if(fl)out.push({name:nomeArq(`${base} - FLANGE ${G.fl.forma} ${f0(G.fl.L)}mm chapa ${ttF1(G.fl.esp)}mm - ${nb} un (corte + furos ${G.ch.bar[2]}mm).pdf`),buf:fl.buf});
   if(G.en.q){const e=vecPDF([{color:'#ff00c0',polys:[ttEnrPoly(G)]}],10);if(e)out.push({name:nomeArq(`${base} - ENRIJECEDOR ${f0(G.en.W)}x${f0(G.en.H)} chapa ${ttF1(G.en.esp)}mm - ${G.en.q*nb} un.pdf`),buf:e.buf})}
@@ -7143,7 +7143,7 @@ function ttUI(){const m=ttv('ttMod'),t=ttv('ttColTipo');const sh=(id,on)=>{const
   T.addEventListener('click',e=>{if(e.target.id==='ttChTira'){ttCh=null;$('#ttChInfo').innerHTML='';ttSujo()}});
   $('#ttGerar').onclick=()=>ttRender();
   $('#ttPgPick').onclick=e=>{const b=e.target.closest('[data-ttpg]');if(!b||e.target.closest('[data-setx],[data-fbabrir],[data-fbatual],[data-volabrir],[data-arqabrir]'))return;ttSel=b.dataset.ttpg;ttRender()};
-  $('#ttBaixar').onclick=async()=>{if(!ttBuild)ttRender();if(!ttBuild)return;const c=ttBuild.ctx;const z=new JSZip();const base=`OS ${c.os||'sem número'} - item ${c.item} - ${c.descItem}`;z.file(nomeArq(base+' - FP.pdf'),toPDF(ttBuild.pages));
+  $('#ttBaixar').onclick=async()=>{if(!ttBuild)ttRender();if(!ttBuild)return;const c=ttBuild.ctx;const z=new JSZip();const base=`OS ${c.os||'sem número'} - ${itemArq(c.item)} - ${c.descItem}`;z.file(nomeArq(base+' - FP.pdf'),toPDF(ttBuild.pages));
     ttArquivos(ttBuild).filter(arqOk).forEach(f=>{z.file(f.name,f.buf);const dx=DXF_DE.get(f.buf);if(dx)z.file(f.name.replace(/\.pdf$/i,'')+'.dxf',dx)});try{await zipRmPi(z,base)}catch(e){}await salvar(nomeArq(base+'.zip'),await z.generateAsync({type:'blob'}))};
   ttUI()})();
 
@@ -7578,6 +7578,9 @@ function ct3CoresUI(){const el=$('#ct3Cores');if(el){el.innerHTML='';el.hidden=t
 document.addEventListener('input',e=>{const c=e.target.closest&&e.target.closest('[data-c3c]');if(!c||!ct3)return;ct3.cores=ct3.cores||{};const k=c.dataset.c3c;ct3.cores[k]=c.value;if(k==='*')document.querySelectorAll('[data-c3c]').forEach(x=>{if(x.dataset.c3c!=='*'&&!(x.dataset.c3c in ct3.cores))x.value=c.value});clearTimeout(window._c3t);window._c3t=setTimeout(()=>{ct3._img=null;ctRender()},250)});
 document.addEventListener('click',e=>{if(!(e.target.closest&&e.target.closest('[data-c3limpa]'))||!ct3)return;ct3.cores={};ct3._img=null;ct3CoresUI();ctRender()});
 
+// nome dos arquivos: com itens da OS agrupados (mesmo projeto) sai "itens 17 e 18"
+function itemArq(n){try{const L=(typeof pedAtual!=='undefined'&&pedAtual&&pedAtual.osItens)||[];const v=+String(n).replace(/\D.*$/,'');const o=L.find(i=>+i.n===v);if(!o)return `item ${n}`;const m=o.grupo?+o.grupo:v;const ns=[...new Set([m,...L.filter(i=>+i.grupo===m).map(i=>+i.n)])].sort((a,b)=>a-b);
+  if(ns.length<2)return `item ${n}`;return `itens ${ns.slice(0,-1).join(', ')} e ${ns[ns.length-1]}`}catch(e){return `item ${n}`}}
 /* ================= PEDIDOS: uma OS com vários itens (letras, testeiras, estruturas, modelos 3D), tudo salvo ================= */
 let pedidos=[],pedAtual=null,itemAtual=null,pedPdf=null,pedSujo=false;
 const TIPO_NOME={letra:'Letra caixa',testeira:'Testeira',estrutura:'3D — estrutura por desenho',modelo3d:'3D — modelo (STL/OBJ/DXF)',bobs:'Bobs — requadro do balcão',bobscomp:'Bobs — complemento 30x30',bobstela:'Bobs — testeira em tela',bobscant:'Bobs — cantoneira com iluminação',branco:'FP em branco',adesivo:'Adesivo de recorte',placa:'Placa de sinalização',totem:'Totem',cotas:'Cotas'};
@@ -8011,7 +8014,7 @@ async function pedArquivos(){if(!pedAtual)return;let its=(pedAtual.itens||[]).sl
   try{for(const [k,it] of its.entries()){$('#pedMsg').innerHTML=`<div class="msg ok">Arquivos de produção: item ${it.n} (${k+1} de ${its.length}) — ${TIPO_NOME[it.tipo]}…</div>`;await new Promise(r=>setTimeout(r,30));
       cnt[it.n]=(cnt[it.n]||0)+1;const pasta=nomeArq(`Item ${it.n}.${cnt[it.n]} - ${TIPO_NOME[it.tipo]||it.tipo}${it.desc?' - '+it.desc:''}`).replace(/\.+$/,'');
       rmUlt=null;await itemAbrir(it,false);FOOT_SKIP=true;let r=null;try{r=buildItem(it.tipo)}catch(e){console.error('arquivos',it.n,e)}finally{FOOT_SKIP=false}if(!r)continue;
-      const base=`OS ${pedAtual.os||'sem número'} - item ${it.n}`;let fs=[];
+      const base=`OS ${pedAtual.os||'sem número'} - ${itemArq(it.n)}`;let fs=[];
       try{if(it.tipo==='letra')fs=letraArqs(r,false).filter(f=>f.buf).map(f=>({name:f.name,buf:f.buf}));
         else if(it.tipo==='testeira'){const L=typeof lastBuild!=='undefined'&&lastBuild&&lastBuild.M&&lastBuild.M.acm?lastBuild:r;if(L&&L.M&&L.M.acm)fs=acmArquivos(L.M.acm,base)}
         else if(/^bobs/.test(it.tipo))fs=(bobsFiles||[]).map(f=>{const v=vecPDF(f.vec);return v?{name:nomeArq(`${base} - ${f.name}`),buf:v.buf}:null}).filter(Boolean);
