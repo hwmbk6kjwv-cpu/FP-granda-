@@ -260,7 +260,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
         <div id="itemBox"><label class="f">Item nº</label><input type="number" id="item" value="1" inputmode="numeric"></div>
         <div class="osPed"><label class="f">Data de entrega</label><input type="date" id="entrega"></div>
       </div>
-      <div id="descBox"><label class="f">Descrição do item</label><input type="text" id="descItem" value="LETRA CAIXA FACHADA"></div>
+      <div id="descBox"><label class="f">Descrição do item</label><input type="text" id="descItem" value="" placeholder="Ex.: LETRA CAIXA FACHADA"></div>
       <div id="pedTotBox" hidden><label class="f">Valor total do pedido (R$) <span class="note" style="font-weight:400">— soma dos produtos, sem logística</span></label><div id="pedTotV" style="padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#f8f9fa;font-weight:700;font-size:16px">—</div></div>
       <div id="vendaBox"><label class="f">Valor de venda do item (R$) <span class="note" style="font-weight:400">— compara com o custo da RM no pedido</span></label><input type="text" id="itemVenda" inputmode="decimal" placeholder="Ex.: 4.500,00"></div>
       <div class="g2 osPed">
@@ -306,7 +306,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
       <label class="drop" id="drop"><input type="file" id="pdfIn" accept="application/pdf,.pdf" hidden><span id="dropTxt">Toque para escolher o PDF</span></label>
       <div id="fileInfo"></div>
       <label class="f">Largura real (mm) <span class="badge">opcional — só se o PDF não estiver 1:1</span></label><input type="number" id="largReal" placeholder="Deixe vazio para usar 1:1" inputmode="decimal">
-      <label class="f">Quantidade de jogos <span class="badge">quantas vezes este conjunto de letras</span></label><input type="number" id="lQtd" value="1" min="1" step="1" inputmode="numeric" style="max-width:140px">
+      <label class="f">Quantidade de jogos <span class="badge">quantas vezes este conjunto de letras</span></label><input type="number" id="lQtd" value="" placeholder="Ex.: 1" min="1" step="1" inputmode="numeric" style="max-width:140px">
       <div id="lReatBox" hidden style="margin-top:6px"><label class="f">Fonte (reator) para os jogos</label><div class="row" style="gap:6px;flex-wrap:wrap"><button type="button" class="chip on" data-lreat="jogo" style="padding:6px 12px;font-size:13px">Uma fonte por jogo</button><button type="button" class="chip" data-lreat="unico" style="padding:6px 12px;font-size:13px">Fonte única para todos os jogos</button><input type="hidden" id="lReat" value="jogo"></div><p class="note" id="lReatNota" style="margin:4px 0 0">Cada jogo leva a sua fonte (quando forem instalados longe um do outro).</p></div>
     </div>
     <div class="card"><h2>3. Tipo de letra caixa</h2><div class="types" id="typePick"></div><div id="chapaBox" hidden><label class="f" style="margin-top:14px">Linha interna da chapa galvanizada</label><div class="leds" id="chapaPick"></div></div>
@@ -325,9 +325,9 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
         <p class="note" style="margin:8px 0 0">Sai a FP da router com o corte em tamanho real (arquivos de corte em "Arquivos de produção"), o aproveitamento na chapa, a RM e a prévia 3D. O fundo em ACM ou acrílico é no quadro abaixo.</p></div>
       <div id="l3dBox" hidden style="margin-top:12px;padding:10px;border:1.5px solid #b197fc;background:#f3f0ff;border-radius:10px"><b style="color:#5f3dc4">Letra 3D (PETG)</b>
         <label id="l3dLuzLbl" style="display:flex;gap:6px;align-items:center;font-size:13.5px;margin-top:6px;font-weight:600"><input type="checkbox" id="l3dLuz"> 💡 Letra com LED dentro (iluminada)</label><p class="note" id="l3dLuzNota" hidden style="margin:2px 0 4px;color:#5f3dc4">Com LED: cúpula interna em filamento <b>BRANCO</b> (reflete a luz).</p><div id="l3dLatBox" hidden style="margin:2px 0 6px"><span style="font-size:13px;font-weight:600">Lateral da letra iluminada?</span> <button type="button" class="chip" data-latluz="1" style="padding:5px 12px;font-size:13px">Sim</button> <button type="button" class="chip" data-latluz="0" style="padding:5px 12px;font-size:13px">Não</button><input type="checkbox" id="l3dLatLuz" hidden><p class="note" id="l3dLatNota" style="margin:3px 0 0"></p></div>
-        <div class="row" style="gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap"><label class="f" style="margin:0">Cor do filamento</label><select id="l3dCor" style="max-width:160px"><option>BRANCO</option><option>PRETO</option><option>CINZA</option><option>AZUL</option><option>VERMELHO</option><option>LARANJA</option><option>BRANCO TRANSLÚCIDO</option></select>
+        <div class="row" style="gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap"><label class="f" style="margin:0">Cor do filamento</label><select id="l3dCor" style="max-width:160px"><option value="" selected>— escolher —</option><option>BRANCO</option><option>PRETO</option><option>CINZA</option><option>AZUL</option><option>VERMELHO</option><option>LARANJA</option><option>BRANCO TRANSLÚCIDO</option></select>
         <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="l3dFundo" checked> Fundo impresso junto</label></div>
-        <div class="row" style="gap:14px;align-items:center;margin-top:8px;flex-wrap:wrap"><label id="l3dAcrLbl" style="display:flex;gap:6px;align-items:center;font-size:13px">Acrílico da frente <select id="l3dAcrMod"><option value="int">Interno (encaixado na letra)</option><option value="bi">Borda infinita (mesma medida da letra, rebaixo 3 mm)</option><option value="acm" hidden>ACM 3 mm na frente (sem luz na frente) — LED atrás, halo na parede, barra roscada 3/16"</option></select></label><span id="l3dAcmBox" hidden style="display:inline-flex;gap:6px;align-items:center;font-size:13px;flex-wrap:wrap">Frente <select id="l3dFrH"><option value="acm">ACM 3 mm (mesmo recorte do acrílico)</option><option value="imp">Impressa em 3D junto (face 2 mm)</option></select><span id="l3dAcmCorBox" style="display:inline-flex;gap:6px;align-items:center">cor <span id="l3dAcmSw" style="display:inline-block;width:18px;height:18px;border-radius:4px;border:1px solid #868e96"></span><select id="l3dAcmCor" style="max-width:300px"></select></span> Afastamento da parede <select id="l3dAfast"><option value="0">Rente à parede</option><option value="20">20 mm</option><option value="30">30 mm</option><option value="40" selected>40 mm</option><option value="50">50 mm</option><option value="60">60 mm</option></select><label id="l3dCapaBLbl" style="display:inline-flex;gap:5px;align-items:center;font-weight:600"><input type="checkbox" id="l3dCapaB" checked> Capa p/ cobrir a barra roscada (tubo impresso, furo Ø5,76, parede 1,5 mm)</label><label id="l3dEspExtLbl" style="display:inline-flex;gap:5px;align-items:center;font-weight:600;flex-basis:100%"><input type="checkbox" id="l3dEspExt" checked> Espaçador vai até a parede (cilindro cobre o vão; só a barra entra na parede — furo 0,5 mm maior que a barra)</label></span><label id="l3dCapaLbl" style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="l3dCapa"> Interior branco para LED (capa interna em PETG branco com fundo, 0,5 mm menor que a cavidade)</label><label id="l3dSepBox" style="display:flex;gap:6px;align-items:center;font-size:13px;font-weight:700;color:#c2255c"><input type="checkbox" id="l3dSep"> Fundo separado da lateral (LED primeiro no fundo, depois encaixa a lateral) <small id="l3dSepNota" class="note" style="margin:0;font-weight:400"></small></label></div>
+        <div class="row" style="gap:14px;align-items:center;margin-top:8px;flex-wrap:wrap"><label id="l3dAcrLbl" style="display:flex;gap:6px;align-items:center;font-size:13px">Acrílico da frente <select id="l3dAcrMod"><option value="int">Interno (encaixado na letra)</option><option value="bi">Borda infinita (mesma medida da letra, rebaixo 3 mm)</option><option value="acm" hidden>ACM 3 mm na frente (sem luz na frente) — LED atrás, halo na parede, barra roscada 3/16"</option></select></label><span id="l3dAcmBox" hidden style="display:inline-flex;gap:6px;align-items:center;font-size:13px;flex-wrap:wrap">Frente <select id="l3dFrH"><option value="acm">ACM 3 mm (mesmo recorte do acrílico)</option><option value="imp">Impressa em 3D junto (face 2 mm)</option></select><span id="l3dAcmCorBox" style="display:inline-flex;gap:6px;align-items:center">cor <span id="l3dAcmSw" style="display:inline-block;width:18px;height:18px;border-radius:4px;border:1px solid #868e96"></span><select id="l3dAcmCor" style="max-width:300px"></select></span> Afastamento da parede <select id="l3dAfast"><option value="" selected>— escolher —</option><option value="0">Rente à parede</option><option value="20">20 mm</option><option value="30">30 mm</option><option value="40">40 mm</option><option value="50">50 mm</option><option value="60">60 mm</option></select><label id="l3dCapaBLbl" style="display:inline-flex;gap:5px;align-items:center;font-weight:600"><input type="checkbox" id="l3dCapaB" checked> Capa p/ cobrir a barra roscada (tubo impresso, furo Ø5,76, parede 1,5 mm)</label><label id="l3dEspExtLbl" style="display:inline-flex;gap:5px;align-items:center;font-weight:600;flex-basis:100%"><input type="checkbox" id="l3dEspExt" checked> Espaçador vai até a parede (cilindro cobre o vão; só a barra entra na parede — furo 0,5 mm maior que a barra)</label></span><label id="l3dCapaLbl" style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="l3dCapa"> Interior branco para LED (capa interna em PETG branco com fundo, 0,5 mm menor que a cavidade)</label><label id="l3dSepBox" style="display:flex;gap:6px;align-items:center;font-size:13px;font-weight:700;color:#c2255c"><input type="checkbox" id="l3dSep"> Fundo separado da lateral (LED primeiro no fundo, depois encaixa a lateral) <small id="l3dSepNota" class="note" style="margin:0;font-weight:400"></small></label></div>
         <p class="note" id="l3dNotaInt" style="margin:6px 0 0">Parede 2,5 mm; face com 4 mm para o acrílico encaixar justo; degrau de 1,5 mm abaixo. STL de cada letra sai em "Arquivos de produção".</p><p class="note" id="l3dNotaAcm" hidden style="margin:6px 0 0">LED atrás: letra aberta atrás, frente em ACM 3 mm (ou impressa junto, face 2 mm), espaçadores impressos com furo Ø4,26 p/ barra roscada 3/16" (4 por letra, 3 em letras como T e A). STL de cada letra sai em "Arquivos de produção".</p></div>
       <div id="acrFBox" style="margin-top:12px;padding:10px;border:1.5px solid #74c0fc;background:#e7f5ff;border-radius:10px"><b style="color:#1864ab">Fundo das letras</b>
         <label style="display:flex;gap:6px;align-items:center;font-size:13px;margin-top:6px"><input type="checkbox" id="l3dAcrF"> Colocar fundo (placa maior que o desenho, atrás das letras)</label>
@@ -342,7 +342,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
           <div style="grid-column:1/-1"><canvas id="fdPrev" style="width:100%;height:auto;display:block;background:#fff;border:1px solid #a5d8ff;border-radius:8px"></canvas><div class="note" id="fdPrevInfo" style="margin:4px 0 0"></div></div>
           <p class="note" style="grid-column:1/-1;margin:0">Só o contorno de fora das letras (sem os furos do O, A, R…). Sem juntar, cada letra sai numa peça — se a borda for maior que a metade do espaço entre as letras, elas se encostam e viram uma peça.</p></div></div></div>
     <div class="card" id="ledCard"><h2>4. LED</h2><div class="leds" id="ledPick"></div><label class="f" style="margin-top:12px">Potência do módulo de LED</label><div class="leds" id="ledWPick"></div>
-      <div class="g2"><div><label class="f">Rabicho do fio por letra (mm)</label><input type="number" id="ledRab" value="3000" step="100" min="0"></div><div><label class="f">Saída do fio na letra</label><select id="ledSaida"><option value="inf">Inferior centralizado</option><option value="meio">Centralizado no meio da letra</option><option value="sup">Superior centralizado</option></select></div></div>
+      <div class="g2"><div><label class="f">Rabicho do fio por letra (mm)</label><input type="number" id="ledRab" value="" placeholder="Ex.: 3000" step="100" min="0"></div><div><label class="f">Saída do fio na letra</label><select id="ledSaida"><option value="" selected>— escolher —</option><option value="inf">Inferior centralizado</option><option value="meio">Centralizado no meio da letra</option><option value="sup">Superior centralizado</option></select></div></div>
       <details id="ledEsp" class="ledEsp"><summary>Configurações avançadas de LED <span class="badge" id="ledEspUso" hidden>em uso</span><span class="seta">▾</span></summary>
       <div class="g2"><div><label class="f">Distância centro a centro (mm) <span class="badge">opcional</span></label><input type="number" step="1" id="ledGap" placeholder="Padrão do tipo: 80" inputmode="decimal"></div>
       <div><label class="f">Borda até a 1ª fileira (mm) <span class="badge">opcional</span></label><input type="number" step="1" id="ledMarg" placeholder="Padrão do tipo: 45" inputmode="decimal"></div></div>
@@ -404,8 +404,8 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
       <h2>3D — modelo, estrutura e vistas com cotas</h2><div class="m3dSw leds" style="margin:0 0 12px"><button type="button" data-m3d="arq"><b>📦 Arquivo 3D pronto</b><span class="note" style="display:block">STL, OBJ ou DXF 3D</span></button><button type="button" data-m3d="des"><b>📐 Estrutura por desenho</b><span class="note" style="display:block">PDF ou DXF 2D + descrição → 3D</span></button></div>
       <p class="note" style="margin-top:0">Envie o modelo em <b>STL</b> ou <b>OBJ</b>. SketchUp: Arquivo › Exportar › Modelo 3D › STL ou OBJ (cada tubo como grupo/componente). SolidWorks: Salvar como › STL ou OBJ, com a montagem num arquivo só e cada peça como corpo separado.</p>
       <div class="g3">
-        <div><label class="f">Quantidade (un.)</label><input type="number" id="mQt" value="1" inputmode="numeric"></div>
-        <div><label class="f">Descrição do item</label><input type="text" id="mDesc" value="ESTRUTURA METÁLICA"></div>
+        <div><label class="f">Quantidade (un.)</label><input type="number" id="mQt" value="" placeholder="Ex.: 1" inputmode="numeric"></div>
+        <div><label class="f">Descrição do item</label><input type="text" id="mDesc" value="" placeholder="Ex.: ESTRUTURA METÁLICA"></div>
         <div><label class="f">Unidade do arquivo</label><select id="mUn"><option value="1">milímetro</option><option value="10">centímetro</option><option value="1000">metro</option><option value="25.4">polegada</option></select></div>
       </div>
       <div class="g3"><div><label class="f">Eixo para cima</label><select id="mEixo"><option value="z">Z (SketchUp)</option><option value="y">Y (SolidWorks)</option></select></div></div>
@@ -432,7 +432,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
     <div class="card bm-req" id="bCard">
       <h2>Bobs — requadro do balcão</h2>
       <div class="g3">
-        <div><label class="f">Quantidade (un.)</label><input type="number" id="bUn" value="1" inputmode="numeric"></div>
+        <div><label class="f">Quantidade (un.)</label><input type="number" id="bUn" value="" placeholder="Ex.: 1" inputmode="numeric"></div>
         <div><label class="f">Descrição</label><input type="text" id="bDesc" value="REQUADRO DO BALCÃO BOBS"></div>
       </div>
       <p class="note" style="margin:6px 0 0">Estrutura externa em metalon 30x30 (preto a pó, terceirizado). Cada vão recebe um elemento 2 mm menor: ripado (barra chata 1" x 1/8" + metalon 15x15), ACM quadriculado ou ACM inteiro adesivado (cantoneira de alumínio 15x15 + VHB 15 mm + brocante 1/2").</p>
@@ -465,7 +465,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
     <div class="card bm-comp" id="bCompCard" hidden>
       <h2>Bobs — complemento 30x30</h2>
       <div class="g3">
-        <div><label class="f">Quantidade (un.)</label><input type="number" id="bcUn" value="1" inputmode="numeric"></div>
+        <div><label class="f">Quantidade (un.)</label><input type="number" id="bcUn" value="" placeholder="Ex.: 1" inputmode="numeric"></div>
         <div><label class="f">Descrição</label><input type="text" id="bcDesc" value="COMPLEMENTO 30X30 BOBS"></div>
       </div>
       <p class="note" style="margin:6px 0 0">Tubo metalon 30x30 avulso, cortado na medida e pintado de preto (pó, terceirizado). Entra na soma da cantoneira com iluminação.</p>
@@ -533,7 +533,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
   </section>
   <section id="tab-adesivo" hidden>
     <div class="card"><h2>Adesivo de recorte</h2><p class="note" style="margin:0 0 8px">O recorte sai do <b>arquivo original</b>, do jeito que veio (sem aproveitamento). Escolha as cores entre os adesivos cadastrados.</p>
-      <div class="g3"><div><label class="f">Descrição do item</label><input type="text" id="adDesc" placeholder="ex.: ADESIVO LOGO VITRINE"></div><div><label class="f">Quantidade (un.)</label><input type="number" id="adUn" value="1" inputmode="numeric"></div><div><label class="f">Aplicar em</label><input type="text" id="adAplic" placeholder="ex.: vidro da fachada, ACM, parede"></div></div>
+      <div class="g3"><div><label class="f">Descrição do item</label><input type="text" id="adDesc" placeholder="ex.: ADESIVO LOGO VITRINE"></div><div><label class="f">Quantidade (un.)</label><input type="number" id="adUn" value="" placeholder="Ex.: 1" inputmode="numeric"></div><div><label class="f">Aplicar em</label><input type="text" id="adAplic" placeholder="ex.: vidro da fachada, ACM, parede"></div></div>
       <label class="f">Arquivo original (PDF, AI, CDR, EPS, SVG, DXF, imagem…)</label><input type="file" id="adArq"><div id="adArqInfo" style="margin-top:8px"></div>
       <div class="g3" style="margin-top:8px"><div><label class="f">Largura do adesivo (mm)</label><input type="number" id="adL" inputmode="decimal"></div><div><label class="f">Altura do adesivo (mm)</label><input type="number" id="adA" inputmode="decimal"></div><div><label class="f">&nbsp;</label><label style="display:flex;gap:6px;align-items:center;font-size:13px;margin-top:8px"><input type="checkbox" id="adMasc" checked> com máscara de transferência</label></div></div>
       <label class="f">Observação</label><textarea id="adObs" rows="2" placeholder="ex.: aplicar pelo lado de fora"></textarea></div>
@@ -545,10 +545,10 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
   </section>
   <section id="tab-totem" hidden>
     <div class="card"><h2>Criador de totens</h2>
-      <div class="g3"><div><label class="f">Descrição do item</label><input type="text" id="ttDesc" placeholder="ex.: TOTEM MONOPOSTE POSTO"></div><div><label class="f">Quantidade (un.)</label><input type="number" id="ttUn" value="1" inputmode="numeric"></div><div><label class="f">Modelo</label><select id="ttMod"><option value="monoposte" selected>Monoposte</option><option value="bandeira">Placa-bandeira</option><option value="monolitico">Monolítico</option><option value="portico">Pórtico</option></select><div class="note" id="ttModHelp" style="margin:4px 0 0"></div></div></div>
+      <div class="g3"><div><label class="f">Descrição do item</label><input type="text" id="ttDesc" placeholder="ex.: TOTEM MONOPOSTE POSTO"></div><div><label class="f">Quantidade (un.)</label><input type="number" id="ttUn" value="" placeholder="Ex.: 1" inputmode="numeric"></div><div><label class="f">Modelo</label><select id="ttMod"><option value="monoposte" selected>Monoposte</option><option value="bandeira">Placa-bandeira</option><option value="monolitico">Monolítico</option><option value="portico">Pórtico</option></select><div class="note" id="ttModHelp" style="margin:4px 0 0"></div></div></div>
       <div class="g3"><div><label class="f">Altura total (mm)</label><input type="number" id="ttH" inputmode="decimal" placeholder="ex.: 6000"></div><div id="ttLadoW" hidden><label class="f">Lado da coluna</label><select id="ttLado"><option value="esq">Coluna à esquerda</option><option value="dir">Coluna à direita</option></select></div><div></div></div></div>
     <div class="card"><h2>1. Chapéu (cabeça do totem)</h2>
-      <div class="g3"><div><label class="f">Largura (mm)</label><input type="number" id="ttPL" inputmode="decimal"></div><div id="ttPAW"><label class="f">Altura (mm)</label><input type="number" id="ttPA" inputmode="decimal"></div><div><label class="f">Profundidade (mm)</label><input type="number" id="ttPP" value="200" inputmode="decimal"></div></div>
+      <div class="g3"><div><label class="f">Largura (mm)</label><input type="number" id="ttPL" inputmode="decimal"></div><div id="ttPAW"><label class="f">Altura (mm)</label><input type="number" id="ttPA" inputmode="decimal"></div><div><label class="f">Profundidade (mm)</label><input type="number" id="ttPP" value="" placeholder="Ex.: 200" inputmode="decimal"></div></div>
       <label class="f" style="margin-top:8px">Arquivo do contorno do chapéu (PDF vetorial — opcional; sem arquivo = retângulo)</label><input type="file" id="ttChArq" accept="application/pdf,.pdf"><div id="ttChInfo" style="margin-top:4px"></div>
       <div class="g3" style="margin-top:8px"><div><label class="f">Metalon da estrutura</label><input type="text" id="ttMtP" value="30x30"></div><div><label class="f">Parede (chapa) do metalon (mm)</label><input type="text" id="ttMtE" value="1,5"></div><div><label class="f">Travessas a cada (mm)</label><input type="number" id="ttMtEsp" value="500" inputmode="decimal"></div></div>
       <p class="note" style="margin:6px 0 0">A estrutura acompanha sempre o contorno externo (metalon). Trechos curvos saem marcados para calandrar.</p></div>
@@ -575,7 +575,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
   </section>
   <section id="tab-placa" hidden>
     <div class="card"><h2>Placa de sinalização</h2>
-      <div class="g3"><div><label class="f">Descrição do item</label><input type="text" id="plDesc" placeholder="ex.: PLACA SAÍDA DE EMERGÊNCIA"></div><div><label class="f">Quantidade (un.)</label><input type="number" id="plUn" value="1" inputmode="numeric"></div><div></div></div>
+      <div class="g3"><div><label class="f">Descrição do item</label><input type="text" id="plDesc" placeholder="ex.: PLACA SAÍDA DE EMERGÊNCIA"></div><div><label class="f">Quantidade (un.)</label><input type="number" id="plUn" value="" placeholder="Ex.: 1" inputmode="numeric"></div><div></div></div>
       <div class="g3"><div><label class="f">Largura da placa (mm)</label><input type="number" id="plL" inputmode="decimal"></div><div><label class="f">Altura da placa (mm)</label><input type="number" id="plA" inputmode="decimal"></div><div></div></div></div>
     <div class="card"><h2>1. Fundo</h2><div id="plFundoBox"></div>
       <label style="display:flex;gap:6px;align-items:center;font-size:13px;margin-top:12px"><input type="checkbox" id="pcPint"> <b>Pintar o fundo</b> (configuração padrão de pintura)</label><div id="pcPintSlot"></div></div>
@@ -599,8 +599,8 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
     <div class="card tm-des" id="dCard" hidden>
       <h2>3D — estrutura por desenho</h2><div class="m3dSw leds" style="margin:0 0 12px"><button type="button" data-m3d="arq"><b>📦 Arquivo 3D pronto</b><span class="note" style="display:block">STL, OBJ ou DXF 3D</span></button><button type="button" data-m3d="des"><b>📐 Estrutura por desenho</b><span class="note" style="display:block">PDF ou DXF 2D + descrição → 3D</span></button></div>
       <div class="g3">
-        <div><label class="f">Quantidade (un.)</label><input type="number" id="dUn" value="1" inputmode="numeric"></div>
-        <div><label class="f">Descrição do item</label><input type="text" id="dDesc" value="ESTRUTURA METÁLICA"></div>
+        <div><label class="f">Quantidade (un.)</label><input type="number" id="dUn" value="" placeholder="Ex.: 1" inputmode="numeric"></div>
+        <div><label class="f">Descrição do item</label><input type="text" id="dDesc" value="" placeholder="Ex.: ESTRUTURA METÁLICA"></div>
       </div>
       <label class="f">1. Desenho da estrutura (PDF ou DXF original, vista de frente em 1:1, cada peça com uma cor)</label>
       <label class="drop" id="dDrop" style="display:block"><input type="file" id="dPdf" accept=".pdf,application/pdf,.dxf,.stl,.obj" hidden><span id="dDropTxt">Toque para escolher o PDF ou DXF (STL/OBJ vai para o arquivo 3D)</span></label>
@@ -633,7 +633,7 @@ main img:not(.pg img):not(header img){cursor:zoom-in}
     <div class="card tm-pad" id="tOpts">
       <h2>Testeira em metalon</h2>
       <div class="g3">
-        <div><label class="f">Quantidade (un.)</label><input type="number" id="tUn" value="1" inputmode="numeric"></div>
+        <div><label class="f">Quantidade (un.)</label><input type="number" id="tUn" value="" placeholder="Ex.: 1" inputmode="numeric"></div>
         <div><label class="f">Descrição</label><input type="text" id="tDesc" value="" placeholder="Ex.: testeira da fachada"></div>
       </div>
       <h2 style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line)">1. Editor do quadro</h2>
@@ -961,7 +961,7 @@ async function deleteType(id){
 async function saveEmpresa(){if(local){lsSet('granda_empresa',empresa);renderLogo();return}await db.doc('config/empresa').set(empresa)}
 
 /* ---------- UI: tipos ---------- */
-let selType=null,selLed=6500,selLedW=null;
+let selType=null,selLed=null,selLedW=null;
 function typeCard(t,sel){
   const leds=(t.leds||[]).map(l=>`<span class="chip led">${l.toLocaleString('pt-BR')} K</span>`).join('');
   const pgs=pagesOf(t);
@@ -974,7 +974,7 @@ function renderTypes(){
   {const tl=types.filter(t=>t.id!==PLANA_ID);$('#typeList').innerHTML=tl.length?tl.map(t=>typeCard(t,false)).join(''):'<p class="note">Nenhum tipo cadastrado.</p>'}planaUI();
   renderLeds();updateBtn();if(typeof acrUI==='function')acrUI();
 }
-let selChapa=null,selCaixa=80,selEsc='PANTONE';
+let selChapa=null,selCaixa=null,selEsc='PANTONE';
 const cl=v=>Math.max(0,Math.min(255,Math.round(v)));
 const cmyk2rgb=(c,m,y,k)=>[cl(255*(1-c/100)*(1-k/100)),cl(255*(1-m/100)*(1-k/100)),cl(255*(1-y/100)*(1-k/100))];
 const rgb2cmyk=(r,g,b)=>{const R=r/255,G=g/255,B=b/255,K=1-Math.max(R,G,B);if(K>=1)return[0,0,0,100];return[(1-R-K)/(1-K),(1-G-K)/(1-K),(1-B-K)/(1-K),K].map(v=>Math.round(v*100))};
@@ -1006,7 +1006,7 @@ const PANTONE_LIST=[["100","#f4ed7c"],["101","#f4ed47"],["102","#f9e814"],["103"
 $('#pEscPick').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(escAberta&&selEsc===b.dataset.e){escAberta=false;escVis();return}escAberta=true;selEsc=b.dataset.e;renderEsc();resetOut()};
 ['pC','pM','pY','pK','pR','pG','pB'].forEach(i=>$('#'+i).addEventListener('input',renderEsc));
 renderGrid();escVis();
-function renderCaixa(){const halo=typeof l3dACM==='function'&&l3dACM()&&!!(types.find(x=>x.id===selType)&&pagesOf0(types.find(x=>x.id===selType)).some(p=>p.tipo==='imp3d'));const L=halo?[20,40,60,80,100]:[40,60,80];if(!L.includes(selCaixa))selCaixa=halo?40:80;
+function renderCaixa(){const halo=typeof l3dACM==='function'&&l3dACM()&&!!(types.find(x=>x.id===selType)&&pagesOf0(types.find(x=>x.id===selType)).some(p=>p.tipo==='imp3d'));const L=halo?[20,40,60,80,100]:[40,60,80];if(selCaixa!=null&&!L.includes(selCaixa))selCaixa=null;
   $('#caixaPick').innerHTML=L.map(v=>`<button data-cx="${v}" class="${v===selCaixa?'sel':''}"><b>${halo?v/10+' cm':v+' mm'}</b></button>`).join('')}
 $('#caixaPick').onclick=e=>{const b=e.target.closest('button');if(!b)return;selCaixa=+b.dataset.cx;renderCaixa();resetOut();if(typeof l3dPrevAgenda==='function')l3dPrevAgenda()};
 function renderChapa(){
@@ -1023,12 +1023,12 @@ function renderLeds(){setTimeout(renderLedW,0);renderChapa();renderCaixa();
   $('#ledGap').placeholder='Padrão do tipo: '+f0(L.gap);$('#ledMarg').placeholder='Padrão do tipo: '+f0(L.margem);
   if(!t){$('#ledPick').innerHTML='<p class="note">Escolha o tipo primeiro.</p>';return}
   const leds=t.leds&&t.leds.length?t.leds:LED_ALL;
-  if(!leds.includes(selLed))selLed=leds.includes(6500)?6500:null;
+  if(!leds.includes(selLed))selLed=null;
   $('#ledPick').innerHTML=leds.map(l=>`<button data-led="${l}" class="${l===selLed?'sel':''}"><span class="sw" style="background:${LED_COLOR[l]||'#eee'}"></span><b>${l.toLocaleString('pt-BR')} K</b></button>`).join('');
 }
 function renderLogo(){const lg=empresa.logo||GRANDA_LOGO;const p=$('#logoPrev');p.style.backgroundImage=`url('${lg}')`;p.textContent='';const h=$('#hdrLogo');if(h)h.src=lg}
 $('#typePick').onclick=e=>{const b=e.target.closest('.type');if(!b)return;selType=b.dataset.id;renderTypes();resetOut()};
-function renderLedW(){const t=types.find(x=>x.id===selType);const pg=t&&t.paginas.find(p=>p.tipo==='led');const box=$('#ledWPick');if(!box)return;if(!pg){box.innerHTML='<span class="note">Este tipo não tem LED.</span>';return}const def=(pg.led&&pg.led.watts)||1.2;const v=selLedW||def;
+function renderLedW(){const t=types.find(x=>x.id===selType);const pg=t&&t.paginas.find(p=>p.tipo==='led');const box=$('#ledWPick');if(!box)return;if(!pg){box.innerHTML='<span class="note">Este tipo não tem LED.</span>';return}const def=(pg.led&&pg.led.watts)||1.2;const v=selLedW;
   box.innerHTML=[0.72,1.2].map(w=>`<button data-lw="${w}" type="button" class="${Math.abs(w-v)<1e-6?'sel':''}"><span class="sw" style="background:${LED_COLOR[selLed]||'#eee'};opacity:${w<1?0.6:1}"></span><b>${String(w).replace('.',',')} W</b>${Math.abs(w-def)<1e-6?'<small style="display:block;font-size:11px;color:var(--mute)">padrão</small>':''}</button>`).join('')}
 $('#ledWPick').onclick=e=>{const b=e.target.closest('[data-lw]');if(!b)return;selLedW=+b.dataset.lw;renderLedW();resetOut()};
 $('#ledPick').onclick=e=>{const b=e.target.closest('button');if(!b)return;selLed=+b.dataset.led;renderLeds();renderLedW();updateBtn();resetOut()};
@@ -1875,7 +1875,7 @@ function l3dEspSlabs(esp,zA){if(!esp||!esp.regs.length)return[];if(!l3dEspExt())
 const l3dFuroTxt=()=>l3dEspExt()?'0,5 MAIOR — BARRA PASSA LIVRE':'0,5 MENOR P/ ROSQUEAR';
 function l3dAcmCfg(){const v=String(($('#l3dAcmCor')||{}).value||'');const [marca,linha,nome]=v.split('|');const n=nome||'Branco Brilho';return{marca:marca||'',linha:linha||'',nome:n,cor:n.toUpperCase(),hex:typeof acmHex==='function'?acmHex(n):'#f1f3f5'}}
 function l3dAcmUI(){const box=$('#l3dAcmBox');if(!box)return;const on=l3dACM();box.hidden=!on;if(typeof renderCaixa==='function')try{renderCaixa()}catch(e){}
-  document.querySelectorAll('[data-l3dled]').forEach(b=>b.classList.toggle('on',(b.dataset.l3dled==='atras')===on));['#l3dLuzLbl','#l3dAcrLbl','#l3dCapaLbl','#l3dSepBox','#l3dNotaInt'].forEach(q=>{const e=$(q);if(e)e.hidden=on});const na=$('#l3dNotaAcm');if(na)na.hidden=!on;{const fl=$('#l3dFundo')&&$('#l3dFundo').closest('label');if(fl)fl.style.display=on?'none':'flex'}if(on){const lb=$('#l3dLatBox'),ln=$('#l3dLuzNota');if(lb)lb.hidden=true;if(ln)ln.hidden=true}const sel=$('#l3dAcmCor');if(sel&&!sel.options.length&&typeof acmCatalogo==='function'){const cat=acmCatalogo(3);sel.innerHTML=cat.map(c=>`<option value="${esc(c.marca+'|'+c.linha+'|'+c.nome)}">${esc(c.marca+' '+c.linha+' — '+c.nome)}</option>`).join('')}
+  document.querySelectorAll('[data-l3dled]').forEach(b=>b.classList.toggle('on',(b.dataset.l3dled==='atras')===on));['#l3dLuzLbl','#l3dAcrLbl','#l3dCapaLbl','#l3dSepBox','#l3dNotaInt'].forEach(q=>{const e=$(q);if(e)e.hidden=on});const na=$('#l3dNotaAcm');if(na)na.hidden=!on;{const fl=$('#l3dFundo')&&$('#l3dFundo').closest('label');if(fl)fl.style.display=on?'none':'flex'}if(on){const lb=$('#l3dLatBox'),ln=$('#l3dLuzNota');if(lb)lb.hidden=true;if(ln)ln.hidden=true}const sel=$('#l3dAcmCor');if(sel&&!sel.options.length&&typeof acmCatalogo==='function'){const cat=acmCatalogo(3);sel.innerHTML='<option value="" selected>— escolher cor —</option>'+cat.map(c=>`<option value="${esc(c.marca+'|'+c.linha+'|'+c.nome)}">${esc(c.marca+' '+c.linha+' — '+c.nome)}</option>`).join('')}
   {const cl=$('#l3dCapaBLbl'),el=$('#l3dEspExtLbl');if(el)el.style.display=l3dAfast()>0?'inline-flex':'none';if(cl){cl.style.display=l3dAfast()>0?'inline-flex':'none';const ex=l3dEspExt();const cb=$('#l3dCapaB');if(cb){cb.disabled=ex;cl.style.opacity=ex?0.45:1;cl.title=ex?'Com o espaçador até a parede não precisa de capa':''}}}const cb=$('#l3dAcmCorBox');if(cb)cb.style.display=l3dFrImp()?'none':'inline-flex';const sw=$('#l3dAcmSw');if(sw)sw.style.background=l3dAcmCfg().hex;const f=$('#l3dFundo'),k=$('#l3dCapa');[f,k].forEach(x=>{if(x){x.disabled=on;const lb=x.closest('label');if(lb)lb.style.opacity=on?0.5:1}});if(typeof acrUI==='function')try{acrUI()}catch(e){}}
 // espaçadores: cilindros encostados na parede (por dentro), do fundo aberto até o ACM, com furo p/ a barra roscada; nas pontas da letra, 1 a cada ~22 cm (mín. 2)
 function l3dEspacadores(reg){const A=L3D_ACM,pi=l3dFrImp()?L3D.parede:L3D.parede+L3D.apoio;let cand=null,R=A.R;
@@ -2482,7 +2482,7 @@ function buildDoc(){
   // letra 3D: o contorno externo é impresso (fica como o arquivo); o arredondamento da fresa vale para a parte INTERNA (acrílico e cavidade, 2,5 mm para dentro)
   const cp=is3d?cpRaw:fechaInternos(cpRaw,fresaR);const orig=fromC(cp);
   const d=$('#entrega').value;
-  const ctx={os:$('#os').value.trim(),item:$('#item').value||'1',descItem:$('#descItem').value.trim()||'LETRA CAIXA',cliente:$('#cliente').value.trim(),vendedor:$('#vendedor').value.trim(),projetista:$('#projetista').value.trim(),endereco:$('#endereco').value.trim(),entrega:d?d.split('-').reverse().join('/'):'',tipo:t.nome,led:selLed.toLocaleString('pt-BR')+' K',caixa:(typeof planaSel==='function'&&planaSel())?planaInfo().es:selCaixa,plana:typeof planaSel==='function'&&planaSel(),imp3d:!!(types.find(x=>x.id===selType)&&pagesOf0(types.find(x=>x.id===selType)).some(p=>p.tipo==='imp3d')),qtd:Math.max(1,Math.round(num($('#lQtd').value)||1)),reatUnico:Math.max(1,Math.round(num($('#lQtd').value)||1))>1&&($('#lReat')||{}).value==='unico',obs:$('#obs').value.trim()};
+  const ctx={os:$('#os').value.trim(),item:$('#item').value||'1',descItem:$('#descItem').value.trim()||'LETRA CAIXA',cliente:$('#cliente').value.trim(),vendedor:$('#vendedor').value.trim(),projetista:$('#projetista').value.trim(),endereco:$('#endereco').value.trim(),entrega:d?d.split('-').reverse().join('/'):'',tipo:t.nome,led:selLed?selLed.toLocaleString('pt-BR')+' K':'',caixa:(typeof planaSel==='function'&&planaSel())?planaInfo().es:selCaixa,plana:typeof planaSel==='function'&&planaSel(),imp3d:!!(types.find(x=>x.id===selType)&&pagesOf0(types.find(x=>x.id===selType)).some(p=>p.tipo==='imp3d')),qtd:Math.max(1,Math.round(num($('#lQtd').value)||1)),reatUnico:Math.max(1,Math.round(num($('#lQtd').value)||1))>1&&($('#lReat')||{}).value==='unico',obs:$('#obs').value.trim()};
   let defs=pagesOf(t).concat(readPages($('#xPages')));
   // letra 3D com acrílico BORDA INFINITA: acrílico 4 mm no contorno externo da letra, com rebaixo de 3 mm por trás numa faixa de (parede + 1 mm) — o miolo de 4 mm entra na letra
   if(is3d&&typeof l3dBI==='function'&&l3dBI()){const k=defs.findIndex(p=>p.setor==='ROUTER'&&/ACR/i.test((p.material||'')+' '+(p.titulo||''))&&!p.fundoAcr);if(k>=0){const w=L3D.parede+1;defs[k]={...defs[k],titulo:'FRENTE LETRA 3D - ACRÍLICO 4mm BORDA INFINITA (REBAIXO POR TRÁS)',linhas:[{offset:0,noOff:true,legenda:'CORTE EXTERNO: MESMA MEDIDA DA LETRA',cor:RC['CORTE EXTERNO']},{offset:-w,lado:'ext',base:'fechada',noOff:true,legenda:`REBAIXO EXTERNO 3 MM (POR FORA DA LINHA VERDE)`,cor:RC['REBAIXO']}]}}}
@@ -2889,7 +2889,7 @@ function toPDF(pages){
 
 /* ---------- Fluxo ---------- */
 let lastPdf=null,lastName='';
-function updateBtn(){$('#gerar').disabled=!(src&&src.polys.length&&selType&&selLed);if(typeof fundoPrevAgenda==='function')fundoPrevAgenda();if(typeof l3dPrevAgenda==='function')l3dPrevAgenda()}
+function updateBtn(){$('#gerar').disabled=!(src&&src.polys.length&&selType);if(typeof fundoPrevAgenda==='function')fundoPrevAgenda();if(typeof l3dPrevAgenda==='function')l3dPrevAgenda()}
 let ledAdj={},lastLed=null,ledFoco=false;
 let ledPend=false;
 function renderLedAdj(R){const box=$('#ledAdj');if(!R||!R.letters||!R.letters.length){box.hidden=true;return}box.hidden=false;ledPend=false;
@@ -4788,18 +4788,30 @@ let mpExtra=[];
 // cadastro novo (feito no sistema, não está na planilha): código 90000+ ou item avulso sem código
 const mpNovo=r=>{if(!r)return false;const c=r.cod!==undefined?r.cod:r;if(c==='MANUAL')return true;if(mpExtra.some(x=>String(x[0])===String(c)))return true;const m=MP.find(x=>String(x[0])===String(c));return !!m&&/CADASTRO SISTEMA/i.test(m[1])};
 const NOVO_TAG='<span style="display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:#f08c00;color:#fff;font-size:10.5px;font-weight:700;vertical-align:middle">CADASTRO NOVO</span>';
-const novoTag=c=>{const m=MP.find(x=>String(x[0])===String(c));if(m&&mpProv(m)){const d=mpDiasRest(m);return NOVO_TAG.replace('CADASTRO NOVO',d>0?`PROVISÓRIO • ${d} dia${d>1?'s':''}`:'PROVISÓRIO • VENCIDO')}return NOVO_TAG};
+const novoTag=c=>{const m=MP.find(x=>String(x[0])===String(c));if(m&&mpProv(m)){const sb=mpSubst[m[0]];return NOVO_TAG.replace('CADASTRO NOVO',sb?`PROVISÓRIO → SUBSTITUÍDO PELO CÓD. ${sb}`:'PROVISÓRIO')}return NOVO_TAG};
 let mpAlias={};// códigos antigos (90001…) → PROVn
-function mpExtraAplica(list){(list||[]).forEach(r=>{if(!Array.isArray(r)||!r[1])return;if(/^\d+$/.test(String(r[0]))&&+r[0]>=90000){mpAlias[r[0]]='PROV'+(+r[0]-90000);r=['PROV'+(+r[0]-90000),...r.slice(1)]}const i=MP.findIndex(x=>String(x[0])===String(r[0]));if(i>=0){MP[i]=r;MPN[i]=' '+mpNorm(r[1])+' '}else{MP.push(r);MPN.push(' '+mpNorm(r[1])+' ')}if(!mpExtra.some(x=>String(x[0])===String(r[0])))mpExtra.push(r);else mpExtra=mpExtra.map(x=>String(x[0])===String(r[0])?r:x)})}
+function mpExtraAplica(list){(list||[]).forEach(r=>{if(!Array.isArray(r)||!r[1])return;if(/^\d+$/.test(String(r[0]))&&+r[0]>=90000){mpAlias[r[0]]='PROV'+(+r[0]-90000);r=['PROV'+(+r[0]-90000),...r.slice(1)]}const i=MP.findIndex(x=>String(x[0])===String(r[0]));if(i>=0){MP[i]=r;MPN[i]=' '+mpNorm(r[1])+' '}else{MP.push(r);MPN.push(' '+mpNorm(r[1])+' ')}if(!mpExtra.some(x=>String(x[0])===String(r[0])))mpExtra.push(r);else mpExtra=mpExtra.map(x=>String(x[0])===String(r[0])?r:x)});try{mpProvSubstitui()}catch(e){console.error(e)}}
 function mpExtraLocal(){try{mpExtraAplica(JSON.parse(localStorage.getItem('granda_mpextra')||'[]'))}catch(e){}}
 function mpExtraListen(db){mpExtraLocal();try{db.doc('config/mpextra').onSnapshot(s=>{if(s.exists){const d=s.data()||{};let L=d.itens||[];if(typeof L==='string')try{L=JSON.parse(L)}catch(e){L=[]}const tinha=Object.keys(mpAlias).length;const antes=MP.length;mpExtraAplica(L);if(MP.length>antes&&(matAdd||[]).some(a=>a.cod!=null&&!a.nome))try{matRodar()}catch(e){}if(L.some(r=>/^\d+$/.test(String(r[0]))&&+r[0]>=90000))mpExtraSalva()}},()=>{})}catch(e){}}
 async function mpExtraSalva(){try{localStorage.setItem('granda_mpextra',JSON.stringify(mpExtra))}catch(e){}if(typeof local!=='undefined'&&local)return;try{if(typeof db!=='undefined'&&db){try{const g=await db.doc('config/mpextra').get();if(g.exists){let L=(g.data()||{}).itens||[];if(typeof L==='string')L=JSON.parse(L);(L||[]).forEach(r=>{if(Array.isArray(r)&&r[1]&&!mpExtra.some(x=>String(x[0])===String(r[0]))){mpExtraAplica([r])}})}}catch(e){}await db.doc('config/mpextra').set({itens:JSON.stringify(mpExtra),em:Date.now()})}}catch(e){console.error('mpextra',e)}}
 const mpCod=v=>/^\d+$/.test(String(v))?+v:String(v);
-// cadastro provisório: código PROV1, PROV2… e vale 45 dias (depois disso o item já deve estar na planilha)
+// cadastro provisório: código PROV1, PROV2… NUNCA é apagado nem vence. Quando a planilha de matérias-primas é atualizada e passa a ter
+// um produto que corresponde a ele (mesmo tipo e mesmos códigos/números), a RM usa esse cadastro no lugar do provisório (mpSubst).
+var mpSubst={};
+function mpProvTokens(nome){const n=mpNorm(String(nome).replace(/\s*-\s*TEMPOR[AÁ]RIO\s*$/i,''));const ws=n.split(/[\s\-–—()]+/).filter(Boolean);
+  const cod=[],med=[],pal=[];ws.forEach(w=>{if(/^(REF|DE|DA|DO|COM|E|P\/|PARA|X)$/.test(w))return;if(/\d/.test(w)){if(/^\d+([.,]\d+)?(MM|M|MT|L|ML|KG|G|CM)$/.test(w))med.push(w);else cod.push(w)}else if(w.length>=3)pal.push(w)});return{tipo:ws[0]||'',cod,med,pal}}
+function mpProvSubstitui(){const novo={};const PL=MP.map((r,i)=>i).filter(i=>!mpProv(MP[i])&&!/CADASTRO SISTEMA/i.test(MP[i][1]));
+  MP.forEach(p=>{if(!mpProv(p))return;const T=mpProvTokens(p[1]);if(!T.tipo||!T.cod.length&&T.pal.length<2)return;let best=null,bs=-1;
+    PL.forEach(i=>{const n=MPN[i];if(!n.includes(' '+T.tipo))return;if(!T.cod.every(c=>new RegExp('(^|[^0-9])'+c.replace(/[.*+?^${}()|[\]\\\/]/g,'\\$&')+'([^0-9]|$)').test(n)))return;
+      const pal=T.pal.filter(w=>n.includes(w)).length/(T.pal.length||1);if(pal<0.7)return;const sc=pal+T.med.filter(w=>n.includes(w)).length*0.2-n.length/2000;if(sc>bs){bs=sc;best=MP[i][0]}});
+    if(best!=null)novo[p[0]]=best});
+  const mud=JSON.stringify(novo)!==JSON.stringify(mpSubst);mpSubst=novo;if(mud&&Object.keys(novo).length)console.info('provisórios substituídos pela planilha:',novo);return novo}
+// índice no MP já trocando o provisório pelo cadastro que o substituiu
+function mpReal(i){if(i==null||i<0||!MP[i]||!mpProv(MP[i]))return i;const c=mpSubst[MP[i][0]];if(c==null)return i;const j=MP.findIndex(r=>String(r[0])===String(c));return j>=0?j:i}
 const MP_PROV_DIAS=45;
 const mpProv=r=>!!r&&/^PROV\d+$/.test(String(r[0]));const mpProvVencido=r=>mpProv(r)&&mpVenceu(r);
 const mpDataBR=d=>{const m=String(d||'').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);return m?new Date(+m[3],+m[2]-1,+m[1]).getTime():0};
-const mpVenceu=r=>{const t=r[6]||mpDataBR(r[5]);return t>0&&Date.now()-t>MP_PROV_DIAS*864e5};
+const mpVenceu=r=>false; // provisório não vence mais: fica até ser substituído por um cadastro da planilha
 const mpDiasRest=r=>{const t=r[6]||mpDataBR(r[5]);return t?Math.max(0,Math.ceil(MP_PROV_DIAS-(Date.now()-t)/864e5)):MP_PROV_DIAS};
 function mpCadastra(nome,un,valor,conta){const n=Math.max(0,...mpExtra.map(r=>{const m=String(r[0]).match(/^PROV(\d+)$/);return m?+m[1]:0}))+1;const cod='PROV'+n;
   const r=[cod,String(nome).toUpperCase(),un||'un',+valor||0,conta||'Cadastro provisório no sistema',new Date().toLocaleDateString('pt-BR'),Date.now()];mpExtraAplica([r]);mpExtraSalva();return r}
@@ -4821,7 +4833,7 @@ function mpAchar(must,want){let best=-1,bs=-1;
   MPN.forEach((n,i)=>{if(!must.every(t=>(Array.isArray(t)?t:[t]).some(a=>n.includes(mpNorm(a)))))return;
     let s=0;(want||[]).forEach(t=>{(Array.isArray(t)?t:[t]).some(a=>n.includes(mpNorm(a)))&&s++});s-=n.length/1000;if(s>bs){bs=s;best=i}});
   return best}
-function mpItem(k,busca){let v=mpMapa[k];if(v!=null&&mpAlias[v])v=mpMapa[k]=mpAlias[v];if(v&&typeof v==='object')return{cust:v,manual:true};if(v!=null){const i=MP.findIndex(r=>String(r[0])===String(v));if(i>=0)return{i,manual:true}}const i=busca?mpAchar(busca.must,busca.want):-1;return i>=0?{i,manual:false}:null}
+function mpItem(k,busca){let v=mpMapa[k];if(v!=null&&mpAlias[v])v=mpMapa[k]=mpAlias[v];if(v&&typeof v==='object')return{cust:v,manual:true};if(v!=null){const i=MP.findIndex(r=>String(r[0])===String(v));if(i>=0){const j=mpReal(i);return{i:j,manual:true,...(j!==i?{subst:MP[i][0]}:{})}}}const i0=busca?mpAchar(busca.must,busca.want):-1;const i=mpReal(i0);return i>=0?{i,manual:false,...(i!==i0?{subst:MP[i0][0]}:{})}:null}
 const mpDim=p=>{const m=String(p||'').match(/(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)/i);if(!m)return null;const a=m[1].replace('.',','),b=m[2].replace('.',',');return[`${a}X${b}`,`${b}X${a}`]};
 // tamanhos de chapa que existem no cadastro para um material (ex.: acrílico leitoso 4 mm) → [[maior,menor],...]
 function mpChapasDisp(must){const out=[];MPN.forEach((n,i)=>{if(!must.every(t=>(Array.isArray(t)?t:[t]).some(a=>n.includes(mpNorm(a)))))return;const m=n.match(/(\d{3,4})\s*X\s*(\d{3,4})/);let w,h;if(m){w=+m[1];h=+m[2]}else{const k=n.match(/(\d\.\d{1,2})X(\d\.\d{1,2})/);if(!k)return;w=Math.round(+k[1]*1000);h=Math.round(+k[2]*1000)}
@@ -6537,7 +6549,7 @@ if(!(L>0&&A>0))throw new Error('informe a largura e a altura do adesivo');
 function adRender(){try{adBuild=adFolhas();const C=setorChips(adBuild.pages,adSel,'data-adpg');adSel=C.sel;$('#adPgPick').innerHTML=C.html;$('#adPrev').innerHTML=C.shown.map(P=>`<div class="pg">${toSVG(P)}</div>`).join('');$('#adBaixar').hidden=false;$('#adMsg').innerHTML=''}
   catch(e){adBuild=null;matUlt=null;rmUlt=null;try{matCardRender()}catch(er){}$('#adMsg').innerHTML=`<div class="msg err">${esc(e.message)}</div>`;console.error(e)}}
 function adSujo(){adBuild=null;if(typeof pedSujo!=='undefined')pedSujo=true}
-function adLimpa(){matUlt=null;rmUlt=null;try{matCardRender()}catch(e){}adArq=null;adPrevImg=null;adCam=[];adBuild=null;['#adDesc','#adAplic','#adObs','#adL','#adA'].forEach(s=>$(s)&&($(s).value=''));if($('#adUn'))$('#adUn').value='1';if($('#adMasc'))$('#adMasc').checked=true;xfPut('#xfA',[]);if($('#adPrev'))$('#adPrev').innerHTML='';if($('#adPgPick'))$('#adPgPick').innerHTML='';adUI()}
+function adLimpa(){matUlt=null;rmUlt=null;try{matCardRender()}catch(e){}adArq=null;adPrevImg=null;adCam=[];adBuild=null;['#adDesc','#adAplic','#adObs','#adL','#adA'].forEach(s=>$(s)&&($(s).value=''));if($('#adUn'))$('#adUn').value='';if($('#adMasc'))$('#adMasc').checked=true;xfPut('#xfA',[]);if($('#adPrev'))$('#adPrev').innerHTML='';if($('#adPgPick'))$('#adPgPick').innerHTML='';adUI()}
 function adUI(){const box=$('#adArqInfo');if(!box)return;
   box.innerHTML=adArq?`<div class="row" style="gap:10px;align-items:center;flex-wrap:wrap">${adPrevImg?`<img src="${adPrevImg.src}" style="max-height:120px;max-width:260px;border:1px solid var(--line);border-radius:6px;background:#fff">`:''}<div><b>📎 ${esc(adArq.nome)}</b><div class="note" style="margin:0">${(adArq.b64.length*0.75/1048576).toFixed(2).replace('.',',')} MB — guardado do jeito que veio (vai no ZIP sem mexer)</div><button class="btn ghost sm" type="button" id="adArqBaixar" style="margin-top:4px">Baixar o original</button></div></div>`:'<span class="note">Nenhum arquivo ainda.</span>';
   const cad=adListaCad();const L=$('#adCamLista');
@@ -6797,7 +6809,7 @@ function plRender(){try{plBuild=plFolhas();const C=setorChips(plBuild.pages,plSe
   catch(e){plBuild=null;$('#plMsg').innerHTML=`<div class="msg err">${esc(e.message)}</div>`;console.error(e)}}
 function plSujo(){plBuild=null;if(typeof pedSujo!=='undefined')pedSujo=true}
 function plPicker(){const pk=$('#pPicker'),sl=$('#pcPintSlot');if(!pk||!sl)return;if(!$('#tab-placa').hidden&&$('#pcPint').checked){if(pk.parentNode!==sl)sl.appendChild(pk)}else if($('#pintCard')&&pk.parentNode===sl)$('#pintCard').appendChild(pk)}
-function plLimpa(){plSrc='arq';if(typeof plTxtUI==='function')setTimeout(plTxtUI,0);plFundo={mat:'acm',esp:3,acmCod:'',acmMarca:'',acmCor:null,acrCor:'BRANCO',refil:false,aba:20};plFrente={tipo:'nenhum',adCod:'',acrCor:'PRETO'};plVar=[{txt:'',q:1,dx:0,dy:0}];plVarSel=0;plArte=null;plArteImg=null;plArqs=[{arte:null,img:null,aw:0,ah:0,q:1}];plArqSel=0;plBuild=null;['#plDesc','#plL','#plA','#plObs'].forEach(s=>$(s)&&($(s).value=''));if($('#plUn'))$('#plUn').value='1';if($('#pcPint'))$('#pcPint').checked=false;xfPut('#xfPl',[]);if($('#plPrev'))$('#plPrev').innerHTML='';if($('#plPgPick'))$('#plPgPick').innerHTML='';plUI()}
+function plLimpa(){plSrc='arq';if(typeof plTxtUI==='function')setTimeout(plTxtUI,0);plFundo={mat:'acm',esp:3,acmCod:'',acmMarca:'',acmCor:null,acrCor:'BRANCO',refil:false,aba:20};plFrente={tipo:'nenhum',adCod:'',acrCor:'PRETO'};plVar=[{txt:'',q:1,dx:0,dy:0}];plVarSel=0;plArte=null;plArteImg=null;plArqs=[{arte:null,img:null,aw:0,ah:0,q:1}];plArqSel=0;plBuild=null;['#plDesc','#plL','#plA','#plObs'].forEach(s=>$(s)&&($(s).value=''));if($('#plUn'))$('#plUn').value='';if($('#pcPint'))$('#pcPint').checked=false;xfPut('#xfPl',[]);if($('#plPrev'))$('#plPrev').innerHTML='';if($('#plPgPick'))$('#plPgPick').innerHTML='';plUI()}
 // pré-visualização no modo "arquivo da arte": placa na cor do fundo + a arte por cima (PDF na escala real, imagem ajustada)
 // arte do adesivo/acrílico na cor escolhida: o que é escuro na arte vira a cor, o claro fica transparente
 const PL_TINGE=new Map();function plArteTinge(I,hex){const k=I.src.length+'|'+I.src.slice(-40)+'|'+hex;if(PL_TINGE.has(k))return PL_TINGE.get(k);const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const g=c.getContext('2d');g.drawImage(im,0,0);const d=g.getImageData(0,0,c.width,c.height),p=d.data;const r=parseInt(hex.slice(1,3),16),gg=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
@@ -7735,7 +7747,7 @@ function pedAbertoRender(){if(!pedAtual)return;$('#pedTitulo').innerHTML=`Pedido
     <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap"><input type="checkbox" data-selg="${g.n}" title="Selecionar para FP parcial" style="width:18px;height:18px"${g.its.every(i=>pedSel.has(i.id))?' checked':''}><b style="font-size:15px;white-space:nowrap">Item ${g.n}</b><b style="flex:1;min-width:160px;font-size:15px">— ${esc(nome)}</b>
       <span class="note" style="white-space:nowrap">${g.its.length} componente${varios?'s':''}</span>${varios?(()=>{const cs=g.its.map(i=>i.custo),vs=g.its.map(i=>+i.venda||0);const c=cs.some(x=>x!=null)?cs.reduce((a,x)=>a+(+x||0),0):null;const f=cs.some(x=>x==null);return margemBox(c,f&&c!=null?g.its.reduce((a,i)=>a+(i.custo!=null?(+i.venda||0):0),0):vs.reduce((a,x)=>a+x,0),'GERAL DO ITEM '+g.n+(f?'<br><span style="font-weight:400;color:#c92a2a">componente sem custo fora da conta</span>':''))})():''}</div>
     ${g.its.map((it,k)=>`<div style="display:flex;gap:10px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;border-top:1px solid #8ce99a;padding:8px 0 4px;margin-top:8px;${varios?'margin-left:14px':''}"><div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;flex:1;min-width:200px">
-      <div>${varios?`<input type="checkbox" data-sel="${it.id}" title="Selecionar para FP parcial" style="width:16px;height:16px;vertical-align:-3px;margin-right:4px"${pedSel.has(it.id)?' checked':''}>`:''}<b>${varios?`${g.n}.${k+1}`:`Item ${g.n}`} — ${esc(TIPO_NOME[it.tipo]||it.tipo)}</b><div class="note">${esc(it.desc||'')}${it.resumo?' • '+esc(it.resumo):''}${it.fonteNome?' • '+esc(it.fonteNome):''}</div></div>
+      <div>${varios?`<input type="checkbox" data-sel="${it.id}" title="Selecionar para FP parcial" style="width:16px;height:16px;vertical-align:-3px;margin-right:4px"${pedSel.has(it.id)?' checked':''}>`:''}<b>${varios?`${g.n}.${k+1}`:`Item ${g.n}`} — ${esc(TIPO_NOME[it.tipo]||it.tipo)}</b>${typeof confSelo==='function'?confSelo(it):''}<div class="note">${esc(it.desc||'')}${it.resumo?' • '+esc(it.resumo):''}${it.fonteNome?' • '+esc(it.fonteNome):''}</div></div>
       <div class="row" style="gap:6px"><button class="btn acc sm" data-abrir="${it.id}">Abrir</button><button class="btn danger sm" data-del="${it.id}">Excluir</button></div></div>${margemBox(it.custo,+it.venda||0,varios?`${g.n}.${k+1}`:'')}</div>`).join('')}
     <div style="margin-top:8px${varios?';margin-left:14px':''}"><button class="btn ghost sm" data-compmenu="${g.n}">+ Componente no item ${g.n}</button><div class="row" data-comptipos="${g.n}" style="gap:6px;margin-top:6px" hidden>${tipos.map(([t,l])=>`<button class="btn ghost sm" data-compnovo="${t}" data-compn="${g.n}">+ ${l}</button>`).join('')}</div></div></div>`};
   grupos.forEach(g=>{if(osNs.has(g.n)){const h=grHtml(g);const i=h.indexOf('</div>',h.indexOf('<div class="row"'))+6;window.pedGrupoCorpo[g.n]=h.slice(i,h.length-6)}});
@@ -7763,7 +7775,7 @@ function irAba(tab){const b=document.querySelector(`nav button[data-tab="${tab}"
 function proximoN(){return Math.max(0,...(pedAtual.itens||[]).map(i=>+i.n||0))+1}
 document.querySelectorAll('[data-novo]').forEach(b=>b.onclick=()=>{const tipo=b.dataset.novo;novoComp(tipo,proximoN())});
 function limpaTipo(tipo){matUlt=null;fpBrancas=[];arqExcl=[];volEd=volEdNovo();rmUlt=null;if(typeof bArtes!=='undefined'){bArtes=[];bArteUI()}if($('#itemVenda'))$('#itemVenda').value='';refImg=null;fpObsPg={};matQtd={};matExcl={};matAdd=[];if(tipo==='testeira'||tipo==='estrutura')xfPut('#xfT',[]);if(tipo==='modelo3d')xfPut('#xfM',[]);refRender();instReset();
-  if(tipo==='letra'){src=null;srcBytes=null;ledAdj={};ledFonte={};ledFonteW={};resetOut();lDoc=null;lPrevRender();prevSet('');$('#outMsg').innerHTML='';$('#fileInfo').innerHTML='';$('#drop').classList.remove('has');$('#dropTxt').textContent='Toque para escolher o PDF';$('#xPages').innerHTML='';$('#obs').value='';selLed=6500;selCaixa=80;if($('#acrCor')){$('#acrCor').value='';$('#acrAd').checked=false;$('#acrAdSel').value=''}renderLeds();renderCaixa();updateBtn()}
+  if(tipo==='letra'){src=null;srcBytes=null;ledAdj={};ledFonte={};ledFonteW={};resetOut();lDoc=null;lPrevRender();prevSet('');$('#outMsg').innerHTML='';$('#fileInfo').innerHTML='';$('#drop').classList.remove('has');$('#dropTxt').textContent='Toque para escolher o PDF';$('#xPages').innerHTML='';$('#obs').value='';selLed=null;selLedW=null;selCaixa=null;['#ledRab','#ledSaida','#lQtd'].forEach(s=>$(s)&&($(s).value=''));if($('#acrCor')){$('#acrCor').value='';$('#acrAd').checked=false;$('#acrAdSel').value=''}renderLeds();renderCaixa();updateBtn()}
   if(tipo==='testeira'){tFaces=[{W:1000,H:1000,prof:0,junta:'linha'}];tAcm={on:false,esp:3,inst:'rente',fita:'vhb',chapa:'auto',marca:'',cor:null,jt:false,jmm:5,je:false,envT:'ext',apl:aplDef()};acmUI();adesMarca="";acmAplUI();renderFaces();v3Fit=true}
   if(tipo==='estrutura'){dSrc=null;dModel=null;dHist=[];dPrevModels=[];$('#dTxt').value='';$('#dAlt').value='';$('#dInfo').innerHTML='';$('#dDraw').innerHTML='';$('#dPecas').innerHTML='';$('#dDropTxt').textContent='Toque para escolher o PDF';$('#dAltBox').hidden=true;$('#dResCard').hidden=true;dBotao()}
   if(tipo==='bobs'){bobs={pecas:[bobsModelo('m1')]};xfPut('#xfB',[]);setBModo('req')}
@@ -7817,7 +7829,7 @@ async function itemSalvar(tipo){const msg=t=>{const m=$('#pbMsg');if(m)m.innerHT
     msg('Salvando…');const C=capturaEstado(tipo);C.estado.refImg=refImg;C.estado.fpObsPg=fpObsPg;C.estado.fpBrancas=fpBrancas;C.estado.volEd=volEd;C.estado.arqExcl=arqExcl;C.estado.matQtd=matQtd;C.estado.matExcl=matExcl;C.estado.matAdd=matAdd;C.estado.inst=capInputs(['#instBox']);C.estado.instImg=instImg;C.estado.instImg2=instImg2;C.estado.instLocal=instLocal;C.estado.ancImg=ancImg;
     let it=itemAtual&&itemAtual.tipo===tipo?pedAtual.itens.find(i=>i.id===itemAtual.id):null;const velho=it?{e:it.estadoId,f:it.fonteId}:null;
     const estadoId=await guardaJSON(C.estado);const fonteId=C.fonte?(it&&it.fonteNome===C.fonte.nome&&it.fonteTam===C.fonte.b64.length?it.fonteId:await guardaJSON(C.fonte.b64.length>3.5e6?{nome:C.fonte.nome,grande:await guardaGrande(unb64(C.fonte.b64))}:C.fonte)):null;
-    const reg={id:it?it.id:(itemAtual&&itemAtual.id)||'i'+Date.now().toString(36),n,tipo,desc:C.desc,resumo:C.resumo,estadoId,fonteId,fonteNome:C.fonte?C.fonte.nome:'',fonteTam:C.fonte?C.fonte.b64.length:0,atualizado:Date.now(),...(C.lens?{bobsLens:C.lens}:{}),venda:vendaNum(($('#itemVenda')||{}).value),custo:(typeof matUlt!=='undefined'&&matUlt&&matUlt.length)?Math.round(matUlt.reduce((a,r)=>a+(+r.tot||0),0)*100)/100:(it&&it.custo!=null?it.custo:null)};
+    const reg={id:it?it.id:(itemAtual&&itemAtual.id)||'i'+Date.now().toString(36),n,tipo,...(typeof confUlt!=='undefined'&&confUlt?{conf:confUlt}:it&&it.conf?{conf:it.conf}:{}),desc:C.desc,resumo:C.resumo,estadoId,fonteId,fonteNome:C.fonte?C.fonte.nome:'',fonteTam:C.fonte?C.fonte.b64.length:0,atualizado:Date.now(),...(C.lens?{bobsLens:C.lens}:{}),venda:vendaNum(($('#itemVenda')||{}).value),custo:(typeof matUlt!=='undefined'&&matUlt&&matUlt.length)?Math.round(matUlt.reduce((a,r)=>a+(+r.tot||0),0)*100)/100:(it&&it.custo!=null?it.custo:null)};
     pedAtual.itens=(pedAtual.itens||[]).filter(i=>i.id!==reg.id).concat([reg]);await pedSalvar(pedAtual);
     if(velho){if(velho.e!==estadoId)apagaJSON(velho.e);if(velho.f&&velho.f!==fonteId)apagaJSON(velho.f)}
     itemAtual={id:reg.id,tipo,n};pedSujo=false;pedBarRender();msg(`<span style="color:#b2f2bb">✓ Item ${n} salvo no pedido.</span>`);projMarcaSalvo();
@@ -7865,7 +7877,7 @@ $('#pedGerarSel').onclick=()=>pedGerarFP(true);
 // soma a RM de um componente na RM única do grupo (mesmo código = soma a quantidade)
 function grpSoma(G,R,it){const nums=n=>+String(n).replace(',','.')||0;R.rows.forEach(r=>{const key=r.cod!=null?'c'+r.cod:'d'+r.desc;const o=G.rows.get(key);const u=`${TIPO_NOME[it.tipo]||it.tipo}: ${r.uso||''}`.slice(0,60);if(o){o.q=Math.round((nums(o.q)+nums(r.q))*1000)/1000;o.tot+=r.tot;o.usos.add(u);o.semPreco=o.semPreco||r.semPreco}else G.rows.set(key,{...r,q:nums(r.q),usos:new Set([u])})});
   (R.pi||[]).forEach(r=>{const ml=/ml/i.test(r.q);const key=(r.cod!=null?r.cod:r.nome)+'|'+(ml?'ml':r.un);const v=ml?nums(String(r.q).replace(/\D+$/,'')):nums(r.q);const o=G.pi.get(key);if(o)o.v+=v;else G.pi.set(key,{...r,v,ml})})}
-async function pedGerarFP(parcial){let its=(pedAtual.itens||[]).slice().sort((a,b)=>a.n-b.n);if(parcial)its=its.filter(i=>pedSel.has(i.id));if(!its.length){$('#pedMsg').innerHTML=`<div class="msg err">${parcial?'Selecione ao menos um item.':'O pedido ainda não tem itens.'}</div>`;return}
+async function pedGerarFP(parcial){{const dv=(pedAtual&&pedAtual.itens||[]).filter(i=>i.conf&&i.conf.st==='div');if(dv.length){let ok=true;try{ok=confirm(`Há ${dv.length} componente(s) com divergência em relação ao pedido (itens ${[...new Set(dv.map(i=>i.n))].join(', ')}). Gerar a FP mesmo assim?`)}catch(e){}if(!ok)return}}let its=(pedAtual.itens||[]).slice().sort((a,b)=>a.n-b.n);if(parcial)its=its.filter(i=>pedSel.has(i.id));if(!its.length){$('#pedMsg').innerHTML=`<div class="msg err">${parcial?'Selecione ao menos um item.':'O pedido ainda não tem itens.'}</div>`;return}
   pedParcial=parcial;const btn=parcial?$('#pedGerarSel'):$('#pedGerar');btn.disabled=true;const todas=[],geralL=[],grpExp={},grpRM={},ins=[];const juntoN=new Set((pedAtual.itens||[]).filter(i=>i.junto).map(i=>+i.n));const salvo={item:$('#item').value,ia:itemAtual};
   try{for(const [k,it] of its.entries()){$('#pedMsg').innerHTML=`<div class="msg ok">Gerando item ${it.n} (${k+1} de ${its.length}) — ${TIPO_NOME[it.tipo]}…</div>`;await new Promise(r=>setTimeout(r,30));
       await itemAbrir(it,false);FOOT_SKIP=true;window.ultProd=null;rmUlt=null;let r;try{r=buildItem(it.tipo)}catch(er){throw new Error(`item ${it.n}${it.desc?' ('+it.desc+')':''}: ${er.message}`)}finally{FOOT_SKIP=false}
@@ -8359,6 +8371,149 @@ document.addEventListener('change',e=>{const t=e.target;if(!t.dataset||t.dataset
   const raw=t.value.trim();const v=num(raw.includes(',')?raw.replace(/\./g,'').replace(',','.'):raw);oi.sub=v>0?Math.round(v*100)/100:0;pedSalvar(pedAtual);setTimeout(()=>{if(typeof pedAbertoRender==='function')pedAbertoRender();else osListaRender();if(typeof pedTotRender==='function')pedTotRender()},0)});
 
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-juntofp]');if(!b||!pedAtual)return;e.preventDefault();e.stopPropagation();pedSel.clear();b.dataset.juntofp.split(',').forEach(id=>pedSel.add(id));window._fpUnica=true;try{pedSelBtn()}catch(er){}try{osListaRender()}catch(er){}pedGerarFP(true).then(()=>{const p=$('#pedPrev');if(p)p.scrollIntoView({behavior:'smooth',block:'start'})})});
+
+/* ================= CAMPOS OBRIGATÓRIOS (todas as abas) =================
+   Campo obrigatório começa vazio, fica em vermelho clarinho até ser preenchido,
+   um aviso acima do botão diz o que falta e o botão de gerar não roda enquanto faltar algo.
+   Só conta o que está visível (campos de opções escondidas não são cobrados). */
+const reqTemLed=()=>{try{const t=types.find(x=>x.id===selType);return !!(t&&pagesOf(t).some(p=>p.tipo==='led'))}catch(e){return false}};
+const REQ_CAMPOS=[
+  // dados da OS (cabeçalho de todas as FPs)
+  ['#os','Número da OS'],['#item','Item nº'],['#cliente','Cliente'],['#entrega','Data de entrega'],['#descItem','Descrição do item',null,()=>typeof abaAtual!=='function'||abaAtual()==='novo'],
+  // letras
+  ['#typePick','Tipo de letra',()=>!!selType],['#drop','Arquivo da letra',()=>!!(typeof src!=='undefined'&&src&&src.polys&&src.polys.length)],['#lQtd','Quantidade de jogos'],
+  ['#caixaPick','Profundidade da caixa',()=>!!selCaixa,()=>!!selType&&!(typeof planaSel==='function'&&planaSel())],
+  ['#ledPick','Temperatura do LED (K)',()=>!!selLed,reqTemLed],['#ledWPick','Potência do módulo de LED',()=>!!selLedW,reqTemLed],
+  ['#ledRab','Rabicho do fio por letra',null,reqTemLed],['#ledSaida','Saída do fio na letra',null,reqTemLed],
+  ['#pEscPick','Cor da pintura (escala e código)',()=>{try{const c=corInfo();return !!(c&&String(c.code||'').trim())}catch(e){return true}},()=>{const c=$('#pintCard');return !!c&&!c.hidden&&reqVis(c)}],
+  ['#l3dCor','Cor do filamento'],['#l3dAfast','Afastamento da parede'],['#l3dAcmCor','Cor do ACM'],
+  // 3D modelo
+  ['#mQt','Quantidade'],['#mDesc','Descrição do item'],
+  // bobs
+  ['#bUn','Quantidade'],['#bcUn','Quantidade'],
+  // adesivo
+  ['#adUn','Quantidade'],['#adDesc','Descrição do item'],['#adAplic','Aplicar em'],['#adL','Largura do adesivo'],['#adA','Altura do adesivo'],['#adArqInfo','Arquivo do adesivo',()=>!!(typeof adArq!=='undefined'&&adArq)],
+  // totem
+  ['#ttDesc','Descrição do item'],['#ttUn','Quantidade'],['#ttH','Altura total'],['#ttPL','Largura do chapéu'],['#ttPA','Altura do chapéu'],['#ttPP','Profundidade do chapéu'],
+  // placa
+  ['#plDesc','Descrição do item'],['#plUn','Quantidade'],['#plL','Largura da placa'],['#plA','Altura da placa'],
+  // testeiras / estrutura
+  ['#dUn','Quantidade'],['#dDesc','Descrição do item'],['#tUn','Quantidade'],['#tDesc','Descrição do item'],
+  // FP em branco
+  ['#brDesc','Descrição do item']];
+// botões que geram a FP em cada aba
+const REQ_BOTOES=['#gerar','#bGerar','#brGerar','#adGerar','#ttGerar','#plGerar','#dBaixar','#tBaixar','#mBaixar'];
+function reqVis(el){return !!el&&!!(el.offsetParent||el.getClientRects().length)}
+function reqVazio(el,fn){if(fn)return !fn();if(el.type==='checkbox')return false;return String(el.value==null?'':el.value).trim()===''}
+function reqLista(){const out=[];REQ_CAMPOS.forEach(([s,lb,fn,cond])=>{const el=$(s);if(!el)return;const vis=reqVis(el)&&(!cond||cond());out.push({el,lb,vis,falta:vis&&reqVazio(el,fn)})});return out}
+function reqFaltas(bt){const sec=bt.closest('section');return reqLista().filter(r=>r.falta&&(r.el.closest('section')===sec||r.el.closest('#osSec')))}
+function reqSync(){try{const L=reqLista();L.forEach(r=>{r.el.classList.toggle('reqFalta',r.falta);r.el.dataset.req=r.lb});
+  REQ_BOTOES.forEach(s=>{const b=$(s);if(!b)return;let av=b.previousElementSibling;if(!av||!av.classList||!av.classList.contains('reqAviso')){av=document.createElement('div');av.className='reqAviso';b.parentNode.insertBefore(av,b)}
+    const F=reqVis(b)?reqFaltas(b):[];av.hidden=!F.length;av.innerHTML=F.length?`⚠ Falta preencher: ${[...new Set(F.map(r=>r.lb))].map(esc).join(' • ')}`:''})}catch(e){console.error('obrigatórios',e)}}
+let reqT=null;const reqAgenda=()=>{clearTimeout(reqT);reqT=setTimeout(reqSync,120)};
+['input','change','click'].forEach(ev=>document.addEventListener(ev,reqAgenda,true));setInterval(reqSync,1500);setTimeout(reqSync,300);
+// não deixa gerar com informação faltando
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest(REQ_BOTOES.join(','));if(!b)return;const F=reqFaltas(b);if(!F.length)return;
+  e.preventDefault();e.stopImmediatePropagation();reqSync();const av=b.previousElementSibling;if(av&&av.classList.contains('reqAviso')){av.classList.remove('pisca');void av.offsetWidth;av.classList.add('pisca')}
+  const el=F[0].el;el.scrollIntoView({behavior:'smooth',block:'center'});if(el.focus&&/INPUT|SELECT|TEXTAREA/.test(el.tagName))setTimeout(()=>el.focus({preventScroll:true}),350)},true);
+(function(){const st=document.createElement('style');st.textContent=`.reqFalta{background:#fff0f0!important;border-color:#ffa8a8!important;box-shadow:0 0 0 2px #ffe3e3}
+div.reqFalta,#typePick.reqFalta,#ledPick.reqFalta,#ledWPick.reqFalta,#caixaPick.reqFalta{border:1.5px dashed #ffa8a8;border-radius:12px;padding:6px}
+.reqAviso{margin:8px 0;padding:8px 12px;border:1.5px solid #ffa8a8;background:#fff5f5;color:#c92a2a;border-radius:10px;font-size:13.5px;font-weight:700}
+.reqAviso.pisca{animation:reqPisca .9s ease 2}@keyframes reqPisca{50%{background:#ffc9c9}}`;document.head.appendChild(st)})();
+
+/* ================= CONFERÊNCIA DA FP COM O PEDIDO (OS) =================
+   Ao "Salvar item": lê tudo o que está na FP do componente (textos de todas as folhas, inclusive as FPs em branco
+   preenchidas à mão, e a RM) e compara com o descritivo do item na OS importada.
+   1) regras fixas (medidas, quantidade, LED, temperatura, códigos de cor, material/espessura, profundidade, iluminação)
+   2) leitura pela IA (quando o sistema está aberto pelo claude.ai), que aponta contradições no texto livre.
+   Divergência não bloqueia: mostra a lista e deixa "Corrigir" ou "Salvar mesmo assim". O item ganha um selo no pedido. */
+const CONF_N=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/\s+/g,' ');
+function confBuild(tipo){try{return({letra:typeof lDoc!=='undefined'?lDoc:null,placa:typeof plBuild!=='undefined'?plBuild:null,adesivo:typeof adBuild!=='undefined'?adBuild:null,totem:typeof ttBuild!=='undefined'?ttBuild:null,branco:typeof brBuild!=='undefined'?brBuild:null,
+  bobs:typeof bobsBuild!=='undefined'?bobsBuild:null,bobscomp:typeof bobsBuild!=='undefined'?bobsBuild:null,bobscant:typeof bobsBuild!=='undefined'?bobsBuild:null,bobstela:typeof bobsBuild!=='undefined'?bobsBuild:null,
+  testeira:typeof tBuild!=='undefined'?tBuild:null,estrutura:typeof dBuild!=='undefined'?dBuild:null,modelo3d:typeof mBuild!=='undefined'?mBuild:null})[tipo]||null}catch(e){return null}}
+// todo o texto da FP do componente (folhas + RM)
+function confTextoFP(tipo){const B=confBuild(tipo);const pages=B&&B.pages||[];if(!pages.length)return null;const out=[];
+  const walk=x=>{if(!x)return;if(Array.isArray(x)){x.forEach(walk);return}if(typeof x==='object'){if(typeof x.s==='string'&&x.s.trim())out.push(x.s);if(Array.isArray(x.linhas))x.linhas.forEach(walk);if(Array.isArray(x.cells))x.cells.forEach(walk)}};
+  pages.forEach(walk);try{(matUlt||[]).forEach(r=>out.push(`RM: ${r.desc||''} — ${r.q??''} ${r.un||''}`))}catch(e){}
+  const seen=new Set();return out.map(s=>String(s).trim()).filter(s=>s&&!seen.has(s)&&seen.add(s)).join('\n')}
+// quantidade e medidas do componente (onde o tipo tem)
+function confQtd(tipo){const v=s=>{const e=$(s);return e?num(e.value):0};return({letra:v('#lQtd'),placa:v('#plUn'),adesivo:v('#adUn'),totem:v('#ttUn'),testeira:v('#tUn'),estrutura:v('#dUn'),modelo3d:v('#mQt'),bobs:v('#bUn'),bobscomp:v('#bcUn')})[tipo]||0}
+function confMed(tipo){try{if(tipo==='letra'&&lDoc&&lDoc.orig){const b=bbox(lDoc.orig);return[b.w,b.h]}const v=s=>{const e=$(s);return e?num(e.value):0};
+  if(tipo==='placa')return[v('#plL'),v('#plA')];if(tipo==='adesivo')return[v('#adL'),v('#adA')];if(tipo==='totem'){const w=v('#ttPL'),h=v('#ttH');return w&&h?[w,h]:null}
+  if(tipo==='testeira'&&typeof tFaces!=='undefined'&&tFaces&&tFaces[0])return[+tFaces[0].W||0,+tFaces[0].H||0]}catch(e){}return null}
+// "1,20 x 0,30 m", "120x30cm", "1200 x 300 mm" → [mm, mm]
+function confMedOS(txt){const t=CONF_N(txt).replace(/(\d)\.(\d{3})(?!\d)/g,'$1$2');const m=t.match(/(\d+(?:[.,]\d+)?)\s*(MM|CM|M)?\s*[X×]\s*(\d+(?:[.,]\d+)?)\s*(MM|CM|M)?\b/);if(!m)return null;
+  const un=m[4]||m[2]||'';const f=(v,u)=>{const x=+v.replace(',','.');u=u||un;if(u==='MM')return x;if(u==='CM')return x*10;if(u==='M')return x*1000;return /[.,]/.test(v)&&x<50?x*1000:x>=100?x:x*10};return[f(m[1],m[2]),f(m[3],m[4])]}
+const CONF_MAT=[['ACM',/\bACM\b/],['ACRÍLICO',/ACRILIC/],['PVC',/\bPVC\b/],['IMPRESSÃO 3D / PETG',/PETG|IMPRESS[AO]+ 3D|IMPRESSA EM 3D/],['CHAPA GALVANIZADA',/GALVANIZ/],['INOX',/\bINOX/],['MDF',/\bMDF\b/],['LONA',/\bLONA\b/],['ADESIVO',/ADESIV/],['METALON',/METALON/],['ALUMÍNIO',/ALUMINIO/],['VIDRO',/\bVIDRO\b/]];
+function confRegras(o,tipo,F){const T=CONF_N([o.titulo,o.desc,o.med].join(' ')),FF=CONF_N(F);const TM=T.replace(/\(\s*REF[^)]*\)/g,' ').replace(/\bREF\.?\s*(DE COR\s*)?[A-Z0-9 ]{0,30}/g,' ');const R=[];const add=(campo,pedido,fp,st,nota)=>R.push({campo,pedido,fp,st,nota:nota||''});
+  // medidas
+  {const mo=confMedOS(o.med)||confMedOS(o.desc)||confMedOS(o.titulo);const mf=confMed(tipo);if(mo&&mf&&mf[0]>0&&mf[1]>0){const tol=(a,b)=>Math.abs(a-b)<=Math.max(15,0.03*Math.max(a,b));const ok=(tol(mo[0],mf[0])&&tol(mo[1],mf[1]))||(tol(mo[0],mf[1])&&tol(mo[1],mf[0]));
+    add('Medidas',`${f0(mo[0])} × ${f0(mo[1])} mm`,`${f0(mf[0])} × ${f0(mf[1])} mm`,ok?'ok':'div',ok?'':'diferença maior que 3% (ou 15 mm)')}}
+  // quantidade
+  {const qf=confQtd(tipo),qo=+o.q||0;if(qf>0&&qo>0){const ok=qf===qo;add('Quantidade',String(qo),String(qf),ok?'ok':'div',ok?'':'se o item tem vários componentes, confira se este é só uma parte')}}
+  // LED
+  {const semLuzOS=/SEM (ILUMINA|LED|LUZ)/.test(T),luzOS=!semLuzOS&&/\bLED\b|ILUMINAD|LUMINOS|BACKLIGHT|HALO|RETROILUMIN/.test(T);const luzFP=/\bLED\b|ELETRICA/.test(FF)&&!/SEM LED/.test(FF);
+    if(semLuzOS||luzOS){const ok=luzOS===luzFP;add('Iluminação (LED)',semLuzOS?'sem iluminação':'com LED',luzFP?'com LED':'sem LED',ok?'ok':'div')}
+    const kOS=(T.match(/(\d{4,5})\s*K\b/)||[])[1]||(/BRANCO FRIO|LUZ FRIA/.test(T)?'6500':/BRANCO QUENTE|LUZ QUENTE|AMARELAD/.test(T)?'3000':/NEUTR/.test(T)?'4000':'');
+    if(kOS&&luzFP){const kf=(FF.match(/(\d{1,2}[.]?\d{3})\s*K\b/)||[])[1];const kF=kf?kf.replace('.',''):'';const ok=!!kF&&Math.abs(+kF-+kOS)<=500;add('Temperatura do LED',kOS+' K',kF?kF+' K':'não encontrada na FP',ok?'ok':'div')}
+    if(/HALO|BACKLIGHT|LUZ (NA|PARA A) PAREDE/.test(T)){const ok=/HALO/.test(FF);add('Tipo de iluminação','halo (luz na parede)',ok?'halo':'não é halo na FP',ok?'ok':'div')}}
+  // códigos de cor
+  {const cods=[...new Set([...(T.match(/\bRAL\s*\d{4}\b/g)||[]),...(T.match(/\bPANTONE\s*\d{3,4}\s*[A-Z]{0,2}\b/g)||[])].map(s=>s.replace(/\s+/g,' ').trim()))];
+    cods.forEach(c=>{const num=c.match(/\d{3,4}/)[0];const ok=new RegExp('(RAL|PANTONE|PMS)?\\s*'+num+'\\b').test(FF);add('Cor',c,ok?c:'código não aparece na FP',ok?'ok':'div')})}
+  // material e espessura
+  const ESP=re=>new RegExp(re.source+'[A-Z ]{0,8}?\\b(\\d{1,2}(?:[.,]\\d)?)\\s*MM','g');
+  CONF_MAT.forEach(([nome,re])=>{if(!re.test(TM))return;const ok=re.test(FF);
+    const eo=([...TM.matchAll(ESP(re))][0]||[])[1];
+    if(!ok){add('Material',`${nome}${eo?' '+eo+' mm':''}`,'não aparece na FP','div','pode estar em outro componente do item');return}
+    if(eo){const ef=[...FF.matchAll(ESP(re))].map(m=>m[1]);const okE=ef.some(v=>+v.replace(',','.')===+eo.replace(',','.'));
+      add('Material / espessura',`${nome} ${eo} mm`,ef.length?`${nome} ${[...new Set(ef)].join(', ')} mm`:`${nome} (espessura não encontrada)`,okE?'ok':'div')}else add('Material',nome,nome,'ok')});
+  // profundidade da caixa
+  {const m=T.match(/PROFUNDIDADE\s*(?:DE\s*)?(\d+(?:[.,]\d+)?)\s*(CM|MM)/)||T.match(/(\d+(?:[.,]\d+)?)\s*(CM|MM)\s*DE PROFUNDIDADE/);if(m&&tipo==='letra'&&selCaixa){const po=+m[1].replace(',','.')*(m[2]==='CM'?10:1);const ok=Math.abs(po-selCaixa)<=2;add('Profundidade',`${f0(po)} mm`,`${selCaixa} mm`,ok?'ok':'div')}}
+  return R}
+async function confIA(o,F){const sample=window.claude&&claude.use?await claude.use('sample').catch(()=>null):null;if(!sample)return{indisp:true,itens:[]};
+  const prompt=`Você confere fichas de produção (FP) de uma empresa de comunicação visual contra o pedido do cliente.
+ITEM ${o.n} DO PEDIDO (OS):
+Título: ${o.titulo||''}
+Medidas: ${o.med||''}
+Quantidade: ${o.q||''}
+Descrição: ${o.desc||''}
+
+TEXTO DA FP DESTE COMPONENTE (todas as folhas e a RM):
+"""
+${String(F).slice(0,14000)}
+"""
+
+Aponte só o que a FP CONTRADIZ ou deixa de atender no pedido: medidas, quantidades, cores e códigos, materiais e espessuras, iluminação (LED, temperatura, halo/frontal), acabamento, pintura, fixação/instalação, textos da arte. Atenção: um item do pedido pode ter vários componentes (ex.: letras + estrutura); não marque como divergência algo que simplesmente pode estar em outro componente — nesse caso use "atencao". Não invente: só use o que está escrito.
+Responda SÓ com JSON: {"itens":[{"campo":"...","pedido":"o que o pedido diz","fp":"o que a FP diz","situacao":"ok|divergente|atencao","nota":"curta"}]} — no máximo 12 itens, os mais importantes primeiro, em português.`;
+  const r=await sample([{role:'user',content:prompt}],{modelTier:'complex',cache:false});let t=(r&&r.text||'').trim();const a=t.indexOf('{'),b=t.lastIndexOf('}');if(a<0||b<0)throw new Error('a resposta da IA não veio em JSON');
+  const J=JSON.parse(t.slice(a,b+1));return{itens:(J.itens||[]).map(x=>({campo:String(x.campo||''),pedido:String(x.pedido||''),fp:String(x.fp||''),st:/diverg/i.test(x.situacao)?'div':/aten/i.test(x.situacao)?'aten':'ok',nota:String(x.nota||'')}))}}
+function confOS(n){const L=(pedAtual&&pedAtual.osItens)||[];let o=L.find(i=>+i.n===+n);if(o&&o.grupo&&+o.grupo!==+n)o=L.find(i=>+i.n===+o.grupo)||o;return o||null}
+// selo do item na lista do pedido
+function confSelo(it){const c=it&&it.conf;if(!c)return '';const m={ok:['✓ conferido com o pedido','#2b8a3e','#d3f9d8'],div:['⚠ divergência com o pedido','#c92a2a','#ffe3e3'],semos:['sem pedido para conferir','#868e96','#f1f3f5'],semfp:['não conferido (FP não gerada)','#e67700','#fff3bf']}[c.st];if(!m)return '';
+  return ` <span title="${esc((c.itens||[]).filter(x=>x.st!=='ok').map(x=>`${x.campo}: pedido ${x.pedido} × FP ${x.fp}`).join('\n'))}" style="display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;font-size:11.5px;font-weight:700;color:${m[1]};background:${m[2]}">${m[0]}${c.st==='div'&&c.n?` (${c.n})`:''}</span>`}
+let confUlt=null;
+function confModal(html,botoes){let ov=$('#confOv');if(!ov){ov=document.createElement('div');ov.id='confOv';ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:14px';document.body.appendChild(ov)}
+  ov.innerHTML=`<div style="background:#fff;border-radius:14px;max-width:820px;width:100%;max-height:88vh;overflow:auto;padding:18px 18px 14px;box-shadow:0 10px 40px rgba(0,0,0,.3)">${html}<div class="row" style="gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap">${botoes.map((b,i)=>`<button type="button" class="btn ${b.cls||'ghost'}" data-confb="${i}">${esc(b.t)}</button>`).join('')}</div></div>`;ov.hidden=false;
+  ov.querySelectorAll('[data-confb]').forEach(el=>el.onclick=()=>{const b=botoes[+el.dataset.confb];ov.hidden=true;b.fn&&b.fn()})}
+function confTabela(L){if(!L.length)return '<p class="note">Nada para comparar.</p>';const cor={ok:'#2b8a3e',div:'#c92a2a',aten:'#e67700'},ic={ok:'✓',div:'⚠',aten:'?'};
+  return `<table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="background:#f1f3f5"><th style="text-align:left;padding:5px">Ponto</th><th style="text-align:left;padding:5px">No pedido</th><th style="text-align:left;padding:5px">Na FP</th></tr>${L.map(x=>`<tr style="border-top:1px solid #e9ecef"><td style="padding:5px;font-weight:700;color:${cor[x.st]}">${ic[x.st]} ${esc(x.campo)}</td><td style="padding:5px">${esc(x.pedido)}</td><td style="padding:5px">${esc(x.fp)}${x.nota?`<div class="note" style="margin:2px 0 0">${esc(x.nota)}</div>`:''}</td></tr>`).join('')}</table>`}
+async function confRodar(tipo,salvar){const n=Math.max(1,Math.round(num($('#item').value))||1);const o=confOS(n);
+  if(!o){confUlt={st:'semos',em:Date.now()};return salvar()}
+  const F=confTextoFP(tipo);
+  if(!F){confModal(`<h3 style="margin:0 0 6px">Conferência com o pedido — item ${n}</h3><p>A FP deste componente ainda não foi gerada, então não dá para conferir com o pedido.</p>`,[{t:'Corrigir (gerar a FP antes)'},{t:'Salvar sem conferir',cls:'pink',fn:()=>{confUlt={st:'semfp',em:Date.now()};salvar()}}]);return}
+  const R=confRegras(o,tipo,F);let IA={itens:[]},iaMsg='',pulou=false;
+  const cab=`<h3 style="margin:0 0 4px">Conferência com o pedido — item ${n}</h3><div class="note" style="margin:0 0 8px"><b>${esc(o.titulo||'')}</b>${o.med?' • '+esc(o.med):''}${o.q?' • qtd. '+esc(o.q):''}</div>`;
+  confModal(cab+`<h4 style="margin:8px 0 4px">Regras fixas</h4>${confTabela(R)}<h4 style="margin:12px 0 4px">Leitura da IA</h4><p class="note" id="confIaSt">🔎 Lendo o pedido e a FP…</p>`,[{t:'Pular a IA',fn:()=>{pulou=true;fim()}}]);
+  let feito=false;const fim=()=>{if(feito)return;feito=true;const L=[...R,...IA.itens];const div=L.filter(x=>x.st==='div'),at=L.filter(x=>x.st==='aten');
+    const st=div.length?'div':'ok';const reg={st,n:div.length,itens:L,ia:pulou?'pulada':iaMsg||'ok',em:Date.now()};
+    if(!div.length&&!at.length){confUlt=reg;salvar();return}
+    confModal(cab+`<div class="msg ${div.length?'err':'ok'}" style="margin:6px 0">${div.length?`⚠ ${div.length} divergência(s) entre o pedido e a FP.`:'Nenhuma divergência — só pontos para dar uma olhada.'}</div><h4 style="margin:8px 0 4px">Regras fixas</h4>${confTabela(R)}<h4 style="margin:12px 0 4px">Leitura da IA</h4>${pulou?'<p class="note">Pulada.</p>':iaMsg&&iaMsg!=='ok'?`<p class="note">${esc(iaMsg)}</p>`:confTabela(IA.itens)}`,
+      [{t:'Corrigir'},{t:div.length?'Salvar mesmo assim':'Salvar',cls:'pink',fn:()=>{confUlt={...reg,aceito:true};salvar()}}])};
+  try{IA=await confIA(o,F);if(IA.indisp)iaMsg='IA indisponível nesta visualização (abra o sistema pelo link no claude.ai para a leitura da IA). Valeram só as regras fixas.'}catch(e){console.error('conferência IA',e);iaMsg='A IA não respondeu: '+e.message+'. Valeram só as regras fixas.'}
+  if(!pulou)fim()}
+// "Salvar item" passa pela conferência antes
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.isbBtn');if(!b||b.dataset.confOk==='1')return;const tipo=typeof tipoDaAba==='function'?tipoDaAba():null;if(!tipo)return;
+  e.preventDefault();e.stopImmediatePropagation();confUlt=null;confRodar(tipo,()=>{b.dataset.confOk='1';try{b.click()}finally{b.dataset.confOk=''}})},true);
 
 renderTypes();renderLogo();initStore();
 
